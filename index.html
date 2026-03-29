@@ -88,6 +88,7 @@
         <div class="container nav-flex">
             <ul>
                 <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
                 <li><a href="#events">Upcoming</a></li>
                 <li><a href="#playlists">Music</a></li>
                 <li><a href="#join">Join</a></li>
@@ -96,11 +97,27 @@
         </div>
     </nav>
 
+    <section id="about">
+        <div class="container">
+            <h2>The Collective</h2>
+            <div style="max-width: 850px; line-height: 1.8;">
+                <p style="font-size: 1.3rem; color: var(--vinyl-orange); font-weight: bold; margin-bottom: 25px;">
+                    A community for music lovers, record collectors, and hi-fi enthusiasts in South Queensferry.
+                </p>
+                <p>
+                    The Queensferry Music Collective (QMC) was founded on a simple principle: music is a shared experience. Whether you’re a lifelong crate digger, a casual listener, or just looking for a better soundtrack to your night, you’re welcome here.
+                </p>
+                <p>
+                    We host regular meetups at <strong>Los Hermanos Pícaros</strong> to spin vinyl, talk gear and gigs, and swap recommendations. No pretension—just great tunes and local community.
+                </p>
+            </div>
+        </div>
+    </section>
+
     <section class="poster-section" id="events">
         <div class="container">
             <h2>Upcoming Nights</h2>
             <img src="events.png" alt="Events Calendar" class="poster-image">
-            
             <div id="event-container">
                 <p>Spinning the decks... loading events.</p>
             </div>
@@ -110,6 +127,7 @@
     <section id="playlists">
         <div class="container">
             <h2>The Music</h2>
+            <p>Listen to our collaborative playlists:</p>
             <div id="playlist-container" style="display: flex; flex-wrap: wrap; gap: 5px;"></div>
         </div>
     </section>
@@ -117,19 +135,26 @@
     <section id="join" style="text-align: center; padding: 100px 0;">
         <div class="container">
             <h2>Get Involved</h2>
-            <a href="https://www.facebook.com/share/g/18iS5o58EB/?mibextid=wwXIfr" class="btn btn-facebook" target="_blank">JOIN THE FACEBOOK GROUP</a>
+            <p style="font-size: 1.2rem; margin-bottom: 40px; color: var(--text-dim);">Stay updated, suggest themes, and chat gear in our Facebook group.</p>
+            
+            <a href="https://www.facebook.com/share/g/18iS5o58EB/?mibextid=wwXIfr" class="btn btn-facebook" target="_blank">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 10px;">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+                JOIN THE FACEBOOK GROUP
+            </a>
         </div>
     </section>
 
     <footer>
-        <p>© 2026 QUEENSFERRY MUSIC COLLECTIVE</p>
+        <p>© 2026 QUEENSFERRY MUSIC COLLECTIVE | SOUTH QUEENSFERRY, SCOTLAND</p>
     </footer>
 
     <script>
         async function initQMC() {
             try {
-                // IMPORTANT: Ensure data.json is in the same folder!
                 const response = await fetch('./data.json');
+                if (!response.ok) throw new Error('Data file not found');
                 const data = await response.json();
                 
                 // Render Events
@@ -151,21 +176,23 @@
                     </div>
                 `).join('');
 
-                // Render Playlists
+                // Render Playlists (Restoring Spotify Icon)
                 const playlistContainer = document.getElementById('playlist-container');
                 playlistContainer.innerHTML = data.playlists.map(pl => `
                     <a href="${pl.url}" class="btn btn-spotify" target="_blank">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="margin-right:10px;">
+                            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.485 17.303c-.215.353-.674.464-1.027.249-2.812-1.718-6.352-2.107-10.52-1.154-.404.092-.81-.16-.902-.564-.092-.403.16-.81.564-.902 4.564-1.043 8.484-.6 11.635 1.323.353.215.464.674.25 1.028zm1.464-3.26c-.27.44-.847.58-1.287.31-3.218-1.977-8.125-2.55-11.93-1.396-.496.15-1.022-.128-1.173-.625-.15-.495.128-1.02.625-1.17 4.343-1.317 9.754-.668 13.454 1.6 0 .44-.14.996-.31 1.436.31 1.39-.31 1.31zm.126-3.41c-3.858-2.29-10.212-2.503-13.886-1.387-.59.18-1.22-.155-1.4-.745-.18-.59.155-1.22.745-1.4 4.22-1.28 11.235-1.026 15.65 1.595.53.315.706 1 .39 1.53-.31.53-1 .705-1.53.39-.03-.02-.03-.02-.03-.02z"/>
+                        </svg>
                         ${pl.name}
                     </a>
                 `).join('');
 
             } catch (err) {
-                console.error("Data fetch failed:", err);
-                document.getElementById('event-container').innerHTML = "<p>Unable to load events. Check your data.json file.</p>";
+                console.error("QMC Init failed:", err);
             }
         }
 
-        // Theme Toggle Logic
+        // Theme Toggle Persistence
         const toggleBtn = document.getElementById('theme-toggle');
         if (localStorage.getItem('theme') === 'light') document.body.setAttribute('data-theme', 'light');
 
