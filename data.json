@@ -1,0 +1,30 @@
+{
+  "events": [
+    {
+      "id": 1,
+      "date": "Thursday 7th May @ 19:00",
+      "title": "May Get Together",
+      "location": "Upstairs at Los Hermanos Pícaros",
+      "description": "Our regular relaxed meet. Good company, good chat, and a chance to enjoy the Vinyl Menu. Bring a record along to play for the group!",
+      "subtext": "PS. If you’re into new vinyl hauls, favorite records, and gear talk, this is the night.",
+      "image": "technics_night1.jpg",
+      "isSpecial": false
+    },
+    {
+      "id": 2,
+      "date": "Thursday 18th June @ 19:00",
+      "title": "QMC Summer Party",
+      "location": "Full Bar Takeover",
+      "description": "A bit bigger. Very much community-focused. We have the entire upstairs bar at Los Hermanos. Party atmosphere, upbeat soundtrack.",
+      "tagline": "Expect: Funk • Soul • New Wave • Indie • House • Disco • Motown • Balearic • Leftfield",
+      "image": "night2_party.jpg",
+      "isSpecial": true
+    }
+  ],
+  "playlists": [
+    { "name": "QMC - Party Picks", "url": "http://spotify.com/0" },
+    { "name": "QMC - New and Notable", "url": "http://spotify.com/1" },
+    { "name": "QMC - Los Hermanos Nights", "url": "http://spotify.com/2" },
+    { "name": "QMC - Members Classics", "url": "http://spotify.com/3" }
+  ]
+}
