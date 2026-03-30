@@ -22,9 +22,9 @@
     }
   ],
   "playlists": [
-    { "name": "QMC - Add Your Party Picks!", "url": "https://open.spotify.com/playlist/4yK4e9spfKy5d185nAvTyh?si=X3rDmaW_RrOW6Ypqg_y-oA&pt=b1eeb7cb49d09db85b7b86ed3ab36fdf&pi=yaf9Am-ZQyyoA" },
+    { "name": "QMC - Add Your Party Picks for Vinyl Tapas!", "url": "https://open.spotify.com/playlist/4yK4e9spfKy5d185nAvTyh?si=X3rDmaW_RrOW6Ypqg_y-oA&pt=b1eeb7cb49d09db85b7b86ed3ab36fdf&pi=yaf9Am-ZQyyoA" },
     { "name": "QMC - New and Notable", "url":  "https://open.spotify.com/playlist/4GnWY3GRzn2evIF2de5gAp?si=_GawpusTRsW9Zz098v_Syg&pt=141e9f4a85af62b6a62de36fdff8e6d5&pi=w2tgTA3hRayHJ"},
-    { "name": "QMC - Los Hermanos Nights", "url": "https://open.spotify.com/playlist/6fRQLuqUxcXCgekTO5Lq1H?si=LQI9Sw19QcaxVQSvpun_kg&pi=iMFR3t5rSPWDY1" },
+    { "name": "QMC - Picks from previous Los Hermanos Nights", "url": "https://open.spotify.com/playlist/6fRQLuqUxcXCgekTO5Lq1H?si=LQI9Sw19QcaxVQSvpun_kg&pi=iMFR3t5rSPWDY1" },
     { "name": "QMC - Members Classics", "url": "https://open.spotify.com/playlist/3n5WQyLxxhTK7JuzSTLoPp?si=IXIVcKLsTamwruSia2HmTA&pi=twIUL36aTqCGD" }
   ]
 }
