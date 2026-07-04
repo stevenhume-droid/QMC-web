@@ -165,6 +165,30 @@
         <p>© 2026 QUEENSFERRY MUSIC COLLECTIVE | SOUTH QUEENSFERRY, SCOTLAND</p>
     </footer>
 
+    <script id="qmc-data" type="application/json">
+        {
+            "events": [
+                {
+                    "id": 1,
+                    "date": "Thursday 30th July @ 19:00",
+                    "title": "May Get Together",
+                    "location": "Upstairs at Los Hermanos Pícaros",
+                    "description": "Our regular relaxed meet. Good company, good chat, and a chance to enjoy the Vinyl Menu. Bring a record along to play for the group!",
+                    "subtext": "PS. If you’re into new vinyl hauls, favorite records, and gear talk, this is the night.",
+                    "image": "technics_night1.jpg",
+                    "isSpecial": false
+                }
+            ],
+            "playlists": [
+                { "name": "QMC - Add Your Party Picks for Vinyl Tapas!", "url": "https://open.spotify.com/playlist/4yK4e9spfKy5d185nAvTyh?si=X3rDmaW_RrOW6Ypqg_y-oA&pt=b1eeb7cb49d09db85b7b86ed3ab36fdf&pi=yaf9Am-ZQyyoA" },
+                { "name": "QMC - New and Notable", "url": "https://open.spotify.com/playlist/4GnWY3GRzn2evIF2de5gAp?si=_GawpusTRsW9Zz098v_Syg&pt=141e9f4a85af62b6a62de36fdff8e6d5&pi=w2tgTA3hRayHJ" },
+                { "name": "QMC - Picks from previous Los Hermanos Nights", "url": "https://open.spotify.com/playlist/6fRQLuqUxcXCgekTO5Lq1H?si=LQI9Sw19QcaxVQSvpun_kg&pi=iMFR3t5rSPWDY1" },
+                { "name": "QMC - Members Classics", "url": "https://open.spotify.com/playlist/3n5WQyLxxhTK7JuzSTLoPp?si=IXIVcKLsTamwruSia2HmTA&pi=twIUL36aTqCGD" },
+                { "name": "QMC - Mixed Tapas", "url": "https://open.spotify.com/playlist/3OLxpOcPI4meYK4XI15cjN?si=nNQTO--MRFu9VawXKb--gQ" }
+            ]
+        }
+    </script>
+
     <script>
         const body = document.body;
         const toggleBtn = document.getElementById('theme-toggle');
@@ -186,13 +210,28 @@
 
         // Dynamic Content Initialization
         async function initQMC() {
+            const eventContainer = document.getElementById('event-container');
+            const playlistContainer = document.getElementById('playlist-container');
+
             try {
-                const response = await fetch('./data.json');
-                if (!response.ok) throw new Error('Data file not found');
-                const data = await response.json();
-                
+                let data = null;
+                const dataScript = document.getElementById('qmc-data');
+
+                if (dataScript) {
+                    try {
+                        data = JSON.parse(dataScript.textContent);
+                    } catch (err) {
+                        console.warn('Inline QMC data could not be parsed', err);
+                    }
+                }
+
+                if (!data) {
+                    const response = await fetch('./data.json', { cache: 'no-store' });
+                    if (!response.ok) throw new Error('Data file not found');
+                    data = await response.json();
+                }
+
                 // Render Events
-                const eventContainer = document.getElementById('event-container');
                 eventContainer.innerHTML = data.events.map(event => `
                     <div class="night-card" style="${event.isSpecial ? 'border-color: var(--vinyl-orange);' : ''}">
                         <div class="night-card-content">
@@ -211,7 +250,6 @@
                 `).join('');
 
                 // Render Playlists
-                const playlistContainer = document.getElementById('playlist-container');
                 playlistContainer.innerHTML = data.playlists.map(pl => `
                     <a href="${pl.url}" class="btn btn-spotify" target="_blank">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="margin-right:10px;">
@@ -222,7 +260,9 @@
                 `).join('');
 
             } catch (err) {
-                console.error("QMC Init failed:", err);
+                console.error('QMC Init failed:', err);
+                eventContainer.innerHTML = '<p>Unable to load event details right now.</p>';
+                playlistContainer.innerHTML = '<p>Unable to load playlists right now.</p>';
             }
         }
 
