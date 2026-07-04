@@ -71,24 +71,13 @@
 
         /* --- HEADERS --- */
         header { 
-            background: #ffffff; /* Blend color for white background */
+            background: #ffffff; /* White background for header image */
             text-align: center; 
             position: relative;
             overflow: hidden;
-            transition: background-color 0.4s;
         }
         [data-theme="dark"] header {
-            background: transparent;
-        }
-        header::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 80px;
-            background: linear-gradient(to top, var(--bg-color), transparent);
-            pointer-events: none;
+            background: #ffffff;
         }
         .hero-image { 
             width: 100%; 
@@ -96,12 +85,6 @@
             display: block; 
             margin: 0 auto; 
             max-width: 1200px; 
-            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);
-            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);
-        }
-        
-        [data-theme="dark"] .hero-image {
-            filter: invert(0.95) hue-rotate(180deg) brightness(0.85) contrast(1.1);
         }
         
         .poster-section { 
