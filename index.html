@@ -516,9 +516,47 @@
             }
         }
 
+        /* --- HAMBURGER MENU --- */
+        .hamburger {
+            display: none;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: var(--text-main);
+        }
+
+        .hamburger svg {
+            display: block;
+        }
+
         @media (max-width: 768px) {
+            .hamburger {
+                display: block;
+            }
+
             nav ul {
                 display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--nav-bg);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                flex-direction: column;
+                padding: 20px 5%;
+                gap: 16px;
+                border-bottom: 1px solid var(--border-color);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            }
+
+            nav ul.mobile-open {
+                display: flex;
+            }
+
+            nav {
+                position: sticky;
             }
 
             .container {
@@ -567,7 +605,14 @@
 
     <nav>
         <div class="container nav-flex">
-            <ul>
+            <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
+            <ul id="nav-links">
                 <li><a href="#home">Home</a></li>
                 <li><a href="#about">About</a></li>
                 <li><a href="#events">Upcoming</a></li>
@@ -757,6 +802,21 @@
                 body.setAttribute('data-theme', 'dark');
                 localStorage.setItem('theme', 'dark');
             }
+        });
+
+        // Hamburger Menu Toggle
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const navLinks = document.getElementById('nav-links');
+
+        hamburgerBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('mobile-open');
+        });
+
+        // Close menu when a link is tapped
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('mobile-open');
+            });
         });
 
         // Dynamic Content Initialization
