@@ -1,3 +1,6 @@
+This updated version replaces the inline search field with a sleek popup search modal that features full album cover thumbnail previews in the search results dropdown.
+All slot aperture sizes and poster dimensions remain identical, while clicking any empty slot (or the search button on filled slots) opens a clean search dialog right over the board.
+Single-File Application (my15albums.html)
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -213,7 +216,7 @@
       display: flex;
       justify-content: space-between;
       width: 100%;
-      max-width: 720px;
+      max-width: 700px;
     }
 
     .poster-card {
@@ -321,23 +324,18 @@
       justify-content: center;
       overflow: hidden;
       background: rgba(128, 128, 128, 0.08);
+      cursor: pointer;
       transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
-      padding: 8px;
-      text-align: center;
     }
 
-    .album-slot.searching .slot-art {
-      border: 2px solid var(--ui-accent);
-      background: rgba(0,0,0,0.85);
-      padding: 6px;
+    .album-slot:hover .slot-art {
+      border-color: var(--ui-accent);
     }
 
     .album-slot.filled .slot-art {
       border: none;
       background: transparent;
       box-shadow: 0 4px 12px rgba(0,0,0,0.18);
-      padding: 0;
-      cursor: pointer;
     }
 
     .slot-art img {
@@ -358,48 +356,6 @@
       font-size: 0.68rem;
       opacity: 0.7;
       margin-top: 4px;
-      cursor: pointer;
-    }
-    .slot-search-prompt:hover {
-      color: var(--ui-accent);
-      text-decoration: underline;
-    }
-
-    .slot-search-input {
-      width: 100%;
-      background: #1c1e24;
-      border: 1px solid var(--ui-accent);
-      color: #fff;
-      font-size: 0.72rem;
-      padding: 4px 6px;
-      border-radius: 4px;
-      outline: none;
-      margin-bottom: 4px;
-    }
-
-    .slot-search-results {
-      width: 100%;
-      max-height: 140px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      text-align: left;
-    }
-
-    .slot-result-item {
-      font-size: 0.65rem;
-      background: #2a2d37;
-      padding: 3px 6px;
-      border-radius: 3px;
-      cursor: pointer;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .slot-result-item:hover {
-      background: var(--ui-accent);
-      color: #fff;
     }
 
     .slot-remove {
@@ -471,6 +427,114 @@
     .hidden-input {
       display: none;
     }
+
+    /* Popup Modal Styles */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .modal-card {
+      background: var(--ui-panel);
+      border: 1px solid var(--ui-border);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 520px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--ui-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+    .modal-close:hover {
+      color: var(--ui-text);
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+    }
+
+    .modal-results {
+      max-height: 360px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+    }
+
+    .modal-result-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #14161b;
+      border: 1px solid var(--ui-border);
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.1s;
+    }
+
+    .modal-result-item:hover {
+      border-color: var(--ui-accent);
+      transform: translateY(-1px);
+    }
+
+    .modal-result-thumb {
+      width: 52px;
+      height: 52px;
+      object-fit: cover;
+      border-radius: 4px;
+      background: #000;
+      flex-shrink: 0;
+    }
+
+    .modal-result-info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .modal-result-album {
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .modal-result-artist {
+      font-size: 0.75rem;
+      color: var(--ui-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   </style>
 </head>
 <body>
@@ -478,7 +542,7 @@
   <header class="app-header">
     <div>
       <h1>my<span>15</span>albums</h1>
-      <p>Click any slot on the poster grid to search and add albums directly into that cover space.</p>
+      <p>Click any slot on the poster grid to open the search popup and pick albums with cover previews.</p>
     </div>
     <div id="slotCounter" style="font-weight: 700; font-size: 0.95rem;">0 / 15 Selected</div>
   </header>
@@ -546,7 +610,7 @@
     <!-- Right Poster Preview -->
     <section class="preview-container">
       <div class="board-instructions">
-        <span>Click any slot to search & add • Click filled cover to swap • Drag to reorder</span>
+        <span>Click slot to search & pick cover • Click filled cover to swap • Drag to reorder</span>
         <span>× removes cover</span>
       </div>
 
@@ -567,6 +631,22 @@
     </section>
   </main>
 
+  <!-- Search Modal Popup -->
+  <div id="searchModal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">Search Album for Slot #01</div>
+        <button class="modal-close" id="modalCloseBtn">&times;</button>
+      </div>
+      <div>
+        <input type="text" id="modalSearchInput" placeholder="Type artist or album name..." autofocus />
+      </div>
+      <div id="modalResults" class="modal-results">
+        <div style="color:var(--ui-muted); font-size:0.85rem; text-align:center; padding:24px;">Type above to search the archive.</div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const TOTAL_SLOTS = 15;
 
@@ -581,7 +661,7 @@
 
     let state = {
       slots: Array(TOTAL_SLOTS).fill(null),
-      activeSearchSlot: null,
+      activeModalSlot: null,
       swapSourceIndex: null,
       theme: "paper",
       orientation: "portrait",
@@ -597,14 +677,14 @@
         const jsonStr = decodeURIComponent(escape(atob(window.location.hash.replace("#board=", ""))));
         const parsed = JSON.parse(jsonStr);
         if (parsed && Array.isArray(parsed.slots)) {
-          state = { ...state, ...parsed, swapSourceIndex: null, activeSearchSlot: null };
+          state = { ...state, ...parsed, swapSourceIndex: null, activeModalSlot: null };
         }
       } else {
-        const saved = localStorage.getItem("my15albums_state_v3");
+        const saved = localStorage.getItem("my15albums_state_v4");
         if (saved) {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed.slots) && parsed.slots.length === TOTAL_SLOTS) {
-            state = { ...state, ...parsed, swapSourceIndex: null, activeSearchSlot: null };
+            state = { ...state, ...parsed, swapSourceIndex: null, activeModalSlot: null };
           }
         }
       }
@@ -628,11 +708,17 @@
     const shareUrlBtn = document.getElementById("shareUrlBtn");
     const clearBoardBtn = document.getElementById("clearBoardBtn");
 
+    const searchModal = document.getElementById("searchModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalCloseBtn = document.getElementById("modalCloseBtn");
+    const modalSearchInput = document.getElementById("modalSearchInput");
+    const modalResults = document.getElementById("modalResults");
+
     let uploadTargetIndex = null;
 
     function saveState() {
       try {
-        localStorage.setItem("my15albums_state_v3", JSON.stringify(state));
+        localStorage.setItem("my15albums_state_v4", JSON.stringify(state));
       } catch (e) {}
     }
 
@@ -723,25 +809,17 @@
 
     function createSlotElement(index) {
       const album = state.slots[index];
-      const isSearching = state.activeSearchSlot === index;
-      const isSwapTarget = state.swapSourceIndex === index;
-      
       const slotEl = document.createElement("div");
-      slotEl.className = `album-slot ${album ? "filled" : ""} ${isSearching ? "searching" : ""}`;
+      slotEl.className = `album-slot ${album ? "filled" : ""}`;
       slotEl.draggable = Boolean(album);
 
       const numLabel = String(index + 1).padStart(2, "0");
 
       let innerHTML = `<div class="slot-art">`;
-      if (album && !isSearching) {
+      if (album) {
         innerHTML += `
           <img src="${album.coverUrl}" alt="${escapeHtml(album.title)}" crossorigin="anonymous" />
           <button type="button" class="slot-remove" title="Remove album">×</button>
-        `;
-      } else if (isSearching) {
-        innerHTML += `
-          <input type="text" class="slot-search-input" placeholder="Search album..." autofocus />
-          <div class="slot-search-results"></div>
         `;
       } else {
         innerHTML += `
@@ -754,8 +832,8 @@
       if (state.captionStyle === "under") {
         innerHTML += `
           <div class="slot-caption">
-            <div class="slot-caption-title">${album && !isSearching ? `${numLabel}.${escapeHtml(album.title)}` : `${numLabel}. —`}</div>
-            <div class="slot-caption-artist">${album && !isSearching ? escapeHtml(album.artist) : "Empty Slot"}</div>
+            <div class="slot-caption-title">${album ? `${numLabel}.${escapeHtml(album.title)}` : `${numLabel}. —`}</div>
+            <div class="slot-caption-artist">${album ? escapeHtml(album.artist) : "Empty Slot"}</div>
           </div>
         `;
       }
@@ -774,70 +852,21 @@
       }
 
       const slotArt = slotEl.querySelector(".slot-art");
-      
-      if (isSearching) {
-        const input = slotEl.querySelector(".slot-search-input");
-        const resultsContainer = slotEl.querySelector(".slot-search-results");
-        input.focus();
-
-        input.addEventListener("click", (e) => e.stopPropagation());
-        input.addEventListener("input", async (e) => {
-          const query = e.target.value.trim();
-          if (query.length < 2) {
-            resultsContainer.innerHTML = "";
-            return;
-          }
-          try {
-            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=album&limit=6`);
-            const data = await res.json();
-            resultsContainer.innerHTML = "";
-            if (!data.results) return;
-
-            data.results.forEach(item => {
-              const hiRes = item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "600x600bb") : "";
-              const div = document.createElement("div");
-              div.className = "slot-result-item";
-              div.textContent = `${item.collectionName} — ${item.artistName}`;
-              div.addEventListener("click", (ev) => {
-                ev.stopPropagation();
-                state.slots[index] = {
-                  id: item.collectionId,
-                  title: item.collectionName,
-                  artist: item.artistName,
-                  coverUrl: hiRes
-                };
-                state.activeSearchSlot = null;
-                saveState();
-                renderPoster();
-              });
-              resultsContainer.appendChild(div);
-            });
-          } catch (err) {}
-        });
-
-        input.addEventListener("keydown", (e) => {
-          if (e.key === "Escape") {
-            state.activeSearchSlot = null;
-            renderPoster();
-          }
-        });
-      } else {
-        slotArt.addEventListener("click", () => {
-          if (state.swapSourceIndex !== null && state.swapSourceIndex !== index) {
-            const temp = state.slots[state.swapSourceIndex];
-            state.slots[state.swapSourceIndex] = state.slots[index];
-            state.slots[index] = temp;
-            state.swapSourceIndex = null;
-          } else if (album) {
-            state.swapSourceIndex = state.swapSourceIndex === index ? null : index;
-          } else {
-            state.activeSearchSlot = index;
-            state.swapSourceIndex = null;
-          }
+      slotArt.addEventListener("click", () => {
+        if (state.swapSourceIndex !== null && state.swapSourceIndex !== index) {
+          const temp = state.slots[state.swapSourceIndex];
+          state.slots[state.swapSourceIndex] = state.slots[index];
+          state.slots[index] = temp;
+          state.swapSourceIndex = null;
           saveState();
           renderPoster();
-        });
-      }
+        } else if (album) {
+          // Open search modal to replace or swap
+          openSearchModal(index);
+        } else {
+          openSearchModal(index);
+        }
+      });
 
       slotEl.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", String(index));
@@ -858,6 +887,78 @@
 
       return slotEl;
     }
+
+    function openSearchModal(index) {
+      state.activeModalSlot = index;
+      modalTitle.textContent = `Search Album for Slot #${String(index + 1).padStart(2, "0")}`;
+      modalSearchInput.value = "";
+      modalResults.innerHTML = `<div style="color:var(--ui-muted); font-size:0.85rem; text-align:center; padding:24px;">Type above to search the archive.</div>`;
+      searchModal.style.display = "flex";
+      setTimeout(() => modalSearchInput.focus(), 50);
+    }
+
+    function closeSearchModal() {
+      searchModal.style.display = "none";
+      state.activeModalSlot = null;
+    }
+
+    modalCloseBtn.addEventListener("click", closeSearchModal);
+    searchModal.addEventListener("click", (e) => {
+      if (e.target === searchModal) closeSearchModal();
+    });
+
+    let searchTimeout = null;
+    modalSearchInput.addEventListener("input", (e) => {
+      const query = e.target.value.trim();
+      clearTimeout(searchTimeout);
+      if (query.length < 2) {
+        modalResults.innerHTML = `<div style="color:var(--ui-muted); font-size:0.85rem; text-align:center; padding:24px;">Type at least 2 characters...</div>`;
+        return;
+      }
+      modalResults.innerHTML = `<div style="color:var(--ui-muted); font-size:0.85rem; text-align:center; padding:24px;">Searching iTunes archive...</div>`;
+      
+      searchTimeout = setTimeout(async () => {
+        try {
+          const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=album&limit=15`);
+          const data = await res.json();
+          modalResults.innerHTML = "";
+
+          if (!data.results || data.results.length === 0) {
+            modalResults.innerHTML = `<div style="color:var(--ui-muted); font-size:0.85rem; text-align:center; padding:24px;">No albums found.</div>`;
+            return;
+          }
+
+          data.results.forEach(item => {
+            const hiRes = item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "600x600bb") : "";
+            const div = document.createElement("div");
+            div.className = "modal-result-item";
+            div.innerHTML = `
+              <img src="${hiRes}" class="modal-result-thumb" crossorigin="anonymous" />
+              <div class="modal-result-info">
+                <div class="modal-result-album">${escapeHtml(item.collectionName)}</div>
+                <div class="modal-result-artist">${escapeHtml(item.artistName)} (${item.releaseDate ? item.releaseDate.slice(0,4) : ''})</div>
+              </div>
+            `;
+            div.addEventListener("click", () => {
+              if (state.activeModalSlot !== null) {
+                state.slots[state.activeModalSlot] = {
+                  id: item.collectionId,
+                  title: item.collectionName,
+                  artist: item.artistName,
+                  coverUrl: hiRes
+                };
+                saveState();
+                renderPoster();
+                closeSearchModal();
+              }
+            });
+            modalResults.appendChild(div);
+          });
+        } catch (err) {
+          modalResults.innerHTML = `<div style="color:var(--ui-accent); font-size:0.85rem; text-align:center; padding:24px;">Network error searching archive.</div>`;
+        }
+      }, 250);
+    });
 
     async function exportPosterPng() {
       downloadBtn.disabled = true;
@@ -1126,7 +1227,7 @@
     clearBoardBtn.addEventListener("click", () => {
       if (confirm("Clear all 15 album slots?")) {
         state.slots = Array(TOTAL_SLOTS).fill(null);
-        state.activeSearchSlot = null;
+        state.activeModalSlot = null;
         state.swapSourceIndex = null;
         saveState();
         renderPoster();
@@ -1138,3 +1239,4 @@
   </script>
 </body>
 </html>
+
