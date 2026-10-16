@@ -568,7 +568,7 @@
   <header class="app-header">
     <div>
       <h1>My<span>qmc</span>15</h1>
-      <p>Curate your 15 essential records using Apple Music/iTunes, Discogs, TheAudioDB & MusicBrainz repositories.</p>
+      <p>Curate your 15 essential records using Apple Music/iTunes, TheAudioDB & MusicBrainz search repositories.</p>
     </div>
     <div id="slotCounter" style="font-weight: 700; font-size: 0.95rem;">0 / 15 Selected</div>
   </header>
@@ -667,13 +667,9 @@
       <div style="display: flex; gap: 8px;">
         <select id="modalSourceSelect" style="font-size: 0.8rem; padding: 6px 8px;">
           <option value="itunes">Repository: Apple Music / iTunes (Fast & Reliable)</option>
-          <option value="discogs">Repository: Discogs Database</option>
-          <option value="theaudiodb">Repository: TheAudioDB</option>
           <option value="musicbrainz">Repository: MusicBrainz (with Cover Art Archive)</option>
+          <option value="theaudiodb">Repository: TheAudioDB</option>
         </select>
-      </div>
-      <div id="discogsTokenRow" style="display: none; gap: 6px;">
-        <input type="text" id="modalDiscogsToken" placeholder="Optional: Discogs User Token..." style="font-size: 0.78rem; padding: 6px;" />
       </div>
       <div>
         <input type="text" id="modalSearchInput" placeholder="Type artist or album name..." autofocus />
@@ -707,8 +703,7 @@
       handle: "",
       rowCount: 3,
       rowHeaders: ["Row 1 · Electronic / Ambient", "Row 2 · Indie / Guitar", "Row 3 · Jazz / Soul"],
-      searchSource: "itunes",
-      discogsToken: localStorage.getItem("myqmc15_discogs_token") || ""
+      searchSource: "itunes"
     };
 
     try {
@@ -752,14 +747,10 @@
     const modalTitle = document.getElementById("modalTitle");
     const modalCloseBtn = document.getElementById("modalCloseBtn");
     const modalSourceSelect = document.getElementById("modalSourceSelect");
-    const discogsTokenRow = document.getElementById("discogsTokenRow");
-    const modalDiscogsToken = document.getElementById("modalDiscogsToken");
     const modalSearchInput = document.getElementById("modalSearchInput");
     const modalResults = document.getElementById("modalResults");
 
     modalSourceSelect.value = state.searchSource;
-    modalDiscogsToken.value = state.discogsToken;
-    discogsTokenRow.style.display = state.searchSource === "discogs" ? "flex" : "none";
 
     let uploadTargetIndex = null;
 
@@ -972,15 +963,9 @@
 
     modalSourceSelect.addEventListener("change", (e) => {
       state.searchSource = e.target.value;
-      discogsTokenRow.style.display = state.searchSource === "discogs" ? "flex" : "none";
       if (modalSearchInput.value.trim().length >= 2) {
         performSearch(modalSearchInput.value.trim());
       }
-    });
-
-    modalDiscogsToken.addEventListener("input", (e) => {
-      state.discogsToken = e.target.value.trim();
-      localStorage.setItem("myqmc15_discogs_token", state.discogsToken);
     });
 
     let searchTimeout = null;
@@ -1008,46 +993,6 @@
             coverUrl: item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "200x200bb") : "",
             hiResUrl: item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "600x600bb") : ""
           })));
-        } else if (state.searchSource === "discogs") {
-          let url = `https://api.discogs.com/database/search?q=${encodeURIComponent(query)}&type=release&per_page=15`;
-          const headers = { "User-Agent": "Myqmc15/1.0 +https://github.com/myqmc15" };
-          if (state.discogsToken) {
-            headers["Authorization"] = `Discogs token=${state.discogsToken}`;
-          }
-          const res = await fetch(url, { headers });
-          const data = await res.json();
-          
-          renderResults((data.results || []).map(item => {
-            let title = item.title || "";
-            let artist = "Unknown Artist";
-            if (title.includes(" - ")) {
-              const parts = title.split(" - ");
-              artist = parts[0].trim();
-              title = parts.slice(1).join(" - ").trim();
-            }
-            artist = artist.replace(/\s\(\d+\)$/, "");
-            let img = item.cover_image && !item.cover_image.includes("spacer.gif") ? item.cover_image : (item.thumb || "");
-
-            return {
-              id: item.id,
-              title,
-              artist,
-              year: item.year || "",
-              coverUrl: img,
-              hiResUrl: img
-            };
-          }));
-        } else if (state.searchSource === "theaudiodb") {
-          const res = await fetch(`https://www.theaudiodb.com/api/v1/json/2/searchalbum.php?s=${encodeURIComponent(query)}`);
-          const data = await res.json();
-          renderResults((data.album || []).map(item => ({
-            id: item.idAlbum,
-            title: item.strAlbum,
-            artist: item.strArtist,
-            year: item.intYearReleased || "",
-            coverUrl: item.strAlbumThumb ? item.strAlbumThumb + "/preview" : "",
-            hiResUrl: item.strAlbumThumb || ""
-          })));
         } else if (state.searchSource === "musicbrainz") {
           const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(query)}&fmt=json&limit=15`, {
             headers: { "User-Agent": "Myqmc15/1.0 ( https://github.com/myqmc15 )" }
@@ -1070,6 +1015,17 @@
               hiResUrl
             };
           }));
+        } else if (state.searchSource === "theaudiodb") {
+          const res = await fetch(`https://www.theaudiodb.com/api/v1/json/2/searchalbum.php?s=${encodeURIComponent(query)}`);
+          const data = await res.json();
+          renderResults((data.album || []).map(item => ({
+            id: item.idAlbum,
+            title: item.strAlbum,
+            artist: item.strArtist,
+            year: item.intYearReleased || "",
+            coverUrl: item.strAlbumThumb ? item.strAlbumThumb + "/preview" : "",
+            hiResUrl: item.strAlbumThumb || ""
+          })));
         }
       } catch (err) {
         modalResults.innerHTML = `<div style="color:var(--ui-accent); font-size:0.85rem; text-align:center; padding:24px;">Error searching repository.</div>`;
