@@ -997,7 +997,7 @@
       modalResults.innerHTML = `<div style="color:var(--ui-muted); font-size:0.85rem; text-align:center; padding:24px;">Searching ${state.searchSource}...</div>`;
       try {
         if (state.searchSource === "musicbrainz") {
-          const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(query)}&fmt=json&limit=15`, {
+          const res = await fetch(`http://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(query)}&fmt=json&limit=15`, {
             headers: { "User-Agent": "My15AlbumsApp/1.0 (contact@my15albums.local)" }
           });
           const data = await res.json();
