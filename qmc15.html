@@ -718,7 +718,7 @@
           state = { ...state, ...parsed, swapSourceIndex: null, activeModalSlot: null };
         }
       } else {
-        const saved = localStorage.getItem("my15albums_state_v6");
+        const saved = localStorage.getItem("my15albums_state_v7");
         if (saved) {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed.slots) && parsed.slots.length === TOTAL_SLOTS) {
@@ -764,7 +764,7 @@
 
     function saveState() {
       try {
-        localStorage.setItem("my15albums_state_v6", JSON.stringify(state));
+        localStorage.setItem("my15albums_state_v7", JSON.stringify(state));
       } catch (e) {}
     }
 
@@ -1011,12 +1011,15 @@
           })));
         } else if (state.searchSource === "discogs") {
           let url = `https://api.discogs.com/database/search?q=${encodeURIComponent(query)}&type=release&per_page=15`;
-          const headers = { "User-Agent": "My15AlbumsApp/1.0" };
+          const headers = { 
+            "User-Agent": "My15AlbumsApp/1.0 +https://github.com/my15albums"
+          };
           if (state.discogsToken) {
             headers["Authorization"] = `Discogs token=${state.discogsToken}`;
           }
           const res = await fetch(url, { headers });
           const data = await res.json();
+          
           renderResults((data.results || []).map(item => {
             let title = item.title || "";
             let artist = "Unknown Artist";
@@ -1026,13 +1029,16 @@
               title = parts.slice(1).join(" - ").trim();
             }
             artist = artist.replace(/\s\(\d+\)$/, "");
+            
+            let img = item.cover_image && !item.cover_image.includes("spacer.gif") ? item.cover_image : (item.thumb || "");
+
             return {
               id: item.id,
               title,
               artist,
               year: item.year || "",
-              coverUrl: item.cover_image || "",
-              hiResUrl: item.cover_image || ""
+              coverUrl: img,
+              hiResUrl: img
             };
           }));
         } else if (state.searchSource === "theaudiodb") {
@@ -1275,7 +1281,7 @@
     gridOrientationSelect.addEventListener("change", (e) => {
       state.orientation = e.target.value;
       if (state.orientation === "genre-rows") {
-        state.rowCount = 3; // default to 3 rows of 5 (15 slots)
+        state.rowCount = 3; 
         state.rowHeaders = state.rowHeaders || ["Row 1", "Row 2", "Row 3"];
         updateRowConfigUI();
       }
