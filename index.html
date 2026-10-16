@@ -4,10 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
+    <meta name="description" content="Queensferry Music Collective — a friendly community for music lovers, record collectors and hi-fi fans in South Queensferry. Vinyl nights, playlists and more.">
     <title>Queensferry Music Collective | South Queensferry, Scotland</title>
+    <script>
+        // Apply saved theme before paint to avoid a light-mode flash
+        if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -596,12 +598,67 @@
                 gap: 30px;
             }
         }
+
+        /* --- MYQMC15 PROMO --- */
+        .myqmc-promo {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 40px;
+            align-items: center;
+            background: linear-gradient(135deg, var(--card-bg), rgba(139, 28, 28, 0.06));
+            border: 1.5px solid var(--border-color);
+            border-radius: 12px;
+            padding: 45px;
+        }
+
+        .myqmc-promo p {
+            color: var(--text-dim);
+            margin-bottom: 25px;
+        }
+
+        .myqmc-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+
+        .myqmc-grid span {
+            aspect-ratio: 1;
+            border-radius: 3px;
+            background: var(--brand-maroon);
+            opacity: 0.15;
+            animation: myqmc-pulse 3s ease-in-out infinite;
+        }
+
+        .myqmc-grid span:nth-child(3n) { background: var(--brand-navy); animation-delay: 0.6s; }
+        .myqmc-grid span:nth-child(4n) { animation-delay: 1.2s; }
+        .myqmc-grid span:nth-child(5n+2) { animation-delay: 1.8s; }
+
+        @keyframes myqmc-pulse {
+            0%, 100% { opacity: 0.15; }
+            50% { opacity: 0.55; }
+        }
+
+        .nav-highlight {
+            color: var(--brand-maroon) !important;
+        }
+
+        @media (max-width: 768px) {
+            .myqmc-promo {
+                grid-template-columns: 1fr;
+                padding: 25px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .myqmc-grid span { animation: none; }
+        }
     </style>
 </head>
 
 <body>
 
-    <header id="home"><img src="header_new.png?v=2" alt="Collective Header" class="hero-image"></header>
+    <header id="home"><img src="header_new.png?v=2" alt="Queensferry Music Collective" class="hero-image" fetchpriority="high"></header>
 
     <nav>
         <div class="container nav-flex">
@@ -617,10 +674,11 @@
                 <li><a href="#about">About</a></li>
                 <li><a href="#events">Upcoming</a></li>
                 <li><a href="#playlists">Music</a></li>
+                <li><a href="myqmc15.html" class="nav-highlight">MyQMC15</a></li>
                 <li><a href="#join">Join</a></li>
             </ul>
             <div style="display:flex; align-items:center; gap:20px;">
-                <a href="https://www.facebook.com/share/g/18iS5o58EB/?mibextid=wwXIfr" target="_blank"
+                <a href="https://www.facebook.com/share/g/18iS5o58EB/?mibextid=wwXIfr" target="_blank" rel="noopener"
                     class="nav-social-link" title="Join us on Facebook">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                         <path
@@ -709,7 +767,7 @@
     <section class="poster-section" id="events">
         <div class="container">
             <h2>Upcoming Nights</h2>
-            <img src="events.png?v=2" alt="Events Calendar" class="poster-image">
+            <img src="events.png?v=2" alt="Events Calendar" class="poster-image" loading="lazy">
             <div id="event-container">
                 <p>Spinning the decks... loading events.</p>
             </div>
@@ -724,6 +782,24 @@
         </div>
     </section>
 
+    <section id="myqmc15">
+        <div class="container">
+            <div class="myqmc-promo">
+                <div>
+                    <h2>My QMC 15</h2>
+                    <p class="lead-text">The 15 albums that made you.</p>
+                    <p>Build your own poster of the records that shaped your taste. Search covers, sort them by genre, pick a theme, then download a PNG or share a link with the group.</p>
+                    <a href="myqmc15.html" class="btn btn-map" style="margin-left:0;">Create Your 15 →</a>
+                </div>
+                <div class="myqmc-grid" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section id="request">
         <div class="container" style="text-align: center;">
             <h2>Song Requests</h2>
@@ -732,7 +808,7 @@
                 Have a favorite track you'd love to hear spun on vinyl or added to the rotation? Let us know!
             </p>
             <a href="https://docs.google.com/forms/d/e/1FAIpQLSeqVH0Y_jfxXn16SPdZD_dinc7gC8jTfbavUgmL6ToMHosUxA/viewform"
-                class="btn btn-map" target="_blank">
+                class="btn btn-map" target="_blank" rel="noopener">
                 Request Song Here
             </a>
         </div>
@@ -747,7 +823,7 @@
             </p>
 
             <a href="https://www.facebook.com/share/g/18iS5o58EB/?mibextid=wwXIfr" class="btn btn-facebook"
-                target="_blank">
+                target="_blank" rel="noopener">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 10px;">
                     <path
                         d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
@@ -761,47 +837,16 @@
         <p>© 2026 QUEENSFERRY MUSIC COLLECTIVE | SOUTH QUEENSFERRY, SCOTLAND</p>
     </footer>
 
-    <script id="qmc-data" type="application/json">
-        {
-            "events": [
-                {
-                    "id": 1,
-                    "date": "Thursday 30th July @ 19:00",
-                    "title": "July Get Together",
-                    "location": "Upstairs at Los Hermanos Pícaros",
-                    "description": "Our regular relaxed meet. Good company, good chat, and a chance to enjoy the Vinyl Menu. Bring a record along to play for the group!",
-                    "subtext": "PS. If you’re into new vinyl hauls, favorite records, and gear talk, this is the night.",
-                    "image": "technics_night1.jpg",
-                    "isSpecial": false
-                }
-            ],
-            "playlists": [
-                { "name": "QMC - Picks from previous Los Hermanos Nights", "url": "https://open.spotify.com/playlist/6fRQLuqUxcXCgekTO5Lq1H?si=LQI9Sw19QcaxVQSvpun_kg&pi=iMFR3t5rSPWDY1" },
-                { "name": "QMC - Members Classics", "url": "https://open.spotify.com/playlist/3n5WQyLxxhTK7JuzSTLoPp?si=IXIVcKLsTamwruSia2HmTA&pi=twIUL36aTqCGD" },
-                { "name": "New and Notable tracks - updated weekly!", "url": "https://open.spotify.com/playlist/4GnWY3GRzn2evIF2de5gAp?si=5Oq_M3ntQQOKDybyVIY_RA" },
-                { "name": "Album of the year - 2026!", "url": "https://open.spotify.com/playlist/7Modx4e5GS1pOdbqDDBPnH?si=_k7dq26HSNy8DDvG4dzxNQ&pt=6f0e2df808aab3ccd029d092c475df9c" },
-                { "name": "QMC - Mixed Tapas Los Hermanos tracks 18/06/2026", "url": "https://open.spotify.com/playlist/3OLxpOcPI4meYK4XI15cjN?si=nNQTO--MRFu9VawXKb--gQ" }
-            ]
-        }
-    </script>
-
+    <!-- Events & playlists live in data.json - edit that file only. -->
     <script>
-        const body = document.body;
+        const root = document.documentElement;
         const toggleBtn = document.getElementById('theme-toggle');
 
-        // Theme Toggle Persistence Logic
-        if (localStorage.getItem('theme') === 'dark') {
-            body.setAttribute('data-theme', 'dark');
-        }
-
         toggleBtn.addEventListener('click', () => {
-            if (body.getAttribute('data-theme') === 'dark') {
-                body.removeAttribute('data-theme');
-                localStorage.setItem('theme', 'light');
-            } else {
-                body.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
-            }
+            const dark = root.getAttribute('data-theme') !== 'dark';
+            if (dark) root.setAttribute('data-theme', 'dark');
+            else root.removeAttribute('data-theme');
+            localStorage.setItem('theme', dark ? 'dark' : 'light');
         });
 
         // Hamburger Menu Toggle
@@ -809,71 +854,85 @@
         const navLinks = document.getElementById('nav-links');
 
         hamburgerBtn.addEventListener('click', () => {
-            navLinks.classList.toggle('mobile-open');
+            const open = navLinks.classList.toggle('mobile-open');
+            hamburgerBtn.setAttribute('aria-expanded', open);
         });
 
         // Close menu when a link is tapped
-        navLinks.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                navLinks.classList.remove('mobile-open');
-            });
+        navLinks.addEventListener('click', (e) => {
+            if (e.target.closest('a')) navLinks.classList.remove('mobile-open');
         });
 
-        // Dynamic Content Initialization
+        const esc = (s = '') => String(s).replace(/[&<>"']/g, c =>
+            ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+        // "2026-11-05T19:00" -> "Thursday 5th November @ 19:00"
+        function formatEventDate(d) {
+            const day = d.getDate();
+            const suffix = (day % 100 >= 11 && day % 100 <= 13) ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[day % 10] || 'th');
+            const weekday = d.toLocaleDateString('en-GB', { weekday: 'long' });
+            const month = d.toLocaleDateString('en-GB', { month: 'long' });
+            const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            const year = d.getFullYear() !== new Date().getFullYear() ? ` ${d.getFullYear()}` : '';
+            return `${weekday} ${day}${suffix} ${month}${year} @ ${time}`;
+        }
+
+        function renderEvent(event) {
+            const dateText = event._date ? formatEventDate(event._date) : (event.date || 'Date TBC');
+            const link = event.link
+                ? `<a href="${esc(event.link)}" class="btn btn-map" target="_blank" rel="noopener" style="margin:20px 0 0;">${esc(event.linkText || 'More info')}</a>`
+                : '';
+            return `
+                <div class="night-card" style="${event.isSpecial ? 'box-shadow: 0 0 25px rgba(139, 28, 28, 0.15); border-color: var(--brand-maroon);' : ''}">
+                    <div class="night-card-content">
+                        <div>
+                            <div class="event-meta">${esc(dateText)}${event.endTime ? ` – ${esc(event.endTime)}` : ''}</div>
+                            <h3>${esc(event.title)}</h3>
+                            <p style="font-size: 1.1rem; font-weight: 500; color: var(--text-main);">@ ${esc(event.location)}</p>
+                            ${event.tagline ? `<p class="genre-tagline">${esc(event.tagline)}</p>` : ''}
+                            <p style="margin-top: 15px; color: var(--text-dim);">${esc(event.description)}</p>
+                            ${event.subtext ? `<p style="font-size: 0.9rem; color: var(--brand-maroon); font-weight: 500; margin-top: 15px; border-left: 2px solid var(--brand-maroon); padding-left: 10px;">${esc(event.subtext)}</p>` : ''}
+                            ${link}
+                        </div>
+                        ${event.image ? `
+                        <div class="night-image-container">
+                            <img src="${esc(event.image)}" alt="${esc(event.title)}" class="night-image" loading="lazy">
+                        </div>` : ''}
+                    </div>
+                </div>`;
+        }
+
+        const SPOTIFY_ICON = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="margin-right:10px;"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.485 17.303c-.215.353-.674.464-1.027.249-2.812-1.718-6.352-2.107-10.52-1.154-.404.092-.81-.16-.902-.564-.092-.403.16-.81.564-.902 4.564-1.043 8.484-.6 11.635 1.323.353.215.464.674.25 1.028zm1.464-3.26c-.27.44-.847.58-1.287.31-3.218-1.977-8.125-2.55-11.930-1.396-.496.15-1.022-.128-1.173-.625-.15-.495.128-1.02.625-1.17 4.343-1.317 9.754-.668 13.454 1.6.44.27.58.847.31 1.287zm.126-3.41c-3.858-2.29-10.212-2.503-13.886-1.387-.59.18-1.22-.155-1.4-.745-.18-.59.155-1.22.745-1.4 4.22-1.28 11.235-1.026 15.65 1.595.53.315.706 1 .39 1.53-.31.53-1 .705-1.53.39z"/></svg>`;
+
         async function initQMC() {
             const eventContainer = document.getElementById('event-container');
             const playlistContainer = document.getElementById('playlist-container');
 
             try {
-                let data = null;
-                const dataScript = document.getElementById('qmc-data');
+                const response = await fetch('./data.json', { cache: 'no-cache' });
+                if (!response.ok) throw new Error('data.json not found');
+                const data = await response.json();
 
-                if (dataScript) {
-                    try {
-                        data = JSON.parse(dataScript.textContent);
-                    } catch (err) {
-                        console.warn('Inline QMC data could not be parsed', err);
-                    }
-                }
+                // Upcoming events only, soonest first. Events stay visible until the end of their day.
+                const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
+                const events = (data.events || [])
+                    .map(e => ({ ...e, _date: e.start ? new Date(e.start) : null }))
+                    .filter(e => !e._date || isNaN(e._date) || e._date >= startOfToday)
+                    .map(e => (e._date && isNaN(e._date)) ? { ...e, _date: null } : e)
+                    .sort((a, b) => (a._date || Infinity) - (b._date || Infinity));
 
-                if (!data) {
-                    const response = await fetch('./data.json', { cache: 'no-store' });
-                    if (!response.ok) throw new Error('Data file not found');
-                    data = await response.json();
-                }
+                eventContainer.innerHTML = events.length
+                    ? events.map(renderEvent).join('')
+                    : `<div class="night-card"><h3>Next night coming soon</h3><p style="color: var(--text-dim);">Dates are announced in our <a href="#join">Facebook group</a> first — join to hear about the next one.</p></div>`;
 
-                // Render Events
-                eventContainer.innerHTML = data.events.map(event => `
-                    <div class="night-card" style="${event.isSpecial ? 'box-shadow: 0 0 25px rgba(139, 28, 28, 0.15); border-color: var(--brand-maroon);' : ''}">
-                        <div class="night-card-content">
-                            <div>
-                                <div class="event-meta">${event.date}</div>
-                                <h3>${event.title}</h3>
-                                <p style="font-size: 1.1rem; font-weight: 500; color: var(--text-main);">@ ${event.location}</p>
-                                ${event.tagline ? `<p class="genre-tagline">${event.tagline}</p>` : ''}
-                                <p style="margin-top: 15px; color: var(--text-dim);">${event.description}</p>
-                                ${event.subtext ? `<p style="font-size: 0.9rem; color: var(--brand-maroon); font-weight: 500; margin-top: 15px; border-left: 2px solid var(--brand-maroon); padding-left: 10px;">${event.subtext}</p>` : ''}
-                            </div>
-                            <div class="night-image-container">
-                                <img src="${event.image}" alt="${event.title}" class="night-image">
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-
-                // Render Playlists
-                playlistContainer.innerHTML = data.playlists.map(pl => `
-                    <a href="${pl.url}" class="btn btn-spotify" target="_blank">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="margin-right:10px;">
-                            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.485 17.303c-.215.353-.674.464-1.027.249-2.812-1.718-6.352-2.107-10.52-1.154-.404.092-.81-.16-.902-.564-.092-.403.16-.81.564-.902 4.564-1.043 8.484-.6 11.635 1.323.353.215.464.674.25 1.028zm1.464-3.26c-.27.44-.847.58-1.287.31-3.218-1.977-8.125-2.55-11.93-1.396-.496.15-1.022-.128-1.173-.625-.15-.495.128-1.02.625-1.17 4.343-1.317 9.754-.668 13.454 1.6 0 .44-.14.996-.31 1.436.31 1.39-.31 1.31zm.126-3.41c-3.858-2.29-10.212-2.503-13.886-1.387-.59.18-1.22-.155-1.4-.745-.18-.59.155-1.22.745-1.4 4.22-1.28 11.235-1.026 15.65 1.595.53.315.706 1 .39 1.53-.31.53-1 .705-1.53.39-.03-.02-.03-.02-.03-.02z"/>
-                        </svg>
-                        ${pl.name}
-                    </a>
+                playlistContainer.innerHTML = (data.playlists || []).map(pl => `
+                    <a href="${esc(pl.url)}" class="btn btn-spotify" target="_blank" rel="noopener">${SPOTIFY_ICON}${esc(pl.name)}</a>
                 `).join('');
 
             } catch (err) {
                 console.error('QMC Init failed:', err);
-                eventContainer.innerHTML = '<p>Unable to load event details right now.</p>';
+                const hint = location.protocol === 'file:' ? ' (open via a web server, not as a local file)' : '';
+                eventContainer.innerHTML = `<p>Unable to load event details right now${hint}.</p>`;
                 playlistContainer.innerHTML = '<p>Unable to load playlists right now.</p>';
             }
         }
