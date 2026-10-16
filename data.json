@@ -1,8 +1,8 @@
 {
+  "_help": "EVENTS: add one block per night. 'start' = YYYY-MM-DDTHH:MM (24h). Past events hide automatically the day after. Optional: tagline, subtext, image, isSpecial, link, linkText, endTime.",
   "events": [
     {
-      "id": 1,
-      "date": "Thursday 5th November @ 19:00",
+      "start": "2026-11-05T19:00",
       "title": "QMC Social",
       "location": "Upstairs at Los Hermanos Pícaros",
       "description": "Our regular relaxed meet. Good company, good chat, and a chance to enjoy the Vinyl Menu. Bring a record along to play for the group!",
@@ -10,7 +10,7 @@
       "image": "technics_night1.jpg",
       "isSpecial": false
     }
-     ],
+  ],
   "playlists": [
     { "name": "QMC - Picks from previous Los Hermanos Nights", "url": "https://open.spotify.com/playlist/6fRQLuqUxcXCgekTO5Lq1H?si=LQI9Sw19QcaxVQSvpun_kg&pi=iMFR3t5rSPWDY1" },
     { "name": "QMC - Members Classics", "url": "https://open.spotify.com/playlist/3n5WQyLxxhTK7JuzSTLoPp?si=IXIVcKLsTamwruSia2HmTA&pi=twIUL36aTqCGD" },
