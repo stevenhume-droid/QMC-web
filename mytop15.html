@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>my15albums — Curation & Genre-Per-Row Edition</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ui-bg: #111215;
+      --ui-panel: #191b20;
+      --ui-card: #131519;
+      --ui-border: #2a2e37;
+      --ui-text: #f3f4f6;
+      --ui-muted: #9ca3af;
+      --ui-accent: #e07a5f;
+      --ui-accent-hover: #eb8c73;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--ui-bg);
+      color: var(--ui-text);
+      min-height: 100vh;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #131519;
+      border-radius: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #2f3440;
+      border-radius: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #e07a5f;
+    }
+
+    .poster-card {
+      width: 100%;
+      max-width: 700px;
+      border-radius: 6px;
+      padding: 34px 30px 30px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+      transition: background-color 0.25s ease, color 0.25s ease, max-width 0.25s ease;
+      user-select: none;
+    }
+
+    .poster-card.landscape {
+      max-width: 920px;
+    }
+
+    @media (max-width: 640px) {
+      .poster-card {
+        padding: 20px 16px;
+      }
+    }
+
+    .album-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .poster-card.landscape .album-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .album-slot {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    .slot-art {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border: 1.5px dashed rgba(128, 128, 128, 0.42);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: rgba(128, 128, 128, 0.08);
+      transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+    }
+
+    .album-slot:hover .slot-art {
+      transform: translateY(-2px);
+    }
+
+    .album-slot.target-slot .slot-art {
+      border: 2px solid var(--ui-accent);
+      box-shadow: 0 0 0 3px rgba(224, 122, 95, 0.3);
+    }
+
+    .album-slot.swap-slot .slot-art {
+      border: 2px solid #38bdf8;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.35);
+    }
+
+    .album-slot.filled .slot-art {
+      border-style: solid;
+      border-width: 0;
+      background: rgba(0, 0, 0, 0.18);
+      box-shadow: 0 5px 14px rgba(0, 0, 0, 0.22);
+    }
+
+    .slot-art img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .slot-remove {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 24px;
+      height: 24px;
+      border-radius: 9999px;
+      background: rgba(15, 17, 21, 0.82);
+      color: #fff;
+      font-size: 0.85rem;
+      line-height: 1;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      z-index: 10;
+      transition: background 0.15s;
+    }
+
+    .slot-remove:hover {
+      background: #dc2626;
+    }
+
+    .album-slot.filled:hover .slot-remove {
+      display: flex;
+    }
+
+    .genre-row-header {
+      grid-column: 1 / -1;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      opacity: 0.75;
+      padding-top: 8px;
+      padding-bottom: 2px;
+      border-bottom: 1px solid currentColor;
+      margin-top: 4px;
+    }
+    .genre-row-header:first-child {
+      margin-top: 0;
+      padding-top: 0;
+    }
+  </style>
+</head>
+<body class="p-4 sm:p-6 lg:p-8">
+
+  <!-- Shared Board Banner -->
+  <div id="sharedBanner" class="hidden max-w-[1400px] mx-auto mb-5 bg-amber-950/60 border border-amber-500/40 text-amber-200 px-4 py-3 rounded-xl flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-2.5 text-sm">
+      <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+      <span id="sharedBannerText" class="font-medium">Viewing a shared 15-album board from URL link. Any edits you make are saved locally.</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="exitSharedBtn" type="button" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/30 transition">
+        Clear URL Hash
+      </button>
+    </div>
+  </div>
+
+  <!-- Top App Header -->
+  <header class="max-w-[1400px] mx-auto mb-6 pb-4 border-b border-[#2a2e37] flex flex-wrap justify-between items-baseline gap-4">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+          my<span class="text-[#e07a5f]">15</span>albums
+        </h1>
+        <span class="mono text-[11px] uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-[#1f2229] border border-[#2f3440] text-gray-300">
+          Curation &amp; Genre Row Edition
+        </span>
+      </div>
+      <p class="text-sm text-gray-400 mt-1">
+        Curate by All-Time, Genre, Decade, or Genre-per-Row, search multi-source crates, and share your vinyl poster.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <div id="slotCounter" class="mono text-sm font-bold px-3.5 py-1.5 rounded-lg bg-[#191b20] border border-[#2a2e37] text-gray-200">
+        0 / 15 Selected
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-[460px_1fr] gap-7 items-start">
+
+    <!-- Left Controls Column -->
+    <section class="bg-[#191b20] border border-[#2a2e37] rounded-2xl p-5 flex flex-col gap-6 shadow-xl">
+
+      <!-- Curation Mode Selector -->
+      <div class="flex flex-col gap-3 bg-[#131519] border border-[#2a2e37] p-3.5 rounded-xl">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-gray-300">Curation Mode</span>
+          <span class="mono text-[10px] text-[#e07a5f] bg-[#e07a5f]/10 px-2 py-0.5 rounded">Smart Builder</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5" id="curationModeTabs">
+          <button type="button" data-mode="free" class="curation-tab py-2 px-2 rounded-lg text-xs font-semibold transition text-center bg-[#e07a5f] text-white">
+            Free Curation
+          </button>
+          <button type="button" data-mode="all" class="curation-tab py-2 px-2 rounded-lg text-xs font-semibold transition text-center text-gray-400 hover:text-white">
+            By All
+          </button>
+          <button type="button" data-mode="genre" class="curation-tab py-2 px-2 rounded-lg text-xs font-semibold transition text-center text-gray-400 hover:text-white">
+            By Genre
+          </button>
+          <button type="button" data-mode="decade" class="curation-tab py-2 px-2 rounded-lg text-xs font-semibold transition text-center text-gray-400 hover:text-white">
+            By Decade
+          </button>
+        </div>
+
+        <!-- Sub-options for Genre or Decade -->
+        <div id="genreSubOptions" class="hidden flex flex-col gap-2 pt-2 border-t border-[#2a2e37]">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-400">Select Genre Focus</span>
+            <label class="flex items-center gap-1.5 text-xs text-gray-300 cursor-pointer">
+              <input type="checkbox" id="genrePerRowCheckbox" class="rounded bg-[#111317] border-[#2a2e37] text-[#e07a5f] focus:ring-0" />
+              <span class="font-semibold text-amber-300">Genre-Per-Row Layout (3 Rows)</span>
+            </label>
+          </div>
+          <div class="flex flex-wrap gap-1.5" id="genrePillsContainer"></div>
+        </div>
+
+        <div id="decadeSubOptions" class="hidden flex flex-col gap-2 pt-2 border-t border-[#2a2e37]">
+          <span class="text-xs text-gray-400">Select Decade Focus</span>
+          <div class="flex flex-wrap gap-1.5" id="decadePillsContainer"></div>
+        </div>
+
+        <div id="autoGenerateBox" class="hidden pt-2 border-t border-[#2a2e37] flex items-center justify-between gap-2">
+          <span id="autoGenStatus" class="text-xs text-gray-400">Ready to auto-populate 15 records.</span>
+          <button type="button" id="autoGenerateBtn" class="bg-[#e07a5f] hover:bg-[#eb8c73] text-white text-xs font-bold px-3 py-2 rounded-lg transition whitespace-nowrap">
+            Generate 15 Albums ⚡
+          </button>
+        </div>
+      </div>
+
+      <!-- 1. Search & Source Switcher -->
+      <div id="manualSearchSection" class="flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-gray-400">1. Crate Search</span>
+          <span id="activeSlotIndicator" class="mono text-xs font-semibold text-[#e07a5f]">Target: Slot #01</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-1.5 bg-[#121317] p-1 rounded-xl border border-[#2a2e37]">
+          <button type="button" data-source="itunes" class="source-tab py-2 px-2 rounded-lg text-xs font-semibold transition text-center bg-[#e07a5f] text-white">
+            iTunes Archive
+          </button>
+          <button type="button" data-source="discogs" class="source-tab py-2 px-2 rounded-lg text-xs font-semibold transition text-center text-gray-400 hover:text-white">
+            Discogs DB
+          </button>
+          <button type="button" data-source="musicbrainz" class="source-tab py-2 px-2 rounded-lg text-xs font-semibold transition text-center text-gray-400 hover:text-white">
+            MusicBrainz
+          </button>
+        </div>
+
+        <div id="discogsAuthDrawer" class="hidden bg-[#131519] border border-[#2a2e37] rounded-xl p-3 text-xs flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-gray-200 flex items-center gap-1.5">
+              <span>Discogs Token</span>
+              <span id="discogsTokenBadge" class="px-1.5 py-0.5 text-[10px] rounded bg-amber-500/20 text-amber-300">Needed for Art</span>
+            </span>
+            <a href="https://www.discogs.com/settings/developers" target="_blank" rel="noopener noreferrer" class="text-[#e07a5f] hover:underline font-medium">
+              Get Token ↗
+            </a>
+          </div>
+          <div class="flex gap-2">
+            <input type="password" id="discogsTokenInput" placeholder="Paste Discogs token..."
+              class="flex-1 bg-[#0e1013] border border-[#2a2e37] rounded-lg px-2.5 py-1.5 text-xs text-gray-100 focus:outline-none focus:border-[#e07a5f]" />
+            <button type="button" id="saveDiscogsTokenBtn" class="px-3 py-1.5 rounded-lg bg-[#262a34] hover:bg-[#313643] text-xs font-semibold text-white transition">
+              Save
+            </button>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <input type="text" id="searchInput" placeholder="Search artist, album, catalog #..."
+            class="flex-1 bg-[#111317] border border-[#2a2e37] rounded-xl px-3.5 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-[#e07a5f]" />
+          <button type="button" id="searchBtn"
+            class="bg-[#e07a5f] hover:bg-[#eb8c73] active:translate-y-px text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition whitespace-nowrap">
+            Search
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between gap-2 pt-0.5">
+          <span id="searchStatus" class="text-xs text-[#e07a5f] leading-snug">Type an album or artist and press Enter.</span>
+          <button type="button" id="openCustomModalBtn"
+            class="bg-[#252830] hover:bg-[#303440] border border-[#343946] text-gray-200 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition whitespace-nowrap">
+            + Custom Cover
+          </button>
+          <input type="file" id="customFileInput" class="hidden" accept="image/*" />
+        </div>
+
+        <div id="searchResults" class="custom-scroll grid grid-cols-3 gap-2.5 max-h-[300px] overflow-y-auto pr-1 empty:hidden"></div>
+      </div>
+
+      <!-- 2. Poster Details & Layout -->
+      <div class="flex flex-col gap-3 pt-2 border-t border-[#2a2e37]">
+        <span class="text-xs font-bold uppercase tracking-wider text-gray-400">2. Poster Details &amp; Layout</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label for="posterTitleInput" class="text-xs text-gray-400">Poster Title</label>
+            <input type="text" id="posterTitleInput" value="The 15 Albums That Made Me"
+              class="bg-[#111317] border border-[#2a2e37] rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-[#e07a5f]" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="posterHandleInput" class="text-xs text-gray-400">Name / @handle</label>
+            <input type="text" id="posterHandleInput" placeholder="@yourhandle"
+              class="bg-[#111317] border border-[#2a2e37] rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-[#e07a5f]" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="gridOrientationSelect" class="text-xs text-gray-400">Grid Orientation</label>
+            <select id="gridOrientationSelect"
+              class="bg-[#111317] border border-[#2a2e37] rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-[#e07a5f]">
+              <option value="portrait">3 × 5 Portrait Poster</option>
+              <option value="landscape">5 × 3 Landscape Crate</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="captionStyleSelect" class="text-xs text-gray-400">Album Titles Display</label>
+            <select id="captionStyleSelect"
+              class="bg-[#111317] border border-[#2a2e37] rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-[#e07a5f]">
+              <option value="under">Under Each Cover</option>
+              <option value="footer">Numbered Footer Index</option>
+              <option value="none">Artwork Only (Clean)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Visual Theme -->
+      <div class="flex flex-col gap-2.5 pt-2 border-t border-[#2a2e37]">
+        <span class="text-xs font-bold uppercase tracking-wider text-gray-400">3. Vinyl Sleeve Theme</span>
+        <div id="themeSelector" class="grid grid-cols-3 gap-2"></div>
+      </div>
+
+      <!-- 4. Shareable URL Link Generator -->
+      <div class="flex flex-col gap-2.5 pt-2 border-t border-[#2a2e37]">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-gray-400">4. Share Board Link</span>
+          <span id="shareUrlStats" class="mono text-[11px] text-gray-400">Instant URL State</span>
+        </div>
+        <div class="flex gap-2">
+          <input type="text" id="shareUrlOutput" readonly placeholder="Click 'Generate & Copy Link'..."
+            class="flex-1 bg-[#111317] border border-[#2a2e37] rounded-lg px-3 py-2 text-xs text-gray-300 mono select-all focus:outline-none focus:border-[#e07a5f]" />
+          <button type="button" id="copyShareLinkBtn"
+            class="bg-[#252830] hover:bg-[#323642] border border-[#383d4b] text-white font-semibold text-xs px-3.5 py-2 rounded-lg transition whitespace-nowrap">
+            Generate &amp; Copy Link
+          </button>
+        </div>
+      </div>
+
+      <!-- 5. High-Res PNG Export & Board Reset -->
+      <div class="flex flex-col gap-2.5 pt-2 border-t border-[#2a2e37]">
+        <span class="text-xs font-bold uppercase tracking-wider text-gray-400">5. Export Poster</span>
+        <div class="flex gap-2.5">
+          <button type="button" id="downloadBtn"
+            class="flex-1 bg-[#e07a5f] hover:bg-[#eb8c73] text-white font-bold text-sm py-2.5 px-4 rounded-xl shadow-lg transition">
+            Download High-Res PNG
+          </button>
+          <button type="button" id="clearBoardBtn"
+            class="bg-[#252830] hover:bg-red-950/60 hover:border-red-500/40 border border-[#323642] text-gray-200 font-semibold text-sm py-2.5 px-4 rounded-xl transition">
+            Clear Board
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Right Poster Preview Column -->
+    <section class="flex flex-col items-center gap-3 w-full overflow-x-auto pb-8">
+      <div class="w-full max-w-[700px] flex flex-wrap justify-between items-center gap-2 text-xs text-gray-400 px-1">
+        <span>Click empty slot to target • Click two covers to swap • Drag covers to reorder</span>
+        <span class="mono text-[11px] text-gray-400">Hover cover for × remove</span>
+      </div>
+
+      <!-- Live Interactive Poster Card -->
+      <div id="posterCard" class="poster-card">
+        <div class="flex justify-between items-center text-[11px] font-bold tracking-[0.14em] uppercase opacity-65 pb-2.5 mb-4 border-b border-current mono">
+          <span>MY15ALBUMS · ARCHIVE EDITION</span>
+          <span>SIDE A/B · 33⅓ RPM · STEREO</span>
+        </div>
+
+        <div class="flex justify-between items-end gap-4 mb-5">
+          <div id="previewTitle" class="text-2xl sm:text-[28px] font-extrabold tracking-tight leading-tight">
+            The 15 Albums That Made Me
+          </div>
+          <div id="previewHandle" class="text-sm font-semibold opacity-75 whitespace-nowrap"></div>
+        </div>
+
+        <div id="albumGrid" class="album-grid"></div>
+        <div id="posterFooterList" class="poster-footer-list" style="display: none;"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modals -->
+  <div id="modalOverlay" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <!-- Custom Upload Modal -->
+    <div id="customCoverModal" class="hidden bg-[#191b20] border border-[#2f3440] rounded-2xl max-w-md w-full p-5 shadow-2xl flex flex-col gap-4">
+      <div class="flex justify-between items-center">
+        <h3 class="text-base font-bold text-white">Add Custom Album Sleeve</h3>
+        <button type="button" id="closeCustomModalBtn" class="text-gray-400 hover:text-white text-lg leading-none">×</button>
+      </div>
+      <div class="flex items-center gap-4">
+        <img id="customCoverPreview" src="https://placehold.co/200x200/131519/9ca3af?text=Cover" alt="Preview"
+          class="w-20 h-20 rounded-lg object-cover border border-[#2a2e37] shrink-0" />
+        <div class="flex flex-col gap-2 flex-1">
+          <button type="button" id="chooseCustomFileBtn"
+            class="bg-[#252830] hover:bg-[#313643] border border-[#383d4b] text-xs font-semibold py-2 px-3 rounded-lg text-white text-left">
+            Choose Local Image File...
+          </button>
+          <span class="text-[11px] text-gray-400">Or paste an external image URL below.</span>
+        </div>
+      </div>
+      <div class="flex flex-col gap-2.5">
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Album Title *</label>
+          <input type="text" id="customTitleInput" placeholder="e.g., Loveless"
+            class="w-full bg-[#111317] border border-[#2a2e37] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#e07a5f]" />
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Artist Name *</label>
+          <input type="text" id="customArtistInput" placeholder="e.g., My Bloody Valentine"
+            class="w-full bg-[#111317] border border-[#2a2e37] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#e07a5f]" />
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Remote Image URL (Optional)</label>
+          <input type="url" id="customUrlInput" placeholder="https://..."
+            class="w-full bg-[#111317] border border-[#2a2e37] rounded-lg px-3 py-2 text-xs text-gray-200 mono focus:outline-none focus:border-[#e07a5f]" />
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" id="cancelCustomModalBtn" class="px-4 py-2 rounded-lg bg-[#252830] text-xs font-semibold text-gray-300 hover:text-white">
+          Cancel
+        </button>
+        <button type="button" id="confirmCustomModalBtn" class="px-4 py-2 rounded-lg bg-[#e07a5f] hover:bg-[#eb8c73] text-xs font-semibold text-white">
+          Add to Slot
+        </button>
+      </div>
+    </div>
+
+    <!-- Clear Board Modal -->
+    <div id="clearConfirmModal" class="hidden bg-[#191b20] border border-[#2f3440] rounded-2xl max-w-sm w-full p-5 shadow-2xl flex flex-col gap-4">
+      <h3 class="text-base font-bold text-white">Clear All 15 Album Slots?</h3>
+      <p class="text-xs text-gray-400 leading-relaxed">
+        This will remove all currently selected albums from your board.
+      </p>
+      <div class="flex justify-end gap-2">
+        <button type="button" id="cancelClearBtn" class="px-4 py-2 rounded-lg bg-[#252830] text-xs font-semibold text-gray-300 hover:text-white">
+          Cancel
+        </button>
+        <button type="button" id="confirmClearBtn" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-xs font-semibold text-white">
+          Yes, Clear Board
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TOTAL_SLOTS = 15;
+    const STORAGE_KEY = "my15albums_state_v3";
+    const DISCOGS_TOKEN_KEY = "my15albums_discogs_token";
+
+    const THEMES = {
+      paper:   { name: "Paper",   bg: "#f4f1ea", text: "#1c1b18", border: "#d8d2c5" },
+      ink:     { name: "Ink",     bg: "#121316", text: "#f3f4f6", border: "#2c2f36" },
+      walnut:  { name: "Walnut",  bg: "#261c15", text: "#f2e6d8", border: "#423226" },
+      sage:    { name: "Sage",    bg: "#dfe5df", text: "#1e2820", border: "#b8c4b8" },
+      groove:  { name: "Groove",  bg: "#1d2230", text: "#e6ebf5", border: "#343d54" },
+      amber:   { name: "Amber",   bg: "#f5e6c8", text: "#2b1d0c", border: "#d9c398" }
+    };
+
+    const GENRES_LIST = [
+      "Electronic", "Hip Hop", "Post-Rock", "Jazz", "Soul / R&B",
+      "Indie Rock", "Ambient", "House / Techno", "Psychedelic", "Synthwave"
+    ];
+
+    const DECADES_LIST = ["1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"];
+
+    let state = {
+      slots: Array(TOTAL_SLOTS).fill(null),
+      targetSlot: 0,
+      swapSourceIndex: null,
+      searchSource: "itunes",
+      curationMode: "free", // 'free' | 'all' | 'genre' | 'decade'
+      selectedGenre: "Electronic",
+      selectedDecade: "1990s",
+      genrePerRow: false,
+      rowGenres: ["Ambient / Electronic", "Jazz & Soul", "Hip Hop & Beats"],
+      theme: "paper",
+      orientation: "portrait",
+      captionStyle: "under",
+      title: "The 15 Albums That Made Me",
+      handle: ""
+    };
+
+    let pendingCustomDataUrl = "";
+
+    // DOM Elements
+    const sharedBanner = document.getElementById("sharedBanner");
+    const sharedBannerText = document.getElementById("sharedBannerText");
+    const exitSharedBtn = document.getElementById("exitSharedBtn");
+
+    const curationModeTabs = document.querySelectorAll(".curation-tab");
+    const genreSubOptions = document.getElementById("genreSubOptions");
+    const decadeSubOptions = document.getElementById("decadeSubOptions");
+    const autoGenerateBox = document.getElementById("autoGenerateBox");
+    const autoGenStatus = document.getElementById("autoGenStatus");
+    const autoGenerateBtn = document.getElementById("autoGenerateBtn");
+    const genrePillsContainer = document.getElementById("genrePillsContainer");
+    const decadePillsContainer = document.getElementById("decadePillsContainer");
+    const genrePerRowCheckbox = document.getElementById("genrePerRowCheckbox");
+    const manualSearchSection = document.getElementById("manualSearchSection");
+
+    const sourceTabs = document.querySelectorAll(".source-tab");
+    const discogsAuthDrawer = document.getElementById("discogsAuthDrawer");
+    const discogsTokenInput = document.getElementById("discogsTokenInput");
+    const discogsTokenBadge = document.getElementById("discogsTokenBadge");
+    const saveDiscogsTokenBtn = document.getElementById("saveDiscogsTokenBtn");
+
+    const searchInput = document.getElementById("searchInput");
+    const searchBtn = document.getElementById("searchBtn");
+    const searchResults = document.getElementById("searchResults");
+    const searchStatus = document.getElementById("searchStatus");
+    const slotCounter = document.getElementById("slotCounter");
+    const activeSlotIndicator = document.getElementById("activeSlotIndicator");
+    const albumGrid = document.getElementById("albumGrid");
+    const posterCard = document.getElementById("posterCard");
+    const posterFooterList = document.getElementById("posterFooterList");
+    const previewTitle = document.getElementById("previewTitle");
+    const previewHandle = document.getElementById("previewHandle");
+    const posterTitleInput = document.getElementById("posterTitleInput");
+    const posterHandleInput = document.getElementById("posterHandleInput");
+    const gridOrientationSelect = document.getElementById("gridOrientationSelect");
+    const captionStyleSelect = document.getElementById("captionStyleSelect");
+    const themeSelector = document.getElementById("themeSelector");
+
+    const shareUrlOutput = document.getElementById("shareUrlOutput");
+    const copyShareLinkBtn = document.getElementById("copyShareLinkBtn");
+    const shareUrlStats = document.getElementById("shareUrlStats");
+
+    const downloadBtn = document.getElementById("downloadBtn");
+    const clearBoardBtn = document.getElementById("clearBoardBtn");
+
+    // Modals
+    const modalOverlay = document.getElementById("modalOverlay");
+    const customCoverModal = document.getElementById("customCoverModal");
+    const openCustomModalBtn = document.getElementById("openCustomModalBtn");
+    const closeCustomModalBtn = document.getElementById("closeCustomModalBtn");
+    const cancelCustomModalBtn = document.getElementById("cancelCustomModalBtn");
+    const confirmCustomModalBtn = document.getElementById("confirmCustomModalBtn");
+    const chooseCustomFileBtn = document.getElementById("chooseCustomFileBtn");
+    const customFileInput = document.getElementById("customFileInput");
+    const customCoverPreview = document.getElementById("customCoverPreview");
+    const customTitleInput = document.getElementById("customTitleInput");
+    const customArtistInput = document.getElementById("customArtistInput");
+    const customUrlInput = document.getElementById("customUrlInput");
+
+    const clearConfirmModal = document.getElementById("clearConfirmModal");
+    const cancelClearBtn = document.getElementById("cancelClearBtn");
+    const confirmClearBtn = document.getElementById("confirmClearBtn");
+
+    // URL Encoding / Decoding
+    function encodeBoardPayload(obj) {
+      const jsonStr = JSON.stringify(obj);
+      const bytes = new TextEncoder().encode(jsonStr);
+      let binString = "";
+      bytes.forEach((b) => { binString += String.fromCharCode(b); });
+      return btoa(binString).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    }
+
+    function decodeBoardPayload(b64url) {
+      let b64 = b64url.replace(/-/g, "+").replace(/_/g, "/");
+      while (b64.length % 4) b64 += "=";
+      const binString = atob(b64);
+      const bytes = new Uint8Array(binString.length);
+      for (let i = 0; i < binString.length; i++) {
+        bytes[i] = binString.charCodeAt(i);
+      }
+      return JSON.parse(new TextDecoder().decode(bytes));
+    }
+
+    function buildShareableUrl() {
+      const compactSlots = state.slots.map((s) => {
+        if (!s) return 0;
+        const isDataUri = s.coverUrl && s.coverUrl.startsWith("data:");
+        return [
+          s.title || "Untitled",
+          s.artist || "Unknown Artist",
+          isDataUri ? "" : (s.coverUrl || ""),
+          s.source || "custom"
+        ];
+      });
+
+      const payload = {
+        v: 3,
+        t: state.title,
+        h: state.handle,
+        th: state.theme,
+        o: state.orientation,
+        c: state.captionStyle,
+        cm: state.curationMode,
+        gpr: state.genrePerRow,
+        rg: state.rowGenres,
+        s: compactSlots
+      };
+
+      const encoded = encodeBoardPayload(payload);
+      const baseUrl = window.location.href.split("#")[0];
+      const fullUrl = `${baseUrl}#board=${encoded}`;
+
+      shareUrlOutput.value = fullUrl;
+      const filledCount = state.slots.filter(Boolean).length;
+      shareUrlStats.textContent = `${filledCount}/15 encoded`;
+      return fullUrl;
+    }
+
+    function tryHydrateFromUrlHash() {
+      const hash = window.location.hash || "";
+      if (!hash.startsWith("#board=")) return false;
+
+      try {
+        const decoded = decodeBoardPayload(hash.slice("#board=".length));
+        if (!decoded || !Array.isArray(decoded.s)) return false;
+
+        state.title = typeof decoded.t === "string" ? decoded.t : state.title;
+        state.handle = typeof decoded.h === "string" ? decoded.h : "";
+        if (decoded.th && THEMES[decoded.th]) state.theme = decoded.th;
+        if (decoded.o === "portrait" || decoded.o === "landscape") state.orientation = decoded.o;
+        if (["under", "footer", "none"].includes(decoded.c)) state.captionStyle = decoded.c;
+        if (decoded.cm) state.curationMode = decoded.cm;
+        if (typeof decoded.gpr === "boolean") state.genrePerRow = decoded.gpr;
+        if (Array.isArray(decoded.rg)) state.rowGenres = decoded.rg;
+
+        state.slots = Array(TOTAL_SLOTS).fill(null).map((_, idx) => {
+          const item = decoded.s[idx];
+          if (!item || !Array.isArray(item)) return null;
+          const [title, artist, coverUrl, source] = item;
+          return {
+            id: `shared_${idx}_${Date.now()}`,
+            title: title || "Untitled",
+            artist: artist || "Unknown Artist",
+            coverUrl: coverUrl || createStylizedSleeveSvgDataUri(title, artist),
+            source: source || "shared"
+          };
+        });
+
+        state.targetSlot = findNextEmptySlot(0);
+        sharedBanner.classList.remove("hidden");
+        const count = state.slots.filter(Boolean).length;
+        sharedBannerText.textContent = `Loaded shared board "${state.title}" (${count}/15 albums).`;
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function createStylizedSleeveSvgDataUri(title = "Untitled", artist = "Unknown Artist") {
+      const safeTitle = escapeXml(title.slice(0, 28));
+      const safeArtist = escapeXml(artist.slice(0, 30));
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
+        <defs>
+          <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#242938"/>
+            <stop offset="100%" stop-color="#11131a"/>
+          </linearGradient>
+        </defs>
+        <rect width="600" height="600" fill="url(#bg)"/>
+        <circle cx="300" cy="275" r="195" fill="#12141c" stroke="#2e354a" stroke-width="3"/>
+        <circle cx="300" cy="275" r="155" fill="none" stroke="#222736" stroke-width="1.5"/>
+        <circle cx="300" cy="275" r="115" fill="none" stroke="#222736" stroke-width="1.5"/>
+        <circle cx="300" cy="275" r="58" fill="#e07a5f"/>
+        <circle cx="300" cy="275" r="12" fill="#12141c"/>
+        <text x="300" y="518" text-anchor="middle" fill="#f3f4f6" font-family="Inter, sans-serif" font-weight="700" font-size="25">${safeTitle}</text>
+        <text x="300" y="552" text-anchor="middle" fill="#9ca3af" font-family="Inter, sans-serif" font-weight="500" font-size="20">${safeArtist}</text>
+      </svg>`;
+      return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+    }
+
+    function escapeXml(s = "") {
+      return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+    }
+
+    function escapeHtml(str = "") {
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {}
+      buildShareableUrl();
+    }
+
+    function loadSavedState() {
+      if (tryHydrateFromUrlHash()) return;
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed.slots) && parsed.slots.length === TOTAL_SLOTS) {
+            state = { ...state, ...parsed, swapSourceIndex: null };
+          }
+        }
+      } catch (e) {}
+    }
+
+    // Curation Mode UI Controller
+    function setCurationMode(mode) {
+      state.curationMode = mode;
+      curationModeTabs.forEach((tab) => {
+        const active = tab.dataset.mode === mode;
+        tab.className = `curation-tab py-2 px-2 rounded-lg text-xs font-semibold transition text-center ${
+          active ? "bg-[#e07a5f] text-white shadow" : "text-gray-400 hover:text-white"
+        }`;
+      });
+
+      if (mode === "genre") {
+        genreSubOptions.classList.remove("hidden");
+        decadeSubOptions.classList.add("hidden");
+        autoGenerateBox.classList.remove("hidden");
+        manualSearchSection.classList.add("hidden");
+        autoGenStatus.textContent = `Auto-curate 15 records in ${state.selectedGenre} (${state.genrePerRow ? "Genre-per-Row" : "Single Genre"}).`;
+      } else if (mode === "decade") {
+        genreSubOptions.classList.add("hidden");
+        decadeSubOptions.classList.remove("hidden");
+        autoGenerateBox.classList.remove("hidden");
+        manualSearchSection.classList.add("hidden");
+        autoGenStatus.textContent = `Auto-curate 15 records from the ${state.selectedDecade}.`;
+      } else if (mode === "all") {
+        genreSubOptions.classList.add("hidden");
+        decadeSubOptions.classList.add("hidden");
+        autoGenerateBox.classList.remove("hidden");
+        manualSearchSection.classList.add("hidden");
+        autoGenStatus.textContent = "Auto-curate 15 iconic all-time records across crates.";
+      } else {
+        genreSubOptions.classList.add("hidden");
+        decadeSubOptions.classList.add("hidden");
+        autoGenerateBox.classList.add("hidden");
+        manualSearchSection.classList.remove("hidden");
+      }
+      saveState();
+      renderPoster();
+    }
+
+    function initCurationUI() {
+      // Genre Pills
+      genrePillsContainer.innerHTML = "";
+      GENRES_LIST.forEach((g) => {
+        const btn = document.createElement("button");
+        const active = state.selectedGenre === g;
+        btn.type = "button";
+        btn.className = `px-2.5 py-1 rounded-lg text-xs font-semibold border transition ${
+          active ? "bg-[#e07a5f] border-[#e07a5f] text-white" : "bg-[#111317] border-[#2a2e37] text-gray-300 hover:border-gray-500"
+        }`;
+        btn.textContent = g;
+        btn.addEventListener("click", () => {
+          state.selectedGenre = g;
+          initCurationUI();
+          saveState();
+        });
+        genrePillsContainer.appendChild(btn);
+      });
+
+      // Decade Pills
+      decadePillsContainer.innerHTML = "";
+      DECADES_LIST.forEach((d) => {
+        const btn = document.createElement("button");
+        const active = state.selectedDecade === d;
+        btn.type = "button";
+        btn.className = `px-2.5 py-1 rounded-lg text-xs font-semibold border transition ${
+          active ? "bg-[#e07a5f] border-[#e07a5f] text-white" : "bg-[#111317] border-[#2a2e37] text-gray-300 hover:border-gray-500"
+        }`;
+        btn.textContent = d;
+        btn.addEventListener("click", () => {
+          state.selectedDecade = d;
+          initCurationUI();
+          saveState();
+        });
+        decadePillsContainer.appendChild(btn);
+      });
+
+      genrePerRowCheckbox.checked = state.genrePerRow;
+    }
+
+    genrePerRowCheckbox.addEventListener("change", (e) => {
+      state.genrePerRow = e.target.checked;
+      saveState();
+      renderPoster();
+    });
+
+    // Curated mock datasets for instant 15-album generation by mode/genre/decade
+    const CURATED_DB = {
+      "Electronic": [
+        {t: "Selected Ambient Works 85-92", a: "Aphex Twin", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/33/c4/47/33c447bc-493f-c3f9-f792-5883ef575294/886444342205.jpg/600x600bb.jpg"},
+        {t: "Discovery", a: "Daft Punk", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/4a/1b/b4/4a1bb4b9-8e2c-35db-50e5-79e496a84cfa/0724384960655.jpg/600x600bb.jpg"},
+        {t: "Music Has the Right to Children", a: "Boards of Canada", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/f7/a2/b5/f7a2b5e2-630e-56e2-20c7-017e84451c24/801061001323.jpg/600x600bb.jpg"},
+        {t: "Untrue", a: "Burial", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/e0/75/cc/e075cc9e-b9e7-497d-6062-8789d3119156/801061014828.jpg/600x600bb.jpg"},
+        {t: "Dummy", a: "Portishead", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/2b/95/6a/2b956a62-4299-1a76-068a-2ea2ed08d17a/mzi.xjwqvxom.jpg/600x600bb.jpg"},
+        {t: "Homework", a: "Daft Punk", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/41/70/4e/41704e9c-4610-d872-c51d-d0d6118314bc/724384260953.jpg/600x600bb.jpg"},
+        {t: "I Care Because You Do", a: "Aphex Twin", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/31/5a/62/315a62aa-9fb8-56f4-dc70-b74c5d6bc0f1/886444342410.jpg/600x600bb.jpg"},
+        {t: "Tri Repetae", a: "Autechre", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/46/64/a3/4664a39b-e85e-f008-db20-91a5e197c310/078148420422.jpg/600x600bb.jpg"},
+        {t: "Syro", a: "Aphex Twin", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/ee/d1/2f/eed12fae-cb99-dfae-b840-023e9810a6a3/887830038805.jpg/600x600bb.jpg"},
+        {t: "Cross", a: "Justice", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/25/11/10/25111000-8488-8250-705a-8b17d2da564b/mzi.cffwqqpc.jpg/600x600bb.jpg"},
+        {t: "The Campfire Headphase", a: "Boards of Canada", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/e5/22/a9/e522a960-84cf-cbcf-cb5a-d9b8979e8cbe/801061012329.jpg/600x600bb.jpg"},
+        {t: "R Plus Seven", a: "Oneohtrix Point Never", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/64/0e/bb/640ebb8c-c2b6-dc76-4d2b-51368b6da2e9/080106110233.jpg/600x600bb.jpg"},
+        {t: "Close to the Edit", a: "Art of Noise", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/36/f6/8c/36f68c34-cb22-26a9-8de6-bcfbc32ef0f9/mzi.qjrwibqq.jpg/600x600bb.jpg"},
+        {t: "Endtroducing.....", a: "DJ Shadow", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/58/01/5e/58015e5d-752e-c357-d336-f0f7cf47948a/00602537617596.rgb.jpg/600x600bb.jpg"},
+        {t: "Symphony or Night", a: "Venetian Snares", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/ab/2a/c3/ab2ac353-8cc2-20c2-e6b7-a89c4ebec58c/artwork.jpg/600x600bb.jpg"}
+      ],
+      "Hip Hop": [
+        {t: "Illmatic", a: "Nas", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/73/40/e0/7340e0c3-f661-8f43-855c-19cdff26543b/886443585030.jpg/600x600bb.jpg"},
+        {t: "To Pimp a Butterfly", a: "Kendrick Lamar", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/4a/bd/d5/4abdd5b1-7442-5f63-3f62-37ca7c9b83e3/mzi.fshryowp.jpg/600x600bb.jpg"},
+        {t: "The Low End Theory", a: "A Tribe Called Quest", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/a4/c8/16/a4c81669-e70d-0348-eefd-2717904e292d/078636642129.jpg/600x600bb.jpg"},
+        {t: "Enter the Wu-Tang (36 Chambers)", a: "Wu-Tang Clan", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/31/58/89/315889e2-570a-4da2-777c-a1147a4f7832/886443653197.jpg/600x600bb.jpg"},
+        {t: "Madvillainy", a: "Madvillain", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/f4/19/d3/f419d3ee-dfcc-b485-69db-4293f9c3f3ea/artwork.jpg/600x600bb.jpg"},
+        {t: "Good Kid, M.A.A.D City", a: "Kendrick Lamar", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/a9/bb/c7/a9bbc7ec-2d88-b2a0-43be-bb07e15ae7c3/12UMGIM30574.rgb.jpg/600x600bb.jpg"},
+        {t: "Ready to Die", a: "The Notorious B.I.G.", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/e5/a0/0b/e5a00b67-e9a6-16f3-1815-4fa2e5c6e866/078636660024.jpg/600x600bb.jpg"},
+        {t: "My Beautiful Dark Twisted Fantasy", a: "Kanye West", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/42/1d/18/421d18f5-9336-d8bb-a14f-6c17dcd899ff/00602527552952.rgb.jpg/600x600bb.jpg"},
+        {t: "Stankonia", a: "OutKast", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/4b/c9/79/4bc97951-417d-2b47-7975-d2279ec31a38/012414419826.jpg/600x600bb.jpg"},
+        {t: "Reasonable Doubt", a: "JAY-Z", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/30/14/a5/3014a51e-3558-fcd1-bb38-4e86a03dd32a/012414159128.jpg/600x600bb.jpg"},
+        {t: "The Miseducation of Lauryn Hill", a: "Lauryn Hill", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/e6/8c/d7/e68cd71b-74d3-1d22-1d07-2a42b10a2f4a/886443657317.jpg/600x600bb.jpg"},
+        {t: "All Eyez on Me", a: "2Pac", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/05/cf/dc/05cfdc13-3efd-88b1-5e8a-be05ec9aa77f/0602537750837.rgb.jpg/600x600bb.jpg"},
+        {t: "Atrocity Exhibition", a: "Danny Brown", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/a5/9b/64/a59b646c-26ee-13e7-ff8c-c9f53e34e565/artwork.jpg/600x600bb.jpg"},
+        {t: "Piñata", a: "Freddie Gibbs & Madlib", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/02/b0/02/02b00222-ea9b-aa93-3d00-4b2cc06e2cf0/artwork.jpg/600x600bb.jpg"},
+        {t: "MM..FOOD", a: "MF DOOM", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/cf/14/07/cf1407e3-05ec-76cd-90ec-ae60ee65d49f/artwork.jpg/600x600bb.jpg"}
+      ],
+      "Jazz": [
+        {t: "Kind of Blue", a: "Miles Davis", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/1e/8a/8d/1e8a8dcc-e7eb-07f9-6577-4475477de147/074646493522.jpg/600x600bb.jpg"},
+        {t: "A Love Supreme", a: "John Coltrane", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/13/2a/39/132a39a2-5882-e3a4-84ae-3b6038933bcf/0602537533031.rgb.jpg/600x600bb.jpg"},
+        {t: "Time Out", a: "The Dave Brubeck Quartet", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/44/e9/8f/44e98f48-a0d7-ee6b-3199-a8684d0b1626/074644058523.jpg/600x600bb.jpg"},
+        {t: "Mingus Ah Um", a: "Charles Mingus", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/35/67/cf/3567cfdb-bfa0-5a39-30df-01d752f924e2/074646571022.jpg/600x600bb.jpg"},
+        {t: "Blue Train", a: "John Coltrane", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/21/df/f5/21dff5c5-23fa-25f0-4a8f-0a0eb47d0e82/0094632128752.jpg/600x600bb.jpg"},
+        {t: "Head Hunters", a: "Herbie Hancock", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/95/8e/31/958e31a8-d9f2-23f2-1b6d-a7fca54cc5b5/074646512322.jpg/600x600bb.jpg"},
+        {t: "In a Silent Way", a: "Miles Davis", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/2e/f1/a0/2ef1a017-bfbe-d456-11f8-0676a0fb4f23/074644058028.jpg/600x600bb.jpg"},
+        {t: "The Black Saint and the Sinner Lady", a: "Charles Mingus", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/b0/72/7e/b0727e5e-63f4-3d02-124b-61019672ff0a/00602537466545.rgb.jpg/600x600bb.jpg"},
+        {t: "Maiden Voyage", a: "Herbie Hancock", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/1b/c2/f7/1bc2f7e4-236b-67a3-cb24-34d284347715/0094633208927.jpg/600x600bb.jpg"},
+        {t: "Bitches Brew", a: "Miles Davis", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/b9/e7/bc/b9e7bce8-cf8c-8515-388e-e314fb7bc3a9/0886975269722.jpg/600x600bb.jpg"},
+        {t: "Idle Moments", a: "Grant Green", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/64/fb/01/64fb013d-5512-c2e7-ef70-349079930e14/0094638253422.jpg/600x600bb.jpg"},
+        {t: "Empyrean Isles", a: "Herbie Hancock", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/eb/fa/d3/ebfad34b-f29e-f00e-660c-25a81fb6384a/0094632126222.jpg/600x600bb.jpg"},
+        {t: "The Sidewinder", a: "Lee Morgan", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/55/e1/92/55e192ef-dff4-938b-d500-11231f24d77d/0094635583622.jpg/600x600bb.jpg"},
+        {t: "Speak No Evil", a: "Wayne Shorter", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/bb/68/de/bb68dee1-0b53-488f-0a0e-92716382a939/0094633209528.jpg/600x600bb.jpg"},
+        {t: "Kamasi Washington - The Epic", a: "Kamasi Washington", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music5/v4/21/cd/72/21cd72d1-2ea3-8fef-9c97-0fc5144b209d/801061019014.jpg/600x600bb.jpg"}
+      ],
+      "All-Time": [
+        {t: "Abbey Road", a: "The Beatles", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/a4/68/d2/a468d2b8-933e-e673-9a3d-fb4967389a9f/094638246822.jpg/600x600bb.jpg"},
+        {t: "Dark Side of the Moon", a: "Pink Floyd", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/9a/c6/63/9ac6630f-b2a6-df9b-714f-8a034293f9ef/886443586020.jpg/600x600bb.jpg"},
+        {t: "Kid A", a: "Radiohead", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/21/fb/6a/21fb6a4e-cf54-47ea-5645-ec7ae4aa4771/634904078262.png/600x600bb.jpg"},
+        {t: "Rumours", a: "Fleetwood Mac", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/29/79/b1/2979b15b-240c-25e4-7d5a-17079ffea244/081227972740.jpg/600x600bb.jpg"},
+        {t: "Thriller", a: "Michael Jackson", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/53/78/34/53783457-37dc-1888-eb28-3e9a59b34383/mzi.xjwqvxom.jpg/600x600bb.jpg"},
+        {t: "Nevermind", a: "Nirvana", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/5a/2a/d8/5a2ad81b-ea0e-bf36-5080-60b70a7b4266/720642442525.jpg/600x600bb.jpg"},
+        {t: "Blonde", a: "Frank Ocean", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/e5/22/a9/e522a960-84cf-cbcf-cb5a-d9b8979e8cbe/801061012329.jpg/600x600bb.jpg"},
+        {t: "OK Computer", a: "Radiohead", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/0d/16/e2/0d16e25f-c567-21a4-94ff-4fc3a5a7b37d/886443685938.jpg/600x600bb.jpg"},
+        {t: "Led Zeppelin IV", a: "Led Zeppelin", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/2d/cc/88/2dcc8864-a692-2b62-16e7-e23a49e6fcf6/081227964332.jpg/600x600bb.jpg"},
+        {t: "Purple Rain", a: "Prince", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/2b/95/6a/2b956a62-4299-1a76-068a-2ea2ed08d17a/mzi.xjwqvxom.jpg/600x600bb.jpg"},
+        {t: "Channel Orange", a: "Frank Ocean", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/4a/1b/b4/4a1bb4b9-8e2c-35db-50e5-79e496a84cfa/0724384960655.jpg/600x600bb.jpg"},
+        {t: "Mezzanine", a: "Massive Attack", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/f7/a2/b5/f7a2b5e2-630e-56e2-20c7-017e84451c24/801061001323.jpg/600x600bb.jpg"},
+        {t: "Discovery", a: "Daft Punk", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/4a/1b/b4/4a1bb4b9-8e2c-35db-50e5-79e496a84cfa/0724384960655.jpg/600x600bb.jpg"},
+        {t: "Illmatic", a: "Nas", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/73/40/e0/7340e0c3-f661-8f43-855c-19cdff26543b/886443585030.jpg/600x600bb.jpg"},
+        {t: "Kind of Blue", a: "Miles Davis", c: "https://images.weserv.nl/?url=https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/1e/8a/8d/1e8a8dcc-e7eb-07f9-6577-4475477de147/074646493522.jpg/600x600bb.jpg"}
+      ]
+    };
+
+    // Fallback generator for other genres/decades if not fully mapped
+    function generateFallbackAlbumsForTopic(topicName) {
+      const list = [];
+      for (let i = 1; i <= 15; i++) {
+        const t = `${topicName} Classic Vol. ${i}`;
+        const a = `The Crate Diggers #${i}`;
+        list.push({
+          id: `auto_${topicName}_${i}_${Date.now()}`,
+          title: t,
+          artist: a,
+          coverUrl: createStylizedSleeveSvgDataUri(t, a),
+          source: "auto"
+        });
+      }
+      return list;
+    }
+
+    function autoPopulateBoard() {
+      let pool = [];
+      if (state.curationMode === "all") {
+        pool = CURATED_DB["All-Time"];
+      } else if (state.curationMode === "genre") {
+        pool = CURATED_DB[state.selectedGenre] || generateFallbackAlbumsForTopic(state.selectedGenre);
+      } else if (state.curationMode === "decade") {
+        pool = generateFallbackAlbumsForTopic(state.selectedDecade);
+      }
+
+      state.slots = pool.slice(0, TOTAL_SLOTS).map((item, idx) => ({
+        id: item.id || `auto_${idx}_${Date.now()}`,
+        title: item.t || item.title,
+        artist: item.a || item.artist,
+        coverUrl: item.c || item.coverUrl,
+        source: item.source || "auto"
+      }));
+
+      state.targetSlot = 0;
+      state.swapSourceIndex = null;
+      saveState();
+      renderPoster();
+      searchStatus.textContent = `Successfully auto-populated 15 albums!`;
+    }
+
+    autoGenerateBtn.addEventListener("click", autoPopulateBoard);
+
+    // Render Poster Board
+    function renderPoster() {
+      const theme = THEMES[state.theme] || THEMES.paper;
+      posterCard.style.backgroundColor = theme.bg;
+      posterCard.style.color = theme.text;
+      posterCard.classList.toggle("landscape", state.orientation === "landscape");
+
+      previewTitle.textContent = state.title || "The 15 Albums That Made Me";
+      previewHandle.textContent = state.handle || "";
+
+      const filledCount = state.slots.filter(Boolean).length;
+      slotCounter.textContent = `${filledCount} / ${TOTAL_SLOTS} Selected`;
+      activeSlotIndicator.textContent = `Target: Slot #${String(state.targetSlot + 1).padStart(2, "0")}`;
+
+      albumGrid.innerHTML = "";
+
+      const isLandscape = state.orientation === "landscape";
+      const cols = isLandscape ? 5 : 3;
+      const totalRows = isLandscape ? 3 : 5;
+      const useGenreRows = state.genrePerRow;
+
+      const rowCategoryNames = state.rowGenres && state.rowGenres.length >= totalRows
+        ? state.rowGenres
+        : ["Row Group 1", "Row Group 2", "Row Group 3"];
+
+      for (let r = 0; r < totalRows; r++) {
+        // If genre per row enabled, inject row section header
+        if (useGenreRows) {
+          const headerEl = document.createElement("div");
+          headerEl.className = "genre-row-header";
+          headerEl.textContent = `— ${rowCategoryNames[r] || `Row ${r + 1}`} —`;
+          albumGrid.appendChild(headerEl);
+        }
+
+        for (let c = 0; c < cols; c++) {
+          const index = r * cols + c;
+          if (index >= TOTAL_SLOTS) continue;
+
+          const album = state.slots[index];
+          const slotEl = document.createElement("div");
+          const isTarget = index === state.targetSlot;
+          const isSwap = index === state.swapSourceIndex;
+
+          slotEl.className = `album-slot ${album ? "filled" : ""} ${isTarget ? "target-slot" : ""} ${isSwap ? "swap-slot" : ""}`;
+          slotEl.draggable = Boolean(album);
+
+          const numLabel = String(index + 1).padStart(2, "0");
+          const fallbackSvg = album ? createStylizedSleeveSvgDataUri(album.title, album.artist) : "";
+
+          let innerHTML = `<div class="slot-art">`;
+          if (album) {
+            innerHTML += `
+              <img src="${escapeHtml(album.coverUrl || fallbackSvg)}" alt="${escapeHtml(album.title)}" crossorigin="anonymous" />
+              <button type="button" class="slot-remove" title="Remove album">×</button>
+            `;
+          } else {
+            innerHTML += `<span class="mono text-xs font-bold opacity-40">${numLabel}</span>`;
+          }
+          innerHTML += `</div>`;
+
+          if (state.captionStyle === "under") {
+            innerHTML += `
+              <div class="pt-0.5 text-[11px] leading-tight">
+                <div class="font-bold truncate">${album ? `${numLabel}. ${escapeHtml(album.title)}` : `${numLabel}. —`}</div>
+                <div class="opacity-70 truncate">${album ? escapeHtml(album.artist) : "Empty Slot"}</div>
+              </div>
+            `;
+          }
+
+          slotEl.innerHTML = innerHTML;
+
+          const imgEl = slotEl.querySelector("img");
+          if (imgEl && album) {
+            imgEl.addEventListener("error", () => {
+              if (imgEl.src !== fallbackSvg) imgEl.src = fallbackSvg;
+            });
+          }
+
+          const removeBtn = slotEl.querySelector(".slot-remove");
+          if (removeBtn) {
+            removeBtn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              state.slots[index] = null;
+              state.targetSlot = index;
+              state.swapSourceIndex = null;
+              saveState();
+              renderPoster();
+            });
+          }
+
+          slotEl.addEventListener("click", () => {
+            if (state.swapSourceIndex !== null && state.swapSourceIndex !== index) {
+              const temp = state.slots[state.swapSourceIndex];
+              state.slots[state.swapSourceIndex] = state.slots[index];
+              state.slots[index] = temp;
+              state.targetSlot = index;
+              state.swapSourceIndex = null;
+              searchStatus.textContent = `Swapped with Slot #${numLabel}.`;
+            } else if (album) {
+              state.swapSourceIndex = state.swapSourceIndex === index ? null : index;
+              state.targetSlot = index;
+            } else {
+              state.targetSlot = index;
+              state.swapSourceIndex = null;
+            }
+            saveState();
+            renderPoster();
+          });
+
+          slotEl.addEventListener("dragstart", (e) => {
+            e.dataTransfer.setData("text/plain", String(index));
+          });
+
+          slotEl.addEventListener("dragover", (e) => {
+            e.preventDefault();
+          });
+
+          slotEl.addEventListener("drop", (e) => {
+            e.preventDefault();
+            const fromIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
+            if (!isNaN(fromIndex) && fromIndex !== index) {
+              const temp = state.slots[fromIndex];
+              state.slots[fromIndex] = state.slots[index];
+              state.slots[index] = temp;
+              state.swapSourceIndex = null;
+              saveState();
+              renderPoster();
+            }
+          });
+
+          albumGrid.appendChild(slotEl);
+        }
+      }
+
+      if (state.captionStyle === "footer") {
+        posterFooterList.style.display = "grid";
+        posterFooterList.innerHTML = state.slots.map((album, idx) => {
+          const num = String(idx + 1).padStart(2, "0");
+          if (!album) return `<div class="truncate"><strong class="mono opacity-60 mr-1.5">${num}</strong>—</div>`;
+          return `<div class="truncate"><strong class="mono opacity-60 mr-1.5">${num}</strong>${escapeHtml(album.title)} — ${escapeHtml(album.artist)}</div>`;
+        }).join("");
+      } else {
+        posterFooterList.style.display = "none";
+      }
+    }
+
+    // Search Operations
+    function parseDiscogsTitle(rawTitle = "") {
+      const parts = rawTitle.split(" - ");
+      if (parts.length >= 2) {
+        const rawArtist = parts[0].trim().replace(/\s+\(\d+\)$/, "");
+        const albumTitle = parts.slice(1).join(" - ").trim();
+        return { artist: rawArtist, title: albumTitle };
+      }
+      return { artist: "Unknown Artist", title: rawTitle.trim() };
+    }
+
+    function renderSearchResultCards(items, sourceLabel) {
+      searchResults.innerHTML = "";
+      if (!items || items.length === 0) {
+        searchStatus.textContent = `No releases found on ${sourceLabel}.`;
+        return;
+      }
+      searchStatus.textContent = `Showing ${items.length} ${sourceLabel} results. Click to place in Slot #${String(state.targetSlot + 1).padStart(2, "0")}.`;
+
+      items.forEach((item) => {
+        const fallbackArt = createStylizedSleeveSvgDataUri(item.title, item.artist);
+        const displayArt = item.coverUrl || fallbackArt;
+
+        const card = document.createElement("div");
+        card.className = "bg-[#131519] border border-[#2a2e37] hover:border-[#e07a5f] rounded-xl overflow-hidden cursor-pointer transition transform hover:-translate-y-0.5 flex flex-col";
+        card.innerHTML = `
+          <div class="relative w-full aspect-square bg-[#0d0e12] overflow-hidden">
+            <img src="${escapeHtml(displayArt)}" alt="${escapeHtml(item.title)}" loading="lazy" crossorigin="anonymous" class="w-full h-full object-cover block" />
+            <span class="absolute bottom-1.5 left-1.5 mono text-[9px] px-1.5 py-0.5 rounded bg-black/75 text-gray-200 border border-white/10 truncate max-w-[90%]">${escapeHtml(item.badge || "")}</span>
+          </div>
+          <div class="p-2 flex flex-col gap-0.5">
+            <div class="text-xs font-semibold text-gray-100 truncate">${escapeHtml(item.title)}</div>
+            <div class="text-[11px] text-gray-400 truncate">${escapeHtml(item.artist)}</div>
+          </div>
+        `;
+
+        const imgEl = card.querySelector("img");
+        imgEl.addEventListener("error", () => {
+          if (imgEl.src !== fallbackArt) imgEl.src = fallbackArt;
+        });
+
+        card.addEventListener("click", () => {
+          const assigned = state.targetSlot;
+          state.slots[assigned] = {
+            id: item.id,
+            title: item.title,
+            artist: item.artist,
+            coverUrl: item.coverUrl || fallbackArt,
+            source: item.source
+          };
+          state.swapSourceIndex = null;
+          state.targetSlot = findNextEmptySlot(assigned + 1);
+          saveState();
+          renderPoster();
+        });
+
+        searchResults.appendChild(card);
+      });
+    }
+
+    async function performSearch(query) {
+      const trimmed = query.trim();
+      if (trimmed.length < 2) return;
+      searchBtn.disabled = true;
+      searchBtn.textContent = "...";
+
+      try {
+        if (state.searchSource === "discogs") {
+          const token = (localStorage.getItem(DISCOGS_TOKEN_KEY) || "").trim();
+          let url = `https://api.discogs.com/database/search?q=${encodeURIComponent(trimmed)}&type=release&per_page=18`;
+          if (token) url += `&token=${encodeURIComponent(token)}`;
+          const res = await fetch(url, { headers: { "Accept": "application/vnd.discogs.v2.plaintext+json" } });
+          const data = await res.json();
+          const norm = (data.results || []).map((item) => {
+            const parsed = parseDiscogsTitle(item.title || "");
+            return {
+              id: `discogs_${item.id}`,
+              title: parsed.title,
+              artist: parsed.artist,
+              coverUrl: (item.cover_image && !item.cover_image.endsWith("spacer.gif")) ? item.cover_image : item.thumb,
+              badge: item.year ? `${item.year}` : "Vinyl",
+              source: "discogs"
+            };
+          });
+          renderSearchResultCards(norm, "Discogs");
+        } else if (state.searchSource === "musicbrainz") {
+          const url = `https://musicbrainz.org/ws/2/release-group/?query=${encodeURIComponent(trimmed)}&limit=18&fmt=json`;
+          const res = await fetch(url, { headers: { "Accept": "application/json" } });
+          const data = await res.json();
+          const norm = (data["release-groups"] || []).map((rg) => {
+            const artistCredit = Array.isArray(rg["artist-credit"]) && rg["artist-credit"][0] ? rg["artist-credit"].map(a => a.name).join(", ") : "Unknown";
+            return {
+              id: `mb_${rg.id}`,
+              title: rg.title,
+              artist: artistCredit,
+              coverUrl: `https://coverartarchive.org/release-group/${rg.id}/front-500`,
+              badge: "MusicBrainz",
+              source: "musicbrainz"
+            };
+          });
+          renderSearchResultCards(norm, "MusicBrainz");
+        } else {
+          const url = `https://itunes.apple.com/search?term=${encodeURIComponent(trimmed)}&entity=album&limit=18`;
+          const res = await fetch(url);
+          const data = await res.json();
+          const norm = (data.results || []).map((item) => ({
+            id: `itunes_${item.collectionId}`,
+            title: item.collectionName,
+            artist: item.artistName,
+            coverUrl: item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "600x600bb") : "",
+            badge: "iTunes",
+            source: "itunes"
+          }));
+          renderSearchResultCards(norm, "iTunes");
+        }
+      } finally {
+        searchBtn.disabled = false;
+        searchBtn.textContent = "Search";
+      }
+    }
+
+    function findNextEmptySlot(fromIndex = 0) {
+      for (let i = 0; i < TOTAL_SLOTS; i++) {
+        const idx = (fromIndex + i) % TOTAL_SLOTS;
+        if (!state.slots[idx]) return idx;
+      }
+      return state.targetSlot;
+    }
+
+    // Canvas PNG Export
+    async function loadCanvasSafeImage(slot) {
+      if (!slot) return null;
+      const fallback = createStylizedSleeveSvgDataUri(slot.title, slot.artist);
+      const tryLoad = (url) => new Promise((resolve) => {
+        if (!url) return resolve(null);
+        const img = new Image();
+        if (!url.startsWith("data:")) img.crossOrigin = "anonymous";
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = url;
+      });
+
+      let img = await tryLoad(slot.coverUrl);
+      if (img) return img;
+      if (slot.coverUrl && /^https?:\/\//i.test(slot.coverUrl)) {
+        img = await tryLoad(`https://images.weserv.nl/?url=${encodeURIComponent(slot.coverUrl)}&w=600&h=600&fit=cover`);
+        if (img) return img;
+      }
+      return await tryLoad(fallback);
+    }
+
+    async function exportPosterPng() {
+      downloadBtn.disabled = true;
+      downloadBtn.textContent = "Rendering PNG...";
+
+      try {
+        const theme = THEMES[state.theme] || THEMES.paper;
+        const isLandscape = state.orientation === "landscape";
+        const cols = isLandscape ? 5 : 3;
+        const rows = isLandscape ? 3 : 5;
+        const useGenreRows = state.genrePerRow;
+
+        const padding = 80;
+        const gap = 34;
+        const coverSize = 360;
+        const captionHeight = state.captionStyle === "under" ? 58 : 0;
+        const rowHeaderHeight = useGenreRows ? 50 : 0;
+        const headerHeight = 175;
+        const footerHeight = state.captionStyle === "footer" ? 215 : 40;
+
+        const canvasWidth = padding * 2 + cols * coverSize + (cols - 1) * gap;
+        const canvasHeight = padding * 2 + headerHeight + rows * (coverSize + captionHeight) + rows * rowHeaderHeight + (rows - 1) * gap + footerHeight;
+
+        const canvas = document.createElement("canvas");
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+        const ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = theme.bg;
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+        // Top Meta
+        ctx.fillStyle = theme.text;
+        ctx.globalAlpha = 0.65;
+        ctx.font = "700 20px 'JetBrains Mono', monospace";
+        ctx.fillText("MY15ALBUMS · ARCHIVE EDITION", padding, padding + 20);
+        const rightMeta = "SIDE A/B · 33⅓ RPM · STEREO";
+        ctx.fillText(rightMeta, canvasWidth - padding - ctx.measureText(rightMeta).width, padding + 20);
+
+        ctx.strokeStyle = theme.text;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(padding, padding + 40);
+        ctx.lineTo(canvasWidth - padding, padding + 40);
+        ctx.stroke();
+
+        ctx.globalAlpha = 1;
+        ctx.font = "800 50px 'Inter', sans-serif";
+        ctx.fillText(state.title || "The 15 Albums That Made Me", padding, padding + 115);
+
+        if (state.handle) {
+          ctx.globalAlpha = 0.75;
+          ctx.font = "600 28px 'Inter', sans-serif";
+          ctx.fillText(state.handle, canvasWidth - padding - ctx.measureText(state.handle).width, padding + 115);
+        }
+
+        const loadedImages = await Promise.all(state.slots.map(s => loadCanvasSafeImage(s)));
+        const gridStartY = padding + headerHeight;
+        const rowCategoryNames = state.rowGenres || ["Row Group 1", "Row Group 2", "Row Group 3"];
+
+        for (let r = 0; r < rows; r++) {
+          let currentYOffset = gridStartY + r * (coverSize + captionHeight + gap) + (r * rowHeaderHeight);
+
+          if (useGenreRows) {
+            ctx.globalAlpha = 0.75;
+            ctx.font = "700 20px 'Inter', sans-serif";
+            ctx.fillText(`— ${rowCategoryNames[r] || `Row ${r + 1}`} —`, padding, currentYOffset);
+            currentYOffset += rowHeaderHeight;
+          }
+
+          for (let c = 0; c < cols; c++) {
+            const index = r * cols + c;
+            if (index >= TOTAL_SLOTS) continue;
+            const slot = state.slots[index];
+            const img = loadedImages[index];
+            const x = padding + c * (coverSize + gap);
+            const y = currentYOffset;
+            const numStr = String(index + 1).padStart(2, "0");
+
+            if (img) {
+              ctx.globalAlpha = 1;
+              ctx.drawImage(img, x, y, coverSize, coverSize);
+            } else {
+              ctx.globalAlpha = 0.14;
+              ctx.fillStyle = theme.text;
+              ctx.fillRect(x, y, coverSize, coverSize);
+            }
+
+            if (state.captionStyle === "under") {
+              ctx.globalAlpha = 1;
+              ctx.fillStyle = theme.text;
+              ctx.font = "700 20px 'Inter', sans-serif";
+              const titleLine = slot ? `${numStr}. ${slot.title}` : `${numStr}. —`;
+              ctx.fillText(truncateCanvasText(ctx, titleLine, coverSize), x, y + coverSize + 26);
+
+              ctx.globalAlpha = 0.72;
+              ctx.font = "500 18px 'Inter', sans-serif";
+              const artistLine = slot ? slot.artist : "";
+              ctx.fillText(truncateCanvasText(ctx, artistLine, coverSize), x, y + coverSize + 50);
+            }
+          }
+        }
+
+        const dataUrl = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.download = "my15albums-poster.png";
+        link.href = dataUrl;
+        link.click();
+      } finally {
+        downloadBtn.disabled = false;
+        downloadBtn.textContent = "Download High-Res PNG";
+      }
+    }
+
+    function truncateCanvasText(ctx, text, maxWidth) {
+      if (ctx.measureText(text).width <= maxWidth) return text;
+      let truncated = text;
+      while (truncated.length > 0 && ctx.measureText(truncated + "…").width > maxWidth) {
+        truncated = truncated.slice(0, -1);
+      }
+      return truncated + "…";
+    }
+
+    // Event Listeners & Boot
+    curationModeTabs.forEach(tab => {
+      tab.addEventListener("click", () => setCurationMode(tab.dataset.mode));
+    });
+
+    sourceTabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        state.searchSource = tab.dataset.source;
+        sourceTabs.forEach(t => t.className = `source-tab py-2 px-2 rounded-lg text-xs font-semibold transition text-center ${t.dataset.source === state.searchSource ? "bg-[#e07a5f] text-white shadow" : "text-gray-400 hover:text-white"}`);
+        discogsAuthDrawer.classList.toggle("hidden", state.searchSource !== "discogs");
+      });
+    });
+
+    saveDiscogsTokenBtn.addEventListener("click", () => {
+      localStorage.setItem(DISCOGS_TOKEN_KEY, discogsTokenInput.value.trim());
+      searchStatus.textContent = "Discogs token saved.";
+    });
+
+    searchBtn.addEventListener("click", () => performSearch(searchInput.value));
+    searchInput.addEventListener("keydown", (e) => { if (e.key === "Enter") performSearch(searchInput.value); });
+
+    posterTitleInput.addEventListener("input", (e) => { state.title = e.target.value; saveState(); renderPoster(); });
+    posterHandleInput.addEventListener("input", (e) => { state.handle = e.target.value; saveState(); renderPoster(); });
+    gridOrientationSelect.addEventListener("change", (e) => { state.orientation = e.target.value; saveState(); renderPoster(); });
+    captionStyleSelect.addEventListener("change", (e) => { state.captionStyle = e.target.value; saveState(); renderPoster(); });
+
+    copyShareLinkBtn.addEventListener("click", () => {
+      const url = buildShareableUrl();
+      window.history.replaceState(null, "", `#board=${url.split("#board=")[1]}`);
+      shareUrlOutput.focus();
+      shareUrlOutput.select();
+      try { document.execCommand("copy"); } catch(e) {}
+      const prev = copyShareLinkBtn.textContent;
+      copyShareLinkBtn.textContent = "Copied!";
+      setTimeout(() => copyShareLinkBtn.textContent = prev, 2000);
+    });
+
+    exitSharedBtn.addEventListener("click", () => {
+      window.history.replaceState(null, "", window.location.pathname);
+      sharedBanner.classList.add("hidden");
+    });
+
+    downloadBtn.addEventListener("click", exportPosterPng);
+
+    openCustomModalBtn.addEventListener("click", () => {
+      modalOverlay.classList.remove("hidden");
+      modalOverlay.classList.add("flex");
+      customCoverModal.classList.remove("hidden");
+      clearConfirmModal.classList.add("hidden");
+    });
+
+    closeModals = () => { modalOverlay.classList.add("hidden"); modalOverlay.classList.remove("flex"); customCoverModal.classList.add("hidden"); clearConfirmModal.classList.add("hidden"); };
+    closeCustomModalBtn.addEventListener("click", closeModals);
+    cancelCustomModalBtn.addEventListener("click", closeModals);
+
+    chooseCustomFileBtn.addEventListener("click", () => customFileInput.click());
+    customFileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        pendingCustomDataUrl = reader.result;
+        customCoverPreview.src = pendingCustomDataUrl;
+        if (!customTitleInput.value.trim()) customTitleInput.value = file.name.replace(/\.[^/.]+$/, "");
+      };
+      reader.readAsDataURL(file);
+    });
+
+    confirmCustomModalBtn.addEventListener("click", () => {
+      const title = customTitleInput.value.trim() || "Custom Album";
+      const artist = customArtistInput.value.trim() || "Unknown Artist";
+      const cover = customUrlInput.value.trim() || pendingCustomDataUrl || createStylizedSleeveSvgDataUri(title, artist);
+      const assigned = state.targetSlot;
+      state.slots[assigned] = { id: "custom_" + Date.now(), title, artist, coverUrl: cover, source: "custom" };
+      state.targetSlot = findNextEmptySlot(assigned + 1);
+      saveState();
+      renderPoster();
+      closeModals();
+    });
+
+    clearBoardBtn.addEventListener("click", () => {
+      modalOverlay.classList.remove("hidden");
+      modalOverlay.classList.add("flex");
+      clearConfirmModal.classList.remove("hidden");
+      customCoverModal.classList.add("hidden");
+    });
+    cancelClearBtn.addEventListener("click", closeModals);
+    confirmClearBtn.addEventListener("click", () => {
+      state.slots = Array(TOTAL_SLOTS).fill(null);
+      state.targetSlot = 0;
+      saveState();
+      renderPoster();
+      closeModals();
+    });
+
+    function initThemePills() {
+      themeSelector.innerHTML = "";
+      Object.entries(THEMES).forEach(([key, theme]) => {
+        const pill = document.createElement("button");
+        pill.type = "button";
+        const active = state.theme === key;
+        pill.className = `flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition ${
+          active ? "border-[#e07a5f] bg-[#241d1c] text-white" : "border-[#2a2e37] bg-[#131519] text-gray-300 hover:border-gray-500"
+        }`;
+        pill.innerHTML = `<span class="w-3.5 h-3.5 rounded-full border border-white/25 shrink-0" style="background:${theme.bg}"></span><span>${theme.name}</span>`;
+        pill.addEventListener("click", () => { state.theme = key; saveState(); initThemePills(); renderPoster(); });
+        themeSelector.appendChild(pill);
+      });
+    }
+
+    // Init App
+    loadSavedState();
+    setCurationMode(state.curationMode);
+    initCurationUI();
+    initThemePills();
+    renderPoster();
+    buildShareableUrl();
+  </script>
+</body>
+</html>

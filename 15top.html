@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My 15 Albums - Vinyl Edition</title>
+  <style>
+    :root {
+      --bg-dark: #121214;
+      --bg-panel: #1c1c1f;
+      --bg-slot: #27272c;
+      --accent: #e0533c;
+      --accent-hover: #f26852;
+      --text-main: #f4f4f6;
+      --text-muted: #9898a0;
+      --border: #333338;
+      --cols: 5;
+      --gap: 16px;
+      --pad: 24px;
+      --canvas-bg: #121214;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      max-width: 650px;
+    }
+
+    h1 {
+      font-size: 2.1rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 0.4rem;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .toolbar {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 2rem;
+      max-width: 950px;
+      width: 100%;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .control-group input[type="text"],
+    .control-group select {
+      background: var(--bg-slot);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 0.45rem 0.7rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .control-group input[type="text"]:focus,
+    .control-group select:focus {
+      border-color: var(--accent);
+    }
+
+    .control-group input[type="color"] {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+    }
+
+    .btn {
+      background: var(--bg-slot);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 0.55rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn:hover {
+      background: #323238;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Grid Wrapper */
+    .canvas-preview {
+      background-color: var(--canvas-bg);
+      padding: var(--pad);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+      max-width: 950px;
+      width: 100%;
+      transition: background-color 0.2s;
+    }
+
+    .canvas-header {
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: var(--gap);
+      display: none;
+      letter-spacing: 0.5px;
+    }
+
+    .canvas-header.visible {
+      display: block;
+    }
+
+    .album-grid {
+      display: grid;
+      grid-template-columns: repeat(var(--cols), 1fr);
+      gap: var(--gap);
+      width: 100%;
+    }
+
+    .slot {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      background-color: var(--bg-slot);
+      border: 2px dashed var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+      user-select: none;
+    }
+
+    .slot:hover {
+      border-color: var(--accent);
+    }
+
+    .slot.filled {
+      border: 1px solid rgba(255,255,255,0.12);
+      background-color: #000;
+      cursor: grab;
+      /* Authentic record jacket 3D lighting / drop shadow effect */
+      box-shadow: 0 6px 16px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.15);
+    }
+
+    .slot.filled:active {
+      cursor: grabbing;
+    }
+
+    .slot.drag-over {
+      outline: 3px solid var(--accent);
+      transform: scale(0.97);
+    }
+
+    .slot-number {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #44444d;
+      margin-bottom: 0.25rem;
+    }
+
+    .slot-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      opacity: 0.7;
+    }
+
+    /* Album Cover & Sleeve Overlay */
+    .album-cover-container {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .album-cover-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+    }
+
+    /* Subtle vinyl sleeve lighting, spine crease, and cardstock sheen */
+    .sleeve-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: 
+        /* Left spine highlight (crease effect) */
+        linear-gradient(90deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 3%, rgba(0,0,0,0.15) 6%, transparent 15%),
+        /* Overall subtle glossy vignette */
+        radial-gradient(circle at 50% 30%, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.35) 90%);
+      mix-blend-mode: overlay;
+    }
+
+    .slot-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.6) 100%);
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 0.5rem;
+      z-index: 2;
+    }
+
+    .slot.filled:hover .slot-overlay {
+      opacity: 1;
+    }
+
+    .slot-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .badge-num {
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .remove-btn {
+      background: rgba(224, 83, 60, 0.9);
+      color: #fff;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .remove-btn:hover {
+      background: #ff3b1f;
+    }
+
+    .slot-meta {
+      text-align: left;
+      line-height: 1.2;
+    }
+
+    .slot-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #fff;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .slot-artist {
+      font-size: 0.68rem;
+      color: #ccc;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    /* Tracklist caption below grid */
+    .caption-list {
+      margin-top: var(--gap);
+      display: none;
+      grid-template-columns: repeat(var(--cols), 1fr);
+      gap: 0.5rem var(--gap);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .caption-list.visible {
+      display: grid;
+    }
+
+    .caption-item {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .caption-item strong {
+      color: var(--text-main);
+    }
+
+    /* Search Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 1rem;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 620px;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    }
+
+    .modal-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    /* Source Tabs */
+    .source-tabs {
+      display: flex;
+      background: #161619;
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.25rem;
+      gap: 1.5rem;
+    }
+
+    .source-tab {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.8rem 0.2rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .source-tab:hover {
+      color: var(--text-main);
+    }
+
+    .source-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .tab-content.active {
+      display: flex;
+    }
+
+    .search-box {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .search-box input {
+      flex: 1;
+      background: var(--bg-slot);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 0.65rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .search-box input:focus {
+      border-color: var(--accent);
+    }
+
+    .discogs-settings {
+      padding: 0.65rem 1.25rem;
+      background: #161619;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .discogs-settings input {
+      background: var(--bg-slot);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      width: 180px;
+    }
+
+    .results-area {
+      padding: 1rem 1.25rem;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+      gap: 1rem;
+      flex: 1;
+      min-height: 260px;
+    }
+
+    .result-card {
+      cursor: pointer;
+      background: var(--bg-slot);
+      border-radius: 6px;
+      padding: 0.5rem;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .result-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .result-card img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-bottom: 0.4rem;
+      background: #111;
+    }
+
+    .result-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-main);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.25;
+    }
+
+    .result-artist {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .custom-url-bar {
+      padding: 0.75rem 1.25rem;
+      border-top: 1px solid var(--border);
+      background: #161619;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .custom-url-bar input {
+      flex: 1;
+      background: var(--bg-slot);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 0.45rem 0.7rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      outline: none;
+    }
+
+    .status-msg {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: var(--text-muted);
+      padding: 3rem 1rem;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 640px) {
+      .album-grid {
+        gap: 8px;
+      }
+      .canvas-preview {
+        padding: 12px;
+      }
+      .slot-number {
+        font-size: 1rem;
+      }
+      .slot-hint {
+        display: none;
+      }
+      .caption-list {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>My 15 Albums</h1>
+    <p>Build your 15-album vinyl collection grid with authentic record sleeve textures, dual search sources, and high-res export.</p>
+  </header>
+
+  <div class="toolbar">
+    <div class="control-group">
+      <label for="layoutSelect">Grid:</label>
+      <select id="layoutSelect">
+        <option value="5">5 × 3 (Landscape)</option>
+        <option value="3">3 × 5 (Portrait)</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label for="gridTitle">Heading:</label>
+      <input type="text" id="gridTitle" placeholder="Optional title..." maxlength="50">
+    </div>
+
+    <div class="control-group">
+      <label for="bgColorPicker">Background:</label>
+      <input type="color" id="bgColorPicker" value="#121214">
+    </div>
+
+    <div class="control-group">
+      <label>
+        <input type="checkbox" id="showTitlesToggle"> Show Album List
+      </label>
+    </div>
+
+    <button class="btn" id="clearBtn" title="Clear all slots">Clear All</button>
+    <button class="btn btn-primary" id="exportBtn">Download PNG</button>
+  </div>
+
+  <div class="canvas-preview" id="canvasPreview">
+    <div class="canvas-header" id="canvasHeader"></div>
+    <div class="album-grid" id="albumGrid"></div>
+    <div class="caption-list" id="captionList"></div>
+  </div>
+
+  <!-- Search Modal -->
+  <div class="modal-backdrop" id="searchModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">Select Album for Slot #1</h2>
+        <button class="close-modal" id="closeModalBtn">&times;</button>
+      </div>
+
+      <div class="source-tabs">
+        <button class="source-tab active" data-tab="itunes">iTunes Search</button>
+        <button class="source-tab" data-tab="discogs">Discogs API Search</button>
+      </div>
+
+      <!-- iTunes Tab -->
+      <div class="tab-content active" id="tabItunes">
+        <div class="search-box">
+          <input type="text" id="itunesSearchInput" placeholder="Search artist or album title..." autocomplete="off">
+          <button class="btn btn-primary" id="itunesSearchBtn">Search</button>
+        </div>
+        <div class="results-area" id="itunesResults">
+          <div class="status-msg">Type an artist or album name above to search iTunes.</div>
+        </div>
+      </div>
+
+      <!-- Discogs Tab -->
+      <div class="tab-content" id="tabDiscogs">
+        <div class="discogs-settings">
+          <span>Discogs Token (Optional):</span>
+          <input type="password" id="discogsTokenInput" placeholder="Paste user token for private/rate limits">
+        </div>
+        <div class="search-box">
+          <input type="text" id="discogsSearchInput" placeholder="Search master releases, artists, or pressings..." autocomplete="off">
+          <button class="btn btn-primary" id="discogsSearchBtn">Search</button>
+        </div>
+        <div class="results-area" id="discogsResults">
+          <div class="status-msg">Search the Discogs database for specific pressings, vinyl editions, and rare albums.</div>
+        </div>
+      </div>
+
+      <div class="custom-url-bar">
+        <input type="text" id="customUrlInput" placeholder="Or paste a direct image URL for custom/obscure art...">
+        <button class="btn" id="useCustomUrlBtn">Use URL</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TOTAL_SLOTS = 15;
+    const STORAGE_KEY = 'my15albums_vinyl_state_v1';
+
+    let state = {
+      albums: Array(TOTAL_SLOTS).fill(null),
+      cols: 5,
+      title: '',
+      bgColor: '#121214',
+      showTitles: false,
+      discogsToken: ''
+    };
+
+    let activeSlotIndex = 0;
+    let draggedIndex = null;
+    let searchTimeout = null;
+
+    // DOM Elements
+    const albumGrid = document.getElementById('albumGrid');
+    const captionList = document.getElementById('captionList');
+    const canvasPreview = document.getElementById('canvasPreview');
+    const canvasHeader = document.getElementById('canvasHeader');
+    const layoutSelect = document.getElementById('layoutSelect');
+    const gridTitleInput = document.getElementById('gridTitle');
+    const bgColorPicker = document.getElementById('bgColorPicker');
+    const showTitlesToggle = document.getElementById('showTitlesToggle');
+    const clearBtn = document.getElementById('clearBtn');
+    const exportBtn = document.getElementById('exportBtn');
+
+    const searchModal = document.getElementById('searchModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    
+    const sourceTabs = document.querySelectorAll('.source-tab');
+    const tabItunes = document.getElementById('tabItunes');
+    const tabDiscogs = document.getElementById('tabDiscogs');
+
+    const itunesSearchInput = document.getElementById('itunesSearchInput');
+    const itunesSearchBtn = document.getElementById('itunesSearchBtn');
+    const itunesResults = document.getElementById('itunesResults');
+
+    const discogsSearchInput = document.getElementById('discogsSearchInput');
+    const discogsSearchBtn = document.getElementById('discogsSearchBtn');
+    const discogsResults = document.getElementById('discogsResults');
+    const discogsTokenInput = document.getElementById('discogsTokenInput');
+
+    const customUrlInput = document.getElementById('customUrlInput');
+    const useCustomUrlBtn = document.getElementById('useCustomUrlBtn');
+
+    // Initialize
+    function init() {
+      loadState();
+      applySettingsToUI();
+      renderGrid();
+      attachEvents();
+    }
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          state = { ...state, ...parsed };
+          if (!Array.isArray(state.albums) || state.albums.length !== TOTAL_SLOTS) {
+            state.albums = Array(TOTAL_SLOTS).fill(null);
+          }
+        }
+      } catch (e) {
+        console.warn('Could not load saved state:', e);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.warn('Could not save state:', e);
+      }
+    }
+
+    function applySettingsToUI() {
+      layoutSelect.value = String(state.cols);
+      gridTitleInput.value = state.title;
+      bgColorPicker.value = state.bgColor;
+      showTitlesToggle.checked = state.showTitles;
+      if (state.discogsToken) discogsTokenInput.value = state.discogsToken;
+
+      document.documentElement.style.setProperty('--cols', state.cols);
+      document.documentElement.style.setProperty('--canvas-bg', state.bgColor);
+
+      const isLight = isLightColor(state.bgColor);
+      canvasHeader.style.color = isLight ? '#121214' : '#f4f4f6';
+      captionList.style.color = isLight ? '#333338' : '#9898a0';
+
+      if (state.title.trim()) {
+        canvasHeader.textContent = state.title.trim();
+        canvasHeader.classList.add('visible');
+      } else {
+        canvasHeader.classList.remove('visible');
+      }
+
+      if (state.showTitles) {
+        captionList.classList.add('visible');
+      } else {
+        captionList.classList.remove('visible');
+      }
+    }
+
+    function isLightColor(hex) {
+      const c = hex.substring(1);
+      const rgb = parseInt(c, 16);
+      const r = (rgb >> 16) & 0xff;
+      const g = (rgb >>  8) & 0xff;
+      const b = (rgb >>  0) & 0xff;
+      const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      return luma > 150;
+    }
+
+    function renderGrid() {
+      albumGrid.innerHTML = '';
+      captionList.innerHTML = '';
+
+      const isLight = isLightColor(state.bgColor);
+
+      state.albums.forEach((album, idx) => {
+        const slot = document.createElement('div');
+        slot.className = 'slot' + (album ? ' filled' : '');
+        slot.dataset.index = idx;
+
+        if (album) {
+          slot.draggable = true;
+
+          const coverContainer = document.createElement('div');
+          coverContainer.className = 'album-cover-container';
+
+          const img = document.createElement('img');
+          img.src = album.coverUrl;
+          img.alt = `${album.title} by ${album.artist}`;
+          img.crossOrigin = 'anonymous';
+
+          const sleeveOverlay = document.createElement('div');
+          sleeveOverlay.className = 'sleeve-overlay';
+
+          coverContainer.appendChild(img);
+          coverContainer.appendChild(sleeveOverlay);
+
+          const overlay = document.createElement('div');
+          overlay.className = 'slot-overlay';
+
+          const actions = document.createElement('div');
+          actions.className = 'slot-actions';
+
+          const badge = document.createElement('span');
+          badge.className = 'badge-num';
+          badge.textContent = `#${idx + 1}`;
+
+          const removeBtn = document.createElement('button');
+          removeBtn.className = 'remove-btn';
+          removeBtn.innerHTML = '&times;';
+          removeBtn.title = 'Remove album';
+          removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            state.albums[idx] = null;
+            saveState();
+            renderGrid();
+          });
+
+          actions.appendChild(badge);
+          actions.appendChild(removeBtn);
+
+          const meta = document.createElement('div');
+          meta.className = 'slot-meta';
+          meta.innerHTML = `
+            <div class="slot-title">${escapeHtml(album.title)}</div>
+            <div class="slot-artist">${escapeHtml(album.artist)}</div>
+          `;
+
+          overlay.appendChild(actions);
+          overlay.appendChild(meta);
+
+          slot.appendChild(coverContainer);
+          slot.appendChild(overlay);
+        } else {
+          slot.innerHTML = `
+            <div class="slot-number">${idx + 1}</div>
+            <div class="slot-hint">+ Add Album</div>
+          `;
+        }
+
+        slot.addEventListener('click', () => openSearchModal(idx));
+
+        // Drag & Drop
+        slot.addEventListener('dragstart', (e) => {
+          if (!state.albums[idx]) {
+            e.preventDefault();
+            return;
+          }
+          draggedIndex = idx;
+          e.dataTransfer.effectAllowed = 'move';
+        });
+
+        slot.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          slot.classList.add('drag-over');
+        });
+
+        slot.addEventListener('dragleave', () => {
+          slot.classList.remove('drag-over');
+        });
+
+        slot.addEventListener('drop', (e) => {
+          e.preventDefault();
+          slot.classList.remove('drag-over');
+          if (draggedIndex !== null && draggedIndex !== idx) {
+            const temp = state.albums[draggedIndex];
+            state.albums[draggedIndex] = state.albums[idx];
+            state.albums[idx] = temp;
+            draggedIndex = null;
+            saveState();
+            renderGrid();
+          }
+        });
+
+        albumGrid.appendChild(slot);
+
+        // Caption item
+        const cap = document.createElement('div');
+        cap.className = 'caption-item';
+        const strongColor = isLight ? '#121214' : '#f4f4f6';
+        if (album) {
+          cap.innerHTML = `<strong style="color:${strongColor}">${idx + 1}.</strong> ${escapeHtml(album.artist)} – ${escapeHtml(album.title)}`;
+        } else {
+          cap.innerHTML = `<strong style="color:${strongColor}">${idx + 1}.</strong> —`;
+        }
+        captionList.appendChild(cap);
+      });
+    }
+
+    function openSearchModal(index) {
+      activeSlotIndex = index;
+      modalTitle.textContent = `Select Album for Slot #${index + 1}`;
+      searchModal.classList.add('open');
+      itunesSearchInput.focus();
+      itunesSearchInput.select();
+    }
+
+    function closeSearchModal() {
+      searchModal.classList.remove('open');
+    }
+
+    // iTunes Search
+    async function searchItunes(query) {
+      const q = query.trim();
+      if (!q) return;
+
+      itunesResults.innerHTML = `<div class="status-msg">Searching iTunes for "${escapeHtml(q)}"...</div>`;
+
+      try {
+        const url = `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=album&limit=24`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!data.results || data.results.length === 0) {
+          itunesResults.innerHTML = `<div class="status-msg">No albums found on iTunes. Try another query.</div>`;
+          return;
+        }
+
+        itunesResults.innerHTML = '';
+        data.results.forEach(item => {
+          const highResCover = item.artworkUrl100
+            ? item.artworkUrl100.replace('100x100bb', '600x600bb')
+            : '';
+
+          const card = document.createElement('div');
+          card.className = 'result-card';
+          card.innerHTML = `
+            <img src="${highResCover}" alt="${escapeHtml(item.collectionName)}" loading="lazy">
+            <div class="result-title">${escapeHtml(item.collectionName)}</div>
+            <div class="result-artist">${escapeHtml(item.artistName)}</div>
+          `;
+
+          card.addEventListener('click', () => {
+            selectAlbum({
+              title: item.collectionName,
+              artist: item.artistName,
+              coverUrl: highResCover
+            });
+          });
+
+          itunesResults.appendChild(card);
+        });
+      } catch (err) {
+        itunesResults.innerHTML = `<div class="status-msg">Error connecting to iTunes search API.</div>`;
+      }
+    }
+
+    // Discogs API Search
+    async function searchDiscogs(query) {
+      const q = query.trim();
+      if (!q) return;
+
+      discogsResults.innerHTML = `<div class="status-msg">Searching Discogs database for "${escapeHtml(q)}"...</div>`;
+
+      try {
+        let apiUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(q)}&type=release&per_page=24`;
+        const token = discogsTokenInput.value.trim();
+        
+        let headers = {
+          'User-Agent': 'My15AlbumsApp/1.0 (+https://github.com)'
+        };
+
+        if (token) {
+          headers['Authorization'] = `Discogs token=${token}`;
+        }
+
+        const response = await fetch(apiUrl, { headers });
+        if (!response.ok) {
+          throw new Error(`Discogs API returned status ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!data.results || data.results.length === 0) {
+          discogsResults.innerHTML = `<div class="status-msg">No releases found on Discogs. Try adding a personal Discogs User Token if rate-limited.</div>`;
+          return;
+        }
+
+        discogsResults.innerHTML = '';
+        data.results.forEach(item => {
+          const coverUrl = item.cover_image || 'https://placehold.co/400x400/222227/9898a0?text=No+Cover';
+          const titleFull = item.title || 'Unknown Release';
+          let artist = 'Various';
+          let title = titleFull;
+
+          if (titleFull.includes(' - ')) {
+            const parts = titleFull.split(' - ');
+            artist = parts[0];
+            title = parts.slice(1).join(' - ');
+          }
+
+          const card = document.createElement('div');
+          card.className = 'result-card';
+          card.innerHTML = `
+            <img src="${coverUrl}" alt="${escapeHtml(title)}" loading="lazy">
+            <div class="result-title">${escapeHtml(title)}</div>
+            <div class="result-artist">${escapeHtml(artist)}</div>
+          `;
+
+          card.addEventListener('click', () => {
+            selectAlbum({
+              title: title,
+              artist: artist,
+              coverUrl: coverUrl
+            });
+          });
+
+          discogsResults.appendChild(card);
+        });
+      } catch (err) {
+        discogsResults.innerHTML = `<div class="status-msg">Discogs search error or rate limit reached. Tip: Add a free Discogs developer token above.</div>`;
+      }
+    }
+
+    function selectAlbum(albumObj) {
+      state.albums[activeSlotIndex] = albumObj;
+      saveState();
+      renderGrid();
+      closeSearchModal();
+    }
+
+    // High-Res HTML5 Canvas Export with Vinyl Textures
+    async function exportGridToPNG() {
+      const filledCount = state.albums.filter(Boolean).length;
+      if (filledCount === 0) {
+        alert('Add at least one album before downloading!');
+        return;
+      }
+
+      const originalText = exportBtn.textContent;
+      exportBtn.disabled = true;
+      exportBtn.textContent = 'Generating PNG...';
+
+      try {
+        const cols = Number(state.cols);
+        const rows = Math.ceil(TOTAL_SLOTS / cols);
+        const tileSize = 360;
+        const gap = 24;
+        const pad = 48;
+
+        const hasTitle = state.title.trim().length > 0;
+        const titleHeight = hasTitle ? 70 : 0;
+
+        const hasCaptions = state.showTitles;
+        const captionRowHeight = 28;
+        const captionRows = Math.ceil(TOTAL_SLOTS / (cols === 5 ? 3 : 2));
+        const captionsHeight = hasCaptions ? (captionRows * captionRowHeight + 36) : 0;
+
+        const canvasWidth = pad * 2 + cols * tileSize + (cols - 1) * gap;
+        const canvasHeight = pad * 2 + titleHeight + rows * tileSize + (rows - 1) * gap + captionsHeight;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+        const ctx = canvas.getContext('2d');
+
+        // Fill background
+        ctx.fillStyle = state.bgColor;
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+        const isLight = isLightColor(state.bgColor);
+        const primaryTextColor = isLight ? '#121214' : '#f4f4f6';
+        const secondaryTextColor = isLight ? '#44444d' : '#a0a0ab';
+
+        // Draw Heading if present
+        let yOffset = pad;
+        if (hasTitle) {
+          ctx.fillStyle = primaryTextColor;
+          ctx.font = 'bold 38px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText(state.title.trim(), canvasWidth / 2, yOffset);
+          yOffset += titleHeight;
+        }
+
+        // Load all images concurrently
+        const imagePromises = state.albums.map(album => {
+          if (!album || !album.coverUrl) return Promise.resolve(null);
+          return loadImage(album.coverUrl);
+        });
+
+        const loadedImages = await Promise.all(imagePromises);
+
+        // Draw Album Slots with Vinyl Jacket Effect
+        for (let i = 0; i < TOTAL_SLOTS; i++) {
+          const r = Math.floor(i / cols);
+          const c = i % cols;
+          const x = pad + c * (tileSize + gap);
+          const y = yOffset + r * (tileSize + gap);
+
+          const img = loadedImages[i];
+          if (img) {
+            // Draw Album Art
+            ctx.drawImage(img, x, y, tileSize, tileSize);
+
+            // Draw Spine Crease / Left Cardstock Sheen
+            const spineGrad = ctx.createLinearGradient(x, y, x + tileSize * 0.15, y);
+            spineGrad.addColorStop(0, 'rgba(255, 255, 255, 0.22)');
+            spineGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0.05)');
+            spineGrad.addColorStop(1, 'rgba(0, 0, 0, 0.18)');
+            ctx.fillStyle = spineGrad;
+            ctx.fillRect(x, y, tileSize * 0.15, tileSize);
+
+            // Draw Subtle Jacket Vignette & Gloss
+            const vignette = ctx.createRadialGradient(
+              x + tileSize * 0.5, y + tileSize * 0.35, tileSize * 0.1,
+              x + tileSize * 0.5, y + tileSize * 0.5, tileSize * 0.75
+            );
+            vignette.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
+            vignette.addColorStop(0.7, 'rgba(0, 0, 0, 0.05)');
+            vignette.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
+            ctx.fillStyle = vignette;
+            ctx.fillRect(x, y, tileSize, tileSize);
+
+            // Outer border line for realism
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(x, y, tileSize, tileSize);
+
+          } else {
+            ctx.fillStyle = isLight ? '#e4e4e9' : '#222227';
+            ctx.fillRect(x, y, tileSize, tileSize);
+          }
+        }
+
+        // Draw Captions if toggled
+        if (hasCaptions) {
+          const capStartY = yOffset + rows * tileSize + (rows - 1) * gap + 32;
+          const capCols = cols === 5 ? 3 : 2;
+          const capColWidth = (canvasWidth - pad * 2) / capCols;
+
+          ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+
+          for (let i = 0; i < TOTAL_SLOTS; i++) {
+            const r = Math.floor(i / capCols);
+            const c = i % capCols;
+            const x = pad + c * capColWidth;
+            const y = capStartY + r * captionRowHeight;
+
+            const album = state.albums[i];
+            const label = album ? `${i + 1}. ${album.artist} – ${album.title}` : `${i + 1}. —`;
+            ctx.fillStyle = secondaryTextColor;
+            ctx.fillText(truncateText(ctx, label, capColWidth - 16), x, y);
+          }
+        }
+
+        // Trigger Download
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = 'my-15-albums-vinyl.png';
+        link.href = dataUrl;
+        link.click();
+
+      } catch (err) {
+        alert('Could not generate image. Some external CDNs or Discogs images restrict cross-origin canvas exports.');
+        console.error(err);
+      } finally {
+        exportBtn.disabled = false;
+        exportBtn.textContent = originalText;
+      }
+    }
+
+    function loadImage(url) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = url;
+      });
+    }
+
+    function truncateText(ctx, text, maxWidth) {
+      if (ctx.measureText(text).width <= maxWidth) return text;
+      let truncated = text;
+      while (truncated.length > 0 && ctx.measureText(truncated + '…').width > maxWidth) {
+        truncated = truncated.slice(0, -1);
+      }
+      return truncated + '…';
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[m]));
+    }
+
+    function attachEvents() {
+      layoutSelect.addEventListener('change', (e) => {
+        state.cols = Number(e.target.value);
+        saveState();
+        applySettingsToUI();
+      });
+
+      gridTitleInput.addEventListener('input', (e) => {
+        state.title = e.target.value;
+        saveState();
+        applySettingsToUI();
+      });
+
+      bgColorPicker.addEventListener('input', (e) => {
+        state.bgColor = e.target.value;
+        saveState();
+        applySettingsToUI();
+        renderGrid();
+      });
+
+      showTitlesToggle.addEventListener('change', (e) => {
+        state.showTitles = e.target.checked;
+        saveState();
+        applySettingsToUI();
+      });
+
+      discogsTokenInput.addEventListener('input', (e) => {
+        state.discogsToken = e.target.value;
+        saveState();
+      });
+
+      clearBtn.addEventListener('click', () => {
+        if (confirm('Clear all 15 album slots?')) {
+          state.albums = Array(TOTAL_SLOTS).fill(null);
+          saveState();
+          renderGrid();
+        }
+      });
+
+      exportBtn.addEventListener('click', exportGridToPNG);
+
+      closeModalBtn.addEventListener('click', closeSearchModal);
+      searchModal.addEventListener('click', (e) => {
+        if (e.target === searchModal) closeSearchModal();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && searchModal.classList.contains('open')) {
+          closeSearchModal();
+        }
+      });
+
+      // Tabs switching
+      sourceTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          sourceTabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          const targetTab = tab.dataset.tab;
+          if (targetTab === 'itunes') {
+            tabItunes.classList.add('active');
+            tabDiscogs.classList.remove('active');
+            itunesSearchInput.focus();
+          } else {
+            tabDiscogs.classList.add('active');
+            tabItunes.classList.remove('active');
+            discogsSearchInput.focus();
+          }
+        });
+      });
+
+      itunesSearchBtn.addEventListener('click', () => searchItunes(itunesSearchInput.value));
+      itunesSearchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') searchItunes(itunesSearchInput.value);
+      });
+      itunesSearchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        if (itunesSearchInput.value.trim().length > 2) {
+          searchTimeout = setTimeout(() => searchItunes(itunesSearchInput.value), 400);
+        }
+      });
+
+      discogsSearchBtn.addEventListener('click', () => searchDiscogs(discogsSearchInput.value));
+      discogsSearchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') searchDiscogs(discogsSearchInput.value);
+      });
+
+      useCustomUrlBtn.addEventListener('click', () => {
+        const url = customUrlInput.value.trim();
+        if (!url) return;
+        const customTitle = prompt('Album Title (optional):', 'Custom Album') || 'Unknown Album';
+        const customArtist = prompt('Artist Name (optional):', 'Unknown Artist') || '';
+        selectAlbum({
+          title: customTitle,
+          artist: customArtist,
+          coverUrl: url
+        });
+        customUrlInput.value = '';
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>

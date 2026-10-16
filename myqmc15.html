@@ -331,7 +331,7 @@
 
     .genre-row-grid {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(var(--cols, 5), minmax(0, 1fr));
       gap: 10px;
       width: 100%;
     }
@@ -605,7 +605,14 @@
           </div>
           
           <div class="field-group" id="rowConfigGroup" style="display: none;">
-            <label>Row Category Titles (Up to 5 Rows)</label>
+            <label for="rowCountSelect">Number of Genre Rows</label>
+            <select id="rowCountSelect">
+              <option value="2">2 Rows (8 + 7)</option>
+              <option value="3">3 Rows (5 each)</option>
+              <option value="4">4 Rows (4 + 4 + 4 + 3)</option>
+              <option value="5">5 Rows (3 each)</option>
+            </select>
+            <label>Row Category Titles</label>
             <div class="row-config-box" id="rowConfigBox">
               <!-- Dynamically populated rows -->
             </div>
@@ -710,27 +717,45 @@
       title: "The 15 Albums That Made Me",
       handle: "",
       rowCount: 3,
-      rowHeaders: ["Row 1 · Electronic / Ambient", "Row 2 · Indie / Guitar", "Row 3 · Jazz / Soul"],
+      rowHeaders: ["Row 1 · Electronic / Ambient", "Row 2 · Indie / Guitar", "Row 3 · Jazz / Soul", "Row 4 · Hip-Hop / R&B", "Row 5 · Rock / Punk"],
       searchSource: "itunes"
     };
+    const DEFAULT_HEADERS = [...state.rowHeaders];
+    const MIN_ROWS = 2, MAX_ROWS = 5;
 
     try {
+      let parsed = null;
       if (window.location.hash.startsWith("#board=")) {
-        const jsonStr = decodeURIComponent(escape(atob(window.location.hash.replace("#board=", ""))));
-        const parsed = JSON.parse(jsonStr);
-        if (parsed && Array.isArray(parsed.slots)) {
-          state = { ...state, ...parsed, swapSourceIndex: null, activeModalSlot: null };
-        }
+        parsed = JSON.parse(decodeURIComponent(escape(atob(window.location.hash.slice(7)))));
       } else {
         const saved = localStorage.getItem("myqmc15_state_v1");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed.slots) && parsed.slots.length === TOTAL_SLOTS) {
-            state = { ...state, ...parsed, swapSourceIndex: null, activeModalSlot: null };
-          }
-        }
+        if (saved) parsed = JSON.parse(saved);
+      }
+      if (parsed && Array.isArray(parsed.slots)) {
+        state = { ...state, ...parsed, swapSourceIndex: null, activeModalSlot: null };
       }
     } catch (e) {}
+
+    // Normalise loaded state so bad/old data can't break layout
+    state.slots = Array.from({ length: TOTAL_SLOTS }, (_, i) => state.slots[i] || null);
+    state.rowCount = Math.min(MAX_ROWS, Math.max(MIN_ROWS, parseInt(state.rowCount, 10) || 3));
+    state.rowHeaders = Array.from({ length: MAX_ROWS }, (_, i) =>
+      (Array.isArray(state.rowHeaders) && state.rowHeaders[i] != null) ? state.rowHeaders[i] : DEFAULT_HEADERS[i]);
+
+    // Splits 15 slots across N rows as evenly as possible, e.g. 4 rows => 4,4,4,3
+    function getRowLayout() {
+      const rows = state.rowCount;
+      const base = Math.floor(TOTAL_SLOTS / rows);
+      const extra = TOTAL_SLOTS % rows;
+      const layout = [];
+      let start = 0;
+      for (let r = 0; r < rows; r++) {
+        const count = base + (r < extra ? 1 : 0);
+        layout.push({ start, count });
+        start += count;
+      }
+      return { rows: layout, cols: Math.ceil(TOTAL_SLOTS / rows) };
+    }
 
     const slotCounter = document.getElementById("slotCounter");
     const boardContainer = document.getElementById("boardContainer");
@@ -743,6 +768,7 @@
     const gridOrientationSelect = document.getElementById("gridOrientationSelect");
     const rowConfigGroup = document.getElementById("rowConfigGroup");
     const rowConfigBox = document.getElementById("rowConfigBox");
+    const rowCountSelect = document.getElementById("rowCountSelect");
     const captionStyleSelect = document.getElementById("captionStyleSelect");
     const themeSelector = document.getElementById("themeSelector");
     const uploadTriggerBtn = document.getElementById("uploadTriggerBtn");
@@ -762,10 +788,18 @@
 
     let uploadTargetIndex = null;
 
+    // Debounced: avoids serialising (possibly large data-URL) state on every keystroke
+    let saveTimer = null;
     function saveState() {
-      try {
-        localStorage.setItem("myqmc15_state_v1", JSON.stringify(state));
-      } catch (e) {}
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        try {
+          const { activeModalSlot, swapSourceIndex, ...persist } = state;
+          localStorage.setItem("myqmc15_state_v1", JSON.stringify(persist));
+        } catch (e) {
+          console.warn("Could not save state (storage full?)", e);
+        }
+      }, 250);
     }
 
     function initThemePills() {
@@ -787,19 +821,22 @@
 
     function updateRowConfigUI() {
       rowConfigBox.innerHTML = "";
-      const currentRows = state.rowCount || 3;
-      for (let r = 0; r < currentRows; r++) {
+      rowCountSelect.value = String(state.rowCount);
+      const { rows } = getRowLayout();
+      for (let r = 0; r < rows.length; r++) {
         const item = document.createElement("div");
         item.className = "row-config-item";
         item.innerHTML = `
-          <span>R${r+1}</span>
+          <span title="${rows[r].count} albums">R${r+1}</span>
           <input type="text" class="row-header-input" data-row="${r}" value="${escapeHtml(state.rowHeaders[r] || `Row ${r+1}`)}" />
         `;
         const input = item.querySelector("input");
         input.addEventListener("input", (e) => {
           state.rowHeaders[r] = e.target.value;
           saveState();
-          renderPoster();
+          // Only update the header text instead of rebuilding the whole board
+          const headerEl = boardContainer.querySelectorAll(".genre-row-header")[r];
+          if (headerEl) headerEl.textContent = e.target.value || `Row ${r+1}`;
         });
         rowConfigBox.appendChild(item);
       }
@@ -826,9 +863,9 @@
       if (isGenreRows) {
         const rowsContainer = document.createElement("div");
         rowsContainer.className = "genre-rows-container";
-        const currentRows = state.rowCount || 3;
+        const { rows, cols } = getRowLayout();
 
-        for (let r = 0; r < currentRows; r++) {
+        for (let r = 0; r < rows.length; r++) {
           const rowSec = document.createElement("div");
           rowSec.className = "genre-row-section";
 
@@ -840,12 +877,10 @@
 
           const rowGrid = document.createElement("div");
           rowGrid.className = "genre-row-grid";
+          rowGrid.style.setProperty("--cols", cols);
 
-          for (let c = 0; c < 5; c++) {
-            const index = r * 5 + c;
-            if (index < TOTAL_SLOTS) {
-              rowGrid.appendChild(createSlotElement(index));
-            }
+          for (let c = 0; c < rows[r].count; c++) {
+            rowGrid.appendChild(createSlotElement(rows[r].start + c));
           }
           rowSec.appendChild(rowGrid);
           rowsContainer.appendChild(rowSec);
@@ -883,7 +918,7 @@
       let innerHTML = `<div class="slot-art">`;
       if (album) {
         innerHTML += `
-          <img src="${album.coverUrl}" alt="${escapeHtml(album.title)}" crossorigin="anonymous" />
+          <img src="${escapeHtml(album.coverUrl)}" alt="${escapeHtml(album.title)}" loading="lazy" />
           <button type="button" class="slot-remove" title="Remove album">×</button>
         `;
       } else {
@@ -1050,7 +1085,7 @@
         const div = document.createElement("div");
         div.className = "modal-result-item";
         div.innerHTML = `
-          <img src="${item.coverUrl}" class="modal-result-thumb" crossorigin="anonymous" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'52\\' height=\\'52\\' viewBox=\\'0 0 52 52\\'><rect width=\\'52\\' height=\\'52\\' fill=\\'%23222\\'/><text x=\\'50%\\' y=\\'50%\\' fill=\\'%23777\\' font-size=\\'10\\' text-anchor=\\'middle\\' dominant-baseline=\\'middle\\'>No Art</text></svg>'" />
+          <img src="${escapeHtml(item.coverUrl)}" class="modal-result-thumb" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'52\\' height=\\'52\\' viewBox=\\'0 0 52 52\\'><rect width=\\'52\\' height=\\'52\\' fill=\\'%23222\\'/><text x=\\'50%\\' y=\\'50%\\' fill=\\'%23777\\' font-size=\\'10\\' text-anchor=\\'middle\\' dominant-baseline=\\'middle\\'>No Art</text></svg>'" />
           <div class="modal-result-info">
             <div class="modal-result-album">${escapeHtml(item.title)}</div>
             <div class="modal-result-artist">${escapeHtml(item.artist)} ${item.year ? '(' + item.year + ')' : ''}</div>
@@ -1073,6 +1108,22 @@
       });
     }
 
+    // Loads an image with CORS so the canvas stays exportable.
+    // Retries with a cache-buster (a cached non-CORS response would otherwise fail).
+    function loadCorsImage(url) {
+      const attempt = (src) => new Promise(resolve => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = src;
+      });
+      return attempt(url).then(img => {
+        if (img || url.startsWith("data:")) return img;
+        return attempt(url + (url.includes("?") ? "&" : "?") + "cors=" + Date.now());
+      });
+    }
+
     async function exportPosterPng() {
       downloadBtn.disabled = true;
       downloadBtn.textContent = "Rendering PNG...";
@@ -1081,8 +1132,18 @@
         const theme = THEMES[state.theme] || THEMES.paper;
         const isLandscape = state.orientation === "landscape";
         const isGenreRows = state.orientation === "genre-rows";
-        const cols = isLandscape || isGenreRows ? 5 : 3;
-        const rows = isLandscape || isGenreRows ? (state.rowCount || 3) : 5;
+        const genreLayout = isGenreRows ? getRowLayout() : null;
+        const cols = isGenreRows ? genreLayout.cols : (isLandscape ? 5 : 3);
+        const rows = isGenreRows ? genreLayout.rows.length : (isLandscape ? 3 : 5);
+        // Map each slot index to its [row, col] position
+        const positions = [];
+        if (isGenreRows) {
+          genreLayout.rows.forEach((row, r) => {
+            for (let c = 0; c < row.count; c++) positions[row.start + c] = [r, c];
+          });
+        } else {
+          for (let i = 0; i < TOTAL_SLOTS; i++) positions[i] = [Math.floor(i / cols), i % cols];
+        }
 
         const padding = 80;
         const gap = 34;
@@ -1131,24 +1192,15 @@
         }
 
         const loadedImages = await Promise.all(
-          state.slots.map(slot => {
-            if (!slot || !slot.coverUrl) return Promise.resolve(null);
-            return new Promise(resolve => {
-              const img = new Image();
-              img.crossOrigin = "anonymous";
-              img.onload = () => resolve(img);
-              img.onerror = () => resolve(null);
-              img.src = slot.coverUrl;
-            });
-          })
+          state.slots.map(slot => (slot && slot.coverUrl) ? loadCorsImage(slot.coverUrl) : null)
         );
+        const failedCount = state.slots.filter((s, i) => s && !loadedImages[i]).length;
 
         const gridStartY = padding + headerHeight;
 
         for (let i = 0; i < TOTAL_SLOTS; i++) {
-          const r = Math.floor(i / cols);
-          const c = i % cols;
-          const rowHeaderOffset = isGenreRows ? r * rowHeaderHeight : 0;
+          const [r, c] = positions[i];
+          const rowHeaderOffset = isGenreRows ? (r + 1) * rowHeaderHeight : 0;
           const x = padding + c * (coverSize + gap);
           const y = gridStartY + rowHeaderOffset + r * (coverSize + captionHeight) + (r * gap);
           const slot = state.slots[i];
@@ -1217,11 +1269,25 @@
           });
         }
 
-        const dataUrl = canvas.toDataURL("image/png");
+        // toBlob is far more memory-friendly than a multi-MB data URL
+        const blob = await new Promise((resolve, reject) => {
+          try { canvas.toBlob(b => b ? resolve(b) : reject(new Error("Empty canvas")), "image/png"); }
+          catch (err) { reject(err); }
+        });
+        const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.download = "myqmc15-poster.png";
-        link.href = dataUrl;
+        link.href = url;
+        document.body.appendChild(link);
         link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+        if (failedCount) {
+          alert(`${failedCount} cover(s) couldn't be loaded for export (the host blocks cross-origin use) and were drawn as placeholders. Try re-picking them via Apple Music/iTunes.`);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Sorry, the PNG export failed: " + err.message);
       } finally {
         downloadBtn.disabled = false;
         downloadBtn.textContent = "Download High-Res PNG";
@@ -1249,24 +1315,27 @@
     posterTitleInput.addEventListener("input", (e) => {
       state.title = e.target.value;
       saveState();
-      renderPoster();
+      previewTitle.textContent = state.title || "The 15 Albums That Made Me";
     });
 
     posterHandleInput.value = state.handle;
     posterHandleInput.addEventListener("input", (e) => {
       state.handle = e.target.value;
       saveState();
-      renderPoster();
+      previewHandle.textContent = state.handle;
     });
 
     gridOrientationSelect.value = state.orientation;
     gridOrientationSelect.addEventListener("change", (e) => {
       state.orientation = e.target.value;
-      if (state.orientation === "genre-rows") {
-        state.rowCount = 3; 
-        state.rowHeaders = state.rowHeaders || ["Row 1", "Row 2", "Row 3"];
-        updateRowConfigUI();
-      }
+      if (state.orientation === "genre-rows") updateRowConfigUI();
+      saveState();
+      renderPoster();
+    });
+
+    rowCountSelect.addEventListener("change", (e) => {
+      state.rowCount = parseInt(e.target.value, 10);
+      updateRowConfigUI();
       saveState();
       renderPoster();
     });
@@ -1305,9 +1374,29 @@
       customFileInput.value = "";
     });
 
-    shareUrlBtn.addEventListener("click", () => {
+    async function copyText(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+      }
+      // Fallback for http:// or blocked clipboard API
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;";
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) {}
+      ta.remove();
+      return ok;
+    }
+
+    shareUrlBtn.addEventListener("click", async () => {
+      // Uploaded covers are huge data URLs - they'd break the link, so leave them out
+      const hasCustom = state.slots.some(s => s && String(s.coverUrl).startsWith("data:"));
+      const shareSlots = state.slots.map(s => (s && String(s.coverUrl).startsWith("data:")) ? null : s);
       const jsonStr = JSON.stringify({
-        slots: state.slots,
+        slots: shareSlots,
         title: state.title,
         handle: state.handle,
         theme: state.theme,
@@ -1317,11 +1406,15 @@
         rowHeaders: state.rowHeaders
       });
       const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
-      const shareUrl = window.location.origin + window.location.pathname + "#board=" + encoded;
-      navigator.clipboard.writeText(shareUrl).then(() => {
+      // href (not origin) so it also works from file:// where origin is "null"
+      const shareUrl = window.location.href.split("#")[0] + "#board=" + encoded;
+      if (await copyText(shareUrl)) {
         shareUrlBtn.textContent = "Copied Link!";
         setTimeout(() => { shareUrlBtn.textContent = "Copy Share Link"; }, 2000);
-      });
+        if (hasCustom) alert("Link copied. Note: uploaded custom covers aren't included in share links.");
+      } else {
+        prompt("Copy this link:", shareUrl);
+      }
     });
 
     downloadBtn.addEventListener("click", exportPosterPng);
