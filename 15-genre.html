@@ -860,6 +860,20 @@
         });
       }
 
+      // Make clicking the artwork perform a search for that album
+      const imgEl = slotEl.querySelector(".slot-art img");
+      if (imgEl) {
+        imgEl.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const q = `${album.title || ""} ${album.artist || ""}`.trim();
+          if (q.length === 0) return;
+          searchInput.value = q;
+          searchAlbums(q);
+          searchInput.focus();
+          searchStatus.textContent = `Searching for "${q}"...`;
+        });
+      }
+
       slotEl.addEventListener("click", () => {
         if (state.swapSourceIndex !== null && state.swapSourceIndex !== index) {
           const temp = state.slots[state.swapSourceIndex];
@@ -986,7 +1000,7 @@
         const card = document.createElement("div");
         card.className = "result-card";
         card.innerHTML = `
-          <img src="${item.coverUrl}" alt="${escapeHtml(item.title)}" loading="lazy" crossorigin="anonymous" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\' viewBox=\\'0 0 100 100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%23222\\'/><text x=\\'50%\\' y=\\'50%\\' fill=\\'%23777\\' font-size=\\'12\\' text-anchor=\\'middle\\' dominant-baseline=\\'middle\\'>No Art</text></svg>'" />
+          <img src="${item.coverUrl}" alt="${escapeHtml(item.title)}" loading="lazy" crossorigin="anonymous" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 100 100\'><rect width=\'100\' height=\'100\' fill=\'#222\'/><text x=\'50%\' y=\'50%\' fill=\'#777\' font-size=\'12\' text-anchor=\'middle\' dominant-baseline=\'middle\'>No Art</text></svg>'" />
           <div class="result-meta">
             <div class="result-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</div>
             <div class="result-artist" title="${escapeHtml(item.artist)}">${escapeHtml(item.artist)}</div>
@@ -1007,7 +1021,6 @@
         const isGenreRows = state.orientation === "genre-rows";
         const cols = isLandscape || isGenreRows ? 5 : 3;
         const rows = isLandscape || isGenreRows ? 3 : 5;
-
         const padding = 80;
         const gap = 34;
         const coverSize = 340;
@@ -1037,13 +1050,6 @@
         const rightWidth = ctx.measureText(rightMeta).width;
         ctx.fillText(rightMeta, canvasWidth - padding - rightWidth, padding + 20);
 
-        ctx.strokeStyle = theme.text;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(padding, padding + 40);
-        ctx.lineTo(canvasWidth - padding, padding + 40);
-        ctx.stroke();
-
         ctx.globalAlpha = 1;
         ctx.font = "800 52px -apple-system, BlinkMacSystemFont, sans-serif";
         ctx.fillText(state.title || "The 15 Albums That Made Me", padding, padding + 115);
@@ -1068,24 +1074,22 @@
           })
         );
 
-        const gridStartY = padding + headerHeight;
-
+        let gridStartY = padding + headerHeight;
         for (let i = 0; i < TOTAL_SLOTS; i++) {
           const r = Math.floor(i / cols);
           const c = i % cols;
-          const rowHeaderOffset = isGenreRows ? r * rowHeaderHeight : 0;
+          const rowHeaderOffset = isGenreRows ? r * 50 : 0;
           const x = padding + c * (coverSize + gap);
-          const y = gridStartY + rowHeaderOffset + r * (coverSize + captionHeight) + (r * gap);
+          const y = gridStartY + rowHeaderOffset + r * (coverSize + captionHeight + gap);
           const slot = state.slots[i];
           const img = loadedImages[i];
           const numStr = String(i + 1).padStart(2, "0");
 
-          // Draw row headers if in genre-rows mode and first item in row
           if (isGenreRows && c === 0) {
             ctx.globalAlpha = 0.8;
             ctx.fillStyle = theme.text;
             ctx.font = "800 20px -apple-system, BlinkMacSystemFont, sans-serif";
-            ctx.fillText((state.rowHeaders[r] || `Row ${r+1}`).toUpperCase(), padding, y - 16);
+            ctx.fillText((state.rowHeaders[r] || `Row ${r+1}`).toUpperCase(), padding, y - 12);
             ctx.strokeStyle = theme.text;
             ctx.lineWidth = 1;
             ctx.beginPath();
@@ -1111,12 +1115,11 @@
             ctx.fillStyle = theme.text;
             ctx.font = "700 20px -apple-system, BlinkMacSystemFont, sans-serif";
             const titleLine = slot ? `${numStr}. ${slot.title}` : `${numStr}. —`;
-            ctx.fillText(truncateCanvasText(ctx, titleLine, coverSize), x, y + coverSize + 26);
+            ctx.fillText(truncateCanvasText(ctx, titleLine, coverSize), x, y + coverSize + 24);
 
             ctx.globalAlpha = 0.72;
             ctx.font = "500 18px -apple-system, BlinkMacSystemFont, sans-serif";
-            const artistLine = slot ? slot.artist : "";
-            ctx.fillText(truncateCanvasText(ctx, artistLine, coverSize), x, y + coverSize + 50);
+            ctx.fillText(slot ? slot.artist : "Empty Slot", x, y + coverSize + 48);
           }
         }
 
@@ -1129,17 +1132,16 @@
           ctx.lineTo(canvasWidth - padding, footerY);
           ctx.stroke();
 
-          const colWidth = (canvasWidth - padding * 2 - gap * 2) / 3;
+          ctx.globalAlpha = 1;
           ctx.font = "600 18px -apple-system, BlinkMacSystemFont, sans-serif";
           state.slots.forEach((slot, idx) => {
-            const fc = Math.floor(idx / 5);
-            const fr = idx % 5;
-            const fx = padding + fc * (colWidth + gap);
-            const fy = footerY + 32 + fr * 28;
+            const col = Math.floor(idx / 5);
+            const row = idx % 5;
+            const fx = padding + row * (coverSize / 2 + 20);
+            const fy = footerY + 30 + col * 26;
             const num = String(idx + 1).padStart(2, "0");
-            const label = slot ? `${num}  ${slot.title} — ${slot.artist}` : `${num}  —`;
-            ctx.globalAlpha = 0.9;
-            ctx.fillText(truncateCanvasText(ctx, label, colWidth), fx, fy);
+            const label = slot ? `${num} ${slot.title} — ${slot.artist}` : `${num} —`;
+            ctx.fillText(truncateCanvasText(ctx, label, 220), fx, fy);
           });
         }
 
@@ -1168,10 +1170,11 @@
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
 
-    // Event Listeners
+    // Event listeners
     searchBtn.addEventListener("click", () => searchAlbums(searchInput.value));
     searchInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") searchAlbums(searchInput.value);
@@ -1194,10 +1197,10 @@
     curationModeSelect.value = state.curationMode;
     curationModeSelect.addEventListener("change", (e) => {
       state.curationMode = e.target.value;
-      if (state.curationMode === 'genre' || state.curationMode === 'decade') {
-        state.orientation = 'genre-rows';
-        gridOrientationSelect.value = 'genre-rows';
-        if (state.curationMode === 'genre') {
+      if (state.curationMode === "genre" || state.curationMode === "decade") {
+        state.orientation = "genre-rows";
+        gridOrientationSelect.value = "genre-rows";
+        if (state.curationMode === "genre") {
           state.rowHeaders = ["Electronic / Ambient", "Indie / Guitar", "Jazz / Soul"];
         } else {
           state.rowHeaders = ["1970s Era", "1980s Era", "1990s & Beyond"];
@@ -1242,7 +1245,7 @@
         const title = prompt("Enter Album Title:", defaultTitle) || defaultTitle;
         const artist = prompt("Enter Artist Name:", "") || "";
         addAlbumToBoard({
-          id: "custom_" + Date.now(),
+          id: `custom_${Date.now()}`,
           title,
           artist,
           coverUrl: reader.result
@@ -1264,7 +1267,7 @@
         rowHeaders: state.rowHeaders
       });
       const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
-      const shareUrl = window.location.origin + window.location.pathname + "#board=" + encoded;
+      const shareUrl = `${window.location.origin}${window.location.pathname}#board=${encoded}`;
       navigator.clipboard.writeText(shareUrl).then(() => {
         shareUrlBtn.textContent = "Copied Link!";
         setTimeout(() => { shareUrlBtn.textContent = "Copy Share Link"; }, 2000);
@@ -1283,7 +1286,7 @@
       }
     });
 
-    // Initialize UI
+    // Initialise UI
     initThemePills();
     renderPoster();
   </script>
