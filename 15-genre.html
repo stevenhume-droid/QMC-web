@@ -60,7 +60,7 @@
       max-width: 1400px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: 440px 1fr;
+      grid-template-columns: 360px 1fr;
       gap: 28px;
       align-items: start;
     }
@@ -91,11 +91,6 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-    }
-
-    .search-bar {
-      display: flex;
-      gap: 8px;
     }
 
     input[type="text"], select {
@@ -145,69 +140,9 @@
       background: #303440;
     }
 
-    .search-source-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-      align-items: center;
-    }
-
-    .search-results {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      max-height: 310px;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-
-    .result-card {
-      background: #14161b;
-      border: 1px solid var(--ui-border);
-      border-radius: 8px;
-      overflow: hidden;
-      cursor: pointer;
-      transition: border-color 0.15s, transform 0.15s;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .result-card:hover {
-      border-color: var(--ui-accent);
-      transform: translateY(-2px);
-    }
-
-    .result-card img {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      object-fit: cover;
-      display: block;
-      background: #0d0e11;
-    }
-
-    .result-meta {
-      padding: 6px 8px;
-    }
-
-    .result-title {
-      font-size: 0.74rem;
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .result-artist {
-      font-size: 0.68rem;
-      color: var(--ui-muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
     .controls-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 12px;
     }
 
@@ -373,7 +308,6 @@
       display: flex;
       flex-direction: column;
       gap: 5px;
-      cursor: pointer;
     }
 
     .slot-art {
@@ -382,22 +316,28 @@
       aspect-ratio: 1 / 1;
       border: 1px dashed rgba(128, 128, 128, 0.45);
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       overflow: hidden;
       background: rgba(128, 128, 128, 0.08);
       transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
+      padding: 8px;
+      text-align: center;
     }
 
-    .album-slot.target-slot .slot-art {
+    .album-slot.searching .slot-art {
       border: 2px solid var(--ui-accent);
-      box-shadow: 0 0 0 3px rgba(224, 122, 95, 0.25);
+      background: rgba(0,0,0,0.85);
+      padding: 6px;
     }
 
     .album-slot.filled .slot-art {
       border: none;
       background: transparent;
       box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+      padding: 0;
+      cursor: pointer;
     }
 
     .slot-art img {
@@ -412,6 +352,54 @@
       font-weight: 700;
       opacity: 0.4;
       font-variant-numeric: tabular-nums;
+    }
+
+    .slot-search-prompt {
+      font-size: 0.68rem;
+      opacity: 0.7;
+      margin-top: 4px;
+      cursor: pointer;
+    }
+    .slot-search-prompt:hover {
+      color: var(--ui-accent);
+      text-decoration: underline;
+    }
+
+    .slot-search-input {
+      width: 100%;
+      background: #1c1e24;
+      border: 1px solid var(--ui-accent);
+      color: #fff;
+      font-size: 0.72rem;
+      padding: 4px 6px;
+      border-radius: 4px;
+      outline: none;
+      margin-bottom: 4px;
+    }
+
+    .slot-search-results {
+      width: 100%;
+      max-height: 140px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      text-align: left;
+    }
+
+    .slot-result-item {
+      font-size: 0.65rem;
+      background: #2a2d37;
+      padding: 3px 6px;
+      border-radius: 3px;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .slot-result-item:hover {
+      background: var(--ui-accent);
+      color: #fff;
     }
 
     .slot-remove {
@@ -430,6 +418,7 @@
       border: none;
       padding: 0;
       cursor: pointer;
+      z-index: 2;
     }
 
     .album-slot.filled:hover .slot-remove {
@@ -482,22 +471,6 @@
     .hidden-input {
       display: none;
     }
-
-    .status-toast {
-      font-size: 0.8rem;
-      color: var(--ui-accent);
-      min-height: 1.2em;
-    }
-
-    .discogs-drawer {
-      background: #14161b;
-      border: 1px solid var(--ui-border);
-      padding: 10px 12px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      display: none;
-      margin-top: 6px;
-    }
   </style>
 </head>
 <body>
@@ -505,7 +478,7 @@
   <header class="app-header">
     <div>
       <h1>my<span>15</span>albums</h1>
-      <p>Curate your 15 essential records by all-time, genre, or decade, arrange sleeves, and export posters.</p>
+      <p>Click any slot on the poster grid to search and add albums directly into that cover space.</p>
     </div>
     <div id="slotCounter" style="font-weight: 700; font-size: 0.95rem;">0 / 15 Selected</div>
   </header>
@@ -514,45 +487,7 @@
     <!-- Left Controls Panel -->
     <section class="panel">
       <div>
-        <div class="section-title">
-          <span>1. Search Albums & Crate</span>
-          <span id="activeSlotIndicator" style="color: var(--ui-accent);">Filling Slot #01</span>
-        </div>
-        <div class="search-bar">
-          <input type="text" id="searchInput" placeholder="Search artist or album..." />
-          <button id="searchBtn">Search</button>
-        </div>
-        <div class="search-source-row">
-          <select id="searchSourceSelect" style="font-size: 0.8rem; padding: 6px 8px;">
-            <option value="itunes">Source: iTunes Archive (Fast & Clean)</option>
-            <option value="discogs">Source: Discogs Database</option>
-            <option value="musicbrainz">Source: MusicBrainz + CoverArt</option>
-          </select>
-          <button class="secondary" id="toggleDiscogsKey" style="padding: 6px 10px; font-size: 0.76rem;" title="Configure Discogs API Key">🔑 Token</button>
-          <button class="secondary" id="uploadTriggerBtn" style="padding: 6px 10px; font-size: 0.76rem;">+ Upload</button>
-          <input type="file" id="customFileInput" class="hidden-input" accept="image/*" />
-        </div>
-        
-        <div id="discogsDrawer" class="discogs-drawer">
-          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-            <strong>Discogs Personal Token</strong>
-            <a href="https://www.discogs.com/settings/developers" target="_blank" style="color:var(--ui-accent); font-size:0.75rem;">Get Token →</a>
-          </div>
-          <div style="display:flex; gap:6px;">
-            <input type="text" id="discogsTokenInput" placeholder="Paste user token here..." style="font-size:0.78rem; padding:6px;" />
-            <button id="saveDiscogsKeyBtn" style="padding: 6px 12px; font-size:0.78rem;">Save</button>
-          </div>
-        </div>
-
-        <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
-          <span class="status-toast" id="searchStatus">Type an artist or album and press Enter.</span>
-        </div>
-      </div>
-
-      <div id="searchResults" class="search-results"></div>
-
-      <div>
-        <div class="section-title"><span>2. Poster Details & Layout Curation</span></div>
+        <div class="section-title"><span>1. Poster Details & Layout Curation</span></div>
         <div class="controls-grid">
           <div class="field-group">
             <label for="posterTitleInput">Poster Title</label>
@@ -578,7 +513,7 @@
               <option value="genre-rows">Genre / Category Per Row</option>
             </select>
           </div>
-          <div class="field-group" style="grid-column: span 2;">
+          <div class="field-group">
             <label for="captionStyleSelect">Album Titles Display</label>
             <select id="captionStyleSelect">
               <option value="under">Under Each Cover</option>
@@ -586,16 +521,20 @@
               <option value="none">Artwork Only (Clean)</option>
             </select>
           </div>
+          <div class="field-group">
+            <button class="secondary" id="uploadTriggerBtn" style="width:100%;">+ Upload Custom Cover File</button>
+            <input type="file" id="customFileInput" class="hidden-input" accept="image/*" />
+          </div>
         </div>
       </div>
 
       <div>
-        <div class="section-title"><span>3. Visual Theme</span></div>
+        <div class="section-title"><span>2. Visual Theme</span></div>
         <div class="theme-pills" id="themeSelector"></div>
       </div>
 
       <div>
-        <div class="section-title"><span>4. Share & Export</span></div>
+        <div class="section-title"><span>3. Share & Export</span></div>
         <div class="action-row">
           <button id="downloadBtn">Download High-Res PNG</button>
           <button class="secondary" id="shareUrlBtn">Copy Share Link</button>
@@ -607,7 +546,7 @@
     <!-- Right Poster Preview -->
     <section class="preview-container">
       <div class="board-instructions">
-        <span>Click empty slot to target • Click two covers to swap • Drag to reorder</span>
+        <span>Click any slot to search & add • Click filled cover to swap • Drag to reorder</span>
         <span>× removes cover</span>
       </div>
 
@@ -642,7 +581,7 @@
 
     let state = {
       slots: Array(TOTAL_SLOTS).fill(null),
-      targetSlot: 0,
+      activeSearchSlot: null,
       swapSourceIndex: null,
       theme: "paper",
       orientation: "portrait",
@@ -650,36 +589,28 @@
       captionStyle: "under",
       title: "The 15 Albums That Made Me",
       handle: "",
-      discogsToken: localStorage.getItem("my15albums_discogs_token") || "",
       rowHeaders: ["Row 1 · Electronic / Ambient", "Row 2 · Indie / Guitar", "Row 3 · Jazz / Soul"]
     };
 
-    // Hydrate from URL hash if present
     try {
       if (window.location.hash.startsWith("#board=")) {
         const jsonStr = decodeURIComponent(escape(atob(window.location.hash.replace("#board=", ""))));
         const parsed = JSON.parse(jsonStr);
         if (parsed && Array.isArray(parsed.slots)) {
-          state = { ...state, ...parsed, swapSourceIndex: null };
+          state = { ...state, ...parsed, swapSourceIndex: null, activeSearchSlot: null };
         }
       } else {
-        const saved = localStorage.getItem("my15albums_state_v2");
+        const saved = localStorage.getItem("my15albums_state_v3");
         if (saved) {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed.slots) && parsed.slots.length === TOTAL_SLOTS) {
-            state = { ...state, ...parsed, swapSourceIndex: null };
+            state = { ...state, ...parsed, swapSourceIndex: null, activeSearchSlot: null };
           }
         }
       }
     } catch (e) {}
 
-    const searchInput = document.getElementById("searchInput");
-    const searchBtn = document.getElementById("searchBtn");
-    const searchSourceSelect = document.getElementById("searchSourceSelect");
-    const searchResults = document.getElementById("searchResults");
-    const searchStatus = document.getElementById("searchStatus");
     const slotCounter = document.getElementById("slotCounter");
-    const activeSlotIndicator = document.getElementById("activeSlotIndicator");
     const boardContainer = document.getElementById("boardContainer");
     const posterCard = document.getElementById("posterCard");
     const posterFooterList = document.getElementById("posterFooterList");
@@ -696,16 +627,12 @@
     const downloadBtn = document.getElementById("downloadBtn");
     const shareUrlBtn = document.getElementById("shareUrlBtn");
     const clearBoardBtn = document.getElementById("clearBoardBtn");
-    const toggleDiscogsKey = document.getElementById("toggleDiscogsKey");
-    const discogsDrawer = document.getElementById("discogsDrawer");
-    const discogsTokenInput = document.getElementById("discogsTokenInput");
-    const saveDiscogsKeyBtn = document.getElementById("saveDiscogsKeyBtn");
 
-    discogsTokenInput.value = state.discogsToken;
+    let uploadTargetIndex = null;
 
     function saveState() {
       try {
-        localStorage.setItem("my15albums_state_v2", JSON.stringify(state));
+        localStorage.setItem("my15albums_state_v3", JSON.stringify(state));
       } catch (e) {}
     }
 
@@ -726,26 +653,6 @@
       });
     }
 
-    function findNextEmptySlot(fromIndex = 0) {
-      for (let i = 0; i < TOTAL_SLOTS; i++) {
-        const idx = (fromIndex + i) % TOTAL_SLOTS;
-        if (!state.slots[idx]) return idx;
-      }
-      return state.targetSlot;
-    }
-
-    function addAlbumToBoard(album) {
-      if (album.id && state.slots.some(s => s && s.id === album.id)) {
-        searchStatus.textContent = `"${album.title}" is already on your board.`;
-        return;
-      }
-      state.slots[state.targetSlot] = album;
-      state.swapSourceIndex = null;
-      state.targetSlot = findNextEmptySlot(state.targetSlot + 1);
-      saveState();
-      renderPoster();
-    }
-
     function renderPoster() {
       const theme = THEMES[state.theme] || THEMES.paper;
       posterCard.style.backgroundColor = theme.bg;
@@ -760,12 +667,10 @@
 
       const filledCount = state.slots.filter(Boolean).length;
       slotCounter.textContent = `${filledCount} / ${TOTAL_SLOTS} Selected`;
-      activeSlotIndicator.textContent = `Target: Slot #${String(state.targetSlot + 1).padStart(2, "0")}`;
 
       boardContainer.innerHTML = "";
 
       if (isGenreRows) {
-        // Render 3 rows of 5 with row headers
         const rowsContainer = document.createElement("div");
         rowsContainer.className = "genre-rows-container";
 
@@ -804,7 +709,6 @@
         boardContainer.appendChild(grid);
       }
 
-      // Footer tracklist mode
       if (state.captionStyle === "footer") {
         posterFooterList.style.display = "grid";
         posterFooterList.innerHTML = state.slots.map((album, idx) => {
@@ -819,29 +723,39 @@
 
     function createSlotElement(index) {
       const album = state.slots[index];
+      const isSearching = state.activeSearchSlot === index;
+      const isSwapTarget = state.swapSourceIndex === index;
+      
       const slotEl = document.createElement("div");
-      const isTarget = index === state.targetSlot || index === state.swapSourceIndex;
-      slotEl.className = `album-slot ${album ? "filled" : ""} ${isTarget ? "target-slot" : ""}`;
+      slotEl.className = `album-slot ${album ? "filled" : ""} ${isSearching ? "searching" : ""}`;
       slotEl.draggable = Boolean(album);
 
       const numLabel = String(index + 1).padStart(2, "0");
 
       let innerHTML = `<div class="slot-art">`;
-      if (album) {
+      if (album && !isSearching) {
         innerHTML += `
           <img src="${album.coverUrl}" alt="${escapeHtml(album.title)}" crossorigin="anonymous" />
           <button type="button" class="slot-remove" title="Remove album">×</button>
         `;
+      } else if (isSearching) {
+        innerHTML += `
+          <input type="text" class="slot-search-input" placeholder="Search album..." autofocus />
+          <div class="slot-search-results"></div>
+        `;
       } else {
-        innerHTML += `<span class="slot-number">${numLabel}</span>`;
+        innerHTML += `
+          <span class="slot-number">${numLabel}</span>
+          <span class="slot-search-prompt">+ Search</span>
+        `;
       }
       innerHTML += `</div>`;
 
       if (state.captionStyle === "under") {
         innerHTML += `
           <div class="slot-caption">
-            <div class="slot-caption-title">${album ? `${numLabel}.${escapeHtml(album.title)}` : `${numLabel}. —`}</div>
-            <div class="slot-caption-artist">${album ? escapeHtml(album.artist) : "Empty Slot"}</div>
+            <div class="slot-caption-title">${album && !isSearching ? `${numLabel}.${escapeHtml(album.title)}` : `${numLabel}. —`}</div>
+            <div class="slot-caption-artist">${album && !isSearching ? escapeHtml(album.artist) : "Empty Slot"}</div>
           </div>
         `;
       }
@@ -853,57 +767,82 @@
         removeBtn.addEventListener("click", (e) => {
           e.stopPropagation();
           state.slots[index] = null;
-          state.targetSlot = index;
           state.swapSourceIndex = null;
           saveState();
           renderPoster();
         });
       }
 
-      // Make clicking the artwork perform a search for that album
-      const imgEl = slotEl.querySelector(".slot-art img");
-      if (imgEl) {
-        imgEl.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const q = `${album.title || ""} ${album.artist || ""}`.trim();
-          if (q.length === 0) return;
-          searchInput.value = q;
-          searchAlbums(q);
-          searchInput.focus();
-          searchStatus.textContent = `Searching for "${q}"...`;
+      const slotArt = slotEl.querySelector(".slot-art");
+      
+      if (isSearching) {
+        const input = slotEl.querySelector(".slot-search-input");
+        const resultsContainer = slotEl.querySelector(".slot-search-results");
+        input.focus();
+
+        input.addEventListener("click", (e) => e.stopPropagation());
+        input.addEventListener("input", async (e) => {
+          const query = e.target.value.trim();
+          if (query.length < 2) {
+            resultsContainer.innerHTML = "";
+            return;
+          }
+          try {
+            const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=album&limit=6`);
+            const data = await res.json();
+            resultsContainer.innerHTML = "";
+            if (!data.results) return;
+
+            data.results.forEach(item => {
+              const hiRes = item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "600x600bb") : "";
+              const div = document.createElement("div");
+              div.className = "slot-result-item";
+              div.textContent = `${item.collectionName} — ${item.artistName}`;
+              div.addEventListener("click", (ev) => {
+                ev.stopPropagation();
+                state.slots[index] = {
+                  id: item.collectionId,
+                  title: item.collectionName,
+                  artist: item.artistName,
+                  coverUrl: hiRes
+                };
+                state.activeSearchSlot = null;
+                saveState();
+                renderPoster();
+              });
+              resultsContainer.appendChild(div);
+            });
+          } catch (err) {}
+        });
+
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") {
+            state.activeSearchSlot = null;
+            renderPoster();
+          }
+        });
+      } else {
+        slotArt.addEventListener("click", () => {
+          if (state.swapSourceIndex !== null && state.swapSourceIndex !== index) {
+            const temp = state.slots[state.swapSourceIndex];
+            state.slots[state.swapSourceIndex] = state.slots[index];
+            state.slots[index] = temp;
+            state.swapSourceIndex = null;
+          } else if (album) {
+            state.swapSourceIndex = state.swapSourceIndex === index ? null : index;
+          } else {
+            state.activeSearchSlot = index;
+            state.swapSourceIndex = null;
+          }
+          saveState();
+          renderPoster();
         });
       }
-
-      slotEl.addEventListener("click", () => {
-        if (state.swapSourceIndex !== null && state.swapSourceIndex !== index) {
-          const temp = state.slots[state.swapSourceIndex];
-          state.slots[state.swapSourceIndex] = state.slots[index];
-          state.slots[index] = temp;
-          state.targetSlot = index;
-          state.swapSourceIndex = null;
-          searchStatus.textContent = `Swapped slots #${String(index + 1).padStart(2, "0")}.`;
-        } else if (album) {
-          state.swapSourceIndex = state.swapSourceIndex === index ? null : index;
-          state.targetSlot = index;
-          if (state.swapSourceIndex !== null) {
-            searchStatus.textContent = `Slot #${numLabel} selected — click another slot to swap or search to replace.`;
-          }
-        } else {
-          state.targetSlot = index;
-          state.swapSourceIndex = null;
-        }
-        saveState();
-        renderPoster();
-      });
 
       slotEl.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", String(index));
       });
-
-      slotEl.addEventListener("dragover", (e) => {
-        e.preventDefault();
-      });
-
+      slotEl.addEventListener("dragover", (e) => e.preventDefault());
       slotEl.addEventListener("drop", (e) => {
         e.preventDefault();
         const fromIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
@@ -920,97 +859,6 @@
       return slotEl;
     }
 
-    async function searchAlbums(query) {
-      const trimmed = query.trim();
-      const source = searchSourceSelect.value;
-      if (trimmed.length < 2) {
-        searchStatus.textContent = "Please enter at least 2 characters.";
-        return;
-      }
-
-      searchStatus.textContent = `Searching ${source} for "${trimmed}"...`;
-      searchResults.innerHTML = "";
-
-      try {
-        if (source === "itunes") {
-          const url = `https://itunes.apple.com/search?term=${encodeURIComponent(trimmed)}&entity=album&limit=18`;
-          const res = await fetch(url);
-          const data = await res.json();
-          renderSearchResults(data.results.map(item => ({
-            id: item.collectionId,
-            title: item.collectionName,
-            artist: item.artistName,
-            coverUrl: item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "600x600bb") : ""
-          })));
-        } else if (source === "discogs") {
-          let url = `https://api.discogs.com/database/search?q=${encodeURIComponent(trimmed)}&type=release&per_page=18`;
-          const headers = { "User-Agent": "My15AlbumsApp/1.0" };
-          if (state.discogsToken) {
-            headers["Authorization"] = `Discogs token=${state.discogsToken}`;
-          }
-          const res = await fetch(url, { headers });
-          const data = await res.json();
-          if (!data.results || data.results.length === 0) {
-            searchStatus.textContent = "No Discogs results found. Try adding a personal token.";
-            return;
-          }
-          renderSearchResults(data.results.map(item => {
-            let title = item.title || "";
-            let artist = "Unknown Artist";
-            if (title.includes(" - ")) {
-              const parts = title.split(" - ");
-              artist = parts[0].trim();
-              title = parts.slice(1).join(" - ").trim();
-            }
-            // Strip Discogs numbering like Artist (2)
-            artist = artist.replace(/\s\(\d+\)$/, "");
-            return {
-              id: item.id,
-              title,
-              artist,
-              coverUrl: item.cover_image || ""
-            };
-          }));
-        } else if (source === "musicbrainz") {
-          const url = `https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(trimmed)}&fmt=json&limit=15`;
-          const res = await fetch(url, { headers: { "User-Agent": "My15AlbumsApp/1.0" } });
-          const data = await res.json();
-          const releases = data.releases || [];
-          renderSearchResults(releases.map(rel => {
-            const id = rel.id;
-            const title = rel.title;
-            const artist = rel["artist-credit"]?.[0]?.name || "Various Artists";
-            const coverUrl = `https://coverartarchive.org/release/${id}/front-250`;
-            return { id, title, artist, coverUrl };
-          }));
-        }
-      } catch (err) {
-        searchStatus.textContent = `Error searching ${source}. Check connection or switch source.`;
-      }
-    }
-
-    function renderSearchResults(results) {
-      if (!results || results.length === 0) {
-        searchStatus.textContent = "No albums found.";
-        return;
-      }
-      searchStatus.textContent = `Found ${results.length} results. Click sleeve to add to Slot #${String(state.targetSlot + 1).padStart(2, "0")}.`;
-
-      results.forEach(item => {
-        const card = document.createElement("div");
-        card.className = "result-card";
-        card.innerHTML = `
-          <img src="${item.coverUrl}" alt="${escapeHtml(item.title)}" loading="lazy" crossorigin="anonymous" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 100 100\'><rect width=\'100\' height=\'100\' fill=\'#222\'/><text x=\'50%\' y=\'50%\' fill=\'#777\' font-size=\'12\' text-anchor=\'middle\' dominant-baseline=\'middle\'>No Art</text></svg>'" />
-          <div class="result-meta">
-            <div class="result-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</div>
-            <div class="result-artist" title="${escapeHtml(item.artist)}">${escapeHtml(item.artist)}</div>
-          </div>
-        `;
-        card.addEventListener("click", () => addAlbumToBoard(item));
-        searchResults.appendChild(card);
-      });
-    }
-
     async function exportPosterPng() {
       downloadBtn.disabled = true;
       downloadBtn.textContent = "Rendering PNG...";
@@ -1021,6 +869,7 @@
         const isGenreRows = state.orientation === "genre-rows";
         const cols = isLandscape || isGenreRows ? 5 : 3;
         const rows = isLandscape || isGenreRows ? 3 : 5;
+
         const padding = 80;
         const gap = 34;
         const coverSize = 340;
@@ -1040,7 +889,6 @@
         ctx.fillStyle = theme.bg;
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-        // Top Meta Bar
         ctx.fillStyle = theme.text;
         ctx.globalAlpha = 0.65;
         ctx.font = "700 20px -apple-system, BlinkMacSystemFont, sans-serif";
@@ -1049,6 +897,13 @@
         const rightMeta = "SIDE A/B · 33⅓ RPM · STEREO";
         const rightWidth = ctx.measureText(rightMeta).width;
         ctx.fillText(rightMeta, canvasWidth - padding - rightWidth, padding + 20);
+
+        ctx.strokeStyle = theme.text;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(padding, padding + 40);
+        ctx.lineTo(canvasWidth - padding, padding + 40);
+        ctx.stroke();
 
         ctx.globalAlpha = 1;
         ctx.font = "800 52px -apple-system, BlinkMacSystemFont, sans-serif";
@@ -1074,13 +929,14 @@
           })
         );
 
-        let gridStartY = padding + headerHeight;
+        const gridStartY = padding + headerHeight;
+
         for (let i = 0; i < TOTAL_SLOTS; i++) {
           const r = Math.floor(i / cols);
           const c = i % cols;
-          const rowHeaderOffset = isGenreRows ? r * 50 : 0;
+          const rowHeaderOffset = isGenreRows ? r * rowHeaderHeight : 0;
           const x = padding + c * (coverSize + gap);
-          const y = gridStartY + rowHeaderOffset + r * (coverSize + captionHeight + gap);
+          const y = gridStartY + rowHeaderOffset + r * (coverSize + captionHeight) + (r * gap);
           const slot = state.slots[i];
           const img = loadedImages[i];
           const numStr = String(i + 1).padStart(2, "0");
@@ -1089,7 +945,7 @@
             ctx.globalAlpha = 0.8;
             ctx.fillStyle = theme.text;
             ctx.font = "800 20px -apple-system, BlinkMacSystemFont, sans-serif";
-            ctx.fillText((state.rowHeaders[r] || `Row ${r+1}`).toUpperCase(), padding, y - 12);
+            ctx.fillText((state.rowHeaders[r] || `Row ${r+1}`).toUpperCase(), padding, y - 16);
             ctx.strokeStyle = theme.text;
             ctx.lineWidth = 1;
             ctx.beginPath();
@@ -1115,11 +971,12 @@
             ctx.fillStyle = theme.text;
             ctx.font = "700 20px -apple-system, BlinkMacSystemFont, sans-serif";
             const titleLine = slot ? `${numStr}. ${slot.title}` : `${numStr}. —`;
-            ctx.fillText(truncateCanvasText(ctx, titleLine, coverSize), x, y + coverSize + 24);
+            ctx.fillText(truncateCanvasText(ctx, titleLine, coverSize), x, y + coverSize + 26);
 
             ctx.globalAlpha = 0.72;
             ctx.font = "500 18px -apple-system, BlinkMacSystemFont, sans-serif";
-            ctx.fillText(slot ? slot.artist : "Empty Slot", x, y + coverSize + 48);
+            const artistLine = slot ? slot.artist : "";
+            ctx.fillText(truncateCanvasText(ctx, artistLine, coverSize), x, y + coverSize + 50);
           }
         }
 
@@ -1132,16 +989,17 @@
           ctx.lineTo(canvasWidth - padding, footerY);
           ctx.stroke();
 
-          ctx.globalAlpha = 1;
+          const colWidth = (canvasWidth - padding * 2 - gap * 2) / 3;
           ctx.font = "600 18px -apple-system, BlinkMacSystemFont, sans-serif";
           state.slots.forEach((slot, idx) => {
-            const col = Math.floor(idx / 5);
-            const row = idx % 5;
-            const fx = padding + row * (coverSize / 2 + 20);
-            const fy = footerY + 30 + col * 26;
+            const fc = Math.floor(idx / 5);
+            const fr = idx % 5;
+            const fx = padding + fc * (colWidth + gap);
+            const fy = footerY + 32 + fr * 28;
             const num = String(idx + 1).padStart(2, "0");
-            const label = slot ? `${num} ${slot.title} — ${slot.artist}` : `${num} —`;
-            ctx.fillText(truncateCanvasText(ctx, label, 220), fx, fy);
+            const label = slot ? `${num}  ${slot.title} — ${slot.artist}` : `${num}  —`;
+            ctx.globalAlpha = 0.9;
+            ctx.fillText(truncateCanvasText(ctx, label, colWidth), fx, fy);
           });
         }
 
@@ -1170,15 +1028,8 @@
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+        .replace(/"/g, "&quot;");
     }
-
-    // Event listeners
-    searchBtn.addEventListener("click", () => searchAlbums(searchInput.value));
-    searchInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") searchAlbums(searchInput.value);
-    });
 
     posterTitleInput.value = state.title;
     posterTitleInput.addEventListener("input", (e) => {
@@ -1197,10 +1048,10 @@
     curationModeSelect.value = state.curationMode;
     curationModeSelect.addEventListener("change", (e) => {
       state.curationMode = e.target.value;
-      if (state.curationMode === "genre" || state.curationMode === "decade") {
-        state.orientation = "genre-rows";
-        gridOrientationSelect.value = "genre-rows";
-        if (state.curationMode === "genre") {
+      if (state.curationMode === 'genre' || state.curationMode === 'decade') {
+        state.orientation = 'genre-rows';
+        gridOrientationSelect.value = 'genre-rows';
+        if (state.curationMode === 'genre') {
           state.rowHeaders = ["Electronic / Ambient", "Indie / Guitar", "Jazz / Soul"];
         } else {
           state.rowHeaders = ["1970s Era", "1980s Era", "1990s & Beyond"];
@@ -1224,18 +1075,12 @@
       renderPoster();
     });
 
-    toggleDiscogsKey.addEventListener("click", () => {
-      discogsDrawer.style.display = discogsDrawer.style.display === "block" ? "none" : "block";
+    uploadTriggerBtn.addEventListener("click", () => {
+      uploadTargetIndex = state.slots.findIndex(s => !s);
+      if (uploadTargetIndex === -1) uploadTargetIndex = 0;
+      customFileInput.click();
     });
 
-    saveDiscogsKeyBtn.addEventListener("click", () => {
-      state.discogsToken = discogsTokenInput.value.trim();
-      localStorage.setItem("my15albums_discogs_token", state.discogsToken);
-      discogsDrawer.style.display = "none";
-      searchStatus.textContent = "Discogs token saved successfully.";
-    });
-
-    uploadTriggerBtn.addEventListener("click", () => customFileInput.click());
     customFileInput.addEventListener("change", (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -1244,12 +1089,14 @@
         const defaultTitle = file.name.replace(/\.[^/.]+$/, "");
         const title = prompt("Enter Album Title:", defaultTitle) || defaultTitle;
         const artist = prompt("Enter Artist Name:", "") || "";
-        addAlbumToBoard({
-          id: `custom_${Date.now()}`,
+        state.slots[uploadTargetIndex] = {
+          id: "custom_" + Date.now(),
           title,
           artist,
           coverUrl: reader.result
-        });
+        };
+        saveState();
+        renderPoster();
       };
       reader.readAsDataURL(file);
       customFileInput.value = "";
@@ -1267,7 +1114,7 @@
         rowHeaders: state.rowHeaders
       });
       const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
-      const shareUrl = `${window.location.origin}${window.location.pathname}#board=${encoded}`;
+      const shareUrl = window.location.origin + window.location.pathname + "#board=" + encoded;
       navigator.clipboard.writeText(shareUrl).then(() => {
         shareUrlBtn.textContent = "Copied Link!";
         setTimeout(() => { shareUrlBtn.textContent = "Copy Share Link"; }, 2000);
@@ -1279,14 +1126,13 @@
     clearBoardBtn.addEventListener("click", () => {
       if (confirm("Clear all 15 album slots?")) {
         state.slots = Array(TOTAL_SLOTS).fill(null);
-        state.targetSlot = 0;
+        state.activeSearchSlot = null;
         state.swapSourceIndex = null;
         saveState();
         renderPoster();
       }
     });
 
-    // Initialise UI
     initThemePills();
     renderPoster();
   </script>
