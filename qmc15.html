@@ -666,9 +666,9 @@
       </div>
       <div style="display: flex; gap: 8px;">
         <select id="modalSourceSelect" style="font-size: 0.8rem; padding: 6px 8px;">
-          <option value="musicbrainz">Repository: MusicBrainz + Cover Art</option>
+          <option value="theaudiodb">Repository: TheAudioDB (Fast & CORS-Friendly)</option>
+          <option value="itunes">Repository: iTunes Archive (Reliable Backup)</option>
           <option value="discogs">Repository: Discogs Database</option>
-          <option value="theaudiodb">Repository: TheAudioDB</option>
         </select>
       </div>
       <div id="discogsTokenRow" style="display: none; gap: 6px;">
@@ -678,7 +678,7 @@
         <input type="text" id="modalSearchInput" placeholder="Type artist or album name..." autofocus />
       </div>
       <div id="modalResults" class="modal-results">
-        <div style="color:var(--ui-muted); font-size:0.85rem; text-align:center; padding:24px;">Type above to search the archive.</div>
+        <div style="color:var(--ui-muted); font-size:0.85rem; text-align:center; padding:24px;">Type above to search archive.</div>
       </div>
     </div>
   </div>
@@ -706,7 +706,7 @@
       handle: "",
       rowCount: 3,
       rowHeaders: ["Row 1 · Electronic / Ambient", "Row 2 · Indie / Guitar", "Row 3 · Jazz / Soul"],
-      searchSource: "musicbrainz",
+      searchSource: "theaudiodb",
       discogsToken: localStorage.getItem("my15albums_discogs_token") || ""
     };
 
@@ -718,7 +718,7 @@
           state = { ...state, ...parsed, swapSourceIndex: null, activeModalSlot: null };
         }
       } else {
-        const saved = localStorage.getItem("my15albums_state_v7");
+        const saved = localStorage.getItem("my15albums_state_v8");
         if (saved) {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed.slots) && parsed.slots.length === TOTAL_SLOTS) {
@@ -764,7 +764,7 @@
 
     function saveState() {
       try {
-        localStorage.setItem("my15albums_state_v7", JSON.stringify(state));
+        localStorage.setItem("my15albums_state_v8", JSON.stringify(state));
       } catch (e) {}
     }
 
@@ -996,24 +996,31 @@
     async function performSearch(query) {
       modalResults.innerHTML = `<div style="color:var(--ui-muted); font-size:0.85rem; text-align:center; padding:24px;">Searching ${state.searchSource}...</div>`;
       try {
-        if (state.searchSource === "musicbrainz") {
-          const res = await fetch(`http://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(query)}&fmt=json&limit=15`, {
-            headers: { "User-Agent": "My15AlbumsApp/1.0 (contact@my15albums.local)" }
-          });
+        if (state.searchSource === "theaudiodb") {
+          const res = await fetch(`https://www.theaudiodb.com/api/v1/json/2/searchalbum.php?s=${encodeURIComponent(query)}`);
           const data = await res.json();
-          renderResults((data.releases || []).map(rel => ({
-            id: rel.id,
-            title: rel.title || "Unknown Album",
-            artist: rel["artist-credit"]?.[0]?.name || "Various Artists",
-            year: rel.date ? rel.date.slice(0, 4) : "",
-            coverUrl: `https://coverartarchive.org/release/${rel.id}/front-250`,
-            hiResUrl: `https://coverartarchive.org/release/${rel.id}/front-500`
+          renderResults((data.album || []).map(item => ({
+            id: item.idAlbum,
+            title: item.strAlbum,
+            artist: item.strArtist,
+            year: item.intYearReleased || "",
+            coverUrl: item.strAlbumThumb ? item.strAlbumThumb + "/preview" : "",
+            hiResUrl: item.strAlbumThumb || ""
+          })));
+        } else if (state.searchSource === "itunes") {
+          const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=album&limit=15`);
+          const data = await res.json();
+          renderResults((data.results || []).map(item => ({
+            id: item.collectionId,
+            title: item.collectionName,
+            artist: item.artistName,
+            year: item.releaseDate ? item.releaseDate.slice(0, 4) : "",
+            coverUrl: item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "200x200bb") : "",
+            hiResUrl: item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "600x600bb") : ""
           })));
         } else if (state.searchSource === "discogs") {
           let url = `https://api.discogs.com/database/search?q=${encodeURIComponent(query)}&type=release&per_page=15`;
-          const headers = { 
-            "User-Agent": "My15AlbumsApp/1.0 +https://github.com/my15albums"
-          };
+          const headers = { "User-Agent": "My15AlbumsApp/1.0 +https://github.com/my15albums" };
           if (state.discogsToken) {
             headers["Authorization"] = `Discogs token=${state.discogsToken}`;
           }
@@ -1029,7 +1036,6 @@
               title = parts.slice(1).join(" - ").trim();
             }
             artist = artist.replace(/\s\(\d+\)$/, "");
-            
             let img = item.cover_image && !item.cover_image.includes("spacer.gif") ? item.cover_image : (item.thumb || "");
 
             return {
@@ -1041,17 +1047,6 @@
               hiResUrl: img
             };
           }));
-        } else if (state.searchSource === "theaudiodb") {
-          const res = await fetch(`https://www.theaudiodb.com/api/v1/json/2/searchalbum.php?s=${encodeURIComponent(query)}`);
-          const data = await res.json();
-          renderResults((data.album || []).map(item => ({
-            id: item.idAlbum,
-            title: item.strAlbum,
-            artist: item.strArtist,
-            year: item.intYearReleased || "",
-            coverUrl: item.strAlbumThumb ? item.strAlbumThumb + "/preview" : "",
-            hiResUrl: item.strAlbumThumb || ""
-          })));
         }
       } catch (err) {
         modalResults.innerHTML = `<div style="color:var(--ui-accent); font-size:0.85rem; text-align:center; padding:24px;">Error searching repository.</div>`;
