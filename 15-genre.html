@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>my15albums — The 15 Albums That Made You</title>
+  <style>
+    :root {
+      --ui-bg: #121316;
+      --ui-panel: #1c1e24;
+      --ui-border: #2d313b;
+      --ui-text: #f3f4f6;
+      --ui-muted: #9ca3af;
+      --ui-accent: #e07a5f;
+      --ui-accent-hover: #eb8c73;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--ui-bg);
+      color: var(--ui-text);
+      line-height: 1.5;
+      padding: 24px;
+    }
+
+    .app-header {
+      max-width: 1400px;
+      margin: 0 auto 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid var(--ui-border);
+      padding-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .app-header h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .app-header h1 span {
+      color: var(--ui-accent);
+    }
+
+    .app-header p {
+      color: var(--ui-muted);
+      font-size: 0.92rem;
+    }
+
+    .workspace {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 440px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--ui-panel);
+      border: 1px solid var(--ui-border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .section-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ui-muted);
+      margin-bottom: 8px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 8px;
+    }
+
+    input[type="text"], select {
+      width: 100%;
+      background: #111317;
+      border: 1px solid var(--ui-border);
+      color: var(--ui-text);
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="text"]:focus, select:focus {
+      border-color: var(--ui-accent);
+    }
+
+    button {
+      background: var(--ui-accent);
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.05s;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      background: var(--ui-accent-hover);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button.secondary {
+      background: #262932;
+      color: var(--ui-text);
+      border: 1px solid var(--ui-border);
+    }
+
+    button.secondary:hover {
+      background: #303440;
+    }
+
+    .search-source-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      align-items: center;
+    }
+
+    .search-results {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-height: 310px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .result-card {
+      background: #14161b;
+      border: 1px solid var(--ui-border);
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.15s;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .result-card:hover {
+      border-color: var(--ui-accent);
+      transform: translateY(-2px);
+    }
+
+    .result-card img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      display: block;
+      background: #0d0e11;
+    }
+
+    .result-meta {
+      padding: 6px 8px;
+    }
+
+    .result-title {
+      font-size: 0.74rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .result-artist {
+      font-size: 0.68rem;
+      color: var(--ui-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .field-group label {
+      font-size: 0.78rem;
+      color: var(--ui-muted);
+    }
+
+    .theme-pills {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .theme-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #14161b;
+      border: 1px solid var(--ui-border);
+      cursor: pointer;
+      font-size: 0.82rem;
+      color: var(--ui-text);
+    }
+
+    .theme-pill.active {
+      border-color: var(--ui-accent);
+      background: #231d1c;
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.2);
+      flex-shrink: 0;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .action-row button {
+      flex: 1;
+    }
+
+    /* Poster Preview Area */
+    .preview-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .board-instructions {
+      font-size: 0.84rem;
+      color: var(--ui-muted);
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 720px;
+    }
+
+    .poster-card {
+      width: 100%;
+      max-width: 700px;
+      border-radius: 4px;
+      padding: 36px 32px 30px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+      transition: background-color 0.25s, color 0.25s;
+      user-select: none;
+    }
+
+    .poster-card.landscape {
+      max-width: 900px;
+    }
+
+    .poster-top-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 700;
+      opacity: 0.65;
+      padding-bottom: 10px;
+      border-bottom: 1px solid currentColor;
+      margin-bottom: 18px;
+    }
+
+    .poster-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 20px;
+      gap: 16px;
+    }
+
+    .poster-title {
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+
+    .poster-handle {
+      font-size: 0.85rem;
+      font-weight: 600;
+      opacity: 0.75;
+    }
+
+    /* Poster Layout Containers */
+    .album-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .poster-card.landscape .album-grid {
+      grid-template-columns: repeat(5, 1fr);
+    }
+
+    .genre-rows-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .genre-row-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .genre-row-header {
+      font-size: 0.76rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 800;
+      opacity: 0.75;
+      border-bottom: 1px dashed currentColor;
+      padding-bottom: 3px;
+    }
+
+    .genre-row-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    .album-slot {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    .slot-art {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border: 1px dashed rgba(128, 128, 128, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: rgba(128, 128, 128, 0.08);
+      transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
+    }
+
+    .album-slot.target-slot .slot-art {
+      border: 2px solid var(--ui-accent);
+      box-shadow: 0 0 0 3px rgba(224, 122, 95, 0.25);
+    }
+
+    .album-slot.filled .slot-art {
+      border: none;
+      background: transparent;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    }
+
+    .slot-art img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .slot-number {
+      font-size: 0.78rem;
+      font-weight: 700;
+      opacity: 0.4;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .slot-remove {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.72);
+      color: #fff;
+      font-size: 0.85rem;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .album-slot.filled:hover .slot-remove {
+      display: flex;
+    }
+
+    .slot-caption {
+      font-size: 0.68rem;
+      line-height: 1.25;
+      padding-top: 2px;
+    }
+
+    .slot-caption-title {
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .slot-caption-artist {
+      opacity: 0.72;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .poster-footer-list {
+      margin-top: 22px;
+      padding-top: 14px;
+      border-top: 1px solid currentColor;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px 14px;
+      font-size: 0.66rem;
+      line-height: 1.3;
+    }
+
+    .poster-footer-item {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .poster-footer-item strong {
+      font-variant-numeric: tabular-nums;
+      opacity: 0.65;
+      margin-right: 4px;
+    }
+
+    .hidden-input {
+      display: none;
+    }
+
+    .status-toast {
+      font-size: 0.8rem;
+      color: var(--ui-accent);
+      min-height: 1.2em;
+    }
+
+    .discogs-drawer {
+      background: #14161b;
+      border: 1px solid var(--ui-border);
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      display: none;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div>
+      <h1>my<span>15</span>albums</h1>
+      <p>Curate your 15 essential records by all-time, genre, or decade, arrange sleeves, and export posters.</p>
+    </div>
+    <div id="slotCounter" style="font-weight: 700; font-size: 0.95rem;">0 / 15 Selected</div>
+  </header>
+
+  <main class="workspace">
+    <!-- Left Controls Panel -->
+    <section class="panel">
+      <div>
+        <div class="section-title">
+          <span>1. Search Albums & Crate</span>
+          <span id="activeSlotIndicator" style="color: var(--ui-accent);">Filling Slot #01</span>
+        </div>
+        <div class="search-bar">
+          <input type="text" id="searchInput" placeholder="Search artist or album..." />
+          <button id="searchBtn">Search</button>
+        </div>
+        <div class="search-source-row">
+          <select id="searchSourceSelect" style="font-size: 0.8rem; padding: 6px 8px;">
+            <option value="itunes">Source: iTunes Archive (Fast & Clean)</option>
+            <option value="discogs">Source: Discogs Database</option>
+            <option value="musicbrainz">Source: MusicBrainz + CoverArt</option>
+          </select>
+          <button class="secondary" id="toggleDiscogsKey" style="padding: 6px 10px; font-size: 0.76rem;" title="Configure Discogs API Key">🔑 Token</button>
+          <button class="secondary" id="uploadTriggerBtn" style="padding: 6px 10px; font-size: 0.76rem;">+ Upload</button>
+          <input type="file" id="customFileInput" class="hidden-input" accept="image/*" />
+        </div>
+        
+        <div id="discogsDrawer" class="discogs-drawer">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <strong>Discogs Personal Token</strong>
+            <a href="https://www.discogs.com/settings/developers" target="_blank" style="color:var(--ui-accent); font-size:0.75rem;">Get Token →</a>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <input type="text" id="discogsTokenInput" placeholder="Paste user token here..." style="font-size:0.78rem; padding:6px;" />
+            <button id="saveDiscogsKeyBtn" style="padding: 6px 12px; font-size:0.78rem;">Save</button>
+          </div>
+        </div>
+
+        <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+          <span class="status-toast" id="searchStatus">Type an artist or album and press Enter.</span>
+        </div>
+      </div>
+
+      <div id="searchResults" class="search-results"></div>
+
+      <div>
+        <div class="section-title"><span>2. Poster Details & Layout Curation</span></div>
+        <div class="controls-grid">
+          <div class="field-group">
+            <label for="posterTitleInput">Poster Title</label>
+            <input type="text" id="posterTitleInput" value="The 15 Albums That Made Me" />
+          </div>
+          <div class="field-group">
+            <label for="posterHandleInput">Name / @handle</label>
+            <input type="text" id="posterHandleInput" placeholder="@yourhandle" />
+          </div>
+          <div class="field-group">
+            <label for="curationModeSelect">Curation Mode</label>
+            <select id="curationModeSelect">
+              <option value="all">All-Time Classics (15)</option>
+              <option value="genre">By Genre (3 Rows of 5)</option>
+              <option value="decade">By Decade (3 Rows of 5)</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="gridOrientationSelect">Grid & Row Layout</label>
+            <select id="gridOrientationSelect">
+              <option value="portrait">3 × 5 Standard Portrait</option>
+              <option value="landscape">5 × 3 Widescreen Crate</option>
+              <option value="genre-rows">Genre / Category Per Row</option>
+            </select>
+          </div>
+          <div class="field-group" style="grid-column: span 2;">
+            <label for="captionStyleSelect">Album Titles Display</label>
+            <select id="captionStyleSelect">
+              <option value="under">Under Each Cover</option>
+              <option value="footer">Numbered Footer Index</option>
+              <option value="none">Artwork Only (Clean)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title"><span>3. Visual Theme</span></div>
+        <div class="theme-pills" id="themeSelector"></div>
+      </div>
+
+      <div>
+        <div class="section-title"><span>4. Share & Export</span></div>
+        <div class="action-row">
+          <button id="downloadBtn">Download High-Res PNG</button>
+          <button class="secondary" id="shareUrlBtn">Copy Share Link</button>
+          <button class="secondary" id="clearBoardBtn">Clear</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Poster Preview -->
+    <section class="preview-container">
+      <div class="board-instructions">
+        <span>Click empty slot to target • Click two covers to swap • Drag to reorder</span>
+        <span>× removes cover</span>
+      </div>
+
+      <div id="posterCard" class="poster-card">
+        <div class="poster-top-meta">
+          <span>MY15ALBUMS · ARCHIVE EDITION</span>
+          <span>SIDE A/B · 33⅓ RPM · STEREO</span>
+        </div>
+
+        <div class="poster-header">
+          <div class="poster-title" id="previewTitle">The 15 Albums That Made Me</div>
+          <div class="poster-handle" id="previewHandle"></div>
+        </div>
+
+        <div id="boardContainer"></div>
+        <div id="posterFooterList" class="poster-footer-list" style="display: none;"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const TOTAL_SLOTS = 15;
+
+    const THEMES = {
+      paper:   { name: "Paper",   bg: "#f4f1ea", text: "#1c1b18", border: "#d8d2c5" },
+      ink:     { name: "Ink",     bg: "#121316", text: "#f3f4f6", border: "#2c2f36" },
+      walnut:  { name: "Walnut",  bg: "#261c15", text: "#f2e6d8", border: "#423226" },
+      sage:    { name: "Sage",    bg: "#dfe5df", text: "#1e2820", border: "#b8c4b8" },
+      groove:  { name: "Groove",  bg: "#1d2230", text: "#e6ebf5", border: "#343d54" },
+      amber:   { name: "Amber",   bg: "#f5e6c8", text: "#2b1d0c", border: "#d9c398" }
+    };
+
+    let state = {
+      slots: Array(TOTAL_SLOTS).fill(null),
+      targetSlot: 0,
+      swapSourceIndex: null,
+      theme: "paper",
+      orientation: "portrait",
+      curationMode: "all",
+      captionStyle: "under",
+      title: "The 15 Albums That Made Me",
+      handle: "",
+      discogsToken: localStorage.getItem("my15albums_discogs_token") || "",
+      rowHeaders: ["Row 1 · Electronic / Ambient", "Row 2 · Indie / Guitar", "Row 3 · Jazz / Soul"]
+    };
+
+    // Hydrate from URL hash if present
+    try {
+      if (window.location.hash.startsWith("#board=")) {
+        const jsonStr = decodeURIComponent(escape(atob(window.location.hash.replace("#board=", ""))));
+        const parsed = JSON.parse(jsonStr);
+        if (parsed && Array.isArray(parsed.slots)) {
+          state = { ...state, ...parsed, swapSourceIndex: null };
+        }
+      } else {
+        const saved = localStorage.getItem("my15albums_state_v2");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed.slots) && parsed.slots.length === TOTAL_SLOTS) {
+            state = { ...state, ...parsed, swapSourceIndex: null };
+          }
+        }
+      }
+    } catch (e) {}
+
+    const searchInput = document.getElementById("searchInput");
+    const searchBtn = document.getElementById("searchBtn");
+    const searchSourceSelect = document.getElementById("searchSourceSelect");
+    const searchResults = document.getElementById("searchResults");
+    const searchStatus = document.getElementById("searchStatus");
+    const slotCounter = document.getElementById("slotCounter");
+    const activeSlotIndicator = document.getElementById("activeSlotIndicator");
+    const boardContainer = document.getElementById("boardContainer");
+    const posterCard = document.getElementById("posterCard");
+    const posterFooterList = document.getElementById("posterFooterList");
+    const previewTitle = document.getElementById("previewTitle");
+    const previewHandle = document.getElementById("previewHandle");
+    const posterTitleInput = document.getElementById("posterTitleInput");
+    const posterHandleInput = document.getElementById("posterHandleInput");
+    const curationModeSelect = document.getElementById("curationModeSelect");
+    const gridOrientationSelect = document.getElementById("gridOrientationSelect");
+    const captionStyleSelect = document.getElementById("captionStyleSelect");
+    const themeSelector = document.getElementById("themeSelector");
+    const uploadTriggerBtn = document.getElementById("uploadTriggerBtn");
+    const customFileInput = document.getElementById("customFileInput");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const shareUrlBtn = document.getElementById("shareUrlBtn");
+    const clearBoardBtn = document.getElementById("clearBoardBtn");
+    const toggleDiscogsKey = document.getElementById("toggleDiscogsKey");
+    const discogsDrawer = document.getElementById("discogsDrawer");
+    const discogsTokenInput = document.getElementById("discogsTokenInput");
+    const saveDiscogsKeyBtn = document.getElementById("saveDiscogsKeyBtn");
+
+    discogsTokenInput.value = state.discogsToken;
+
+    function saveState() {
+      try {
+        localStorage.setItem("my15albums_state_v2", JSON.stringify(state));
+      } catch (e) {}
+    }
+
+    function initThemePills() {
+      themeSelector.innerHTML = "";
+      Object.entries(THEMES).forEach(([key, theme]) => {
+        const pill = document.createElement("button");
+        pill.type = "button";
+        pill.className = `theme-pill ${state.theme === key ? "active" : ""}`;
+        pill.innerHTML = `<span class="swatch" style="background:${theme.bg}"></span><span>${theme.name}</span>`;
+        pill.addEventListener("click", () => {
+          state.theme = key;
+          saveState();
+          initThemePills();
+          renderPoster();
+        });
+        themeSelector.appendChild(pill);
+      });
+    }
+
+    function findNextEmptySlot(fromIndex = 0) {
+      for (let i = 0; i < TOTAL_SLOTS; i++) {
+        const idx = (fromIndex + i) % TOTAL_SLOTS;
+        if (!state.slots[idx]) return idx;
+      }
+      return state.targetSlot;
+    }
+
+    function addAlbumToBoard(album) {
+      if (album.id && state.slots.some(s => s && s.id === album.id)) {
+        searchStatus.textContent = `"${album.title}" is already on your board.`;
+        return;
+      }
+      state.slots[state.targetSlot] = album;
+      state.swapSourceIndex = null;
+      state.targetSlot = findNextEmptySlot(state.targetSlot + 1);
+      saveState();
+      renderPoster();
+    }
+
+    function renderPoster() {
+      const theme = THEMES[state.theme] || THEMES.paper;
+      posterCard.style.backgroundColor = theme.bg;
+      posterCard.style.color = theme.text;
+      
+      const isLandscape = state.orientation === "landscape";
+      const isGenreRows = state.orientation === "genre-rows";
+      posterCard.classList.toggle("landscape", isLandscape);
+
+      previewTitle.textContent = state.title || "The 15 Albums That Made Me";
+      previewHandle.textContent = state.handle || "";
+
+      const filledCount = state.slots.filter(Boolean).length;
+      slotCounter.textContent = `${filledCount} / ${TOTAL_SLOTS} Selected`;
+      activeSlotIndicator.textContent = `Target: Slot #${String(state.targetSlot + 1).padStart(2, "0")}`;
+
+      boardContainer.innerHTML = "";
+
+      if (isGenreRows) {
+        // Render 3 rows of 5 with row headers
+        const rowsContainer = document.createElement("div");
+        rowsContainer.className = "genre-rows-container";
+
+        for (let r = 0; r < 3; r++) {
+          const rowSec = document.createElement("div");
+          rowSec.className = "genre-row-section";
+
+          const headerText = state.rowHeaders[r] || `Row ${r+1}`;
+          const headerEl = document.createElement("div");
+          headerEl.className = "genre-row-header";
+          headerEl.contentEditable = true;
+          headerEl.textContent = headerText;
+          headerEl.addEventListener("blur", (e) => {
+            state.rowHeaders[r] = e.target.textContent;
+            saveState();
+          });
+          rowSec.appendChild(headerEl);
+
+          const rowGrid = document.createElement("div");
+          rowGrid.className = "genre-row-grid";
+
+          for (let c = 0; c < 5; c++) {
+            const index = r * 5 + c;
+            rowGrid.appendChild(createSlotElement(index));
+          }
+          rowSec.appendChild(rowGrid);
+          rowsContainer.appendChild(rowSec);
+        }
+        boardContainer.appendChild(rowsContainer);
+      } else {
+        const grid = document.createElement("div");
+        grid.className = "album-grid";
+        for (let i = 0; i < TOTAL_SLOTS; i++) {
+          grid.appendChild(createSlotElement(i));
+        }
+        boardContainer.appendChild(grid);
+      }
+
+      // Footer tracklist mode
+      if (state.captionStyle === "footer") {
+        posterFooterList.style.display = "grid";
+        posterFooterList.innerHTML = state.slots.map((album, idx) => {
+          const num = String(idx + 1).padStart(2, "0");
+          if (!album) return `<div class="poster-footer-item"><strong>${num}</strong>—</div>`;
+          return `<div class="poster-footer-item"><strong>${num}</strong>${escapeHtml(album.title)} — ${escapeHtml(album.artist)}</div>`;
+        }).join("");
+      } else {
+        posterFooterList.style.display = "none";
+      }
+    }
+
+    function createSlotElement(index) {
+      const album = state.slots[index];
+      const slotEl = document.createElement("div");
+      const isTarget = index === state.targetSlot || index === state.swapSourceIndex;
+      slotEl.className = `album-slot ${album ? "filled" : ""} ${isTarget ? "target-slot" : ""}`;
+      slotEl.draggable = Boolean(album);
+
+      const numLabel = String(index + 1).padStart(2, "0");
+
+      let innerHTML = `<div class="slot-art">`;
+      if (album) {
+        innerHTML += `
+          <img src="${album.coverUrl}" alt="${escapeHtml(album.title)}" crossorigin="anonymous" />
+          <button type="button" class="slot-remove" title="Remove album">×</button>
+        `;
+      } else {
+        innerHTML += `<span class="slot-number">${numLabel}</span>`;
+      }
+      innerHTML += `</div>`;
+
+      if (state.captionStyle === "under") {
+        innerHTML += `
+          <div class="slot-caption">
+            <div class="slot-caption-title">${album ? `${numLabel}.${escapeHtml(album.title)}` : `${numLabel}. —`}</div>
+            <div class="slot-caption-artist">${album ? escapeHtml(album.artist) : "Empty Slot"}</div>
+          </div>
+        `;
+      }
+
+      slotEl.innerHTML = innerHTML;
+
+      const removeBtn = slotEl.querySelector(".slot-remove");
+      if (removeBtn) {
+        removeBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          state.slots[index] = null;
+          state.targetSlot = index;
+          state.swapSourceIndex = null;
+          saveState();
+          renderPoster();
+        });
+      }
+
+      slotEl.addEventListener("click", () => {
+        if (state.swapSourceIndex !== null && state.swapSourceIndex !== index) {
+          const temp = state.slots[state.swapSourceIndex];
+          state.slots[state.swapSourceIndex] = state.slots[index];
+          state.slots[index] = temp;
+          state.targetSlot = index;
+          state.swapSourceIndex = null;
+          searchStatus.textContent = `Swapped slots #${String(index + 1).padStart(2, "0")}.`;
+        } else if (album) {
+          state.swapSourceIndex = state.swapSourceIndex === index ? null : index;
+          state.targetSlot = index;
+          if (state.swapSourceIndex !== null) {
+            searchStatus.textContent = `Slot #${numLabel} selected — click another slot to swap or search to replace.`;
+          }
+        } else {
+          state.targetSlot = index;
+          state.swapSourceIndex = null;
+        }
+        saveState();
+        renderPoster();
+      });
+
+      slotEl.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", String(index));
+      });
+
+      slotEl.addEventListener("dragover", (e) => {
+        e.preventDefault();
+      });
+
+      slotEl.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const fromIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
+        if (!isNaN(fromIndex) && fromIndex !== index) {
+          const temp = state.slots[fromIndex];
+          state.slots[fromIndex] = state.slots[index];
+          state.slots[index] = temp;
+          state.swapSourceIndex = null;
+          saveState();
+          renderPoster();
+        }
+      });
+
+      return slotEl;
+    }
+
+    async function searchAlbums(query) {
+      const trimmed = query.trim();
+      const source = searchSourceSelect.value;
+      if (trimmed.length < 2) {
+        searchStatus.textContent = "Please enter at least 2 characters.";
+        return;
+      }
+
+      searchStatus.textContent = `Searching ${source} for "${trimmed}"...`;
+      searchResults.innerHTML = "";
+
+      try {
+        if (source === "itunes") {
+          const url = `https://itunes.apple.com/search?term=${encodeURIComponent(trimmed)}&entity=album&limit=18`;
+          const res = await fetch(url);
+          const data = await res.json();
+          renderSearchResults(data.results.map(item => ({
+            id: item.collectionId,
+            title: item.collectionName,
+            artist: item.artistName,
+            coverUrl: item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "600x600bb") : ""
+          })));
+        } else if (source === "discogs") {
+          let url = `https://api.discogs.com/database/search?q=${encodeURIComponent(trimmed)}&type=release&per_page=18`;
+          const headers = { "User-Agent": "My15AlbumsApp/1.0" };
+          if (state.discogsToken) {
+            headers["Authorization"] = `Discogs token=${state.discogsToken}`;
+          }
+          const res = await fetch(url, { headers });
+          const data = await res.json();
+          if (!data.results || data.results.length === 0) {
+            searchStatus.textContent = "No Discogs results found. Try adding a personal token.";
+            return;
+          }
+          renderSearchResults(data.results.map(item => {
+            let title = item.title || "";
+            let artist = "Unknown Artist";
+            if (title.includes(" - ")) {
+              const parts = title.split(" - ");
+              artist = parts[0].trim();
+              title = parts.slice(1).join(" - ").trim();
+            }
+            // Strip Discogs numbering like Artist (2)
+            artist = artist.replace(/\s\(\d+\)$/, "");
+            return {
+              id: item.id,
+              title,
+              artist,
+              coverUrl: item.cover_image || ""
+            };
+          }));
+        } else if (source === "musicbrainz") {
+          const url = `https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(trimmed)}&fmt=json&limit=15`;
+          const res = await fetch(url, { headers: { "User-Agent": "My15AlbumsApp/1.0" } });
+          const data = await res.json();
+          const releases = data.releases || [];
+          renderSearchResults(releases.map(rel => {
+            const id = rel.id;
+            const title = rel.title;
+            const artist = rel["artist-credit"]?.[0]?.name || "Various Artists";
+            const coverUrl = `https://coverartarchive.org/release/${id}/front-250`;
+            return { id, title, artist, coverUrl };
+          }));
+        }
+      } catch (err) {
+        searchStatus.textContent = `Error searching ${source}. Check connection or switch source.`;
+      }
+    }
+
+    function renderSearchResults(results) {
+      if (!results || results.length === 0) {
+        searchStatus.textContent = "No albums found.";
+        return;
+      }
+      searchStatus.textContent = `Found ${results.length} results. Click sleeve to add to Slot #${String(state.targetSlot + 1).padStart(2, "0")}.`;
+
+      results.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "result-card";
+        card.innerHTML = `
+          <img src="${item.coverUrl}" alt="${escapeHtml(item.title)}" loading="lazy" crossorigin="anonymous" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\' viewBox=\\'0 0 100 100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%23222\\'/><text x=\\'50%\\' y=\\'50%\\' fill=\\'%23777\\' font-size=\\'12\\' text-anchor=\\'middle\\' dominant-baseline=\\'middle\\'>No Art</text></svg>'" />
+          <div class="result-meta">
+            <div class="result-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</div>
+            <div class="result-artist" title="${escapeHtml(item.artist)}">${escapeHtml(item.artist)}</div>
+          </div>
+        `;
+        card.addEventListener("click", () => addAlbumToBoard(item));
+        searchResults.appendChild(card);
+      });
+    }
+
+    async function exportPosterPng() {
+      downloadBtn.disabled = true;
+      downloadBtn.textContent = "Rendering PNG...";
+
+      try {
+        const theme = THEMES[state.theme] || THEMES.paper;
+        const isLandscape = state.orientation === "landscape";
+        const isGenreRows = state.orientation === "genre-rows";
+        const cols = isLandscape || isGenreRows ? 5 : 3;
+        const rows = isLandscape || isGenreRows ? 3 : 5;
+
+        const padding = 80;
+        const gap = 34;
+        const coverSize = 340;
+        const captionHeight = state.captionStyle === "under" ? 56 : 0;
+        const headerHeight = 175;
+        const rowHeaderHeight = isGenreRows ? 50 : 0;
+        const footerHeight = state.captionStyle === "footer" ? 210 : 40;
+
+        const canvasWidth = padding * 2 + cols * coverSize + (cols - 1) * gap;
+        const canvasHeight = padding * 2 + headerHeight + rows * (coverSize + captionHeight + rowHeaderHeight) + (rows - 1) * gap + footerHeight;
+
+        const canvas = document.createElement("canvas");
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+        const ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = theme.bg;
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+        // Top Meta Bar
+        ctx.fillStyle = theme.text;
+        ctx.globalAlpha = 0.65;
+        ctx.font = "700 20px -apple-system, BlinkMacSystemFont, sans-serif";
+        ctx.fillText("MY15ALBUMS · ARCHIVE EDITION", padding, padding + 20);
+
+        const rightMeta = "SIDE A/B · 33⅓ RPM · STEREO";
+        const rightWidth = ctx.measureText(rightMeta).width;
+        ctx.fillText(rightMeta, canvasWidth - padding - rightWidth, padding + 20);
+
+        ctx.strokeStyle = theme.text;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(padding, padding + 40);
+        ctx.lineTo(canvasWidth - padding, padding + 40);
+        ctx.stroke();
+
+        ctx.globalAlpha = 1;
+        ctx.font = "800 52px -apple-system, BlinkMacSystemFont, sans-serif";
+        ctx.fillText(state.title || "The 15 Albums That Made Me", padding, padding + 115);
+
+        if (state.handle) {
+          ctx.globalAlpha = 0.75;
+          ctx.font = "600 28px -apple-system, BlinkMacSystemFont, sans-serif";
+          const handleWidth = ctx.measureText(state.handle).width;
+          ctx.fillText(state.handle, canvasWidth - padding - handleWidth, padding + 115);
+        }
+
+        const loadedImages = await Promise.all(
+          state.slots.map(slot => {
+            if (!slot || !slot.coverUrl) return Promise.resolve(null);
+            return new Promise(resolve => {
+              const img = new Image();
+              img.crossOrigin = "anonymous";
+              img.onload = () => resolve(img);
+              img.onerror = () => resolve(null);
+              img.src = slot.coverUrl;
+            });
+          })
+        );
+
+        const gridStartY = padding + headerHeight;
+
+        for (let i = 0; i < TOTAL_SLOTS; i++) {
+          const r = Math.floor(i / cols);
+          const c = i % cols;
+          const rowHeaderOffset = isGenreRows ? r * rowHeaderHeight : 0;
+          const x = padding + c * (coverSize + gap);
+          const y = gridStartY + rowHeaderOffset + r * (coverSize + captionHeight) + (r * gap);
+          const slot = state.slots[i];
+          const img = loadedImages[i];
+          const numStr = String(i + 1).padStart(2, "0");
+
+          // Draw row headers if in genre-rows mode and first item in row
+          if (isGenreRows && c === 0) {
+            ctx.globalAlpha = 0.8;
+            ctx.fillStyle = theme.text;
+            ctx.font = "800 20px -apple-system, BlinkMacSystemFont, sans-serif";
+            ctx.fillText((state.rowHeaders[r] || `Row ${r+1}`).toUpperCase(), padding, y - 16);
+            ctx.strokeStyle = theme.text;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, y - 8);
+            ctx.lineTo(canvasWidth - padding, y - 8);
+            ctx.stroke();
+          }
+
+          if (img) {
+            ctx.globalAlpha = 1;
+            ctx.drawImage(img, x, y, coverSize, coverSize);
+          } else {
+            ctx.globalAlpha = 0.15;
+            ctx.fillStyle = theme.text;
+            ctx.fillRect(x, y, coverSize, coverSize);
+            ctx.globalAlpha = 0.45;
+            ctx.font = "700 32px -apple-system, BlinkMacSystemFont, sans-serif";
+            ctx.fillText(numStr, x + coverSize / 2 - 20, y + coverSize / 2 + 10);
+          }
+
+          if (state.captionStyle === "under") {
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = theme.text;
+            ctx.font = "700 20px -apple-system, BlinkMacSystemFont, sans-serif";
+            const titleLine = slot ? `${numStr}. ${slot.title}` : `${numStr}. —`;
+            ctx.fillText(truncateCanvasText(ctx, titleLine, coverSize), x, y + coverSize + 26);
+
+            ctx.globalAlpha = 0.72;
+            ctx.font = "500 18px -apple-system, BlinkMacSystemFont, sans-serif";
+            const artistLine = slot ? slot.artist : "";
+            ctx.fillText(truncateCanvasText(ctx, artistLine, coverSize), x, y + coverSize + 50);
+          }
+        }
+
+        if (state.captionStyle === "footer") {
+          const footerY = canvasHeight - 160;
+          ctx.globalAlpha = 0.65;
+          ctx.strokeStyle = theme.text;
+          ctx.beginPath();
+          ctx.moveTo(padding, footerY);
+          ctx.lineTo(canvasWidth - padding, footerY);
+          ctx.stroke();
+
+          const colWidth = (canvasWidth - padding * 2 - gap * 2) / 3;
+          ctx.font = "600 18px -apple-system, BlinkMacSystemFont, sans-serif";
+          state.slots.forEach((slot, idx) => {
+            const fc = Math.floor(idx / 5);
+            const fr = idx % 5;
+            const fx = padding + fc * (colWidth + gap);
+            const fy = footerY + 32 + fr * 28;
+            const num = String(idx + 1).padStart(2, "0");
+            const label = slot ? `${num}  ${slot.title} — ${slot.artist}` : `${num}  —`;
+            ctx.globalAlpha = 0.9;
+            ctx.fillText(truncateCanvasText(ctx, label, colWidth), fx, fy);
+          });
+        }
+
+        const dataUrl = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.download = "my15albums-poster.png";
+        link.href = dataUrl;
+        link.click();
+      } finally {
+        downloadBtn.disabled = false;
+        downloadBtn.textContent = "Download High-Res PNG";
+      }
+    }
+
+    function truncateCanvasText(ctx, text, maxWidth) {
+      if (ctx.measureText(text).width <= maxWidth) return text;
+      let truncated = text;
+      while (truncated.length > 0 && ctx.measureText(truncated + "…").width > maxWidth) {
+        truncated = truncated.slice(0, -1);
+      }
+      return truncated + "…";
+    }
+
+    function escapeHtml(str = "") {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    // Event Listeners
+    searchBtn.addEventListener("click", () => searchAlbums(searchInput.value));
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") searchAlbums(searchInput.value);
+    });
+
+    posterTitleInput.value = state.title;
+    posterTitleInput.addEventListener("input", (e) => {
+      state.title = e.target.value;
+      saveState();
+      renderPoster();
+    });
+
+    posterHandleInput.value = state.handle;
+    posterHandleInput.addEventListener("input", (e) => {
+      state.handle = e.target.value;
+      saveState();
+      renderPoster();
+    });
+
+    curationModeSelect.value = state.curationMode;
+    curationModeSelect.addEventListener("change", (e) => {
+      state.curationMode = e.target.value;
+      if (state.curationMode === 'genre' || state.curationMode === 'decade') {
+        state.orientation = 'genre-rows';
+        gridOrientationSelect.value = 'genre-rows';
+        if (state.curationMode === 'genre') {
+          state.rowHeaders = ["Electronic / Ambient", "Indie / Guitar", "Jazz / Soul"];
+        } else {
+          state.rowHeaders = ["1970s Era", "1980s Era", "1990s & Beyond"];
+        }
+      }
+      saveState();
+      renderPoster();
+    });
+
+    gridOrientationSelect.value = state.orientation;
+    gridOrientationSelect.addEventListener("change", (e) => {
+      state.orientation = e.target.value;
+      saveState();
+      renderPoster();
+    });
+
+    captionStyleSelect.value = state.captionStyle;
+    captionStyleSelect.addEventListener("change", (e) => {
+      state.captionStyle = e.target.value;
+      saveState();
+      renderPoster();
+    });
+
+    toggleDiscogsKey.addEventListener("click", () => {
+      discogsDrawer.style.display = discogsDrawer.style.display === "block" ? "none" : "block";
+    });
+
+    saveDiscogsKeyBtn.addEventListener("click", () => {
+      state.discogsToken = discogsTokenInput.value.trim();
+      localStorage.setItem("my15albums_discogs_token", state.discogsToken);
+      discogsDrawer.style.display = "none";
+      searchStatus.textContent = "Discogs token saved successfully.";
+    });
+
+    uploadTriggerBtn.addEventListener("click", () => customFileInput.click());
+    customFileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const defaultTitle = file.name.replace(/\.[^/.]+$/, "");
+        const title = prompt("Enter Album Title:", defaultTitle) || defaultTitle;
+        const artist = prompt("Enter Artist Name:", "") || "";
+        addAlbumToBoard({
+          id: "custom_" + Date.now(),
+          title,
+          artist,
+          coverUrl: reader.result
+        });
+      };
+      reader.readAsDataURL(file);
+      customFileInput.value = "";
+    });
+
+    shareUrlBtn.addEventListener("click", () => {
+      const jsonStr = JSON.stringify({
+        slots: state.slots,
+        title: state.title,
+        handle: state.handle,
+        theme: state.theme,
+        orientation: state.orientation,
+        curationMode: state.curationMode,
+        captionStyle: state.captionStyle,
+        rowHeaders: state.rowHeaders
+      });
+      const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
+      const shareUrl = window.location.origin + window.location.pathname + "#board=" + encoded;
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        shareUrlBtn.textContent = "Copied Link!";
+        setTimeout(() => { shareUrlBtn.textContent = "Copy Share Link"; }, 2000);
+      });
+    });
+
+    downloadBtn.addEventListener("click", exportPosterPng);
+
+    clearBoardBtn.addEventListener("click", () => {
+      if (confirm("Clear all 15 album slots?")) {
+        state.slots = Array(TOTAL_SLOTS).fill(null);
+        state.targetSlot = 0;
+        state.swapSourceIndex = null;
+        saveState();
+        renderPoster();
+      }
+    });
+
+    // Initialize UI
+    initThemePills();
+    renderPoster();
+  </script>
+</body>
+</html>
