@@ -685,6 +685,11 @@
           <option value="musicbrainz">Repository: MusicBrainz (with Cover Art Archive)</option>
           <option value="theaudiodb">Repository: TheAudioDB</option>
         </select>
+        <select id="modalTypeSelect" style="font-size: 0.8rem; padding: 6px 8px; width: auto;">
+          <option value="album">Albums only</option>
+          <option value="12in">12" Singles / EPs</option>
+          <option value="all">All releases</option>
+        </select>
       </div>
       <div>
         <input type="text" id="modalSearchInput" placeholder="Type artist or album name..." autofocus />
@@ -718,7 +723,8 @@
       handle: "",
       rowCount: 3,
       rowHeaders: ["Row 1 · Electronic / Ambient", "Row 2 · Indie / Guitar", "Row 3 · Jazz / Soul", "Row 4 · Hip-Hop / R&B", "Row 5 · Rock / Punk"],
-      searchSource: "itunes"
+      searchSource: "itunes",
+      releaseType: "album"
     };
     const DEFAULT_HEADERS = [...state.rowHeaders];
     const MIN_ROWS = 2, MAX_ROWS = 5;
@@ -1011,6 +1017,17 @@
       }
     });
 
+    const modalTypeSelect = document.getElementById("modalTypeSelect");
+    modalTypeSelect.value = state.releaseType || "album";
+    modalTypeSelect.addEventListener("change", (e) => {
+      state.releaseType = e.target.value;
+      saveState();
+      if (modalSearchInput.value.trim().length >= 2) performSearch(modalSearchInput.value.trim());
+    });
+
+    // Matches iTunes "Title - Single" / "Title - EP" naming
+    const SINGLE_EP_RE = /\s-\s(Single|EP)$/i;
+
     let searchTimeout = null;
     modalSearchInput.addEventListener("input", (e) => {
       const query = e.target.value.trim();
@@ -1024,11 +1041,17 @@
 
     async function performSearch(query) {
       modalResults.innerHTML = `<div style="color:var(--ui-muted); font-size:0.85rem; text-align:center; padding:24px;">Searching ${state.searchSource}...</div>`;
+      const type = state.releaseType || "album";
       try {
         if (state.searchSource === "itunes") {
-          const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=album&limit=15`);
+          // iTunes has no type filter: over-fetch, then filter by "- Single"/"- EP" suffix
+          const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=album&limit=50`);
           const data = await res.json();
-          renderResults((data.results || []).map(item => ({
+          const filtered = (data.results || []).filter(item => {
+            const isSingleEp = SINGLE_EP_RE.test(item.collectionName || "");
+            return type === "all" || (type === "album" ? !isSingleEp : isSingleEp);
+          }).slice(0, 15);
+          renderResults(filtered.map(item => ({
             id: item.collectionId,
             title: item.collectionName,
             artist: item.artistName,
@@ -1037,7 +1060,11 @@
             hiResUrl: item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "600x600bb") : ""
           })));
         } else if (state.searchSource === "musicbrainz") {
-          const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(query)}&fmt=json&limit=15`, {
+          // MusicBrainz supports real filters: primary type and physical format
+          let mbQuery = `(${query})`;
+          if (type === "album") mbQuery += ` AND primarytype:album AND status:official`;
+          if (type === "12in") mbQuery += ` AND format:"12\\" Vinyl"`;
+          const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(mbQuery)}&fmt=json&limit=15`, {
             headers: { "User-Agent": "Myqmc15/1.0 ( https://github.com/myqmc15 )" }
           });
           const data = await res.json();
@@ -1059,9 +1086,28 @@
             };
           }));
         } else if (state.searchSource === "theaudiodb") {
-          const res = await fetch(`https://www.theaudiodb.com/api/v1/json/2/searchalbum.php?s=${encodeURIComponent(query)}`);
-          const data = await res.json();
-          renderResults((data.album || []).map(item => ({
+          // TheAudioDB free key is "123" (old "2" key now 404s).
+          // searchalbum.php only matches ARTIST names (s=), optionally narrowed by album (a=).
+          // Accept "Artist - Album" to search a specific record.
+          const [artistPart, albumPart] = query.split(/\s+[-–—]\s+/);
+          let url = `https://www.theaudiodb.com/api/v1/json/123/searchalbum.php?s=${encodeURIComponent(artistPart.trim())}`;
+          if (albumPart) url += `&a=${encodeURIComponent(albumPart.trim())}`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const text = await res.text();
+          const data = text ? JSON.parse(text) : {};
+          if (!data.album) {
+            modalResults.innerHTML = `<div style="color:var(--ui-muted); font-size:0.85rem; text-align:center; padding:24px;">No matches. TheAudioDB searches by <strong>artist name</strong> — try "Radiohead" or "Radiohead - OK Computer".</div>`;
+            return;
+          }
+          // strReleaseFormat is e.g. "Album", "Single", "EP", "Live", "Compilation"
+          const albums = data.album.filter(item => {
+            const fmt = (item.strReleaseFormat || "").toLowerCase();
+            if (type === "album") return fmt === "album" || fmt === "";
+            if (type === "12in") return fmt === "single" || fmt === "ep";
+            return true;
+          });
+          renderResults(albums.map(item => ({
             id: item.idAlbum,
             title: item.strAlbum,
             artist: item.strArtist,
