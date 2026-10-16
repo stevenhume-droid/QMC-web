@@ -7,15 +7,38 @@
       "location": "Upstairs at Los Hermanos Pícaros",
       "description": "Our regular relaxed meet. Good company, good chat, and a chance to enjoy the Vinyl Menu. Bring a record along to play for the group!",
       "subtext": "PS. If you’re into new vinyl hauls, favorite records, and gear talk, this is the night.",
-      "image": "technics_night1.jpg",
+      "image": "qmcsocial.jpg",
       "isSpecial": false
+    }
+    {
+      "start": "2026-12-03T19:00",
+      "title": "QMC Soundystem",
+      "location": "Upstairs at Los Hermanos Pícaros",
+      "description": "QMC Party Night - we bring in the QMC SoundSystem ans spin a cuarted seection of tunes.  Come early - tell a friened.  Free Entry ",
+      "image": "soundsystem.jpeg",
+      "isSpecial": true
     }
   ],
   "playlists": [
-    { "name": "QMC - Picks from previous Los Hermanos Nights", "url": "https://open.spotify.com/playlist/6fRQLuqUxcXCgekTO5Lq1H?si=LQI9Sw19QcaxVQSvpun_kg&pi=iMFR3t5rSPWDY1" },
-    { "name": "QMC - Members Classics", "url": "https://open.spotify.com/playlist/3n5WQyLxxhTK7JuzSTLoPp?si=IXIVcKLsTamwruSia2HmTA&pi=twIUL36aTqCGD" },
-    { "name": "New and Notable tracks - updated weekly!", "url": "https://open.spotify.com/playlist/4GnWY3GRzn2evIF2de5gAp?si=5Oq_M3ntQQOKDybyVIY_RA" },
-    { "name": "Album of the year - 2026!", "url": "https://open.spotify.com/playlist/7Modx4e5GS1pOdbqDDBPnH?si=_k7dq26HSNy8DDvG4dzxNQ&pt=6f0e2df808aab3ccd029d092c475df9c" },
-    { "name": "QMC - Mixed Tapas Los Hermanos tracks 18/06/2026", "url": "https://open.spotify.com/playlist/3OLxpOcPI4meYK4XI15cjN?si=nNQTO--MRFu9VawXKb--gQ" }
+    {
+      "name": "QMC - Picks from previous Los Hermanos Nights",
+      "url": "https://open.spotify.com/playlist/6fRQLuqUxcXCgekTO5Lq1H?si=LQI9Sw19QcaxVQSvpun_kg&pi=iMFR3t5rSPWDY1"
+    },
+    {
+      "name": "QMC - Members Classics",
+      "url": "https://open.spotify.com/playlist/3n5WQyLxxhTK7JuzSTLoPp?si=IXIVcKLsTamwruSia2HmTA&pi=twIUL36aTqCGD"
+    },
+    {
+      "name": "New and Notable tracks - updated weekly!",
+      "url": "https://open.spotify.com/playlist/4GnWY3GRzn2evIF2de5gAp?si=5Oq_M3ntQQOKDybyVIY_RA"
+    },
+    {
+      "name": "Album of the year - 2026!",
+      "url": "https://open.spotify.com/playlist/7Modx4e5GS1pOdbqDDBPnH?si=_k7dq26HSNy8DDvG4dzxNQ&pt=6f0e2df808aab3ccd029d092c475df9c"
+    },
+    {
+      "name": "QMC - Mixed Tapas Los Hermanos tracks 18/06/2026",
+      "url": "https://open.spotify.com/playlist/3OLxpOcPI4meYK4XI15cjN?si=nNQTO--MRFu9VawXKb--gQ"
+    }
   ]
 }
