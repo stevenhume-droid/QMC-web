@@ -568,7 +568,7 @@
   <header class="app-header">
     <div>
       <h1>My<span>qmc</span>15</h1>
-      <p>Curate your 15 essential records using Apple Music/iTunes & Discogs search repositories.</p>
+      <p>Curate your 15 essential records using Apple Music/iTunes, Discogs, TheAudioDB & MusicBrainz repositories.</p>
     </div>
     <div id="slotCounter" style="font-weight: 700; font-size: 0.95rem;">0 / 15 Selected</div>
   </header>
@@ -669,6 +669,7 @@
           <option value="itunes">Repository: Apple Music / iTunes (Fast & Reliable)</option>
           <option value="discogs">Repository: Discogs Database</option>
           <option value="theaudiodb">Repository: TheAudioDB</option>
+          <option value="musicbrainz">Repository: MusicBrainz (with Cover Art Archive)</option>
         </select>
       </div>
       <div id="discogsTokenRow" style="display: none; gap: 6px;">
@@ -1047,6 +1048,28 @@
             coverUrl: item.strAlbumThumb ? item.strAlbumThumb + "/preview" : "",
             hiResUrl: item.strAlbumThumb || ""
           })));
+        } else if (state.searchSource === "musicbrainz") {
+          const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(query)}&fmt=json&limit=15`, {
+            headers: { "User-Agent": "Myqmc15/1.0 ( https://github.com/myqmc15 )" }
+          });
+          const data = await res.json();
+          renderResults((data.releases || []).map(item => {
+            const releaseId = item.id;
+            const title = item.title;
+            const artist = item["artist-credit"] ? item["artist-credit"].map(c => c.name || c.artist?.name).join("") : "Unknown Artist";
+            const year = item.date ? item.date.slice(0, 4) : "";
+            const coverUrl = `https://coverartarchive.org/release/${releaseId}/front-250`;
+            const hiResUrl = `https://coverartarchive.org/release/${releaseId}/front`;
+
+            return {
+              id: releaseId,
+              title,
+              artist,
+              year,
+              coverUrl,
+              hiResUrl
+            };
+          }));
         }
       } catch (err) {
         modalResults.innerHTML = `<div style="color:var(--ui-accent); font-size:0.85rem; text-align:center; padding:24px;">Error searching repository.</div>`;
