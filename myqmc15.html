@@ -1,12 +1,9 @@
-Here is the complete, self-contained single-file my15albums.html application. It reinstates the iTunes / Apple Music Search API as the primary repository alongside TheAudioDB and Discogs.
-Apple’s iTunes API is fully CORS-compliant for frontend web apps, requires zero API keys, and instantly returns clean, high-resolution album artwork URLs (600x600bb.jpg).
-Save the code below as my15albums.html:
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>my15albums — The 15 Albums That Made You</title>
+  <title>Myqmc15 — The 15 Albums That Made You</title>
   <style>
     :root {
       --ui-bg: #121316;
@@ -570,7 +567,7 @@ Save the code below as my15albums.html:
 
   <header class="app-header">
     <div>
-      <h1>my<span>15</span>albums</h1>
+      <h1>My<span>qmc</span>15</h1>
       <p>Curate your 15 essential records using Apple Music/iTunes & Discogs search repositories.</p>
     </div>
     <div id="slotCounter" style="font-weight: 700; font-size: 0.95rem;">0 / 15 Selected</div>
@@ -645,7 +642,7 @@ Save the code below as my15albums.html:
 
       <div id="posterCard" class="poster-card">
         <div class="poster-top-meta">
-          <span>MY15ALBUMS · ARCHIVE EDITION</span>
+          <span>MYQMC15 · ARCHIVE EDITION</span>
           <span>SIDE A/B · 33⅓ RPM · STEREO</span>
         </div>
 
@@ -710,7 +707,7 @@ Save the code below as my15albums.html:
       rowCount: 3,
       rowHeaders: ["Row 1 · Electronic / Ambient", "Row 2 · Indie / Guitar", "Row 3 · Jazz / Soul"],
       searchSource: "itunes",
-      discogsToken: localStorage.getItem("my15albums_discogs_token") || ""
+      discogsToken: localStorage.getItem("myqmc15_discogs_token") || ""
     };
 
     try {
@@ -721,7 +718,7 @@ Save the code below as my15albums.html:
           state = { ...state, ...parsed, swapSourceIndex: null, activeModalSlot: null };
         }
       } else {
-        const saved = localStorage.getItem("my15albums_state_v9");
+        const saved = localStorage.getItem("myqmc15_state_v1");
         if (saved) {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed.slots) && parsed.slots.length === TOTAL_SLOTS) {
@@ -767,7 +764,7 @@ Save the code below as my15albums.html:
 
     function saveState() {
       try {
-        localStorage.setItem("my15albums_state_v9", JSON.stringify(state));
+        localStorage.setItem("myqmc15_state_v1", JSON.stringify(state));
       } catch (e) {}
     }
 
@@ -982,7 +979,7 @@ Save the code below as my15albums.html:
 
     modalDiscogsToken.addEventListener("input", (e) => {
       state.discogsToken = e.target.value.trim();
-      localStorage.setItem("my15albums_discogs_token", state.discogsToken);
+      localStorage.setItem("myqmc15_discogs_token", state.discogsToken);
     });
 
     let searchTimeout = null;
@@ -1012,7 +1009,7 @@ Save the code below as my15albums.html:
           })));
         } else if (state.searchSource === "discogs") {
           let url = `https://api.discogs.com/database/search?q=${encodeURIComponent(query)}&type=release&per_page=15`;
-          const headers = { "User-Agent": "My15AlbumsApp/1.0 +https://github.com/my15albums" };
+          const headers = { "User-Agent": "Myqmc15/1.0 +https://github.com/myqmc15" };
           if (state.discogsToken) {
             headers["Authorization"] = `Discogs token=${state.discogsToken}`;
           }
@@ -1122,7 +1119,7 @@ Save the code below as my15albums.html:
         ctx.fillStyle = theme.text;
         ctx.globalAlpha = 0.65;
         ctx.font = "700 20px -apple-system, BlinkMacSystemFont, sans-serif";
-        ctx.fillText("MY15ALBUMS · ARCHIVE EDITION", padding, padding + 20);
+        ctx.fillText("MYQMC15 · ARCHIVE EDITION", padding, padding + 20);
 
         const rightMeta = "SIDE A/B · 33⅓ RPM · STEREO";
         const rightWidth = ctx.measureText(rightMeta).width;
@@ -1235,7 +1232,7 @@ Save the code below as my15albums.html:
 
         const dataUrl = canvas.toDataURL("image/png");
         const link = document.createElement("a");
-        link.download = "my15albums-poster.png";
+        link.download = "myqmc15-poster.png";
         link.href = dataUrl;
         link.click();
       } finally {
@@ -1358,4 +1355,3 @@ Save the code below as my15albums.html:
   </script>
 </body>
 </html>
-
