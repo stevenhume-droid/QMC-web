@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -93,7 +94,8 @@
       align-items: center;
     }
 
-    input[type="text"], select {
+    input[type="text"],
+    select {
       width: 100%;
       background: #111317;
       border: 1px solid var(--ui-border);
@@ -105,7 +107,8 @@
       transition: border-color 0.15s;
     }
 
-    input[type="text"]:focus, select:focus {
+    input[type="text"]:focus,
+    select:focus {
       border-color: var(--ui-accent);
     }
 
@@ -206,7 +209,7 @@
       width: 14px;
       height: 14px;
       border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.2);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       flex-shrink: 0;
     }
 
@@ -367,7 +370,7 @@
     .album-slot.filled .slot-art {
       border: none;
       background: transparent;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
     }
 
     .slot-art img {
@@ -485,7 +488,7 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
     }
 
     .modal-header {
@@ -507,9 +510,10 @@
       cursor: pointer;
       padding: 4px 8px;
     }
+
     .modal-close:hover {
       color: var(--ui-text);
-      background: rgba(255,255,255,0.05);
+      background: rgba(255, 255, 255, 0.05);
       border-radius: 4px;
     }
 
@@ -571,11 +575,12 @@
     }
   </style>
 </head>
+
 <body>
 
   <header class="app-header">
     <div>
-      <h1>My<span>qmc</span>15</h1>
+      <h1>MY<span>QMC</span>15</h1>
       <p>Curate your 15 essential records using Apple Music/iTunes, TheAudioDB & MusicBrainz search repositories.</p>
     </div>
     <div id="slotCounter" style="font-weight: 700; font-size: 0.95rem;">0 / 15 Selected</div>
@@ -603,7 +608,7 @@
               <option value="genre-rows">Genre / Decade Categories Per Row (Up to 5 Rows)</option>
             </select>
           </div>
-          
+
           <div class="field-group" id="rowConfigGroup" style="display: none;">
             <label for="rowCountSelect">Number of Genre Rows</label>
             <select id="rowCountSelect">
@@ -685,17 +690,13 @@
           <option value="musicbrainz">Repository: MusicBrainz (with Cover Art Archive)</option>
           <option value="theaudiodb">Repository: TheAudioDB</option>
         </select>
-        <select id="modalTypeSelect" style="font-size: 0.8rem; padding: 6px 8px; width: auto;">
-          <option value="album">Albums only</option>
-          <option value="12in">12" Singles / EPs</option>
-          <option value="all">All releases</option>
-        </select>
       </div>
       <div>
         <input type="text" id="modalSearchInput" placeholder="Type artist or album name..." autofocus />
       </div>
       <div id="modalResults" class="modal-results">
-        <div style="color:var(--ui-muted); font-size:0.85rem; text-align:center; padding:24px;">Type above to search archive.</div>
+        <div style="color:var(--ui-muted); font-size:0.85rem; text-align:center; padding:24px;">Type above to search
+          archive.</div>
       </div>
     </div>
   </div>
@@ -704,12 +705,12 @@
     const TOTAL_SLOTS = 15;
 
     const THEMES = {
-      paper:   { name: "Paper",   bg: "#f4f1ea", text: "#1c1b18", border: "#d8d2c5" },
-      ink:     { name: "Ink",     bg: "#121316", text: "#f3f4f6", border: "#2c2f36" },
-      walnut:  { name: "Walnut",  bg: "#261c15", text: "#f2e6d8", border: "#423226" },
-      sage:    { name: "Sage",    bg: "#dfe5df", text: "#1e2820", border: "#b8c4b8" },
-      groove:  { name: "Groove",  bg: "#1d2230", text: "#e6ebf5", border: "#343d54" },
-      amber:   { name: "Amber",   bg: "#f5e6c8", text: "#2b1d0c", border: "#d9c398" }
+      paper: { name: "Paper", bg: "#f4f1ea", text: "#1c1b18", border: "#d8d2c5" },
+      ink: { name: "Ink", bg: "#121316", text: "#f3f4f6", border: "#2c2f36" },
+      walnut: { name: "Walnut", bg: "#261c15", text: "#f2e6d8", border: "#423226" },
+      sage: { name: "Sage", bg: "#dfe5df", text: "#1e2820", border: "#b8c4b8" },
+      groove: { name: "Groove", bg: "#1d2230", text: "#e6ebf5", border: "#343d54" },
+      amber: { name: "Amber", bg: "#f5e6c8", text: "#2b1d0c", border: "#d9c398" }
     };
 
     let state = {
@@ -723,8 +724,7 @@
       handle: "",
       rowCount: 3,
       rowHeaders: ["Row 1 · Electronic / Ambient", "Row 2 · Indie / Guitar", "Row 3 · Jazz / Soul", "Row 4 · Hip-Hop / R&B", "Row 5 · Rock / Punk"],
-      searchSource: "itunes",
-      releaseType: "album"
+      searchSource: "itunes"
     };
     const DEFAULT_HEADERS = [...state.rowHeaders];
     const MIN_ROWS = 2, MAX_ROWS = 5;
@@ -740,7 +740,7 @@
       if (parsed && Array.isArray(parsed.slots)) {
         state = { ...state, ...parsed, swapSourceIndex: null, activeModalSlot: null };
       }
-    } catch (e) {}
+    } catch (e) { }
 
     // Normalise loaded state so bad/old data can't break layout
     state.slots = Array.from({ length: TOTAL_SLOTS }, (_, i) => state.slots[i] || null);
@@ -833,8 +833,8 @@
         const item = document.createElement("div");
         item.className = "row-config-item";
         item.innerHTML = `
-          <span title="${rows[r].count} albums">R${r+1}</span>
-          <input type="text" class="row-header-input" data-row="${r}" value="${escapeHtml(state.rowHeaders[r] || `Row ${r+1}`)}" />
+          <span title="${rows[r].count} albums">R${r + 1}</span>
+          <input type="text" class="row-header-input" data-row="${r}" value="${escapeHtml(state.rowHeaders[r] || `Row ${r + 1}`)}" />
         `;
         const input = item.querySelector("input");
         input.addEventListener("input", (e) => {
@@ -842,7 +842,7 @@
           saveState();
           // Only update the header text instead of rebuilding the whole board
           const headerEl = boardContainer.querySelectorAll(".genre-row-header")[r];
-          if (headerEl) headerEl.textContent = e.target.value || `Row ${r+1}`;
+          if (headerEl) headerEl.textContent = e.target.value || `Row ${r + 1}`;
         });
         rowConfigBox.appendChild(item);
       }
@@ -852,7 +852,7 @@
       const theme = THEMES[state.theme] || THEMES.paper;
       posterCard.style.backgroundColor = theme.bg;
       posterCard.style.color = theme.text;
-      
+
       const isLandscape = state.orientation === "landscape";
       const isGenreRows = state.orientation === "genre-rows";
       posterCard.classList.toggle("landscape", isLandscape);
@@ -875,7 +875,7 @@
           const rowSec = document.createElement("div");
           rowSec.className = "genre-row-section";
 
-          const headerText = state.rowHeaders[r] || `Row ${r+1}`;
+          const headerText = state.rowHeaders[r] || `Row ${r + 1}`;
           const headerEl = document.createElement("div");
           headerEl.className = "genre-row-header";
           headerEl.textContent = headerText;
@@ -1017,17 +1017,6 @@
       }
     });
 
-    const modalTypeSelect = document.getElementById("modalTypeSelect");
-    modalTypeSelect.value = state.releaseType || "album";
-    modalTypeSelect.addEventListener("change", (e) => {
-      state.releaseType = e.target.value;
-      saveState();
-      if (modalSearchInput.value.trim().length >= 2) performSearch(modalSearchInput.value.trim());
-    });
-
-    // Matches iTunes "Title - Single" / "Title - EP" naming
-    const SINGLE_EP_RE = /\s-\s(Single|EP)$/i;
-
     let searchTimeout = null;
     modalSearchInput.addEventListener("input", (e) => {
       const query = e.target.value.trim();
@@ -1041,17 +1030,11 @@
 
     async function performSearch(query) {
       modalResults.innerHTML = `<div style="color:var(--ui-muted); font-size:0.85rem; text-align:center; padding:24px;">Searching ${state.searchSource}...</div>`;
-      const type = state.releaseType || "album";
       try {
         if (state.searchSource === "itunes") {
-          // iTunes has no type filter: over-fetch, then filter by "- Single"/"- EP" suffix
-          const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=album&limit=50`);
+          const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=album&limit=15`);
           const data = await res.json();
-          const filtered = (data.results || []).filter(item => {
-            const isSingleEp = SINGLE_EP_RE.test(item.collectionName || "");
-            return type === "all" || (type === "album" ? !isSingleEp : isSingleEp);
-          }).slice(0, 15);
-          renderResults(filtered.map(item => ({
+          renderResults((data.results || []).map(item => ({
             id: item.collectionId,
             title: item.collectionName,
             artist: item.artistName,
@@ -1060,11 +1043,7 @@
             hiResUrl: item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "600x600bb") : ""
           })));
         } else if (state.searchSource === "musicbrainz") {
-          // MusicBrainz supports real filters: primary type and physical format
-          let mbQuery = `(${query})`;
-          if (type === "album") mbQuery += ` AND primarytype:album AND status:official`;
-          if (type === "12in") mbQuery += ` AND format:"12\\" Vinyl"`;
-          const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(mbQuery)}&fmt=json&limit=15`, {
+          const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(query)}&fmt=json&limit=15`, {
             headers: { "User-Agent": "Myqmc15/1.0 ( https://github.com/myqmc15 )" }
           });
           const data = await res.json();
@@ -1086,28 +1065,9 @@
             };
           }));
         } else if (state.searchSource === "theaudiodb") {
-          // TheAudioDB free key is "123" (old "2" key now 404s).
-          // searchalbum.php only matches ARTIST names (s=), optionally narrowed by album (a=).
-          // Accept "Artist - Album" to search a specific record.
-          const [artistPart, albumPart] = query.split(/\s+[-–—]\s+/);
-          let url = `https://www.theaudiodb.com/api/v1/json/123/searchalbum.php?s=${encodeURIComponent(artistPart.trim())}`;
-          if (albumPart) url += `&a=${encodeURIComponent(albumPart.trim())}`;
-          const res = await fetch(url);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const text = await res.text();
-          const data = text ? JSON.parse(text) : {};
-          if (!data.album) {
-            modalResults.innerHTML = `<div style="color:var(--ui-muted); font-size:0.85rem; text-align:center; padding:24px;">No matches. TheAudioDB searches by <strong>artist name</strong> — try "Radiohead" or "Radiohead - OK Computer".</div>`;
-            return;
-          }
-          // strReleaseFormat is e.g. "Album", "Single", "EP", "Live", "Compilation"
-          const albums = data.album.filter(item => {
-            const fmt = (item.strReleaseFormat || "").toLowerCase();
-            if (type === "album") return fmt === "album" || fmt === "";
-            if (type === "12in") return fmt === "single" || fmt === "ep";
-            return true;
-          });
-          renderResults(albums.map(item => ({
+          const res = await fetch(`https://www.theaudiodb.com/api/v1/json/2/searchalbum.php?s=${encodeURIComponent(query)}`);
+          const data = await res.json();
+          renderResults((data.album || []).map(item => ({
             id: item.idAlbum,
             title: item.strAlbum,
             artist: item.strArtist,
@@ -1257,7 +1217,7 @@
             ctx.globalAlpha = 0.8;
             ctx.fillStyle = theme.text;
             ctx.font = "800 20px -apple-system, BlinkMacSystemFont, sans-serif";
-            ctx.fillText((state.rowHeaders[r] || `Row ${r+1}`).toUpperCase(), padding, y - 16);
+            ctx.fillText((state.rowHeaders[r] || `Row ${r + 1}`).toUpperCase(), padding, y - 16);
             ctx.strokeStyle = theme.text;
             ctx.lineWidth = 1;
             ctx.beginPath();
@@ -1422,7 +1382,7 @@
 
     async function copyText(text) {
       if (navigator.clipboard && window.isSecureContext) {
-        try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+        try { await navigator.clipboard.writeText(text); return true; } catch (e) { }
       }
       // Fallback for http:// or blocked clipboard API
       const ta = document.createElement("textarea");
@@ -1432,7 +1392,7 @@
       document.body.appendChild(ta);
       ta.select();
       let ok = false;
-      try { ok = document.execCommand("copy"); } catch (e) {}
+      try { ok = document.execCommand("copy"); } catch (e) { }
       ta.remove();
       return ok;
     }
@@ -1480,5 +1440,5 @@
     renderPoster();
   </script>
 </body>
-</html>
 
+</html>
