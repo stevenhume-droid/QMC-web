@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>DataSec Autos Estimator v3</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-100 text-slate-800">
+<div class="max-w-7xl mx-auto p-6 space-y-6">
+
+<h1 class="text-2xl font-semibold">
+DataSec Professional Services Autos Estimator
+</h1>
+
+<!-- SETTINGS -->
+<div class="bg-white p-4 rounded shadow grid md:grid-cols-8 gap-4 text-sm">
+
+<div>
+<label>Region</label>
+<select id="region" class="border p-1 w-full">
+<option value="INTL" selected>INTL</option>
+<option value="AMS">AMS</option>
+</select>
+</div>
+
+<div>
+<label>Currency</label>
+<select id="currency" class="border p-1 w-full">
+<option value="EUR" selected>EUR</option>
+<option value="GBP">GBP</option>
+<option value="USD">USD</option>
+</select>
+</div>
+
+<div>
+<label>FX</label>
+<input id="fx" type="number" value="1.00" step="0.01"
+ class="border p-1 w-full" />
+</div>
+
+<div>
+<label>
+<input id="editEffort" type="checkbox" /> Editable Effort
+</label>
+</div>
+
+<div>
+<label>
+<input id="showInternal" type="checkbox" /> Internal View
+</label>
+</div>
+
+<div>
+<label>Preset</label>
+<select id="preset" class="border p-1 w-full">
+<option value="">—</option>
+<option value="cost">Cost Optimised</option>
+<option value="balanced">Balanced</option>
+<option value="premium">Premium</option>
+</select>
+</div>
+
+<div class="md:col-span-2">
+<button onclick="exportPDF()"
+ class="border px-3 py-1 rounded bg-slate-200 w-full">
+Export Customer PDF
+</button>
+</div>
+
+</div>
+
+<!-- ROLE LOCATIONS -->
+<div class="bg-white p-4 rounded shadow text-sm">
+<h2 class="font-semibold mb-2">Role Locations</h2>
+<div class="grid md:grid-cols-3 gap-4">
+<select id="loc_architect" class="border p-1 w-full"></select>
+<select id="loc_consultant" class="border p-1 w-full"></select>
+<select id="loc_pm" class="border p-1 w-full"></select>
+</div>
+</div>
+
+<!-- MODULES -->
+<div id="modules" class="space-y-4"></div>
+
+<!-- SUMMARY -->
+<div class="bg-white p-4 rounded shadow space-y-1">
+<p>Total Effort: <strong><span id="totalDays"></span></strong> days</p>
+<p>Sell Price: <strong><span id="sym">€</span><span id="sell"></span></strong></p>
+<p>Blended Rate: <strong><span id="sym3">€</span><span id="blend"></span></strong> / day</p>
+
+<div id="risk" class="text-amber-700 font-semibold hidden">
+⚠ High COR India delivery concentration
+</div>
+
+<div id="internalBlock" class="hidden mt-2">
+<p>Internal Cost: <span id="sym2">€</span><span id="internal"></span></p>
+<p class="font-semibold">Margin: <span id="margin"></span>%</p>
+</div>
+</div>
+
+</div>
+
+<script>
+// ---------- CONFIG ----------
+const tasks=[
+"Governance & Planning","Design Workshops","Build & Configuration",
+"Testing & Validation","Rollout","Knowledge Transfer"
+];
+
+const modules={
+SecureData:{enabled:true,effort:{
+architect:[1,1,1,.5,.5,1],
+consultant:[2,3,5,3,1,1],
+pm:[1,1,1,.5,.5,1]}},
+SDM:{enabled:false,effort:{
+architect:[.5,.5,.5,.5,0,0],
+consultant:[1,1,2,1,.5,.5],
+pm:[.5,.5,.5,0,0,0]}},
+Sentry:{enabled:false,effort:{
+architect:[.5,.5,0,0,0,0],
+consultant:[1,1,1,1,0,0],
+pm:[.5,.5,0,0,0,0]}},
+CDDRI:{enabled:false,effort:{
+architect:[.5,.5,0,0,0,0],
+consultant:[1,1,1,0,0,0],
+pm:[0,0,0,0,0,0]}}
+};
+
+const locationRates={
+P_INTL:{architect:1700,consultant:1400,pm:1100},
+P_AMS:{architect:2100,consultant:1750,pm:1450},
+NS_BG:{architect:1200,consultant:950,pm:800},
+NS_ES:{architect:1350,consultant:1100,pm:900},
+COR_IN:{architect:700,consultant:550,pm:450}
+};
+
+const presets={
+cost:{architect:"COR_IN",consultant:"COR_IN",pm:"NS_BG"},
+balanced:{architect:"NS_ES",consultant:"NS_BG",pm:"P_INTL"},
+premium:{architect:"P_INTL",consultant:"P_INTL",pm:"P_INTL"}
+};
+
+const internalFactor=0.55;
+
+// ---------- INIT ----------
+function initLocations(){
+["architect","consultant","pm"].forEach(r=>{
+const sel=document.getElementById("loc_"+r);
+sel.innerHTML=`
+<option value="P_INTL">Practice INTL</option>
+<option value="P_AMS">Practice AMS</option>
+<option value="NS_BG">Nearshore Bulgaria</option>
+<option value="NS_ES">Nearshore Spain</option>
+<option value="COR_IN">COR India</option>`;
+sel.value="P_INTL";
+});
+}
+
+function renderModules(){
+let h="";
+Object.entries(modules).forEach(([n,m])=>{
+h+=`
+<div class="bg-white p-4 rounded shadow">
+<label class="font-semibold">
+<input type="checkbox" ${m.enabled?"checked":""}
+ onchange="modules['${n}'].enabled=this.checked;recalc()" /> ${n}
+</label>
+<table class="w-full text-xs mt-2 border">
+<thead class="bg-slate-200">
+<tr><th>Task</th><th>Arch</th><th>Cons</th><th>PM</th></tr>
+</thead><tbody>
+${tasks.map((t,i)=>`
+<tr>
+<td>${t}</td>
+${["architect","consultant","pm"].map(r=>`
+<td><input type="number" class="eff"
+ data-m="${n}" data-r="${r}" data-i="${i}"
+ value="${m.effort[r][i]}" /></td>`).join("")}
+</tr>`).join("")}
+</tbody></table></div>`;
+});
+document.getElementById("modules").innerHTML=h;
+updateEdit();
+}
+
+function updateEdit(){
+document.querySelectorAll(".eff")
+.forEach(e=>e.disabled=!editEffort.checked);
+}
+
+// ---------- CALC ----------
+function recalc(){
+let eff={architect:0,consultant:0,pm:0};
+Object.values(modules).forEach(m=>{
+if(!m.enabled)return;
+for(let r in eff){
+eff[r]+=m.effort[r].reduce((a,b)=>a+Number(b),0);
+}});
+let sell=0,intc=0,days=0,cor=0;
+["architect","consultant","pm"].forEach(r=>{
+let loc=document.getElementById("loc_"+r).value;
+let rate=locationRates[loc][r];
+sell+=eff[r]*rate;
+intc+=eff[r]*rate*internalFactor;
+days+=eff[r];
+if(loc==="COR_IN") cor+=eff[r];
+});
+risk.classList.toggle("hidden",cor/days<=0.4);
+let fx=+fxInput.value||1;
+sell*=fx;intc*=fx;
+totalDays.textContent=days.toFixed(1);
+blend.textContent=(sell/days).toFixed(0);
+sellEl.textContent=sell.toLocaleString();
+internal.textContent=intc.toLocaleString();
+margin.textContent=(((sell-intc)/sell)*100).toFixed(1);
+let sym={EUR:"€",GBP:"£",USD:"$"}[currency.value];
+document.querySelectorAll("#sym,#sym2,#sym3").forEach(e=>e.textContent=sym);
+internalBlock.classList.toggle("hidden",!showInternal.checked);
+}
+
+// ---------- EVENTS ----------
+document.addEventListener("change",e=>{
+if(e.target.classList.contains("eff")){
+modules[e.target.dataset.m].effort[e.target.dataset.r][e.target.dataset.i]=+e.target.value;
+}
+if(e.target.id==="preset"&&presets[e.target.value]){
+Object.entries(presets[e.target.value]).forEach(([r,v])=>{
+document.getElementById("loc_"+r).value=v;
+});
+}
+updateEdit();recalc();
+});
+
+function exportPDF(){
+document.getElementById("internalBlock").classList.add("hidden");
+window.print();
+}
+
+// ---------- BOOT ----------
+const fxInput=document.getElementById("fx");
+const sellEl=document.getElementById("sell");
+initLocations();renderModules();recalc();
+</script>
+</body>
+</html>
