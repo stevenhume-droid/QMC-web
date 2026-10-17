@@ -373,11 +373,39 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
     }
 
+    .album-slot.dragging {
+      opacity: 0.45;
+    }
+
+    .album-slot.drag-over .slot-art {
+      outline: 3px dashed var(--ui-accent);
+      outline-offset: 2px;
+      transform: scale(1.03);
+    }
+
+    .album-slot.swap-selected .slot-art {
+      outline: 3px solid var(--ui-accent);
+      outline-offset: 3px;
+      animation: swap-pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes swap-pulse {
+      0%, 100% {
+        outline-color: var(--ui-accent);
+        transform: scale(1);
+      }
+      50% {
+        outline-color: #ffffff;
+        transform: scale(1.02);
+      }
+    }
+
     .slot-art img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
+      pointer-events: none;
     }
 
     .slot-number {
@@ -581,7 +609,7 @@
   <header class="app-header">
     <div>
       <h1>MY<span>QMC</span>15</h1>
-      <p>Curate your 15 essential records using Apple Music/iTunes, TheAudioDB & MusicBrainz search repositories.</p>
+      <p>Curate your 15 essential records using Apple Music/iTunes & MusicBrainz search repositories.</p>
     </div>
     <div style="display:flex; align-items:center; gap:18px;">
       <a href="index.html" style="color: var(--ui-muted); font-size: 0.88rem; text-decoration: none;">← QMC Home</a>
@@ -691,7 +719,6 @@
         <select id="modalSourceSelect" style="font-size: 0.8rem; padding: 6px 8px;">
           <option value="itunes">Repository: Apple Music / iTunes (Fast & Reliable)</option>
           <option value="musicbrainz">Repository: MusicBrainz (with Cover Art Archive)</option>
-          <option value="theaudiodb">Repository: TheAudioDB</option>
         </select>
       </div>
       <div>
@@ -731,6 +758,8 @@
     };
     const DEFAULT_HEADERS = [...state.rowHeaders];
     const MIN_ROWS = 2, MAX_ROWS = 5;
+    let draggedIndex = null;
+    let isDragging = false;
 
     try {
       let parsed = null;
@@ -750,6 +779,7 @@
     state.rowCount = Math.min(MAX_ROWS, Math.max(MIN_ROWS, parseInt(state.rowCount, 10) || 3));
     state.rowHeaders = Array.from({ length: MAX_ROWS }, (_, i) =>
       (Array.isArray(state.rowHeaders) && state.rowHeaders[i] != null) ? state.rowHeaders[i] : DEFAULT_HEADERS[i]);
+    if (state.searchSource !== "itunes" && state.searchSource !== "musicbrainz") state.searchSource = "itunes";
 
     // Splits 15 slots across N rows as evenly as possible, e.g. 4 rows => 4,4,4,3
     function getRowLayout() {
@@ -918,8 +948,9 @@
 
     function createSlotElement(index) {
       const album = state.slots[index];
+      const isSwapSelected = state.swapSourceIndex === index;
       const slotEl = document.createElement("div");
-      slotEl.className = `album-slot ${album ? "filled" : ""}`;
+      slotEl.className = `album-slot ${album ? "filled" : ""} ${isSwapSelected ? "swap-selected" : ""}`;
       slotEl.draggable = Boolean(album);
 
       const numLabel = String(index + 1).padStart(2, "0");
@@ -927,13 +958,14 @@
       let innerHTML = `<div class="slot-art">`;
       if (album) {
         innerHTML += `
-          <img src="${escapeHtml(album.coverUrl)}" alt="${escapeHtml(album.title)}" loading="lazy" />
+          <img src="${escapeHtml(album.coverUrl)}" alt="${escapeHtml(album.title)}" loading="lazy" draggable="false" />
           <button type="button" class="slot-remove" title="Remove album">×</button>
         `;
       } else {
+        const promptText = state.swapSourceIndex !== null ? "Click to Move" : "+ Search";
         innerHTML += `
           <span class="slot-number">${numLabel}</span>
-          <span class="slot-search-prompt">+ Search</span>
+          <span class="slot-search-prompt">${promptText}</span>
         `;
       }
       innerHTML += `</div>`;
@@ -962,30 +994,95 @@
 
       const slotArt = slotEl.querySelector(".slot-art");
       slotArt.addEventListener("click", () => {
-        if (state.swapSourceIndex !== null && state.swapSourceIndex !== index) {
-          const temp = state.slots[state.swapSourceIndex];
-          state.slots[state.swapSourceIndex] = state.slots[index];
-          state.slots[index] = temp;
-          state.swapSourceIndex = null;
-          saveState();
+        // If a drag operation just finished, prevent the synthetic click from opening the modal
+        if (isDragging) return;
+
+        if (state.swapSourceIndex !== null) {
+          if (state.swapSourceIndex === index) {
+            // Clicked selected slot again -> cancel swap
+            state.swapSourceIndex = null;
+            renderPoster();
+          } else {
+            // Swap or move
+            const temp = state.slots[state.swapSourceIndex];
+            state.slots[state.swapSourceIndex] = state.slots[index];
+            state.slots[index] = temp;
+            state.swapSourceIndex = null;
+            saveState();
+            renderPoster();
+          }
+        } else if (album) {
+          // Click filled cover to initiate swap
+          state.swapSourceIndex = index;
           renderPoster();
         } else {
+          // Empty slot -> search
           openSearchModal(index);
         }
       });
 
+      // --- Drag & Drop ---
       slotEl.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("text/plain", String(index));
+        if (!state.slots[index]) {
+          e.preventDefault();
+          return;
+        }
+        draggedIndex = index;
+        isDragging = true;
+        slotEl.classList.add("dragging");
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = "move";
+          try {
+            e.dataTransfer.setData("application/x-qmc-slot", String(index));
+            e.dataTransfer.setData("text/plain", String(index));
+          } catch (err) {}
+        }
       });
-      slotEl.addEventListener("dragover", (e) => e.preventDefault());
+
+      slotEl.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        if (e.dataTransfer) {
+          e.dataTransfer.dropEffect = "move";
+        }
+        if (draggedIndex !== null && draggedIndex !== index) {
+          slotEl.classList.add("drag-over");
+        }
+      });
+
+      slotEl.addEventListener("dragleave", (e) => {
+        if (!slotEl.contains(e.relatedTarget)) {
+          slotEl.classList.remove("drag-over");
+        }
+      });
+
+      slotEl.addEventListener("dragend", () => {
+        slotEl.classList.remove("dragging");
+        document.querySelectorAll(".album-slot").forEach(s => s.classList.remove("drag-over"));
+        setTimeout(() => {
+          isDragging = false;
+          draggedIndex = null;
+        }, 60);
+      });
+
       slotEl.addEventListener("drop", (e) => {
         e.preventDefault();
-        const fromIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
-        if (!isNaN(fromIndex) && fromIndex !== index) {
+        slotEl.classList.remove("drag-over");
+
+        let fromIndex = draggedIndex;
+        if (fromIndex === null && e.dataTransfer) {
+          const raw = e.dataTransfer.getData("application/x-qmc-slot") || e.dataTransfer.getData("text/plain");
+          const parsed = parseInt(raw, 10);
+          if (!isNaN(parsed) && String(parsed) === raw.trim()) {
+            fromIndex = parsed;
+          }
+        }
+
+        if (fromIndex !== null && !isNaN(fromIndex) && fromIndex !== index) {
           const temp = state.slots[fromIndex];
           state.slots[fromIndex] = state.slots[index];
           state.slots[index] = temp;
           state.swapSourceIndex = null;
+          draggedIndex = null;
           saveState();
           renderPoster();
         }
@@ -997,6 +1094,7 @@
     function openSearchModal(index) {
       state.activeModalSlot = index;
       modalTitle.textContent = `Search Album for Slot #${String(index + 1).padStart(2, "0")}`;
+      modalSourceSelect.value = state.searchSource;
       modalSearchInput.value = "";
       modalResults.innerHTML = `<div style="color:var(--ui-muted); font-size:0.85rem; text-align:center; padding:24px;">Type above to search archive.</div>`;
       searchModal.style.display = "flex";
@@ -1011,6 +1109,24 @@
     modalCloseBtn.addEventListener("click", closeSearchModal);
     searchModal.addEventListener("click", (e) => {
       if (e.target === searchModal) closeSearchModal();
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        if (searchModal.style.display === "flex") {
+          closeSearchModal();
+        } else if (state.swapSourceIndex !== null) {
+          state.swapSourceIndex = null;
+          renderPoster();
+        }
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      if (state.swapSourceIndex !== null && !e.target.closest(".album-slot")) {
+        state.swapSourceIndex = null;
+        renderPoster();
+      }
     });
 
     modalSourceSelect.addEventListener("change", (e) => {
@@ -1067,17 +1183,6 @@
               hiResUrl
             };
           }));
-        } else if (state.searchSource === "theaudiodb") {
-          const res = await fetch(`https://www.theaudiodb.com/api/v1/json/2/searchalbum.php?s=${encodeURIComponent(query)}`);
-          const data = await res.json();
-          renderResults((data.album || []).map(item => ({
-            id: item.idAlbum,
-            title: item.strAlbum,
-            artist: item.strArtist,
-            year: item.intYearReleased || "",
-            coverUrl: item.strAlbumThumb ? item.strAlbumThumb + "/preview" : "",
-            hiResUrl: item.strAlbumThumb || ""
-          })));
         }
       } catch (err) {
         modalResults.innerHTML = `<div style="color:var(--ui-accent); font-size:0.85rem; text-align:center; padding:24px;">Error searching repository.</div>`;
