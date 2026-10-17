@@ -60,7 +60,7 @@
         [data-theme="light"] {
             /* Light Theme tuned to QMC brand */
             --bg-deep: #eef2f6;
-            --bg-navy: #f4f6f9;
+            --bg-navy: #f1f5f9;
             --bg-surface: #ffffff;
             --bg-card: #ffffff;
             --bg-card-hover: #f8fafc;
@@ -68,20 +68,20 @@
             --border-hover: rgba(139, 28, 28, 0.35);
             --brand-maroon: #8b1c1c;
             --brand-maroon-bright: #b91c1c;
-            --brand-amber: #d97706;
-            --brand-amber-soft: rgba(217, 119, 6, 0.12);
-            --brand-emerald: #059669;
-            --brand-emerald-soft: rgba(5, 150, 105, 0.12);
+            --brand-amber: #b45309;
+            --brand-amber-soft: rgba(180, 83, 9, 0.12);
+            --brand-emerald: #047857;
+            --brand-emerald-soft: rgba(4, 120, 87, 0.12);
             --text-main: #0b162c;
-            --text-dim: #475569;
-            --text-muted: #94a3b8;
+            --text-dim: #334155;
+            --text-muted: #64748b;
             --nav-bg: rgba(244, 246, 249, 0.96);
             --card-shadow: 0 4px 16px rgba(11, 22, 44, 0.06);
-            --rev-item-bg: #f8fafc;
+            --rev-item-bg: #f1f5f9;
             --input-bg: #ffffff;
             --input-focus-bg: #ffffff;
-            --badge-bg: rgba(11, 22, 44, 0.06);
-            --badge-border: rgba(11, 22, 44, 0.1);
+            --badge-bg: rgba(11, 22, 44, 0.05);
+            --badge-border: rgba(11, 22, 44, 0.12);
             --popup-bg: #ffffff;
             --popup-border: rgba(11, 22, 44, 0.15);
             --modal-backdrop: rgba(11, 22, 44, 0.65);
@@ -648,7 +648,7 @@
             border: 1px solid var(--border);
             padding: 10px 12px;
             border-radius: 8px;
-            border-left: 3px solid var(--brand-maroon-bright);
+            border-left: 3.5px solid var(--brand-maroon-bright);
         }
 
         .cr-rev-header {
@@ -656,8 +656,10 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 4px;
-            font-size: 0.78rem;
+            font-size: 0.8rem;
             color: var(--text-dim);
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         .cr-rev-author {
@@ -667,19 +669,28 @@
 
         .cr-rev-ratings {
             color: var(--brand-amber);
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 0.78rem;
+        }
+
+        .cr-rev-comment {
+            margin: 4px 0 0;
+            color: var(--text-main);
+            font-style: italic;
+            line-height: 1.5;
+            font-size: 0.84rem;
         }
 
         .cr-pull-tag {
             color: var(--brand-emerald);
             background: var(--brand-emerald-soft);
-            border: 1px solid rgba(16, 185, 129, 0.25);
-            padding: 2px 7px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 2px 8px;
             border-radius: 4px;
             font-size: 0.75rem;
             font-weight: 600;
             display: inline-block;
-            margin-top: 5px;
+            margin-top: 6px;
         }
 
         /* --- MAP CONTAINER --- */
@@ -1602,10 +1613,10 @@
                 const emptyMsg = document.createElement('div');
                 emptyMsg.style.padding = '40px 20px';
                 emptyMsg.style.textAlign = 'center';
-                emptyMsg.style.color = '#94a3b8';
+                emptyMsg.style.color = 'var(--text-dim)';
                 emptyMsg.innerHTML = `
                     <div style="font-size:2rem; margin-bottom:10px;">🔍</div>
-                    <strong style="color:#fff; font-size:1.1rem; display:block; margin-bottom:6px;">No Record Shops Found</strong>
+                    <strong style="color:var(--text-main); font-size:1.1rem; display:block; margin-bottom:6px;">No Record Shops Found</strong>
                     No stores matched your current search and filters. Try clearing your search or toggling off some filters.
                 `;
                 listEl.appendChild(emptyMsg);
@@ -1632,7 +1643,7 @@
                     <div class="popup-store-name">${s.name}</div>
                     <div class="popup-dist">📍 ${s.distance_miles} miles from South Queensferry (EH30)</div>
                     <div class="popup-address">${s.address}</div>
-                    <div style="font-size:0.75rem; color:#d1d5db; margin-bottom:8px;">
+                    <div style="font-size:0.75rem; color:var(--text-dim); margin-bottom:8px;">
                         <strong>Stock:</strong> ${s.stock_type} • ${s.genres.slice(0, 3).join(', ')}
                     </div>
                     <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
@@ -1657,7 +1668,7 @@
                             <span class="cr-rev-author">${escapeHtml(r.reviewer_name)}</span>
                             <span class="cr-rev-ratings">Erg: ${r.ergonomics_score}/5 • Grd: ${r.grading_score}/5 • Vibe: ${r.vibe_score}/5</span>
                         </div>
-                        <p style="margin:2px 0 0; color:#e2e8f0; font-style:italic;">"${escapeHtml(r.comment)}"</p>
+                        <p class="cr-rev-comment">"${escapeHtml(r.comment)}"</p>
                         ${r.best_pull ? `<span class="cr-pull-tag">🔥 Best Pull: ${escapeHtml(r.best_pull)}</span>` : ''}
                     </div>
                 `).join('');
