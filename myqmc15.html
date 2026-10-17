@@ -181,10 +181,27 @@
       font-size: 0.8rem;
     }
 
+    .theme-group-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ui-muted);
+      margin: 12px 0 6px;
+      font-weight: 700;
+    }
+
+    .theme-group-label:first-child {
+      margin-top: 0;
+    }
+
     .theme-pills {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
+    }
+
+    .theme-pills.hardware-grid {
+      grid-template-columns: repeat(2, 1fr);
     }
 
     .theme-pill {
@@ -196,21 +213,32 @@
       background: #14161b;
       border: 1px solid var(--ui-border);
       cursor: pointer;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       color: var(--ui-text);
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .theme-pill:hover {
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
     }
 
     .theme-pill.active {
       border-color: var(--ui-accent);
       background: #231d1c;
+      box-shadow: 0 0 0 1px var(--ui-accent);
     }
 
     .swatch {
       width: 14px;
       height: 14px;
       border-radius: 50%;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
       flex-shrink: 0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
     }
 
     .action-row {
@@ -246,7 +274,7 @@
       border-radius: 4px;
       padding: 36px 32px 30px;
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
-      transition: background-color 0.25s, color 0.25s;
+      transition: background 0.25s, color 0.25s;
       user-select: none;
     }
 
@@ -352,7 +380,7 @@
       position: relative;
       width: 100%;
       aspect-ratio: 1 / 1;
-      border: 1px dashed rgba(128, 128, 128, 0.45);
+      border: 1px dashed var(--poster-border, rgba(128, 128, 128, 0.45));
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -671,7 +699,7 @@
 
       <div>
         <div class="section-title"><span>2. Visual Theme</span></div>
-        <div class="theme-pills" id="themeSelector"></div>
+        <div id="themeSelector"></div>
       </div>
 
       <div>
@@ -693,7 +721,7 @@
 
       <div id="posterCard" class="poster-card">
         <div class="poster-top-meta">
-          <span>MYQMC15 · GHETTO BLASTER</span>
+          <span id="posterTopMetaText">MYQMC15 · VINYL ARCHIVE</span>
           <span>· WHAT WAS ON YOUR STEREO?</span>
         </div>
 
@@ -734,44 +762,129 @@
   <script>
     const TOTAL_SLOTS = 15;
 
-        const THEMES = {
-      paper:   { name: "Paper",   bg: "#f4f1ea", text: "#1c1b18", border: "#d8d2c5" },
-      ink:     { name: "Ink",     bg: "#121316", text: "#f3f4f6", border: "#2c2f36" },
-      walnut:  { name: "Walnut",  bg: "#261c15", text: "#f2e6d8", border: "#423226" },
-      sage:    { name: "Sage",    bg: "#dfe5df", text: "#1e2820", border: "#b8c4b8" },
-      groove:  { name: "Groove",  bg: "#1d2230", text: "#e6ebf5", border: "#343d54" },
-      amber:   { name: "Amber",   bg: "#f5e6c8", text: "#2b1d0c", border: "#d9c398" },
+    const THEMES = {
+      // --- Classic Print & Vinyl ---
+      paper: {
+        name: "Paper",
+        category: "Classic",
+        bg: "#f4f1ea",
+        text: "#1c1b18",
+        border: "#d8d2c5",
+        meta: "MYQMC15 · VINYL ARCHIVE"
+      },
+      ink: {
+        name: "Ink",
+        category: "Classic",
+        bg: "#121316",
+        text: "#f3f4f6",
+        border: "#2c2f36",
+        meta: "MYQMC15 · INK EDITION"
+      },
+      walnut: {
+        name: "Walnut",
+        category: "Classic",
+        bg: "#261c15",
+        text: "#f2e6d8",
+        border: "#423226",
+        meta: "MYQMC15 · ACOUSTIC WOOD"
+      },
+      sage: {
+        name: "Sage",
+        category: "Classic",
+        bg: "#dfe5df",
+        text: "#1e2820",
+        border: "#b8c4b8",
+        meta: "MYQMC15 · SAGE FOLK"
+      },
+      groove: {
+        name: "Groove",
+        category: "Classic",
+        bg: "#1d2230",
+        text: "#e6ebf5",
+        border: "#343d54",
+        meta: "MYQMC15 · DEEP GROOVE"
+      },
+      amber: {
+        name: "Amber",
+        category: "Classic",
+        bg: "#f5e6c8",
+        text: "#2b1d0c",
+        border: "#d9c398",
+        meta: "MYQMC15 · VINTAGE AMBER"
+      },
       
-      // --- New Hardware Background Themes ---
+      // --- Hardware Background Themes ---
       blaster: { 
         name: "Ghetto Blaster", 
+        category: "Hardware",
         bg: "radial-gradient(circle at center, #2c2d30 0%, #111214 100%)", 
         text: "#e5e7eb", 
-        border: "#4b5563" 
+        border: "#4b5563",
+        meta: "MYQMC15 · GHETTO BLASTER",
+        canvasGradient: (ctx, w, h) => {
+          const grad = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.75);
+          grad.addColorStop(0, "#2c2d30");
+          grad.addColorStop(1, "#111214");
+          return grad;
+        }
       },
       turntable: { 
         name: "Turntable", 
+        category: "Hardware",
         bg: "radial-gradient(circle at 30% 30%, #1f2937 0%, #0b0f17 70%)", 
         text: "#f3f4f6", 
-        border: "#374151" 
+        border: "#374151",
+        meta: "MYQMC15 · TURNTABLE",
+        canvasGradient: (ctx, w, h) => {
+          const grad = ctx.createRadialGradient(w * 0.3, h * 0.3, 0, w * 0.3, h * 0.3, Math.max(w, h));
+          grad.addColorStop(0, "#1f2937");
+          grad.addColorStop(0.7, "#0b0f17");
+          return grad;
+        }
       },
       cassette: { 
         name: "Cassette", 
+        category: "Hardware",
         bg: "linear-gradient(135deg, #2b2621 0%, #141210 100%)", 
         text: "#fde047", 
-        border: "#ca8a04" 
+        border: "#ca8a04",
+        meta: "MYQMC15 · CASSETTE TAPE",
+        canvasGradient: (ctx, w, h) => {
+          const grad = ctx.createLinearGradient(0, 0, w, h);
+          grad.addColorStop(0, "#2b2621");
+          grad.addColorStop(1, "#141210");
+          return grad;
+        }
       },
       minidisc: { 
         name: "MiniDisc", 
+        category: "Hardware",
         bg: "linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #020617 100%)", 
         text: "#38bdf8", 
-        border: "#0284c7" 
+        border: "#0284c7",
+        meta: "MYQMC15 · MINIDISC",
+        canvasGradient: (ctx, w, h) => {
+          const grad = ctx.createLinearGradient(0, 0, w, h);
+          grad.addColorStop(0, "#1e293b");
+          grad.addColorStop(0.5, "#0f172a");
+          grad.addColorStop(1, "#020617");
+          return grad;
+        }
       },
       cd: { 
         name: "Compact Disc", 
+        category: "Hardware",
         bg: "linear-gradient(120deg, #18181b 0%, #27272a 50%, #09090b 100%)", 
         text: "#f4f4f5", 
-        border: "#52525b" 
+        border: "#52525b",
+        meta: "MYQMC15 · COMPACT DISC",
+        canvasGradient: (ctx, w, h) => {
+          const grad = ctx.createLinearGradient(0, 0, w, h * 0.7);
+          grad.addColorStop(0, "#18181b");
+          grad.addColorStop(0.5, "#27272a");
+          grad.addColorStop(1, "#09090b");
+          return grad;
+        }
       }
     };
 
@@ -812,6 +925,7 @@
     state.rowHeaders = Array.from({ length: MAX_ROWS }, (_, i) =>
       (Array.isArray(state.rowHeaders) && state.rowHeaders[i] != null) ? state.rowHeaders[i] : DEFAULT_HEADERS[i]);
     if (state.searchSource !== "itunes" && state.searchSource !== "musicbrainz") state.searchSource = "itunes";
+    if (!THEMES[state.theme]) state.theme = "paper";
 
     // Splits 15 slots across N rows as evenly as possible, e.g. 4 rows => 4,4,4,3
     function getRowLayout() {
@@ -875,18 +989,39 @@
 
     function initThemePills() {
       themeSelector.innerHTML = "";
-      Object.entries(THEMES).forEach(([key, theme]) => {
-        const pill = document.createElement("button");
-        pill.type = "button";
-        pill.className = `theme-pill ${state.theme === key ? "active" : ""}`;
-        pill.innerHTML = `<span class="swatch" style="background:${theme.bg}"></span><span>${theme.name}</span>`;
-        pill.addEventListener("click", () => {
-          state.theme = key;
-          saveState();
-          initThemePills();
-          renderPoster();
+
+      const categories = [
+        { label: "Classic Print & Vinyl", key: "Classic", gridCls: "" },
+        { label: "Audio Hardware Editions", key: "Hardware", gridCls: "hardware-grid" }
+      ];
+
+      categories.forEach(cat => {
+        const catLabel = document.createElement("div");
+        catLabel.className = "theme-group-label";
+        catLabel.textContent = cat.label;
+        themeSelector.appendChild(catLabel);
+
+        const grid = document.createElement("div");
+        grid.className = `theme-pills ${cat.gridCls}`;
+
+        Object.entries(THEMES).forEach(([key, theme]) => {
+          if (theme.category !== cat.key) return;
+
+          const pill = document.createElement("button");
+          pill.type = "button";
+          pill.className = `theme-pill ${state.theme === key ? "active" : ""}`;
+          pill.title = theme.name;
+          pill.innerHTML = `<span class="swatch" style="background:${theme.bg};"></span><span>${theme.name}</span>`;
+          pill.addEventListener("click", () => {
+            state.theme = key;
+            saveState();
+            initThemePills();
+            renderPoster();
+          });
+          grid.appendChild(pill);
         });
-        themeSelector.appendChild(pill);
+
+        themeSelector.appendChild(grid);
       });
     }
 
@@ -915,8 +1050,15 @@
 
     function renderPoster() {
       const theme = THEMES[state.theme] || THEMES.paper;
-      posterCard.style.backgroundColor = theme.bg;
+      posterCard.style.background = theme.bg;
       posterCard.style.color = theme.text;
+      posterCard.style.setProperty('--poster-border', theme.border);
+      posterCard.style.setProperty('--poster-text', theme.text);
+
+      const metaEl = document.getElementById("posterTopMetaText");
+      if (metaEl) {
+        metaEl.textContent = theme.meta || `MYQMC15 · ${theme.name.toUpperCase()}`;
+      }
 
       const isLandscape = state.orientation === "landscape";
       const isGenreRows = state.orientation === "genre-rows";
@@ -1307,13 +1449,18 @@
         canvas.height = canvasHeight;
         const ctx = canvas.getContext("2d");
 
-        ctx.fillStyle = theme.bg;
+        if (typeof theme.canvasGradient === "function") {
+          ctx.fillStyle = theme.canvasGradient(ctx, canvasWidth, canvasHeight);
+        } else {
+          ctx.fillStyle = theme.bg;
+        }
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
         ctx.fillStyle = theme.text;
         ctx.globalAlpha = 0.65;
         ctx.font = "700 20px -apple-system, BlinkMacSystemFont, sans-serif";
-        ctx.fillText("MYQMC15 · GHETTO BLASTER", padding, padding + 20);
+        const metaText = theme.meta || `MYQMC15 · ${theme.name.toUpperCase()}`;
+        ctx.fillText(metaText, padding, padding + 20);
 
         const rightMeta = "· WHAT WAS PLAYING ON YOUR STEREO?";
         const rightWidth = ctx.measureText(rightMeta).width;
