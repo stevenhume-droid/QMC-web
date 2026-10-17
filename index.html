@@ -652,6 +652,137 @@
 
         @media (prefers-reduced-motion: reduce) {
             .myqmc-grid span { animation: none; }
+            .radar-sweep-line { animation: none; }
+        }
+
+        /* --- CRATE RADAR PROMO --- */
+        .crateradar-promo {
+            display: grid;
+            grid-template-columns: 1.25fr 0.95fr;
+            gap: 40px;
+            align-items: center;
+            background: linear-gradient(135deg, var(--card-bg), rgba(245, 158, 11, 0.04), rgba(139, 28, 28, 0.08));
+            border: 1.5px solid var(--border-color);
+            border-radius: 12px;
+            padding: 45px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .promo-badge {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(139, 28, 28, 0.12);
+            color: var(--brand-maroon);
+            border: 1px solid rgba(139, 28, 28, 0.25);
+            margin-bottom: 12px;
+        }
+
+        .crateradar-promo p {
+            color: var(--text-dim);
+            margin-bottom: 20px;
+        }
+
+        .radar-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 25px;
+        }
+
+        .radar-pills span {
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: var(--bg-color);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .crateradar-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .radar-sweep-circle {
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(139, 28, 28, 0.12) 0%, rgba(11, 22, 44, 0.25) 70%, transparent 100%);
+            border: 1.5px solid rgba(245, 158, 11, 0.35);
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(245, 158, 11, 0.1);
+        }
+
+        .radar-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 1px dashed rgba(245, 158, 11, 0.25);
+        }
+
+        .radar-ring.ring-1 { width: 75px; height: 75px; }
+        .radar-ring.ring-2 { width: 145px; height: 145px; }
+        .radar-ring.ring-3 { width: 215px; height: 215px; }
+
+        .radar-sweep-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, rgba(245, 158, 11, 0.4) 0deg, rgba(139, 28, 28, 0.15) 35deg, transparent 90deg);
+            animation: radar-spin 4s linear infinite;
+        }
+
+        .radar-blip {
+            position: absolute;
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        .blip-center {
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            transform: translate(-50%, -50%);
+            background: #10b981;
+            box-shadow: 0 0 10px #10b981;
+        }
+
+        .blip-1 { top: 38%; left: 72%; width: 8px; height: 8px; background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+        .blip-2 { top: 22%; left: 45%; width: 7px; height: 7px; background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
+        .blip-3 { top: 58%; left: 24%; width: 8px; height: 8px; background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+        .blip-4 { top: 68%; left: 78%; width: 7px; height: 7px; background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
+
+        @keyframes radar-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .crateradar-promo {
+                grid-template-columns: 1fr;
+                padding: 25px;
+            }
+            .radar-sweep-circle {
+                width: 190px;
+                height: 190px;
+                margin: 10px auto 0;
+            }
         }
     </style>
 </head>
@@ -675,6 +806,7 @@
                 <li><a href="#events">Upcoming</a></li>
                 <li><a href="#playlists">Music</a></li>
                 <li><a href="myqmc15.html" class="nav-highlight">MyQMC15</a></li>
+                <li><a href="record-shops/" class="nav-highlight">Crate Radar</a></li>
                 <li><a href="#join">Join</a></li>
             </ul>
             <div style="display:flex; align-items:center; gap:20px;">
@@ -795,6 +927,40 @@
                     <span></span><span></span><span></span><span></span><span></span>
                     <span></span><span></span><span></span><span></span><span></span>
                     <span></span><span></span><span></span><span></span><span></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="crateradar">
+        <div class="container">
+            <div class="crateradar-promo">
+                <div class="crateradar-promo-content">
+                    <span class="promo-badge">LOCAL CRATE DIRECTORY</span>
+                    <h2>20-Mile Crate Radar</h2>
+                    <p class="lead-text">Independent record shops within 20 miles of South Queensferry (EH30).</p>
+                    <p>Discover 19 curated shops across Edinburgh, Dunfermline, Linlithgow, Falkirk & Leith. Filter by listening decks, ultrasonic record cleaning, £1–£3 bargain basements, and coffee lounges, backed by local collector ratings and pull logs.</p>
+                    <div class="radar-pills">
+                        <span>📍 19 Curated Shops</span>
+                        <span>🎧 Listening Decks</span>
+                        <span>✨ Ultrasonic Cleaned</span>
+                        <span>📦 £1–£3 Crates</span>
+                        <span>☕ Coffee Lounges</span>
+                    </div>
+                    <a href="record-shops/" class="btn btn-map" style="margin-left:0;">Launch Crate Radar →</a>
+                </div>
+                <div class="crateradar-visual" aria-hidden="true">
+                    <div class="radar-sweep-circle">
+                        <div class="radar-sweep-line"></div>
+                        <div class="radar-blip blip-center" title="EH30 Hub"></div>
+                        <div class="radar-blip blip-1" title="VoxBox"></div>
+                        <div class="radar-blip blip-2" title="Veneno"></div>
+                        <div class="radar-blip blip-3" title="Low Port"></div>
+                        <div class="radar-blip blip-4" title="Underground Solu'shn"></div>
+                        <div class="radar-ring ring-1"></div>
+                        <div class="radar-ring ring-2"></div>
+                        <div class="radar-ring ring-3"></div>
+                    </div>
                 </div>
             </div>
         </div>
