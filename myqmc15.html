@@ -734,13 +734,45 @@
   <script>
     const TOTAL_SLOTS = 15;
 
-    const THEMES = {
-      paper: { name: "Paper", bg: "#f4f1ea", text: "#1c1b18", border: "#d8d2c5" },
-      ink: { name: "Ink", bg: "#121316", text: "#f3f4f6", border: "#2c2f36" },
-      walnut: { name: "Walnut", bg: "#261c15", text: "#f2e6d8", border: "#423226" },
-      sage: { name: "Sage", bg: "#dfe5df", text: "#1e2820", border: "#b8c4b8" },
-      groove: { name: "Groove", bg: "#1d2230", text: "#e6ebf5", border: "#343d54" },
-      amber: { name: "Amber", bg: "#f5e6c8", text: "#2b1d0c", border: "#d9c398" }
+        const THEMES = {
+      paper:   { name: "Paper",   bg: "#f4f1ea", text: "#1c1b18", border: "#d8d2c5" },
+      ink:     { name: "Ink",     bg: "#121316", text: "#f3f4f6", border: "#2c2f36" },
+      walnut:  { name: "Walnut",  bg: "#261c15", text: "#f2e6d8", border: "#423226" },
+      sage:    { name: "Sage",    bg: "#dfe5df", text: "#1e2820", border: "#b8c4b8" },
+      groove:  { name: "Groove",  bg: "#1d2230", text: "#e6ebf5", border: "#343d54" },
+      amber:   { name: "Amber",   bg: "#f5e6c8", text: "#2b1d0c", border: "#d9c398" },
+      
+      // --- New Hardware Background Themes ---
+      blaster: { 
+        name: "Ghetto Blaster", 
+        bg: "radial-gradient(circle at center, #2c2d30 0%, #111214 100%)", 
+        text: "#e5e7eb", 
+        border: "#4b5563" 
+      },
+      turntable: { 
+        name: "Turntable", 
+        bg: "radial-gradient(circle at 30% 30%, #1f2937 0%, #0b0f17 70%)", 
+        text: "#f3f4f6", 
+        border: "#374151" 
+      },
+      cassette: { 
+        name: "Cassette", 
+        bg: "linear-gradient(135deg, #2b2621 0%, #141210 100%)", 
+        text: "#fde047", 
+        border: "#ca8a04" 
+      },
+      minidisc: { 
+        name: "MiniDisc", 
+        bg: "linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #020617 100%)", 
+        text: "#38bdf8", 
+        border: "#0284c7" 
+      },
+      cd: { 
+        name: "Compact Disc", 
+        bg: "linear-gradient(120deg, #18181b 0%, #27272a 50%, #09090b 100%)", 
+        text: "#f4f4f5", 
+        border: "#52525b" 
+      }
     };
 
     let state = {
