@@ -141,6 +141,14 @@
             line-height: 1;
         }
 
+        .qmc-brand-short {
+            display: none;
+        }
+
+        .nav-link-home-short {
+            display: none;
+        }
+
         .qmc-brand-tag {
             background: linear-gradient(135deg, var(--brand-maroon), var(--brand-maroon-bright));
             color: #fff;
@@ -992,47 +1000,89 @@
 
         @media (max-width: 680px) {
             .qmc-top-nav {
-                padding: 8px 12px;
+                padding: 10px 14px;
                 flex-wrap: nowrap;
+                gap: 8px;
             }
-            .qmc-brand-title {
-                font-size: 1.15rem;
-                letter-spacing: 1px;
+
+            .qmc-brand-group {
+                gap: 8px;
+                flex-shrink: 0;
             }
+
+            .qmc-brand-full {
+                display: none;
+            }
+
+            .qmc-brand-short {
+                display: inline;
+                font-family: var(--font-display);
+                font-size: 1.45rem;
+                letter-spacing: 1.5px;
+                color: var(--text-main);
+                line-height: 1;
+            }
+
             .qmc-brand-tag {
-                font-size: 0.6rem;
-                padding: 2px 5px;
+                font-size: 0.64rem;
+                letter-spacing: 0.8px;
+                padding: 3px 6px;
             }
+
             .qmc-hub-badge {
                 display: none;
             }
+
             .qmc-nav-links {
-                gap: 10px;
-            }
-            .qmc-nav-links a {
-                font-size: 0.92rem;
-            }
-            .theme-btn {
-                padding: 4px 8px;
-                font-size: 0.8rem;
+                gap: 12px;
+                align-items: center;
+                flex-shrink: 0;
             }
 
-            .cr-toolbar {
-                padding: 8px 12px;
-                gap: 8px;
+            .nav-link-home-full {
+                display: none;
             }
+
+            .nav-link-home-short {
+                display: inline;
+                white-space: nowrap;
+            }
+
+            .qmc-nav-links a {
+                font-size: 0.95rem;
+                white-space: nowrap;
+            }
+
+            .theme-btn {
+                padding: 4px 8px;
+                font-size: 0.85rem;
+            }
+
+            .theme-btn-text {
+                display: none;
+            }
+
+            /* Toolbar Mobile */
+            .cr-toolbar {
+                padding: 10px 14px;
+                gap: 10px;
+            }
+
             .cr-toolbar-left {
                 width: 100%;
                 gap: 8px;
             }
+
             .cr-search-wrapper {
                 min-width: 100%;
                 max-width: 100%;
             }
+
             .cr-search-input {
-                font-size: 0.82rem;
-                padding: 7px 10px 7px 32px;
+                font-size: 0.85rem;
+                padding: 8px 12px 8px 34px;
             }
+
             .cr-chips {
                 flex-wrap: nowrap;
                 overflow-x: auto;
@@ -1040,60 +1090,86 @@
                 -webkit-overflow-scrolling: touch;
                 width: 100%;
                 scrollbar-width: none;
+                gap: 8px;
             }
+
             .cr-chips::-webkit-scrollbar {
                 display: none;
             }
+
             .cr-chip {
                 white-space: nowrap;
                 flex-shrink: 0;
-                font-size: 0.76rem;
-                padding: 5px 10px;
+                font-size: 0.78rem;
+                padding: 6px 12px;
             }
+
             .cr-toolbar-right {
                 width: 100%;
                 display: flex;
                 align-items: center;
-                gap: 8px;
+                gap: 10px;
                 justify-content: space-between;
             }
+
             .cr-sort-select {
                 flex: 1;
-                font-size: 0.78rem;
-                padding: 6px 8px;
+                font-size: 0.82rem;
+                padding: 7px 10px;
             }
+
             .cr-counter-pill {
-                font-size: 0.75rem;
-                padding: 4px 8px;
-            }
-            .cr-map-toggle-btn {
                 font-size: 0.78rem;
-                padding: 6px 10px;
+                padding: 5px 10px;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+
+            /* Hide the desktop toolbar map button on mobile since we have the floating action button */
+            .cr-map-toggle-btn {
+                display: none !important;
+            }
+
+            .cr-hub-banner {
+                padding: 8px 12px;
+                font-size: 0.76rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 2px;
+            }
+
+            .cr-sidebar {
+                padding: 12px;
+                padding-bottom: 125px !important; /* Plenty of clearance above the floating button */
             }
 
             .cr-card {
-                padding: 14px;
+                padding: 15px;
             }
+
             .cr-store-name {
-                font-size: 1.35rem;
+                font-size: 1.4rem;
             }
+
             .cr-card-footer {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 10px;
             }
+
             .cr-actions {
                 width: 100%;
                 display: flex;
-                gap: 6px;
+                gap: 8px;
             }
+
             .cr-actions .cr-btn,
             .cr-actions .cr-btn-secondary {
                 flex: 1;
                 justify-content: center;
                 text-align: center;
-                padding: 6px 6px;
-                font-size: 0.76rem;
+                padding: 8px 6px;
+                font-size: 0.78rem;
             }
         }
     </style>
@@ -1105,7 +1181,10 @@
     <header class="qmc-top-nav">
         <div class="qmc-brand-group">
             <a href="../index.html" class="qmc-brand-link" title="Return to Queensferry Music Collective Home">
-                <span class="qmc-brand-title">QUEENSFERRY MUSIC COLLECTIVE</span>
+                <span class="qmc-brand-title">
+                    <span class="qmc-brand-full">QUEENSFERRY MUSIC COLLECTIVE</span>
+                    <span class="qmc-brand-short">QMC</span>
+                </span>
                 <span class="qmc-brand-tag">CRATE RADAR</span>
             </a>
         </div>
@@ -1114,9 +1193,14 @@
                 <span class="hub-dot"></span>
                 <span>EH30 Hub (20-Mi Ring)</span>
             </div>
-            <a href="../index.html">← QMC Home</a>
+            <a href="../index.html" class="nav-link-home" title="Back to QMC Home">
+                <span class="nav-link-home-full">← QMC Home</span>
+                <span class="nav-link-home-short">← Home</span>
+            </a>
             <a href="../myqmc15.html">MyQMC15</a>
-            <button class="theme-btn" id="theme-toggle" aria-label="Toggle dark/light theme" title="Toggle dark/light theme">MODE 🌓</button>
+            <button class="theme-btn" id="theme-toggle" aria-label="Toggle dark/light theme" title="Toggle dark/light theme">
+                <span class="theme-btn-text">MODE </span>🌓
+            </button>
         </div>
     </header>
 
