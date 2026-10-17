@@ -884,57 +884,216 @@
             color: var(--text-muted);
         }
 
-        /* --- RESPONSIVE MEDIA QUERIES --- */
+        /* Map Toggle Buttons */
+        .cr-map-toggle-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-family: var(--font-body);
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .cr-map-toggle-btn:hover {
+            border-color: var(--brand-maroon-bright);
+            background: var(--bg-card-hover);
+        }
+
+        /* Floating Pill Button for Mobile */
+        .cr-floating-map-toggle {
+            display: none;
+            position: fixed;
+            bottom: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--brand-maroon), var(--brand-maroon-bright));
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 30px;
+            padding: 11px 24px;
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45), 0 0 15px rgba(211, 47, 47, 0.35);
+            z-index: 1500;
+            cursor: pointer;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+            user-select: none;
+        }
+
+        .cr-floating-map-toggle:hover {
+            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(211, 47, 47, 0.5);
+        }
+
+        /* Desktop Map Hidden State */
+        body.map-hidden .cr-workspace {
+            grid-template-columns: 1fr 0px;
+        }
+        body.map-hidden #cr-map {
+            display: none;
+        }
+        body.map-hidden .cr-sidebar {
+            border-right: none;
+            max-width: 820px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Responsive Media Queries */
         @media (max-width: 960px) {
+            .cr-floating-map-toggle {
+                display: inline-flex;
+            }
+
             .cr-workspace {
-                grid-template-columns: 1fr;
-                grid-template-rows: 50% 50%;
-            }
-
-            .cr-sidebar {
-                order: 2;
-                border-right: none;
-                border-top: 1px solid var(--border);
-            }
-
-            #cr-map {
-                order: 1;
-            }
-
-            .cr-mobile-toggle {
                 display: flex;
+                flex-direction: column;
+                flex: 1;
+                overflow: hidden;
+                position: relative;
             }
 
-            body.view-map-only .cr-workspace {
-                grid-template-rows: 0% 100%;
+            /* On Mobile, when map is hidden (List mode) */
+            body.map-hidden #cr-map {
+                display: none !important;
             }
-            body.view-map-only .cr-sidebar {
-                display: none;
+            body.map-hidden .cr-sidebar {
+                display: flex !important;
+                flex: 1;
+                width: 100%;
+                height: 100%;
+                border-right: none;
+                padding-bottom: 95px; /* buffer for floating button */
             }
 
-            body.view-list-only .cr-workspace {
-                grid-template-rows: 100% 0%;
+            /* On Mobile, when map is active (Map mode) */
+            body:not(.map-hidden) .cr-sidebar {
+                display: none !important;
             }
-            body.view-list-only #cr-map {
-                display: none;
+            body:not(.map-hidden) #cr-map {
+                display: block !important;
+                width: 100% !important;
+                height: 100% !important;
+                flex: 1;
             }
         }
 
         @media (max-width: 680px) {
             .qmc-top-nav {
-                padding: 10px 14px;
-            }
-            .cr-toolbar {
-                padding: 10px 14px;
+                padding: 8px 12px;
+                flex-wrap: nowrap;
             }
             .qmc-brand-title {
-                font-size: 1.2rem;
+                font-size: 1.15rem;
+                letter-spacing: 1px;
+            }
+            .qmc-brand-tag {
+                font-size: 0.6rem;
+                padding: 2px 5px;
             }
             .qmc-hub-badge {
                 display: none;
             }
+            .qmc-nav-links {
+                gap: 10px;
+            }
+            .qmc-nav-links a {
+                font-size: 0.92rem;
+            }
+            .theme-btn {
+                padding: 4px 8px;
+                font-size: 0.8rem;
+            }
+
+            .cr-toolbar {
+                padding: 8px 12px;
+                gap: 8px;
+            }
+            .cr-toolbar-left {
+                width: 100%;
+                gap: 8px;
+            }
             .cr-search-wrapper {
                 min-width: 100%;
+                max-width: 100%;
+            }
+            .cr-search-input {
+                font-size: 0.82rem;
+                padding: 7px 10px 7px 32px;
+            }
+            .cr-chips {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                padding-bottom: 4px;
+                -webkit-overflow-scrolling: touch;
+                width: 100%;
+                scrollbar-width: none;
+            }
+            .cr-chips::-webkit-scrollbar {
+                display: none;
+            }
+            .cr-chip {
+                white-space: nowrap;
+                flex-shrink: 0;
+                font-size: 0.76rem;
+                padding: 5px 10px;
+            }
+            .cr-toolbar-right {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                justify-content: space-between;
+            }
+            .cr-sort-select {
+                flex: 1;
+                font-size: 0.78rem;
+                padding: 6px 8px;
+            }
+            .cr-counter-pill {
+                font-size: 0.75rem;
+                padding: 4px 8px;
+            }
+            .cr-map-toggle-btn {
+                font-size: 0.78rem;
+                padding: 6px 10px;
+            }
+
+            .cr-card {
+                padding: 14px;
+            }
+            .cr-store-name {
+                font-size: 1.35rem;
+            }
+            .cr-card-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .cr-actions {
+                width: 100%;
+                display: flex;
+                gap: 6px;
+            }
+            .cr-actions .cr-btn,
+            .cr-actions .cr-btn-secondary {
+                flex: 1;
+                justify-content: center;
+                text-align: center;
+                padding: 6px 6px;
+                font-size: 0.76rem;
             }
         }
     </style>
@@ -992,11 +1151,10 @@
 
             <span class="cr-counter-pill" id="crCounterPill">19 Shops Found</span>
 
-            <div class="cr-mobile-toggle" aria-label="View toggle">
-                <button id="btnMobileList" class="cr-toggle-btn active" onclick="setMobileView('split')">Split</button>
-                <button id="btnMobileListOnly" class="cr-toggle-btn" onclick="setMobileView('list')">List</button>
-                <button id="btnMobileMapOnly" class="cr-toggle-btn" onclick="setMobileView('map')">Map</button>
-            </div>
+            <button id="crMapToggleBtn" class="cr-map-toggle-btn" onclick="toggleMapVisibility()" title="Toggle map visibility">
+                <span id="mapToggleIcon">🗺️</span>
+                <span id="mapToggleText">Hide Map</span>
+            </button>
         </div>
     </section>
 
@@ -1007,6 +1165,12 @@
         </aside>
         <div id="cr-map" role="region" aria-label="Interactive map of record shops"></div>
     </main>
+
+    <!-- FLOATING MAP/LIST TOGGLE FOR MOBILE -->
+    <button id="crFloatingMapToggle" class="cr-floating-map-toggle" onclick="toggleMapVisibility()" aria-label="Toggle map view">
+        <span id="floatingToggleIcon">🗺️</span>
+        <span id="floatingToggleText">Show Map</span>
+    </button>
 
     <!-- REVIEW MODAL -->
     <div class="cr-modal-backdrop" id="crReviewModal" onclick="if(event.target===this) closeModal()">
@@ -1117,22 +1281,43 @@
             renderStores();
         }
 
-        function setMobileView(mode) {
-            document.body.classList.remove('view-list-only', 'view-map-only');
-            document.getElementById('btnMobileList').classList.remove('active');
-            document.getElementById('btnMobileListOnly').classList.remove('active');
-            document.getElementById('btnMobileMapOnly').classList.remove('active');
+        let mapHidden = false;
 
-            if (mode === 'list') {
-                document.body.classList.add('view-list-only');
-                document.getElementById('btnMobileListOnly').classList.add('active');
-            } else if (mode === 'map') {
-                document.body.classList.add('view-map-only');
-                document.getElementById('btnMobileMapOnly').classList.add('active');
-                if (map) setTimeout(() => map.invalidateSize(), 150);
+        function toggleMapVisibility() {
+            setMapHidden(!mapHidden);
+        }
+
+        function setMapHidden(hide) {
+            mapHidden = hide;
+            if (hide) {
+                document.body.classList.add('map-hidden');
             } else {
-                document.getElementById('btnMobileList').classList.add('active');
-                if (map) setTimeout(() => map.invalidateSize(), 150);
+                document.body.classList.remove('map-hidden');
+                if (map) {
+                    setTimeout(() => {
+                        map.invalidateSize();
+                    }, 180);
+                }
+            }
+            updateToggleButtons();
+        }
+
+        function updateToggleButtons() {
+            const desktopToggleText = document.getElementById('mapToggleText');
+            const desktopToggleIcon = document.getElementById('mapToggleIcon');
+            const floatingToggleText = document.getElementById('floatingToggleText');
+            const floatingToggleIcon = document.getElementById('floatingToggleIcon');
+
+            if (mapHidden) {
+                if (desktopToggleText) desktopToggleText.innerText = 'Show Map';
+                if (desktopToggleIcon) desktopToggleIcon.innerText = '🗺️';
+                if (floatingToggleText) floatingToggleText.innerText = 'Show Map';
+                if (floatingToggleIcon) floatingToggleIcon.innerText = '🗺️';
+            } else {
+                if (desktopToggleText) desktopToggleText.innerText = 'Hide Map';
+                if (desktopToggleIcon) desktopToggleIcon.innerText = '✕';
+                if (floatingToggleText) floatingToggleText.innerText = 'Show List';
+                if (floatingToggleIcon) floatingToggleIcon.innerText = '📋';
             }
         }
 
@@ -1451,15 +1636,23 @@
                 card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
 
+            // If map is hidden (e.g. on mobile list view), reveal map
+            if (mapHidden) {
+                setMapHidden(false);
+            }
+
             // Fly map and open popup
             if (map) {
-                map.flyTo([lat, lng], 14, { duration: 0.6 });
-                const marker = activeMarkerMap[id];
-                if (marker) {
-                    marker.openPopup();
-                    const pin = document.getElementById(`pin-${id}`);
-                    if (pin) pin.classList.add('selected');
-                }
+                setTimeout(() => {
+                    map.invalidateSize();
+                    map.flyTo([lat, lng], 14, { duration: 0.6 });
+                    const marker = activeMarkerMap[id];
+                    if (marker) {
+                        marker.openPopup();
+                        const pin = document.getElementById(`pin-${id}`);
+                        if (pin) pin.classList.add('selected');
+                    }
+                }, 120);
             }
         }
 
@@ -1673,6 +1866,12 @@
 
         function initAll() {
             initTheme();
+            // On mobile devices, default to list view with map hidden for quick, smooth browsing
+            if (window.innerWidth <= 960) {
+                setMapHidden(true);
+            } else {
+                setMapHidden(false);
+            }
             initDirectory();
         }
 
