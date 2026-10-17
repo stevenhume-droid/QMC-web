@@ -16,9 +16,16 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+    <script>
+        // Apply saved theme before paint to avoid a theme flash
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+        }
+    </script>
+
     <style>
         :root {
-            /* QMC Brand Palette */
+            /* Default Dark Theme */
             --bg-deep: #070e1c;
             --bg-navy: #0b162c;
             --bg-surface: #101d38;
@@ -37,6 +44,48 @@
             --text-muted: #64748b;
             --font-display: 'Bebas Neue', -apple-system, sans-serif;
             --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+            --nav-bg: rgba(11, 22, 44, 0.96);
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            --rev-item-bg: rgba(11, 22, 44, 0.6);
+            --input-bg: #152445;
+            --input-focus-bg: #192a52;
+            --badge-bg: rgba(255, 255, 255, 0.05);
+            --badge-border: rgba(255, 255, 255, 0.08);
+            --popup-bg: #111d38;
+            --popup-border: rgba(244, 246, 249, 0.2);
+            --modal-backdrop: rgba(7, 14, 28, 0.85);
+            --map-bg: #0b162c;
+        }
+
+        [data-theme="light"] {
+            /* Light Theme tuned to QMC brand */
+            --bg-deep: #eef2f6;
+            --bg-navy: #f4f6f9;
+            --bg-surface: #ffffff;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f8fafc;
+            --border: rgba(11, 22, 44, 0.12);
+            --border-hover: rgba(139, 28, 28, 0.35);
+            --brand-maroon: #8b1c1c;
+            --brand-maroon-bright: #b91c1c;
+            --brand-amber: #d97706;
+            --brand-amber-soft: rgba(217, 119, 6, 0.12);
+            --brand-emerald: #059669;
+            --brand-emerald-soft: rgba(5, 150, 105, 0.12);
+            --text-main: #0b162c;
+            --text-dim: #475569;
+            --text-muted: #94a3b8;
+            --nav-bg: rgba(244, 246, 249, 0.96);
+            --card-shadow: 0 4px 16px rgba(11, 22, 44, 0.06);
+            --rev-item-bg: #f8fafc;
+            --input-bg: #ffffff;
+            --input-focus-bg: #ffffff;
+            --badge-bg: rgba(11, 22, 44, 0.06);
+            --badge-border: rgba(11, 22, 44, 0.1);
+            --popup-bg: #ffffff;
+            --popup-border: rgba(11, 22, 44, 0.15);
+            --modal-backdrop: rgba(11, 22, 44, 0.65);
+            --map-bg: #e5e9f0;
         }
 
         * {
@@ -54,11 +103,12 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         /* --- QMC TOP NAVIGATION --- */
         .qmc-top-nav {
-            background: rgba(11, 22, 44, 0.96);
+            background: var(--nav-bg);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border);
             padding: 10px 24px;
@@ -67,6 +117,7 @@
             align-items: center;
             z-index: 1000;
             flex-shrink: 0;
+            transition: background 0.3s ease, border-color 0.3s ease;
         }
 
         .qmc-brand-group {
@@ -123,6 +174,30 @@
 
         .qmc-nav-links a:hover {
             color: var(--brand-maroon-bright);
+        }
+
+        .theme-btn {
+            background-color: transparent;
+            color: var(--text-main);
+            border: 1.5px solid var(--border);
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: var(--font-display);
+            font-weight: 500;
+            font-size: 0.92rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .theme-btn:hover {
+            background-color: var(--text-main);
+            color: var(--bg-navy);
+            transform: translateY(-1px);
         }
 
         .qmc-hub-badge {
@@ -192,7 +267,7 @@
 
         .cr-search-input {
             width: 100%;
-            background: var(--bg-card);
+            background: var(--input-bg);
             border: 1px solid var(--border);
             color: var(--text-main);
             padding: 8px 12px 8px 36px;
@@ -206,7 +281,7 @@
             outline: none;
             border-color: var(--brand-maroon-bright);
             box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.2);
-            background: #192a52;
+            background: var(--input-focus-bg);
         }
 
         .cr-search-clear {
@@ -224,7 +299,7 @@
         }
 
         .cr-search-clear:hover {
-            color: #fff;
+            color: var(--text-main);
         }
 
         .cr-chips {
@@ -410,7 +485,7 @@
             font-family: var(--font-display);
             font-size: 1.55rem;
             letter-spacing: 0.8px;
-            color: #ffffff;
+            color: var(--text-main);
             line-height: 1.1;
         }
 
@@ -439,8 +514,9 @@
         }
 
         .cr-stock-type {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            background: var(--badge-bg);
+            border: 1px solid var(--badge-border);
             padding: 2px 7px;
             border-radius: 4px;
             font-size: 0.74rem;
@@ -458,20 +534,20 @@
             font-size: 0.74rem;
             padding: 3px 8px;
             border-radius: 5px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--badge-bg);
+            border: 1px solid var(--badge-border);
             color: var(--text-dim);
         }
 
         .cr-badge.perk {
-            background: rgba(245, 158, 11, 0.12);
-            color: #fbbf24;
+            background: var(--brand-amber-soft);
+            color: var(--brand-amber);
             border: 1px solid rgba(245, 158, 11, 0.3);
             font-weight: 600;
         }
 
         .cr-badge.perk-emerald {
-            background: rgba(16, 185, 129, 0.12);
+            background: var(--brand-emerald-soft);
             color: var(--brand-emerald);
             border: 1px solid rgba(16, 185, 129, 0.3);
             font-weight: 600;
@@ -480,7 +556,7 @@
         .cr-desc {
             font-size: 0.88rem;
             line-height: 1.5;
-            color: #cbd5e1;
+            color: var(--text-dim);
             margin-bottom: 14px;
         }
 
@@ -537,14 +613,14 @@
         }
 
         .cr-btn-secondary {
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--badge-bg);
             color: var(--text-main);
             border: 1px solid var(--border);
         }
 
         .cr-btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.3);
+            background: var(--border-hover);
+            border-color: var(--brand-maroon-bright);
             box-shadow: none;
         }
 
@@ -560,7 +636,8 @@
         }
 
         .cr-rev-item {
-            background: rgba(11, 22, 44, 0.6);
+            background: var(--rev-item-bg);
+            border: 1px solid var(--border);
             padding: 10px 12px;
             border-radius: 8px;
             border-left: 3px solid var(--brand-maroon-bright);
@@ -576,7 +653,7 @@
         }
 
         .cr-rev-author {
-            color: #fff;
+            color: var(--text-main);
             font-weight: 700;
         }
 
@@ -587,7 +664,7 @@
 
         .cr-pull-tag {
             color: var(--brand-emerald);
-            background: rgba(16, 185, 129, 0.1);
+            background: var(--brand-emerald-soft);
             border: 1px solid rgba(16, 185, 129, 0.25);
             padding: 2px 7px;
             border-radius: 4px;
@@ -601,21 +678,21 @@
         #cr-map {
             width: 100%;
             height: 100%;
-            background: #0b162c;
+            background: var(--map-bg);
         }
 
         /* Custom Leaflet Dark Popup */
         .leaflet-popup-content-wrapper {
-            background: #111d38 !important;
-            color: #f4f6f9 !important;
-            border: 1px solid rgba(244, 246, 249, 0.2);
+            background: var(--popup-bg) !important;
+            color: var(--text-main) !important;
+            border: 1px solid var(--popup-border);
             border-radius: 10px !important;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+            box-shadow: var(--card-shadow) !important;
             padding: 4px;
         }
 
         .leaflet-popup-tip {
-            background: #111d38 !important;
+            background: var(--popup-bg) !important;
         }
 
         .leaflet-popup-content {
@@ -629,7 +706,7 @@
             font-family: var(--font-display);
             font-size: 1.35rem;
             letter-spacing: 0.5px;
-            color: #fff;
+            color: var(--text-main);
             margin-bottom: 2px;
         }
 
@@ -748,7 +825,7 @@
             font-family: var(--font-display);
             font-size: 1.7rem;
             letter-spacing: 0.8px;
-            color: #ffffff;
+            color: var(--text-main);
             margin-bottom: 4px;
         }
 
@@ -781,9 +858,9 @@
         .cr-form-group input[type="text"],
         .cr-form-group textarea {
             width: 100%;
-            background: var(--bg-card);
+            background: var(--input-bg);
             border: 1px solid var(--border);
-            color: #fff;
+            color: var(--text-main);
             padding: 9px 12px;
             border-radius: 8px;
             font-family: var(--font-body);
@@ -880,6 +957,7 @@
             </div>
             <a href="../index.html">← QMC Home</a>
             <a href="../myqmc15.html">MyQMC15</a>
+            <button class="theme-btn" id="theme-toggle" aria-label="Toggle dark/light theme" title="Toggle dark/light theme">MODE 🌓</button>
         </div>
     </header>
 
@@ -1058,19 +1136,57 @@
             }
         }
 
+        const CARTO_API_KEY = 'cb1_4ne1_1_094dcaefb65c51dadc289a07';
+        let currentTileLayer = null;
+
+        function updateMapTileLayer(isLight) {
+            if (!map) return;
+            if (currentTileLayer) {
+                map.removeLayer(currentTileLayer);
+            }
+            const tileStyle = isLight ? 'light_all' : 'dark_all';
+            currentTileLayer = L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/${tileStyle}/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`, {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 19
+            }).addTo(map);
+            currentTileLayer.bringToBack();
+        }
+
+        function applyTheme(isLight) {
+            if (isLight) {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'dark');
+            }
+            updateMapTileLayer(isLight);
+        }
+
+        function initTheme() {
+            const isLight = document.documentElement.getAttribute('data-theme') === 'light' || localStorage.getItem('theme') === 'light';
+            if (isLight) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+            const toggleBtn = document.getElementById('theme-toggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    const isCurrentlyLight = document.documentElement.getAttribute('data-theme') === 'light';
+                    applyTheme(!isCurrentlyLight);
+                });
+            }
+        }
+
         function initMap(center) {
-            // Leaflet dark themed carto tiles
+            // Leaflet map with dynamic carto tiles (Dark Matter in dark mode, Positron in light mode)
             map = L.map('cr-map', {
                 zoomControl: true,
                 attributionControl: true
             }).setView([center.lat, center.lng], 10);
 
-            const CARTO_API_KEY = 'cb1_4ne1_1_094dcaefb65c51dadc289a07';
-            L.tileLayer(`https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`, {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-                subdomains: 'abcd',
-                maxZoom: 19
-            }).addTo(map);
+            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+            updateMapTileLayer(isLight);
 
             circleLayers = L.layerGroup().addTo(map);
 
@@ -1555,8 +1671,13 @@
             ];
         }
 
+        function initAll() {
+            initTheme();
+            initDirectory();
+        }
+
         // Initialize when DOM is ready
-        document.addEventListener('DOMContentLoaded', initDirectory);
+        document.addEventListener('DOMContentLoaded', initAll);
     </script>
 </body>
 
