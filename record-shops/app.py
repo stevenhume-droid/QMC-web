@@ -211,6 +211,7 @@ HTML_TEMPLATE = """
     <input type="text" id="searchInput" placeholder="Search store or genre (e.g. Jazz, Dub)..." oninput="renderStores()">
     <button class="chip" onclick="toggleFilter('has_listening_deck', this)">Listening Deck</button>
     <button class="chip" onclick="toggleFilter('ultrasonic_cleaned', this)">Ultrasonic Cleaned</button>
+    <button class="chip" onclick="toggleFilter('has_vinyl_flattening', this)">Vinyl Flattening</button>
     <button class="chip" onclick="toggleFilter('has_bargain_crates', this)">£1-£3 Crates</button>
     <button class="chip" onclick="toggleFilter('has_coffee_bar', this)">Coffee / Bar</button>
   </div>
