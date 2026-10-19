@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>20-Mile Vinyl Radar | Forth & Lothian Vinyl Directory | Queensferry Music Collective</title>
+    <title>20-Mile Vinyl Store Radar | Forth & Lothian Record Shop Directory | Queensferry Music Collective</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Discover independent record shops within 20 miles of South Queensferry (EH30) across Edinburgh, Fife, West Lothian and Falkirk. Filter by 12'' vinyl, 7'' singles, CDs, cassettes, listening decks, ultrasonic cleaning, £1-£3 crates, and coffee lounges.">
 
@@ -999,6 +999,118 @@
             background: var(--bg-card-hover);
         }
 
+        /* Geolocation Near Me Button */
+        .cr-geo-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-family: var(--font-body);
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+            white-space: nowrap;
+        }
+
+        .cr-geo-btn:hover {
+            border-color: #38bdf8;
+            color: #38bdf8;
+            background: var(--bg-card-hover);
+        }
+
+        .cr-geo-btn.active {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: #38bdf8;
+            color: #38bdf8;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+        }
+
+        .cr-geo-btn.loading {
+            opacity: 0.7;
+            cursor: wait;
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        [data-theme="light"] .cr-geo-btn.active {
+            background: rgba(2, 132, 199, 0.12);
+            border-color: #0284c7;
+            color: #0284c7;
+        }
+
+        /* User Geolocation Pulse Pin on Map */
+        .user-geo-pin-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-geo-pin {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #0284c7;
+            border: 3px solid #ffffff;
+            box-shadow: 0 0 16px rgba(56, 189, 248, 0.9);
+            animation: userPulse 2s infinite ease-in-out;
+        }
+
+        @keyframes userPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.75), 0 0 12px rgba(56, 189, 248, 0.9);
+            }
+            70% {
+                box-shadow: 0 0 0 18px rgba(56, 189, 248, 0), 0 0 16px rgba(56, 189, 248, 0.9);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(56, 189, 248, 0), 0 0 12px rgba(56, 189, 248, 0.9);
+            }
+        }
+
+        /* Hub Banner Live Mode & Reset Button */
+        .cr-hub-banner.cr-hub-banner-live {
+            border-color: rgba(56, 189, 248, 0.4);
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(15, 23, 42, 0.3));
+        }
+
+        [data-theme="light"] .cr-hub-banner.cr-hub-banner-live {
+            border-color: rgba(2, 132, 199, 0.35);
+            background: linear-gradient(135deg, rgba(2, 132, 199, 0.08), rgba(248, 250, 252, 0.9));
+        }
+
+        .cr-reset-hub-btn {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #ef4444;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .cr-reset-hub-btn:hover {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        [data-theme="light"] .cr-reset-hub-btn {
+            background: rgba(220, 38, 38, 0.1);
+            border-color: rgba(220, 38, 38, 0.35);
+            color: #dc2626;
+        }
+
+        [data-theme="light"] .cr-reset-hub-btn:hover {
+            background: #dc2626;
+            color: #ffffff;
+        }
+
         /* Floating Pill Button for Mobile */
         .cr-floating-map-toggle {
             display: none;
@@ -1269,7 +1381,7 @@
                     <span class="qmc-brand-full">QUEENSFERRY MUSIC COLLECTIVE</span>
                     <span class="qmc-brand-short">QMC</span>
                 </span>
-                <span class="qmc-brand-tag">VINYL RADAR</span>
+                <span class="qmc-brand-tag">VINYL STORE RADAR</span>
             </a>
         </div>
         <div class="qmc-nav-links">
@@ -1315,6 +1427,11 @@
         </div>
 
         <div class="cr-toolbar-right">
+            <button id="crGeoBtn" class="cr-geo-btn" onclick="toggleGeolocation()" title="Sort shops from your live GPS mobile position">
+                <span id="crGeoIcon">🎯</span>
+                <span id="crGeoText">Near Me</span>
+            </button>
+
             <select id="crSortSelect" class="cr-sort-select" onchange="renderStores()" aria-label="Sort stores">
                 <option value="distance">Sort: Distance (Closest First)</option>
                 <option value="score">Sort: Digger Score (Highest)</option>
@@ -1413,6 +1530,12 @@
         let map, markersLayer, circleLayers;
         let activeMarkerMap = {};
 
+        // Milestone 2: Live Browser Geolocation state
+        let userCoords = null; // { lat, lng, accuracy }
+        let isUsingLiveLocation = false;
+        let userMarker = null;
+        let userAccuracyCircle = null;
+
         // Client-side Haversine calculation (miles)
         function haversineMiles(lat1, lon1, lat2, lon2) {
             const R = 3958.8;
@@ -1422,6 +1545,155 @@
             const a = Math.sin(dLat / 2) ** 2 +
                 Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
             return Number((R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(1));
+        }
+
+        function recalculateDistances() {
+            const baseLat = isUsingLiveLocation && userCoords ? userCoords.lat : hubCenter.lat;
+            const baseLng = isUsingLiveLocation && userCoords ? userCoords.lng : hubCenter.lng;
+
+            allStores.forEach(s => {
+                s.distance_miles = haversineMiles(baseLat, baseLng, s.lat, s.lng);
+            });
+        }
+
+        function toggleGeolocation() {
+            if (isUsingLiveLocation) {
+                resetToDefaultHub();
+                return;
+            }
+
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser.');
+                return;
+            }
+
+            const geoBtn = document.getElementById('crGeoBtn');
+            const geoText = document.getElementById('crGeoText');
+            const geoIcon = document.getElementById('crGeoIcon');
+
+            if (geoBtn) {
+                geoBtn.classList.add('loading');
+                if (geoText) geoText.innerText = 'Locating...';
+                if (geoIcon) geoIcon.innerText = '⏳';
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    userCoords = {
+                        lat: pos.coords.latitude,
+                        lng: pos.coords.longitude,
+                        accuracy: pos.coords.accuracy
+                    };
+                    isUsingLiveLocation = true;
+
+                    if (geoBtn) {
+                        geoBtn.classList.remove('loading');
+                        geoBtn.classList.add('active');
+                        if (geoText) geoText.innerText = 'Live GPS';
+                        if (geoIcon) geoIcon.innerText = '🎯';
+                        geoBtn.title = 'Active: sorted from your live GPS position. Click to reset to South Queensferry.';
+                    }
+
+                    // Recalculate store distances relative to user
+                    recalculateDistances();
+
+                    // Update Map with User Location Pin & Accuracy Circle
+                    updateUserMarker();
+
+                    // Re-render store list
+                    renderStores();
+
+                    // Pan smoothly to user's location
+                    if (map) {
+                        map.flyTo([userCoords.lat, userCoords.lng], 12, { duration: 1.2 });
+                    }
+                },
+                err => {
+                    console.warn('Geolocation error:', err);
+                    if (geoBtn) {
+                        geoBtn.classList.remove('loading', 'active');
+                        if (geoText) geoText.innerText = 'Near Me';
+                        if (geoIcon) geoIcon.innerText = '🎯';
+                    }
+                    let msg = 'Could not access your location.';
+                    if (err.code === 1) msg = 'Location access was denied. You can continue using the South Queensferry (EH30) hub.';
+                    else if (err.code === 2) msg = 'Location unavailable. Continuing with the South Queensferry hub baseline.';
+                    else if (err.code === 3) msg = 'Location request timed out. Continuing with the South Queensferry hub baseline.';
+                    alert(msg);
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+            );
+        }
+
+        function resetToDefaultHub() {
+            isUsingLiveLocation = false;
+            userCoords = null;
+
+            const geoBtn = document.getElementById('crGeoBtn');
+            const geoText = document.getElementById('crGeoText');
+            const geoIcon = document.getElementById('crGeoIcon');
+
+            if (geoBtn) {
+                geoBtn.classList.remove('loading', 'active');
+                if (geoText) geoText.innerText = 'Near Me';
+                if (geoIcon) geoIcon.innerText = '🎯';
+                geoBtn.title = 'Sort shops from your live GPS mobile position';
+            }
+
+            if (userMarker && map) {
+                map.removeLayer(userMarker);
+                userMarker = null;
+            }
+            if (userAccuracyCircle && map) {
+                map.removeLayer(userAccuracyCircle);
+                userAccuracyCircle = null;
+            }
+
+            recalculateDistances();
+            renderStores();
+
+            if (map) {
+                map.flyTo([hubCenter.lat, hubCenter.lng], 10, { duration: 1.2 });
+            }
+        }
+
+        function updateUserMarker() {
+            if (!map || !userCoords) return;
+
+            if (userMarker) {
+                map.removeLayer(userMarker);
+            }
+            if (userAccuracyCircle) {
+                map.removeLayer(userAccuracyCircle);
+            }
+
+            const userIcon = L.divIcon({
+                className: 'user-geo-pin-container',
+                html: `<div class="user-geo-pin" title="Your Current Location"></div>`,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            });
+
+            userMarker = L.marker([userCoords.lat, userCoords.lng], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
+            const accRadiusMeters = Math.round(userCoords.accuracy || 10);
+            userMarker.bindPopup(`
+                <div style="text-align:center; padding:4px 2px;">
+                    <strong style="color:#0284c7; font-size:0.95rem;">🎯 You Are Here</strong><br>
+                    <span style="font-size:0.78rem; color:var(--text-dim);">Live GPS (±${accRadiusMeters}m accuracy)</span><br>
+                    <span style="font-size:0.74rem; color:var(--text-muted); display:block; margin-top:4px;">All shop distances calculated from this point</span>
+                </div>
+            `);
+
+            if (userCoords.accuracy && userCoords.accuracy < 3000) {
+                userAccuracyCircle = L.circle([userCoords.lat, userCoords.lng], {
+                    radius: userCoords.accuracy,
+                    color: '#38bdf8',
+                    weight: 1,
+                    fillColor: '#38bdf8',
+                    fillOpacity: 0.08,
+                    dashArray: '4, 6'
+                }).addTo(map);
+            }
         }
 
         function getLocalReviews() {
@@ -1611,7 +1883,6 @@
             const localRevs = getLocalReviews();
 
             allStores.forEach(s => {
-                s.distance_miles = haversineMiles(hubCenter.lat, hubCenter.lng, s.lat, s.lng);
                 const extraRevs = localRevs[s.id] || [];
                 s.all_reviews = [...extraRevs, ...(s.reviews || [])];
                 s.review_count = s.all_reviews.length;
@@ -1626,6 +1897,7 @@
                 }
             });
 
+            recalculateDistances();
             renderStores();
         }
 
@@ -1656,17 +1928,30 @@
             markersLayer.clearLayers();
             activeMarkerMap = {};
 
-            // Add Header Info Banner in Sidebar
+            // Add Header Info Banner in Sidebar (Dynamic for Live GPS vs Hub)
             const hubBanner = document.createElement('div');
-            hubBanner.className = 'cr-hub-banner';
-            hubBanner.innerHTML = `
-                <div>
-                    <strong>20-MILE VINYL RADAR</strong> • Centred on South Queensferry (EH30)
-                </div>
-                <div style="font-size:0.75rem; color:#94a3b8;">
-                    Edinburgh • Fife • West Lothian • Falkirk
-                </div>
-            `;
+            hubBanner.className = isUsingLiveLocation ? 'cr-hub-banner cr-hub-banner-live' : 'cr-hub-banner';
+            if (isUsingLiveLocation && userCoords) {
+                const accM = Math.round(userCoords.accuracy || 10);
+                hubBanner.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                        <strong style="color:#0284c7;">🎯 LIVE GPS RADAR</strong>
+                        <button class="cr-reset-hub-btn" onclick="resetToDefaultHub()" title="Reset to South Queensferry baseline">Reset to EH30 ✕</button>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-dim); margin-top:3px;">
+                        Shops sorted by distance from your live position (±${accM}m)
+                    </div>
+                `;
+            } else {
+                hubBanner.innerHTML = `
+                    <div>
+                        <strong>20-MILE VINYL STORE RADAR</strong> • Centred on South Queensferry (EH30)
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-dim); margin-top:3px;">
+                        Edinburgh • Fife • West Lothian • Falkirk
+                    </div>
+                `;
+            }
             listEl.appendChild(hubBanner);
 
             // Filter logic
@@ -1735,13 +2020,16 @@
                 activeMarkerMap[s.id] = marker;
 
                 // Rich popup
-                const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(s.name + ', ' + s.address)}`;
+                const distOriginText = isUsingLiveLocation ? 'from your location' : 'from South Queensferry (EH30)';
+                const directionsUrl = isUsingLiveLocation && userCoords
+                    ? `https://www.google.com/maps/dir/?api=1&origin=${userCoords.lat},${userCoords.lng}&destination=${encodeURIComponent(s.name + ', ' + s.address)}`
+                    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(s.name + ', ' + s.address)}`;
                 const formatPills = (s.formats || []).map(f => `<span class="cr-badge format-badge" style="font-size:0.68rem;">${escapeHtml(f)}</span>`).join('');
                 const websitePopupBtn = s.website ? `<a href="${escapeHtml(s.website)}" target="_blank" rel="noopener" class="popup-btn" style="background:var(--surface-high); color:var(--text); border:1px solid var(--border);">🌐 Website ↗</a>` : '';
 
                 marker.bindPopup(`
                     <div class="popup-store-name">${s.name}</div>
-                    <div class="popup-dist">📍 ${s.distance_miles} miles from South Queensferry (EH30)</div>
+                    <div class="popup-dist">📍 ${s.distance_miles} miles ${distOriginText}</div>
                     <div class="popup-address">${s.address}</div>
                     <div style="font-size:0.75rem; color:var(--text-dim); margin-bottom:6px;">
                         <strong>Stock:</strong> ${s.stock_type} • ${s.genres.slice(0, 3).join(', ')}
