@@ -668,6 +668,37 @@
                 "CDs"
             ],
             "website": "https://www.flemingsfurniture.co.uk/accessories/records-vinyl-large-cjoic/"
+        },
+        {
+            "id": 23,
+            "name": "KCC Vinyl",
+            "area": "Glenrothes, Fife",
+            "address": "42 Unicorn Way, Kingdom Centre, KY7 5NU",
+            "lat": 56.1962,
+            "lng": -3.174,
+            "stock_type": "Used Heavy",
+            "genres": [
+                "Rock",
+                "Indie",
+                "Metal",
+                "Pop",
+                "Soul",
+                "Folk"
+            ],
+            "has_listening_deck": true,
+            "buys_collections": true,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "Friendly Fife independent record store in the Kingdom Centre specialising in pre-owned vinyl, CDs, and guitars.",
+            "bio": "Located inside the Kingdom Shopping Centre on Unicorn Way in Glenrothes, KCC Vinyl is a friendly local haven for Fife music lovers and crate diggers. Specialising in carefully curated pre-owned 12\" vinyl LPs, 7\" singles, CDs, vintage guitars, and music memorabilia, KCC brings a warm, community record shop vibe to central Fife with plenty of bargain discovery crates, classic rock, indie, metal, and pop wax.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://linktr.ee/KCCVinyl"
         }
     ]
 }
