@@ -1549,12 +1549,22 @@
 
             <div class="cr-form-group">
                 <label for="crRevGrd">
-                    <span>Grading & Pricing Honesty</span>
+                    <span>Condition Grading Accuracy</span>
                     <span class="cr-slider-val"><span id="crGrdVal">4</span> / 5</span>
                 </label>
                 <input type="range" min="1" max="5" value="4" id="crRevGrd"
                     oninput="document.getElementById('crGrdVal').innerText=this.value">
-                <span class="cr-form-help">1 = Overpriced G+ • 5 = Strict Goldmine / Spot-on play-graded</span>
+                <span class="cr-form-help">1 = Over-graded & scratched • 5 = Strict Goldmine / Spot-on play-graded</span>
+            </div>
+
+            <div class="cr-form-group">
+                <label for="crRevPrc">
+                    <span>Pricing & Value Fairness</span>
+                    <span class="cr-slider-val"><span id="crPrcVal">4</span> / 5</span>
+                </label>
+                <input type="range" min="1" max="5" value="4" id="crRevPrc"
+                    oninput="document.getElementById('crPrcVal').innerText=this.value">
+                <span class="cr-form-help">1 = Inflated Discogs max rates • 5 = Realistic bargains & fair pricing</span>
             </div>
 
             <div class="cr-form-group">
@@ -1953,7 +1963,8 @@
 
                 if (s.review_count > 0) {
                     const sum = s.all_reviews.reduce((acc, r) => {
-                        return acc + (Number(r.ergonomics_score) + Number(r.grading_score) + Number(r.vibe_score)) / 3;
+                        const prc = r.pricing_score !== undefined ? Number(r.pricing_score) : Number(r.grading_score);
+                        return acc + (Number(r.ergonomics_score) + Number(r.grading_score) + prc + Number(r.vibe_score)) / 4;
                     }, 0);
                     s.overall_score = (sum / s.review_count).toFixed(1);
                 } else {
@@ -2124,7 +2135,7 @@
                     <div class="cr-rev-item">
                         <div class="cr-rev-header">
                             <span class="cr-rev-author">${escapeHtml(r.reviewer_name)}</span>
-                            <span class="cr-rev-ratings">Erg: ${r.ergonomics_score}/5 • Grd: ${r.grading_score}/5 • Vibe: ${r.vibe_score}/5</span>
+                            <span class="cr-rev-ratings">Erg: ${r.ergonomics_score}/5 • Grd: ${r.grading_score}/5 • Prc: ${r.pricing_score !== undefined ? r.pricing_score : r.grading_score}/5 • Vibe: ${r.vibe_score}/5</span>
                         </div>
                         <p class="cr-rev-comment">"${escapeHtml(r.comment)}"</p>
                         ${r.best_pull ? `<span class="cr-pull-tag">🔥 Best Pull: ${escapeHtml(r.best_pull)}</span>` : ''}
@@ -2219,6 +2230,16 @@
         function openModal(id, name) {
             document.getElementById('crModalStoreId').value = id;
             document.getElementById('crModalTitle').innerText = 'Rate & Review ' + name;
+            document.getElementById('crRevErg').value = 4;
+            document.getElementById('crErgVal').innerText = 4;
+            document.getElementById('crRevGrd').value = 4;
+            document.getElementById('crGrdVal').innerText = 4;
+            document.getElementById('crRevPrc').value = 4;
+            document.getElementById('crPrcVal').innerText = 4;
+            document.getElementById('crRevVib').value = 5;
+            document.getElementById('crVibVal').innerText = 5;
+            document.getElementById('crRevPull').value = '';
+            document.getElementById('crRevComment').value = '';
             document.getElementById('crReviewModal').style.display = 'flex';
             document.getElementById('crRevName').focus();
         }
@@ -2241,6 +2262,7 @@
                 reviewer_name,
                 ergonomics_score: Number(document.getElementById('crRevErg').value),
                 grading_score: Number(document.getElementById('crRevGrd').value),
+                pricing_score: Number(document.getElementById('crRevPrc').value),
                 vibe_score: Number(document.getElementById('crRevVib').value),
                 best_pull: document.getElementById('crRevPull').value.trim(),
                 comment
@@ -2395,7 +2417,8 @@
                     "grading_score": 5,
                     "vibe_score": 5,
                     "best_pull": "Boards of Canada - Twoism (Warp Reissue)",
-                    "comment": "Front racks are immaculately clean, and the \u00a32 backroom always yields a weird library record or 12-inch for sampling."
+                    "comment": "Front racks are immaculately clean, and the \u00a32 backroom always yields a weird library record or 12-inch for sampling.",
+                    "pricing_score": 5
                 }
             ],
             "formats": [
@@ -2522,7 +2545,8 @@
                     "grading_score": 5,
                     "vibe_score": 5,
                     "best_pull": "Donald Byrd - Places and Spaces",
-                    "comment": "Every used record is play-graded and ultrasonic cleaned. You can trust their VG+ sticker without hesitation."
+                    "comment": "Every used record is play-graded and ultrasonic cleaned. You can trust their VG+ sticker without hesitation.",
+                    "pricing_score": 5
                 }
             ],
             "formats": [
@@ -2651,7 +2675,8 @@
                     "grading_score": 4,
                     "vibe_score": 5,
                     "best_pull": "DJ Krush - Strictly Turntablized",
-                    "comment": "Still the undisputed king for dance 12s, hip-hop beats, and grabbing replacement styli in town."
+                    "comment": "Still the undisputed king for dance 12s, hip-hop beats, and grabbing replacement styli in town.",
+                    "pricing_score": 4
                 }
             ],
             "formats": [
@@ -2778,7 +2803,8 @@
                     "grading_score": 4,
                     "vibe_score": 5,
                     "best_pull": "Thievery Corporation - The Richest Man in Babylon",
-                    "comment": "Grab a flat white from Mr Eion beans, sit down with a stack of jazz and trip-hop records, and lose an afternoon."
+                    "comment": "Grab a flat white from Mr Eion beans, sit down with a stack of jazz and trip-hop records, and lose an afternoon.",
+                    "pricing_score": 4
                 }
             ],
             "formats": [

@@ -44,10 +44,10 @@ SEED_STORES = [
 ]
 
 SEED_REVIEWS = [
-    (4, "CrateDigger_EH30", 4, 5, 5, "Boards of Canada - Twoism (Warp Reissue)", "Front racks are immaculately clean, and the £2 backroom always yields a weird library record or 12-inch for sampling."),
-    (8, "FunkyFife", 5, 5, 5, "Donald Byrd - Places and Spaces", "Every used record is play-graded and ultrasonic cleaned. You can trust their VG+ sticker without hesitation."),
-    (12, "Technics1210_Stevie", 4, 4, 5, "DJ Krush - Strictly Turntablized", "Still the undisputed king for dance 12s, hip-hop beats, and grabbing replacement styli in town."),
-    (16, "LeithWax", 5, 4, 5, "Thievery Corporation - The Richest Man in Babylon", "Grab a flat white from Mr Eion beans, sit down with a stack of jazz and trip-hop records, and lose an afternoon.")
+    (4, "CrateDigger_EH30", 4, 5, 5, 5, "Boards of Canada - Twoism (Warp Reissue)", "Front racks are immaculately clean, and the £2 backroom always yields a weird library record or 12-inch for sampling."),
+    (8, "FunkyFife", 5, 5, 5, 5, "Donald Byrd - Places and Spaces", "Every used record is play-graded and ultrasonic cleaned. You can trust their VG+ sticker without hesitation."),
+    (12, "Technics1210_Stevie", 4, 4, 4, 5, "DJ Krush - Strictly Turntablized", "Still the undisputed king for dance 12s, hip-hop beats, and grabbing replacement styli in town."),
+    (16, "LeithWax", 5, 4, 4, 5, "Thievery Corporation - The Richest Man in Babylon", "Grab a flat white from Mr Eion beans, sit down with a stack of jazz and trip-hop records, and lose an afternoon.")
 ]
 
 def init_db():
@@ -78,6 +78,7 @@ def init_db():
             reviewer_name TEXT NOT NULL,
             ergonomics_score INTEGER NOT NULL,
             grading_score INTEGER NOT NULL,
+            pricing_score INTEGER NOT NULL,
             vibe_score INTEGER NOT NULL,
             best_pull TEXT,
             comment TEXT NOT NULL,
@@ -96,8 +97,8 @@ def init_db():
         """, SEED_STORES)
         c.executemany("""
             INSERT INTO reviews (
-                store_id, reviewer_name, ergonomics_score, grading_score, vibe_score, best_pull, comment
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                store_id, reviewer_name, ergonomics_score, grading_score, pricing_score, vibe_score, best_pull, comment
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, SEED_REVIEWS)
         conn.commit()
     conn.close()
@@ -118,8 +119,9 @@ def get_stores():
         if revs:
             avg_erg = sum(r["ergonomics_score"] for r in revs) / len(revs)
             avg_grd = sum(r["grading_score"] for r in revs) / len(revs)
+            avg_prc = sum(r.get("pricing_score", r["grading_score"]) for r in revs) / len(revs)
             avg_vib = sum(r["vibe_score"] for r in revs) / len(revs)
-            s["overall_score"] = round((avg_erg + avg_grd + avg_vib) / 3, 1)
+            s["overall_score"] = round((avg_erg + avg_grd + avg_prc + avg_vib) / 4, 1)
         else:
             s["overall_score"] = None
     conn.close()
@@ -129,19 +131,20 @@ def get_stores():
 @app.route("/api/reviews", methods=["POST"])
 def add_review():
     data = request.json
-    required = ["store_id", "reviewer_name", "ergonomics_score", "grading_score", "vibe_score", "comment"]
+    required = ["store_id", "reviewer_name", "ergonomics_score", "grading_score", "pricing_score", "vibe_score", "comment"]
     if not all(k in data and str(data[k]).strip() for k in required):
         return jsonify({"error": "Missing required fields"}), 400
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("""
-        INSERT INTO reviews (store_id, reviewer_name, ergonomics_score, grading_score, vibe_score, best_pull, comment)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO reviews (store_id, reviewer_name, ergonomics_score, grading_score, pricing_score, vibe_score, best_pull, comment)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         int(data["store_id"]),
         data["reviewer_name"].strip(),
         int(data["ergonomics_score"]),
         int(data["grading_score"]),
+        int(data["pricing_score"]),
         int(data["vibe_score"]),
         data.get("best_pull", "").strip(),
         data["comment"].strip()
@@ -230,8 +233,12 @@ HTML_TEMPLATE = """
       <input type="range" min="1" max="5" value="4" id="revErg" oninput="document.getElementById('ergVal').innerText=this.value">
     </div>
     <div class="form-group">
-      <label>Grading & Pricing Honesty (1 = Overpriced G+, 5 = Spot-on VG+): <span id="grdVal">4</span>/5</label>
+      <label>Condition Grading Accuracy (1 = Over-graded scratches, 5 = Spot-on VG+/NM): <span id="grdVal">4</span>/5</label>
       <input type="range" min="1" max="5" value="4" id="revGrd" oninput="document.getElementById('grdVal').innerText=this.value">
+    </div>
+    <div class="form-group">
+      <label>Pricing & Value Fairness (1 = Inflated Discogs max, 5 = Realistic bargains): <span id="prcVal">4</span>/5</label>
+      <input type="range" min="1" max="5" value="4" id="revPrc" oninput="document.getElementById('prcVal').innerText=this.value">
     </div>
     <div class="form-group">
       <label>Shop Vibe & Knowledge: <span id="vibVal">5</span>/5</label>
@@ -373,6 +380,7 @@ async function submitReview() {
     reviewer_name: document.getElementById('revName').value,
     ergonomics_score: document.getElementById('revErg').value,
     grading_score: document.getElementById('revGrd').value,
+    pricing_score: document.getElementById('revPrc').value,
     vibe_score: document.getElementById('revVib').value,
     best_pull: document.getElementById('revPull').value,
     comment: document.getElementById('revComment').value
