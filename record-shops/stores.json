@@ -699,6 +699,37 @@
                 "CDs"
             ],
             "website": "https://linktr.ee/KCCVinyl"
+        },
+        {
+            "id": 24,
+            "name": "Backbeat Records",
+            "area": "Southside, Edinburgh",
+            "address": "31 East Crosscauseway, EH8 9HE",
+            "lat": 55.9437,
+            "lng": -3.1828,
+            "stock_type": "Used Heavy",
+            "genres": [
+                "Classic Rock",
+                "Prog",
+                "Psych",
+                "Jazz",
+                "Reggae",
+                "Punk"
+            ],
+            "has_listening_deck": false,
+            "buys_collections": true,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "Legendary Southside institution since 1981 holding over 65,000 vintage records and CDs stacked high to the ceiling.",
+            "bio": "A Southside Edinburgh fixture since 1981, Backbeat Records on East Crosscauseway is run by legendary owner Dougie McShane. An astonishing treasure labyrinth holding more than 65,000 vintage second-hand records and CDs across a warren of rooms, stock is literally stacked several records deep and reaching up to the ceiling. Packed with rare prog, psychedelia, jazz, reggae, punk, 60s rock, and film soundtracks, it is the definition of an authentic old-school crate digger's temple. Bring a want list—Dougie knows every corner of the stacks.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://recordshop.directory/edinburgh/edinburgh/backbeat-records/"
         }
     ]
 }
