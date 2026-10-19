@@ -3,9 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>20-Mile Vinyl Store Radar | Forth & Lothian Record Shop Directory | Queensferry Music Collective</title>
+    <title>25-Mile Vinyl Store Radar | Forth & Lothian Record Shop Directory | Queensferry Music Collective</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Discover independent record shops within 20 miles of South Queensferry (EH30) across Edinburgh, Fife, West Lothian and Falkirk. Filter by 12'' vinyl, 7'' singles, CDs, cassettes, listening decks, ultrasonic cleaning, £1-£3 crates, and coffee lounges.">
+    <meta name="description" content="Discover independent record shops within 25 miles of South Queensferry (EH30) across Edinburgh, Fife, West Lothian, Falkirk and Stirling. Filter by 12'' vinyl, 7'' singles, CDs, cassettes, listening decks, ultrasonic cleaning, £1-£3 crates, and coffee lounges.">
 
     <!-- Fonts: Bebas Neue & Inter to match QMC Brand -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -639,6 +639,70 @@
             line-height: 1.5;
             color: var(--text-dim);
             margin-bottom: 14px;
+        }
+
+        .cr-bio-box {
+            background: rgba(11, 22, 44, 0.45);
+            border: 1px solid rgba(244, 246, 249, 0.09);
+            border-left: 3px solid var(--brand-amber);
+            border-radius: 6px;
+            padding: 10px 13px;
+            margin-bottom: 14px;
+        }
+
+        [data-theme="light"] .cr-bio-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 3px solid #d97706;
+        }
+
+        .cr-bio-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .cr-bio-tag {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            color: var(--brand-amber);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        [data-theme="light"] .cr-bio-tag {
+            color: #b45309;
+        }
+
+        .cr-bio-text {
+            font-size: 0.85rem;
+            line-height: 1.55;
+            color: var(--text-main);
+            margin: 0;
+        }
+
+        [data-theme="light"] .cr-bio-text {
+            color: #334155;
+        }
+
+        .popup-bio {
+            font-size: 0.76rem;
+            line-height: 1.45;
+            color: #cbd5e1;
+            background: rgba(0, 0, 0, 0.25);
+            border-left: 2px solid var(--brand-amber);
+            padding: 6px 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        [data-theme="light"] .popup-bio {
+            color: #334155;
+            background: rgba(0, 0, 0, 0.04);
+            border-left: 2px solid #d97706;
         }
 
         .cr-card-footer {
@@ -1387,7 +1451,7 @@
         <div class="qmc-nav-links">
             <div class="qmc-hub-badge" title="Hub point: South Queensferry EH30">
                 <span class="hub-dot"></span>
-                <span>EH30 Hub (20-Mi Ring)</span>
+                <span>EH30 Hub (25-Mi Ring)</span>
             </div>
             <a href="../index.html" class="nav-link-home" title="Back to QMC Home">
                 <span class="nav-link-home-full">← QMC Home</span>
@@ -1525,7 +1589,7 @@
     <script>
         const STORAGE_KEY = 'crate_radar_user_reviews_v1';
         let allStores = [];
-        let hubCenter = { name: "South Queensferry Hub (EH30)", lat: 55.9903, lng: -3.3965, radius_miles: 20.0 };
+        let hubCenter = { name: "South Queensferry Hub (EH30)", lat: 55.9903, lng: -3.3965, radius_miles: 25.0 };
         let activeFilters = {};
         let map, markersLayer, circleLayers;
         let activeMarkerMap = {};
@@ -1819,8 +1883,8 @@
 
             circleLayers = L.layerGroup().addTo(map);
 
-            // Subtle concentric rings (5, 10, 15 miles)
-            [5, 10, 15].forEach(miles => {
+            // Subtle concentric rings (5, 10, 15, 20 miles)
+            [5, 10, 15, 20].forEach(miles => {
                 L.circle([center.lat, center.lng], {
                     radius: miles * 1609.344,
                     color: '#94a3b8',
@@ -1831,7 +1895,7 @@
                 }).addTo(circleLayers);
             });
 
-            // 20-mile outer perimeter circle
+            // 25-mile outer perimeter circle
             L.circle([center.lat, center.lng], {
                 radius: center.radius_miles * 1609.344,
                 color: '#f59e0b',
@@ -1855,7 +1919,7 @@
                     <div style="text-align:center;">
                         <strong style="color:#10b981; font-size:1.05rem;">📍 QMC Hub</strong><br>
                         <span style="font-weight:600;">South Queensferry (EH30)</span><br>
-                        <span style="color:#94a3b8; font-size:0.78rem;">20-Mile Radius Baseline</span>
+                        <span style="color:#94a3b8; font-size:0.78rem;">25-Mile Radius Baseline</span>
                     </div>
                 `);
 
@@ -1945,10 +2009,10 @@
             } else {
                 hubBanner.innerHTML = `
                     <div>
-                        <strong>20-MILE VINYL STORE RADAR</strong> • Centred on South Queensferry (EH30)
+                        <strong>25-MILE VINYL STORE RADAR</strong> • Centred on South Queensferry (EH30)
                     </div>
                     <div style="font-size:0.75rem; color:var(--text-dim); margin-top:3px;">
-                        Edinburgh • Fife • West Lothian • Falkirk
+                        Edinburgh • Fife • West Lothian • Falkirk • Stirling
                     </div>
                 `;
             }
@@ -2034,6 +2098,7 @@
                     <div style="font-size:0.75rem; color:var(--text-dim); margin-bottom:6px;">
                         <strong>Stock:</strong> ${s.stock_type} • ${s.genres.slice(0, 3).join(', ')}
                     </div>
+                    ${s.bio ? `<div class="popup-bio"><strong>Store Bio:</strong> ${escapeHtml(s.bio.length > 130 ? s.bio.slice(0, 127) + '...' : s.bio)}</div>` : ''}
                     ${formatPills ? `<div style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px;">${formatPills}</div>` : ''}
                     <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
                         ${s.has_listening_deck ? '<span class="cr-badge perk" style="font-size:0.68rem;">🎧 Deck</span>' : ''}
@@ -2093,7 +2158,12 @@
                         ${s.genres.map(g => `<span class="cr-badge">${escapeHtml(g)}</span>`).join('')}
                         ${perks.map(p => `<span class="cr-badge ${p.cls}">${p.text}</span>`).join('')}
                     </div>
-                    <div class="cr-desc">${escapeHtml(s.description)}</div>
+                    <div class="cr-bio-box">
+                        <div class="cr-bio-header">
+                            <span class="cr-bio-tag">📖 STORE BIO</span>
+                        </div>
+                        <p class="cr-bio-text">${escapeHtml(s.bio || s.description)}</p>
+                    </div>
                     <div class="cr-card-footer">
                         <div class="cr-digger-score">
                             ${s.overall_score
@@ -2202,590 +2272,671 @@
         // Built-in fallback store data in case stores.json is accessed locally via file:// without webserver
         function getFallbackStores() {
             return {
-            "center": {
-                        "name": "South Queensferry Hub (EH30)",
-                        "lat": 55.9903,
-                        "lng": -3.3965,
-                        "radius_miles": 20.0
-            },
-            "stores": [
-                        {
-                                    "id": 1,
-                                    "name": "Almond River Records",
-                                    "area": "Corstorphine, Edinburgh",
-                                    "address": "253 St John's Rd, EH12 7XD",
-                                    "lat": 55.9427,
-                                    "lng": -3.2905,
-                                    "stock_type": "Used Heavy",
-                                    "genres": [
-                                                "Rock",
-                                                "Indie",
-                                                "Soul",
-                                                "Pop"
-                                    ],
-                                    "has_listening_deck": false,
-                                    "buys_collections": true,
-                                    "ultrasonic_cleaned": true,
-                                    "has_bargain_crates": true,
-                                    "has_coffee_bar": false,
-                                    "description": "Curated second-hand shop in west Edinburgh offering ultrasonic record cleaning and fair cash/trade on collections.",
-                                    "reviews": [],
-                                    "formats": [
-                                                "12\"",
-                                                "7\"",
-                                                "CDs"
-                                    ],
-                                    "website": "https://www.almondriverrecords.com/"
-                        },
-                        {
-                                    "id": 2,
-                                    "name": "Veneno Music Store",
-                                    "area": "Dunfermline, Fife",
-                                    "address": "20 East Port, KY12 7JB",
-                                    "lat": 56.0717,
-                                    "lng": -3.458,
-                                    "stock_type": "Mix (New & Used)",
-                                    "genres": [
-                                                "Rock",
-                                                "Metal",
-                                                "Indie",
-                                                "Pop"
-                                    ],
-                                    "has_listening_deck": true,
-                                    "buys_collections": true,
-                                    "ultrasonic_cleaned": true,
-                                    "has_bargain_crates": true,
-                                    "has_coffee_bar": false,
-                                    "description": "Welcoming Fife independent with super honest condition grading across pre-loved and new vinyl.",
-                                    "reviews": [],
-                                    "formats": [
-                                                "12\"",
-                                                "7\"",
-                                                "CDs",
-                                                "Cassettes"
-                                    ],
-                                    "website": "https://www.venenomusic.co.uk/"
-                        },
-                        {
-                                    "id": 3,
-                                    "name": "The Music Box",
-                                    "area": "Dunfermline, Fife",
-                                    "address": "37 Queen Anne St, KY12 7BA",
-                                    "lat": 56.0725,
-                                    "lng": -3.4612,
-                                    "stock_type": "Mix (New & Used)",
-                                    "genres": [
-                                                "Indie",
-                                                "Britpop",
-                                                "Rock",
-                                                "Rarities"
-                                    ],
-                                    "has_listening_deck": false,
-                                    "buys_collections": true,
-                                    "ultrasonic_cleaned": false,
-                                    "has_bargain_crates": true,
-                                    "has_coffee_bar": false,
-                                    "description": "Independent Dunfermline spot strong on UK indie rarities, limited box sets, and pre-owned crates.",
-                                    "reviews": [],
-                                    "formats": [
-                                                "12\"",
-                                                "7\"",
-                                                "CDs"
-                                    ],
-                                    "website": "https://themusicbox.co.uk/"
-                        },
-                        {
-                                    "id": 4,
-                                    "name": "VoxBox Music",
-                                    "area": "Stockbridge, Edinburgh",
-                                    "address": "21 St Stephen St, EH3 6TQ",
-                                    "lat": 55.9576,
-                                    "lng": -3.2078,
-                                    "stock_type": "Used Heavy",
-                                    "genres": [
-                                                "Jazz",
-                                                "Indie",
-                                                "Rock",
-                                                "60s/70s",
-                                                "Scottish"
-                                    ],
-                                    "has_listening_deck": true,
-                                    "buys_collections": true,
-                                    "ultrasonic_cleaned": true,
-                                    "has_bargain_crates": true,
-                                    "has_coffee_bar": false,
-                                    "description": "Famous for pristine front-shop stock and the legendary \u00a31-\u00a33 bargain basement room out back.",
-                                    "reviews": [
-                                                {
-                                                            "reviewer_name": "CrateDigger_EH30",
-                                                            "ergonomics_score": 4,
-                                                            "grading_score": 5,
-                                                            "vibe_score": 5,
-                                                            "best_pull": "Boards of Canada - Twoism (Warp Reissue)",
-                                                            "comment": "Front racks are immaculately clean, and the \u00a32 backroom always yields a weird library record or 12-inch for sampling."
-                                                }
-                                    ],
-                                    "formats": [
-                                                "12\"",
-                                                "7\""
-                                    ],
-                                    "website": "https://voxboxmusic.co.uk/"
-                        },
-                        {
-                                    "id": 5,
-                                    "name": "Oxfam Music Stockbridge",
-                                    "area": "Stockbridge, Edinburgh",
-                                    "address": "64 Raeburn Pl, EH4 1HN",
-                                    "lat": 55.9589,
-                                    "lng": -3.2117,
-                                    "stock_type": "Used Only",
-                                    "genres": [
-                                                "Rock",
-                                                "Classical",
-                                                "Jazz",
-                                                "Folk",
-                                                "Soundtracks"
-                                    ],
-                                    "has_listening_deck": false,
-                                    "buys_collections": false,
-                                    "ultrasonic_cleaned": false,
-                                    "has_bargain_crates": true,
-                                    "has_coffee_bar": false,
-                                    "description": "Dedicated music charity shop receiving some of Edinburgh's best donated vinyl collections.",
-                                    "reviews": [],
-                                    "formats": [
-                                                "12\"",
-                                                "7\"",
-                                                "CDs",
-                                                "Cassettes"
-                                    ],
-                                    "website": "https://www.oxfam.org.uk/"
-                        },
-                        {
-                                    "id": 6,
-                                    "name": "Low Port Music",
-                                    "area": "Linlithgow, West Lothian",
-                                    "address": "15A Low Port, EH49 7HZ",
-                                    "lat": 55.9765,
-                                    "lng": -3.5932,
-                                    "stock_type": "New Heavy",
-                                    "genres": [
-                                                "Indie",
-                                                "Alternative",
-                                                "Electronic",
-                                                "Post-Rock"
-                                    ],
-                                    "has_listening_deck": false,
-                                    "buys_collections": true,
-                                    "ultrasonic_cleaned": false,
-                                    "has_bargain_crates": false,
-                                    "has_coffee_bar": false,
-                                    "description": "Linlithgow's local independent record shop. Great for indie exclusives, Ninja Tune/4AD/Soul Jazz releases, and RSD drops.",
-                                    "reviews": [],
-                                    "formats": [
-                                                "12\"",
-                                                "7\"",
-                                                "CDs"
-                                    ],
-                                    "website": "https://www.lowportmusic.co.uk/"
-                        },
-                        {
-                                    "id": 7,
-                                    "name": "Greenhouse Records",
-                                    "area": "Bruntsfield, Edinburgh",
-                                    "address": "10 Barclay Terrace, EH10 4HP",
-                                    "lat": 55.9392,
-                                    "lng": -3.2055,
-                                    "stock_type": "Mix (New & Used)",
-                                    "genres": [
-                                                "Underground Dance",
-                                                "Leftfield",
-                                                "Dub",
-                                                "Experimental"
-                                    ],
-                                    "has_listening_deck": true,
-                                    "buys_collections": true,
-                                    "ultrasonic_cleaned": false,
-                                    "has_bargain_crates": true,
-                                    "has_coffee_bar": false,
-                                    "description": "Specialist shop dealing in underground club 12-inches, electronic, dub, and global experimental sounds.",
-                                    "reviews": [],
-                                    "formats": [
-                                                "12\"",
-                                                "Cassettes"
-                                    ],
-                                    "website": "https://greenhouserecords.co.uk/"
-                        },
-                        {
-                                    "id": 8,
-                                    "name": "Umbrella Vinyl",
-                                    "area": "Tollcross, Edinburgh",
-                                    "address": "15B Brougham St, EH3 9JS",
-                                    "lat": 55.9422,
-                                    "lng": -3.2023,
-                                    "stock_type": "Used Heavy",
-                                    "genres": [
-                                                "Jazz",
-                                                "Soul",
-                                                "Funk",
-                                                "Dub",
-                                                "Afrobeat",
-                                                "Library"
-                                    ],
-                                    "has_listening_deck": true,
-                                    "buys_collections": true,
-                                    "ultrasonic_cleaned": true,
-                                    "has_bargain_crates": true,
-                                    "has_coffee_bar": false,
-                                    "description": "Play-graded specialist second-hand shop covering global sounds, deep jazz, funk, dub, and library records.",
-                                    "reviews": [
-                                                {
-                                                            "reviewer_name": "FunkyFife",
-                                                            "ergonomics_score": 5,
-                                                            "grading_score": 5,
-                                                            "vibe_score": 5,
-                                                            "best_pull": "Donald Byrd - Places and Spaces",
-                                                            "comment": "Every used record is play-graded and ultrasonic cleaned. You can trust their VG+ sticker without hesitation."
-                                                }
-                                    ],
-                                    "formats": [
-                                                "12\"",
-                                                "7\""
-                                    ],
-                                    "website": "https://umbrellavinyl.com/"
-                        },
-                        {
-                                    "id": 9,
-                                    "name": "Assai Records",
-                                    "area": "Tollcross, Edinburgh",
-                                    "address": "1 Grindlay St, EH3 9AT",
-                                    "lat": 55.9458,
-                                    "lng": -3.2038,
-                                    "stock_type": "New Only",
-                                    "genres": [
-                                                "Indie",
-                                                "Rock",
-                                                "Jazz",
-                                                "Hip-Hop",
-                                                "Soundtracks"
-                                    ],
-                                    "has_listening_deck": false,
-                                    "buys_collections": false,
-                                    "ultrasonic_cleaned": false,
-                                    "has_bargain_crates": false,
-                                    "has_coffee_bar": false,
-                                    "description": "Spacious new-release powerhouse known for numbered Japanese-style Obi editions and hardware/sleeves.",
-                                    "reviews": [],
-                                    "formats": [
-                                                "12\"",
-                                                "7\"",
-                                                "CDs"
-                                    ],
-                                    "website": "https://assai.co.uk/"
-                        },
-                        {
-                                    "id": 10,
-                                    "name": "Backtracks Music",
-                                    "area": "Tollcross, Edinburgh",
-                                    "address": "52 Brougham St, EH3 9QG",
-                                    "lat": 55.9416,
-                                    "lng": -3.2018,
-                                    "stock_type": "Used Heavy",
-                                    "genres": [
-                                                "Rock",
-                                                "Pop",
-                                                "Soul",
-                                                "7-Inch Singles"
-                                    ],
-                                    "has_listening_deck": true,
-                                    "buys_collections": true,
-                                    "ultrasonic_cleaned": false,
-                                    "has_bargain_crates": true,
-                                    "has_coffee_bar": false,
-                                    "description": "Old-school floor-to-ceiling crate digger's staple with thousands of used LPs and 45s.",
-                                    "reviews": [],
-                                    "formats": [
-                                                "12\"",
-                                                "7\"",
-                                                "CDs",
-                                                "Cassettes"
-                                    ],
-                                    "website": "https://backtracksmusic.co.uk/"
-                        },
-                        {
-                                    "id": 11,
-                                    "name": "Thorne Records",
-                                    "area": "Morningside, Edinburgh",
-                                    "address": "125 Bruntsfield Pl, EH10 4EQ",
-                                    "lat": 55.9365,
-                                    "lng": -3.2089,
-                                    "stock_type": "New Only",
-                                    "genres": [
-                                                "Indie",
-                                                "Americana",
-                                                "Jazz",
-                                                "Electronic",
-                                                "Folk"
-                                    ],
-                                    "has_listening_deck": false,
-                                    "buys_collections": false,
-                                    "ultrasonic_cleaned": false,
-                                    "has_bargain_crates": false,
-                                    "has_coffee_bar": false,
-                                    "description": "Dog-friendly neighbourhood shop with super clean rack spacing and thoughtfully curated new pressings.",
-                                    "reviews": [],
-                                    "formats": [
-                                                "12\"",
-                                                "7\"",
-                                                "CDs"
-                                    ],
-                                    "website": "https://thornerecords.com/"
-                        },
-                        {
-                                    "id": 12,
-                                    "name": "Underground Solu'shn",
-                                    "area": "Old Town, Edinburgh",
-                                    "address": "9 Cockburn St, EH1 1BP",
-                                    "lat": 55.9507,
-                                    "lng": -3.1878,
-                                    "stock_type": "New Heavy",
-                                    "genres": [
-                                                "House",
-                                                "Techno",
-                                                "Hip-Hop",
-                                                "Beats",
-                                                "Funk",
-                                                "Soul"
-                                    ],
-                                    "has_listening_deck": true,
-                                    "buys_collections": true,
-                                    "ultrasonic_cleaned": false,
-                                    "has_bargain_crates": true,
-                                    "has_coffee_bar": false,
-                                    "description": "Edinburgh's institution for DJs and beatmakers: dance 12s, hip-hop, jazz reissues, Ortofon carts, and Technics accessories.",
-                                    "reviews": [
-                                                {
-                                                            "reviewer_name": "Technics1210_Stevie",
-                                                            "ergonomics_score": 4,
-                                                            "grading_score": 4,
-                                                            "vibe_score": 5,
-                                                            "best_pull": "DJ Krush - Strictly Turntablized",
-                                                            "comment": "Still the undisputed king for dance 12s, hip-hop beats, and grabbing replacement styli in town."
-                                                }
-                                    ],
-                                    "formats": [
-                                                "12\"",
-                                                "7\"",
-                                                "CDs"
-                                    ],
-                                    "website": "https://www.undergroundsolushn.com/"
-                        },
-                        {
-                                    "id": 13,
-                                    "name": "Slow Progress Records & Coffee",
-                                    "area": "Old Town, Edinburgh",
-                                    "address": "53 Blackfriars St, EH1 1NB",
-                                    "lat": 55.9496,
-                                    "lng": -3.1856,
-                                    "stock_type": "New Heavy",
-                                    "genres": [
-                                                "Post-Punk",
-                                                "Indie",
-                                                "Experimental",
-                                                "Ambient"
-                                    ],
-                                    "has_listening_deck": true,
-                                    "buys_collections": false,
-                                    "ultrasonic_cleaned": false,
-                                    "has_bargain_crates": false,
-                                    "has_coffee_bar": true,
-                                    "description": "Independent record shop and specialty coffee bar tucked just off the Royal Mile.",
-                                    "reviews": [],
-                                    "formats": [
-                                                "12\"",
-                                                "Cassettes"
-                                    ],
-                                    "website": "https://slowprogress.co.uk/"
-                        },
-                        {
-                                    "id": 14,
-                                    "name": "Vinyl Villains",
-                                    "area": "Elm Row, Edinburgh",
-                                    "address": "5 Elm Row, EH7 4AQ",
-                                    "lat": 55.9585,
-                                    "lng": -3.1835,
-                                    "stock_type": "Used Heavy",
-                                    "genres": [
-                                                "Punk",
-                                                "New Wave",
-                                                "Reggae",
-                                                "Indie",
-                                                "Rock"
-                                    ],
-                                    "has_listening_deck": true,
-                                    "buys_collections": true,
-                                    "ultrasonic_cleaned": false,
-                                    "has_bargain_crates": true,
-                                    "has_coffee_bar": false,
-                                    "description": "At the top of Leith Walk since 1982. Deep second-hand racks and unpretentious staff knowledge.",
-                                    "reviews": [],
-                                    "formats": [
-                                                "12\"",
-                                                "7\"",
-                                                "CDs"
-                                    ],
-                                    "website": "https://www.vinylvillainsedinburgh.co.uk/"
-                        },
-                        {
-                                    "id": 15,
-                                    "name": "Elvis Shakespeare",
-                                    "area": "Leith Walk, Edinburgh",
-                                    "address": "347 Leith Walk, EH6 8SD",
-                                    "lat": 55.9645,
-                                    "lng": -3.1758,
-                                    "stock_type": "Used Heavy",
-                                    "genres": [
-                                                "60s/70s Psych",
-                                                "Folk",
-                                                "Blues",
-                                                "Indie",
-                                                "Jazz"
-                                    ],
-                                    "has_listening_deck": true,
-                                    "buys_collections": true,
-                                    "ultrasonic_cleaned": false,
-                                    "has_bargain_crates": true,
-                                    "has_coffee_bar": false,
-                                    "description": "A proper treasure trove of second-hand vinyl and rare books; allow at least an hour to dig properly.",
-                                    "reviews": [],
-                                    "formats": [
-                                                "12\"",
-                                                "7\"",
-                                                "CDs"
-                                    ],
-                                    "website": "https://www.elvisshakespeare.com/"
-                        },
-                        {
-                                    "id": 16,
-                                    "name": "Lounge 33",
-                                    "area": "Leith Walk, Edinburgh",
-                                    "address": "373-375 Leith Walk, EH6 8SE",
-                                    "lat": 55.9651,
-                                    "lng": -3.1751,
-                                    "stock_type": "Mix (New & Used)",
-                                    "genres": [
-                                                "Jazz",
-                                                "Soul",
-                                                "Funk",
-                                                "Blues",
-                                                "Hip-Hop"
-                                    ],
-                                    "has_listening_deck": true,
-                                    "buys_collections": false,
-                                    "ultrasonic_cleaned": false,
-                                    "has_bargain_crates": false,
-                                    "has_coffee_bar": true,
-                                    "description": "Vinyl listening space and specialty coffee lounge built around jazz, soul, funk, and hip-hop records.",
-                                    "reviews": [
-                                                {
-                                                            "reviewer_name": "LeithWax",
-                                                            "ergonomics_score": 5,
-                                                            "grading_score": 4,
-                                                            "vibe_score": 5,
-                                                            "best_pull": "Thievery Corporation - The Richest Man in Babylon",
-                                                            "comment": "Grab a flat white from Mr Eion beans, sit down with a stack of jazz and trip-hop records, and lose an afternoon."
-                                                }
-                                    ],
-                                    "formats": [
-                                                "12\"",
-                                                "7\""
-                                    ],
-                                    "website": "https://lounge33.co.uk/"
-                        },
-                        {
-                                    "id": 17,
-                                    "name": "Good Vibes Neighbourhood Store",
-                                    "area": "Leith, Edinburgh",
-                                    "address": "151-153 Constitution St, EH6 7AD",
-                                    "lat": 55.9739,
-                                    "lng": -3.1672,
-                                    "stock_type": "New & Reissues",
-                                    "genres": [
-                                                "Psych",
-                                                "Ambient",
-                                                "Electronic",
-                                                "Jazz",
-                                                "Folk"
-                                    ],
-                                    "has_listening_deck": false,
-                                    "buys_collections": false,
-                                    "ultrasonic_cleaned": false,
-                                    "has_bargain_crates": false,
-                                    "has_coffee_bar": false,
-                                    "description": "Curated selection of specialist labels, spiritual jazz, ambient, and psyche in the heart of Leith.",
-                                    "reviews": [],
-                                    "formats": [
-                                                "12\"",
-                                                "Cassettes"
-                                    ],
-                                    "website": "https://goodvibesneighbourhoodstore.com/"
-                        },
-                        {
-                                    "id": 18,
-                                    "name": "Avalanche Records",
-                                    "area": "City Centre, Edinburgh",
-                                    "address": "Waverley Market, 3 Princes St, EH1 1BQ",
-                                    "lat": 55.9524,
-                                    "lng": -3.1901,
-                                    "stock_type": "Mix (New & Vintage)",
-                                    "genres": [
-                                                "Scottish Indie",
-                                                "Post-Rock",
-                                                "Alternative"
-                                    ],
-                                    "has_listening_deck": false,
-                                    "buys_collections": false,
-                                    "ultrasonic_cleaned": false,
-                                    "has_bargain_crates": false,
-                                    "has_coffee_bar": false,
-                                    "description": "Long-running champion of Scottish independent bands alongside vintage vinyl crates.",
-                                    "reviews": [],
-                                    "formats": [
-                                                "12\"",
-                                                "7\"",
-                                                "CDs"
-                                    ],
-                                    "website": "https://avalancherecords.co.uk/"
-                        },
-                        {
-                                    "id": 19,
-                                    "name": "Silver Machine Records",
-                                    "area": "Falkirk",
-                                    "address": "The Avenue, 165 High St, FK1 1DU",
-                                    "lat": 55.9994,
-                                    "lng": -3.7845,
-                                    "stock_type": "Used Heavy",
-                                    "genres": [
-                                                "60s/70s Rock",
-                                                "Psych",
-                                                "Prog",
-                                                "Soul"
-                                    ],
-                                    "has_listening_deck": true,
-                                    "buys_collections": true,
-                                    "ultrasonic_cleaned": false,
-                                    "has_bargain_crates": true,
-                                    "has_coffee_bar": false,
-                                    "description": "Vintage and rare vinyl specialist on Falkirk High Street, just inside the western 20-mile boundary.",
-                                    "reviews": [],
-                                    "formats": [
-                                                "12\"",
-                                                "7\"",
-                                                "CDs"
-                                    ],
-                                    "website": "https://silvermachinerecords.co.uk/"
-                        }
-            ]
+    "center": {
+        "name": "South Queensferry Hub (EH30)",
+        "lat": 55.9903,
+        "lng": -3.3965,
+        "radius_miles": 25.0
+    },
+    "stores": [
+        {
+            "id": 1,
+            "name": "Almond River Records",
+            "area": "Corstorphine, Edinburgh",
+            "address": "253 St John's Rd, EH12 7XD",
+            "lat": 55.9427,
+            "lng": -3.2905,
+            "stock_type": "Used Heavy",
+            "genres": [
+                "Rock",
+                "Indie",
+                "Soul",
+                "Pop"
+            ],
+            "has_listening_deck": false,
+            "buys_collections": true,
+            "ultrasonic_cleaned": true,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "Curated second-hand shop in west Edinburgh offering ultrasonic record cleaning and fair cash/trade on collections.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://www.almondriverrecords.com/",
+            "bio": "Founded by passionate crate diggers, Almond River Records is West Edinburgh's premier haven for quality second-hand vinyl, CDs, and audio gear. Specialising in meticulously graded 60s/70s classic rock, prog, indie, and jazz, every pre-loved record is inspected with care, and ultrasonic deep-cleaning is available in-store to bring vintage grooves back to life. A friendly, knowledgeable neighbourhood hub that actively buys collections with fair cash or trade appraisals."
+        },
+        {
+            "id": 2,
+            "name": "Veneno Music Store",
+            "area": "Dunfermline, Fife",
+            "address": "20 East Port, KY12 7JB",
+            "lat": 56.0717,
+            "lng": -3.458,
+            "stock_type": "Mix (New & Used)",
+            "genres": [
+                "Rock",
+                "Metal",
+                "Indie",
+                "Pop"
+            ],
+            "has_listening_deck": true,
+            "buys_collections": true,
+            "ultrasonic_cleaned": true,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "Welcoming Fife independent with super honest condition grading across pre-loved and new vinyl.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs",
+                "Cassettes"
+            ],
+            "website": "https://www.venenomusic.co.uk/",
+            "bio": "Located in historic Dunfermline just across the Queensferry Crossing, Veneno Music Store has quickly earned a glowing reputation for its curated crates of heavy rock, metal, 90s alternative, and punk alongside fresh indie pressings. The store champions physical formats with transparent condition grading, dedicated listening decks where you can audition before you buy, and an active trade-in counter welcoming wax collectors from across Fife and the Lothians."
+        },
+        {
+            "id": 3,
+            "name": "The Music Box",
+            "area": "Dunfermline, Fife",
+            "address": "37 Queen Anne St, KY12 7BA",
+            "lat": 56.0725,
+            "lng": -3.4612,
+            "stock_type": "Mix (New & Used)",
+            "genres": [
+                "Indie",
+                "Britpop",
+                "Rock",
+                "Rarities"
+            ],
+            "has_listening_deck": false,
+            "buys_collections": true,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "Independent Dunfermline spot strong on UK indie rarities, limited box sets, and pre-owned crates.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://themusicbox.co.uk/",
+            "bio": "A long-standing staple of the Dunfermline music community, The Music Box is an old-school treasure trove packed to the rafters with rock, folk, blues, and pop vinyl across 12-inch LPs and 7-inch singles. Renowned for its bargain discovery crates and deep CD archives, it's the definition of a traditional digger's spot where taking your time flipping through the stacks is always rewarded with forgotten classics at honest prices."
+        },
+        {
+            "id": 4,
+            "name": "VoxBox Music",
+            "area": "Stockbridge, Edinburgh",
+            "address": "21 St Stephen St, EH3 6TQ",
+            "lat": 55.9576,
+            "lng": -3.2078,
+            "stock_type": "Used Heavy",
+            "genres": [
+                "Jazz",
+                "Indie",
+                "Rock",
+                "60s/70s",
+                "Scottish"
+            ],
+            "has_listening_deck": true,
+            "buys_collections": true,
+            "ultrasonic_cleaned": true,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "Famous for pristine front-shop stock and the legendary \u00a31-\u00a33 bargain basement room out back.",
+            "reviews": [
+                {
+                    "reviewer_name": "CrateDigger_EH30",
+                    "ergonomics_score": 4,
+                    "grading_score": 5,
+                    "vibe_score": 5,
+                    "best_pull": "Boards of Canada - Twoism (Warp Reissue)",
+                    "comment": "Front racks are immaculately clean, and the \u00a32 backroom always yields a weird library record or 12-inch for sampling."
+                }
+            ],
+            "formats": [
+                "12\"",
+                "7\""
+            ],
+            "website": "https://voxboxmusic.co.uk/",
+            "bio": "Tucked away on cobbled St Stephen Street in Stockbridge, VoxBox Music is one of Scotland's most beloved vinyl sanctuaries. Spread across two atmospheric rooms of vintage records, VoxBox specialises in original UK pressings of classic rock, blues, jazz, and Scottish indie, accompanied by bargain \u00a31.50 crates in the back room. The staff are seasoned musicians and collectors who pride themselves on strictly honest visual and audio grading without inflated collector hype."
+        },
+        {
+            "id": 5,
+            "name": "Oxfam Music Stockbridge",
+            "area": "Stockbridge, Edinburgh",
+            "address": "64 Raeburn Pl, EH4 1HN",
+            "lat": 55.9589,
+            "lng": -3.2117,
+            "stock_type": "Used Only",
+            "genres": [
+                "Rock",
+                "Classical",
+                "Jazz",
+                "Folk",
+                "Soundtracks"
+            ],
+            "has_listening_deck": false,
+            "buys_collections": false,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "Dedicated music charity shop receiving some of Edinburgh's best donated vinyl collections.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs",
+                "Cassettes"
+            ],
+            "website": "https://www.oxfam.org.uk/",
+            "bio": "Celebrated as one of the UK's flagship charity music shops, Oxfam Music on Raeburn Place is a legendary goldmine for Edinburgh vinyl hunters. Run by devoted music-enthusiast volunteers who carefully curate every incoming estate and donation, its shelves constantly rotate with rare classical, folk, jazz, classic rock, and quirky 7-inch obscurities, all fairly priced with proceeds supporting global humanitarian causes."
+        },
+        {
+            "id": 6,
+            "name": "Low Port Music",
+            "area": "Linlithgow, West Lothian",
+            "address": "15A Low Port, EH49 7HZ",
+            "lat": 55.9765,
+            "lng": -3.5932,
+            "stock_type": "New Heavy",
+            "genres": [
+                "Indie",
+                "Alternative",
+                "Electronic",
+                "Post-Rock"
+            ],
+            "has_listening_deck": false,
+            "buys_collections": true,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": false,
+            "has_coffee_bar": false,
+            "description": "Linlithgow's local independent record shop. Great for indie exclusives, Ninja Tune/4AD/Soul Jazz releases, and RSD drops.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://www.lowportmusic.co.uk/",
+            "bio": "Just steps from historic Linlithgow Palace and the canal basin, Low Port Music is a vibrant West Lothian institution. Combining a passion for indie, rock, Scottish folk, and Americana vinyl with musical instruments, turntable accessories, and guitar strings, owner Mark has created a warm, community-first space where locals and visiting diggers can chat gear, swap music recommendations, and unearth pristine vintage wax."
+        },
+        {
+            "id": 7,
+            "name": "Greenhouse Records",
+            "area": "Bruntsfield, Edinburgh",
+            "address": "10 Barclay Terrace, EH10 4HP",
+            "lat": 55.9392,
+            "lng": -3.2055,
+            "stock_type": "Mix (New & Used)",
+            "genres": [
+                "Underground Dance",
+                "Leftfield",
+                "Dub",
+                "Experimental"
+            ],
+            "has_listening_deck": true,
+            "buys_collections": true,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "Specialist shop dealing in underground club 12-inches, electronic, dub, and global experimental sounds.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "Cassettes"
+            ],
+            "website": "https://greenhouserecords.co.uk/",
+            "bio": "Perched in leafy Bruntsfield, Greenhouse Records is a chic, daylight-filled sanctuary for audiophiles and curious selectors. With an impeccably curated roster spanning ambient, jazz, electronic, soul, and left-field indie, Greenhouse champions small independent labels, local Edinburgh releases, and pristine Japanese pressings, paired with a welcoming vibe and listening stations to lose yourself in."
+        },
+        {
+            "id": 8,
+            "name": "Umbrella Vinyl",
+            "area": "Tollcross, Edinburgh",
+            "address": "15B Brougham St, EH3 9JS",
+            "lat": 55.9422,
+            "lng": -3.2023,
+            "stock_type": "Used Heavy",
+            "genres": [
+                "Jazz",
+                "Soul",
+                "Funk",
+                "Dub",
+                "Afrobeat",
+                "Library"
+            ],
+            "has_listening_deck": true,
+            "buys_collections": true,
+            "ultrasonic_cleaned": true,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "Play-graded specialist second-hand shop covering global sounds, deep jazz, funk, dub, and library records.",
+            "reviews": [
+                {
+                    "reviewer_name": "FunkyFife",
+                    "ergonomics_score": 5,
+                    "grading_score": 5,
+                    "vibe_score": 5,
+                    "best_pull": "Donald Byrd - Places and Spaces",
+                    "comment": "Every used record is play-graded and ultrasonic cleaned. You can trust their VG+ sticker without hesitation."
+                }
+            ],
+            "formats": [
+                "12\"",
+                "7\""
+            ],
+            "website": "https://umbrellavinyl.com/",
+            "bio": "Situated on Valleyfield Street in Tollcross, Umbrella Vinyl is run by two dedicated diggers who hand-pick their stock across the globe. Famous for an eclectic, genre-spanning selection that dives deep into 70s Japanese funk, city pop, reggae, Afrobeat, psych, and post-punk, Umbrella treats vinyl digging as an art form. Every record is clean, sleeved, accurately graded, and ready for home or club listening."
+        },
+        {
+            "id": 9,
+            "name": "Assai Records",
+            "area": "Tollcross, Edinburgh",
+            "address": "1 Grindlay St, EH3 9AT",
+            "lat": 55.9458,
+            "lng": -3.2038,
+            "stock_type": "New Only",
+            "genres": [
+                "Indie",
+                "Rock",
+                "Jazz",
+                "Hip-Hop",
+                "Soundtracks"
+            ],
+            "has_listening_deck": false,
+            "buys_collections": false,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": false,
+            "has_coffee_bar": false,
+            "description": "Spacious new-release powerhouse known for numbered Japanese-style Obi editions and hardware/sleeves.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://assai.co.uk/",
+            "bio": "Overlooking Grindlay Street beneath Edinburgh Castle, Assai Records Edinburgh is a flagship indie retailer known for its premier stock of brand-new vinyl releases, exclusive Assai limited-edition obi-strip pressings, and high-end audio turntables. Hosting intimate in-store acoustic gigs and signing sessions from internationally touring artists, Assai is a cornerstone of the Scottish modern music scene."
+        },
+        {
+            "id": 10,
+            "name": "Backtracks Music",
+            "area": "Tollcross, Edinburgh",
+            "address": "52 Brougham St, EH3 9QG",
+            "lat": 55.9416,
+            "lng": -3.2018,
+            "stock_type": "Used Heavy",
+            "genres": [
+                "Rock",
+                "Pop",
+                "Soul",
+                "7-Inch Singles"
+            ],
+            "has_listening_deck": true,
+            "buys_collections": true,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "Old-school floor-to-ceiling crate digger's staple with thousands of used LPs and 45s.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs",
+                "Cassettes"
+            ],
+            "website": "https://backtracksmusic.co.uk/",
+            "bio": "Standing strong on Brougham Street since 1989, Backtracks is Edinburgh's classic collector's depot. Packed with thousands of retro vinyl records, cassette tapes, CDs, vintage hi-fi separates, and music memorabilia, it's a paradise for diggers who love the thrill of the hunt. Whether you're searching for original 70s rock LPs, rare 80s 12-inch dance mixes, or replacement turntable needles, Backtracks has it in the bins."
+        },
+        {
+            "id": 11,
+            "name": "Thorne Records",
+            "area": "Morningside, Edinburgh",
+            "address": "125 Bruntsfield Pl, EH10 4EQ",
+            "lat": 55.9365,
+            "lng": -3.2089,
+            "stock_type": "New Only",
+            "genres": [
+                "Indie",
+                "Americana",
+                "Jazz",
+                "Electronic",
+                "Folk"
+            ],
+            "has_listening_deck": false,
+            "buys_collections": false,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": false,
+            "has_coffee_bar": false,
+            "description": "Dog-friendly neighbourhood shop with super clean rack spacing and thoughtfully curated new pressings.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://thornerecords.com/",
+            "bio": "Founded by veteran record store manager Mark Thorne, this bright, welcoming South Edinburgh boutique on Bruntsfield Place offers an expertly chosen balance of brand-new indie releases, classic reissues, and curated second-hand gems. Known for its warm hospitality, knowledgeable personal recommendations, and spotless organization, Thorne Records makes browsing feel effortless and joyful for collectors of every generation."
+        },
+        {
+            "id": 12,
+            "name": "Underground Solu'shn",
+            "area": "Old Town, Edinburgh",
+            "address": "9 Cockburn St, EH1 1BP",
+            "lat": 55.9507,
+            "lng": -3.1878,
+            "stock_type": "New Heavy",
+            "genres": [
+                "House",
+                "Techno",
+                "Hip-Hop",
+                "Beats",
+                "Funk",
+                "Soul"
+            ],
+            "has_listening_deck": true,
+            "buys_collections": true,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "Edinburgh's institution for DJs and beatmakers: dance 12s, hip-hop, jazz reissues, Ortofon carts, and Technics accessories.",
+            "reviews": [
+                {
+                    "reviewer_name": "Technics1210_Stevie",
+                    "ergonomics_score": 4,
+                    "grading_score": 4,
+                    "vibe_score": 5,
+                    "best_pull": "DJ Krush - Strictly Turntablized",
+                    "comment": "Still the undisputed king for dance 12s, hip-hop beats, and grabbing replacement styli in town."
+                }
+            ],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://www.undergroundsolushn.com/",
+            "bio": "An undisputed cultural landmark on Cockburn Street since 1995, Underground Solu'shn is the heartbeat of Edinburgh's electronic, club, and DJ culture. Stocking deep crates of house, techno, drum & bass, hip-hop, funk, soul, and jazz alongside professional DJ hardware, synthesizers, and vinyl care supplies, 'US' is the definitive meeting ground for local DJs, visiting selectors, and sound enthusiasts."
+        },
+        {
+            "id": 13,
+            "name": "Slow Progress Records & Coffee",
+            "area": "Old Town, Edinburgh",
+            "address": "53 Blackfriars St, EH1 1NB",
+            "lat": 55.9496,
+            "lng": -3.1856,
+            "stock_type": "New Heavy",
+            "genres": [
+                "Post-Punk",
+                "Indie",
+                "Experimental",
+                "Ambient"
+            ],
+            "has_listening_deck": true,
+            "buys_collections": false,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": false,
+            "has_coffee_bar": true,
+            "description": "Independent record shop and specialty coffee bar tucked just off the Royal Mile.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "Cassettes"
+            ],
+            "website": "https://slowprogress.co.uk/",
+            "bio": "Combining the finest specialty plant-based coffee, bakery treats, and an expertly curated vinyl selection on Blackfriars Street, Slow Progress is a cosy haven just off the Royal Mile. Specialising in emo, punk, hardcore, post-rock, and alternative indie labels, you can enjoy a flat white while browsing limited-run vinyl or auditioning new underground bands on their customer turntables."
+        },
+        {
+            "id": 14,
+            "name": "Vinyl Villains",
+            "area": "Elm Row, Edinburgh",
+            "address": "5 Elm Row, EH7 4AQ",
+            "lat": 55.9585,
+            "lng": -3.1835,
+            "stock_type": "Used Heavy",
+            "genres": [
+                "Punk",
+                "New Wave",
+                "Reggae",
+                "Indie",
+                "Rock"
+            ],
+            "has_listening_deck": true,
+            "buys_collections": true,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "At the top of Leith Walk since 1982. Deep second-hand racks and unpretentious staff knowledge.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://www.vinylvillainsedinburgh.co.uk/",
+            "bio": "Holding court at the top of Leith Walk on Elm Row since 1983, Vinyl Villains is Edinburgh's oldest surviving independent second-hand record shop. Packed floor-to-ceiling with vintage rock, punk, new wave, prog, metal, and reggae vinyl, its seasoned crates have provided generations of crate diggers with authentic first pressings, rare bootlegs, and bargain gems at honest, realistic prices."
+        },
+        {
+            "id": 15,
+            "name": "Elvis Shakespeare",
+            "area": "Leith Walk, Edinburgh",
+            "address": "347 Leith Walk, EH6 8SD",
+            "lat": 55.9645,
+            "lng": -3.1758,
+            "stock_type": "Used Heavy",
+            "genres": [
+                "60s/70s Psych",
+                "Folk",
+                "Blues",
+                "Indie",
+                "Jazz"
+            ],
+            "has_listening_deck": true,
+            "buys_collections": true,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "A proper treasure trove of second-hand vinyl and rare books; allow at least an hour to dig properly.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://www.elvisshakespeare.com/",
+            "bio": "A Leith Walk cultural institution since 2005, Elvis Shakespeare uniquely pairs an extensive selection of second-hand and rare vinyl with alternative literature and poetry. Renowned for its punk, indie, post-punk, and alternative rock sections, the shop frequently hosts live acoustic performances during Record Store Day and prides itself on supporting independent artists, fanzines, and local Edinburgh music."
+        },
+        {
+            "id": 16,
+            "name": "Lounge 33",
+            "area": "Leith Walk, Edinburgh",
+            "address": "373-375 Leith Walk, EH6 8SE",
+            "lat": 55.9651,
+            "lng": -3.1751,
+            "stock_type": "Mix (New & Used)",
+            "genres": [
+                "Jazz",
+                "Soul",
+                "Funk",
+                "Blues",
+                "Hip-Hop"
+            ],
+            "has_listening_deck": true,
+            "buys_collections": false,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": false,
+            "has_coffee_bar": true,
+            "description": "Vinyl listening space and specialty coffee lounge built around jazz, soul, funk, and hip-hop records.",
+            "reviews": [
+                {
+                    "reviewer_name": "LeithWax",
+                    "ergonomics_score": 5,
+                    "grading_score": 4,
+                    "vibe_score": 5,
+                    "best_pull": "Thievery Corporation - The Richest Man in Babylon",
+                    "comment": "Grab a flat white from Mr Eion beans, sit down with a stack of jazz and trip-hop records, and lose an afternoon."
+                }
+            ],
+            "formats": [
+                "12\"",
+                "7\""
+            ],
+            "website": "https://lounge33.co.uk/",
+            "bio": "An intimate, relaxed record den located on middle Leith Walk, Lounge 33 combines a passion for vintage vinyl with comfortable, music-first vibes. Featuring a hand-picked collection of soul, funk, disco, jazz, 90s hip-hop, and classic rock, it's designed as a laid-back retreat where music fans can take their time thumbing through carefully graded sleeves and discovering new grooves."
+        },
+        {
+            "id": 17,
+            "name": "Good Vibes Neighbourhood Store",
+            "area": "Leith, Edinburgh",
+            "address": "151-153 Constitution St, EH6 7AD",
+            "lat": 55.9739,
+            "lng": -3.1672,
+            "stock_type": "New & Reissues",
+            "genres": [
+                "Psych",
+                "Ambient",
+                "Electronic",
+                "Jazz",
+                "Folk"
+            ],
+            "has_listening_deck": false,
+            "buys_collections": false,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": false,
+            "has_coffee_bar": false,
+            "description": "Curated selection of specialist labels, spiritual jazz, ambient, and psyche in the heart of Leith.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "Cassettes"
+            ],
+            "website": "https://goodvibesneighbourhoodstore.com/",
+            "bio": "Situated down on Constitution Street in historic Leith, Good Vibes Neighbourhood Store is a community-minded creative hub. Stocking a vibrant selection of new and pre-loved vinyl\u2014with a keen focus on soul, afro-funk, indie, electronic, and Scottish grassroots releases\u2014alongside curated books, local art, and artisan provisions, it brings genuine warmth and good tunes to the port district."
+        },
+        {
+            "id": 18,
+            "name": "Avalanche Records",
+            "area": "City Centre, Edinburgh",
+            "address": "Waverley Market, 3 Princes St, EH1 1BQ",
+            "lat": 55.9524,
+            "lng": -3.1901,
+            "stock_type": "Mix (New & Vintage)",
+            "genres": [
+                "Scottish Indie",
+                "Post-Rock",
+                "Alternative"
+            ],
+            "has_listening_deck": false,
+            "buys_collections": false,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": false,
+            "has_coffee_bar": false,
+            "description": "Long-running champion of Scottish independent bands alongside vintage vinyl crates.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://avalancherecords.co.uk/",
+            "bio": "Originally established in 1984 and now housed within the Waverley Market directly above Edinburgh Waverley Station, Avalanche Records is an iconic Scottish music brand. Renowned historically for supporting Scottish indie royalty including Belle & Sebastian, Mogwai, and Frightened Rabbit, Avalanche pairs Scottish indie and alternative vinyl with vintage rock art prints, band t-shirts, and cultural memorabilia."
+        },
+        {
+            "id": 19,
+            "name": "Silver Machine Records",
+            "area": "Falkirk",
+            "address": "The Avenue, 165 High St, FK1 1DU",
+            "lat": 55.9994,
+            "lng": -3.7845,
+            "stock_type": "Used Heavy",
+            "genres": [
+                "60s/70s Rock",
+                "Psych",
+                "Prog",
+                "Soul"
+            ],
+            "has_listening_deck": true,
+            "buys_collections": true,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "Vintage and rare vinyl specialist on Falkirk High Street with deep crates of classic rock and metal.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://silvermachinerecords.co.uk/",
+            "bio": "Located inside The Avenue on Falkirk's High Street, Silver Machine Records is Central Scotland's champion for classic and rare vinyl. Named with a nod to Hawkwind, the shop is a treasure chest of vintage 60s/70s/80s rock, heavy metal, prog, psych, and folk. Known for fair pricing, friendly rock banter, and an ever-rotating inventory of clean pre-loved vinyl, it's an essential stop on any Forth Valley crate-digging expedition."
+        },
+        {
+            "id": 20,
+            "name": "Europa Music",
+            "area": "Stirling",
+            "address": "10 Friars St, Stirling FK8 1HA",
+            "lat": 56.1205,
+            "lng": -3.938,
+            "stock_type": "Mix (New & Used)",
+            "genres": [
+                "Rock",
+                "Folk",
+                "Blues",
+                "Jazz",
+                "Punk",
+                "Reggae"
+            ],
+            "has_listening_deck": true,
+            "buys_collections": true,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "One of Scotland's largest independent record shops, trading since 1992 with massive collections across all genres.",
+            "bio": "Established in 1992 on Friars Street in Stirling, Europa Music is one of Scotland's largest and most legendary independent music stores. Housed in a sprawling traditional shopfront just 22 miles from South Queensferry, it boasts tens of thousands of new and second-hand vinyl records spanning rock, folk, blues, jazz, punk, reggae, and classical, plus a massive CD and cassette department. A true Scottish crate-digging cathedral.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs",
+                "Cassettes"
+            ],
+            "website": "https://www.europamusic.co.uk/"
+        },
+        {
+            "id": 21,
+            "name": "D&J Records",
+            "area": "Bathgate, West Lothian",
+            "address": "28 George St, Bathgate EH48 1PW",
+            "lat": 55.9038,
+            "lng": -3.6409,
+            "stock_type": "Used Heavy",
+            "genres": [
+                "Rock",
+                "Pop",
+                "Soul",
+                "Country",
+                "Indie"
+            ],
+            "has_listening_deck": false,
+            "buys_collections": true,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "Beloved West Lothian vinyl and CD shop packed with pre-owned rock, pop, soul, and country classics.",
+            "bio": "Located on George Street in the heart of Bathgate, D&J Records is a cherished West Lothian hub for collectors and everyday music fans. Offering a warm, welcoming community feel with an extensive stock of pre-owned 12\" vinyl, 7\" singles, CDs, and audio gear across rock, pop, soul, country, and Scottish traditional music, D&J is an essential local crate-digging stop.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://www.facebook.com/djrecordsbathgate/"
+        }
+    ]
 };
         }
 

@@ -3,7 +3,7 @@
         "name": "South Queensferry Hub (EH30)",
         "lat": 55.9903,
         "lng": -3.3965,
-        "radius_miles": 20.0
+        "radius_miles": 25.0
     },
     "stores": [
         {
@@ -32,7 +32,8 @@
                 "7\"",
                 "CDs"
             ],
-            "website": "https://www.almondriverrecords.com/"
+            "website": "https://www.almondriverrecords.com/",
+            "bio": "Founded by passionate crate diggers, Almond River Records is West Edinburgh's premier haven for quality second-hand vinyl, CDs, and audio gear. Specialising in meticulously graded 60s/70s classic rock, prog, indie, and jazz, every pre-loved record is inspected with care, and ultrasonic deep-cleaning is available in-store to bring vintage grooves back to life. A friendly, knowledgeable neighbourhood hub that actively buys collections with fair cash or trade appraisals."
         },
         {
             "id": 2,
@@ -61,7 +62,8 @@
                 "CDs",
                 "Cassettes"
             ],
-            "website": "https://www.venenomusic.co.uk/"
+            "website": "https://www.venenomusic.co.uk/",
+            "bio": "Located in historic Dunfermline just across the Queensferry Crossing, Veneno Music Store has quickly earned a glowing reputation for its curated crates of heavy rock, metal, 90s alternative, and punk alongside fresh indie pressings. The store champions physical formats with transparent condition grading, dedicated listening decks where you can audition before you buy, and an active trade-in counter welcoming wax collectors from across Fife and the Lothians."
         },
         {
             "id": 3,
@@ -89,7 +91,8 @@
                 "7\"",
                 "CDs"
             ],
-            "website": "https://themusicbox.co.uk/"
+            "website": "https://themusicbox.co.uk/",
+            "bio": "A long-standing staple of the Dunfermline music community, The Music Box is an old-school treasure trove packed to the rafters with rock, folk, blues, and pop vinyl across 12-inch LPs and 7-inch singles. Renowned for its bargain discovery crates and deep CD archives, it's the definition of a traditional digger's spot where taking your time flipping through the stacks is always rewarded with forgotten classics at honest prices."
         },
         {
             "id": 4,
@@ -111,7 +114,7 @@
             "ultrasonic_cleaned": true,
             "has_bargain_crates": true,
             "has_coffee_bar": false,
-            "description": "Famous for pristine front-shop stock and the legendary \u00a31-\u00a33 bargain basement room out back.",
+            "description": "Famous for pristine front-shop stock and the legendary £1-£3 bargain basement room out back.",
             "reviews": [
                 {
                     "reviewer_name": "CrateDigger_EH30",
@@ -119,14 +122,15 @@
                     "grading_score": 5,
                     "vibe_score": 5,
                     "best_pull": "Boards of Canada - Twoism (Warp Reissue)",
-                    "comment": "Front racks are immaculately clean, and the \u00a32 backroom always yields a weird library record or 12-inch for sampling."
+                    "comment": "Front racks are immaculately clean, and the £2 backroom always yields a weird library record or 12-inch for sampling."
                 }
             ],
             "formats": [
                 "12\"",
                 "7\""
             ],
-            "website": "https://voxboxmusic.co.uk/"
+            "website": "https://voxboxmusic.co.uk/",
+            "bio": "Tucked away on cobbled St Stephen Street in Stockbridge, VoxBox Music is one of Scotland's most beloved vinyl sanctuaries. Spread across two atmospheric rooms of vintage records, VoxBox specialises in original UK pressings of classic rock, blues, jazz, and Scottish indie, accompanied by bargain £1.50 crates in the back room. The staff are seasoned musicians and collectors who pride themselves on strictly honest visual and audio grading without inflated collector hype."
         },
         {
             "id": 5,
@@ -156,7 +160,8 @@
                 "CDs",
                 "Cassettes"
             ],
-            "website": "https://www.oxfam.org.uk/"
+            "website": "https://www.oxfam.org.uk/",
+            "bio": "Celebrated as one of the UK's flagship charity music shops, Oxfam Music on Raeburn Place is a legendary goldmine for Edinburgh vinyl hunters. Run by devoted music-enthusiast volunteers who carefully curate every incoming estate and donation, its shelves constantly rotate with rare classical, folk, jazz, classic rock, and quirky 7-inch obscurities, all fairly priced with proceeds supporting global humanitarian causes."
         },
         {
             "id": 6,
@@ -184,7 +189,8 @@
                 "7\"",
                 "CDs"
             ],
-            "website": "https://www.lowportmusic.co.uk/"
+            "website": "https://www.lowportmusic.co.uk/",
+            "bio": "Just steps from historic Linlithgow Palace and the canal basin, Low Port Music is a vibrant West Lothian institution. Combining a passion for indie, rock, Scottish folk, and Americana vinyl with musical instruments, turntable accessories, and guitar strings, owner Mark has created a warm, community-first space where locals and visiting diggers can chat gear, swap music recommendations, and unearth pristine vintage wax."
         },
         {
             "id": 7,
@@ -211,7 +217,8 @@
                 "12\"",
                 "Cassettes"
             ],
-            "website": "https://greenhouserecords.co.uk/"
+            "website": "https://greenhouserecords.co.uk/",
+            "bio": "Perched in leafy Bruntsfield, Greenhouse Records is a chic, daylight-filled sanctuary for audiophiles and curious selectors. With an impeccably curated roster spanning ambient, jazz, electronic, soul, and left-field indie, Greenhouse champions small independent labels, local Edinburgh releases, and pristine Japanese pressings, paired with a welcoming vibe and listening stations to lose yourself in."
         },
         {
             "id": 8,
@@ -249,7 +256,8 @@
                 "12\"",
                 "7\""
             ],
-            "website": "https://umbrellavinyl.com/"
+            "website": "https://umbrellavinyl.com/",
+            "bio": "Situated on Valleyfield Street in Tollcross, Umbrella Vinyl is run by two dedicated diggers who hand-pick their stock across the globe. Famous for an eclectic, genre-spanning selection that dives deep into 70s Japanese funk, city pop, reggae, Afrobeat, psych, and post-punk, Umbrella treats vinyl digging as an art form. Every record is clean, sleeved, accurately graded, and ready for home or club listening."
         },
         {
             "id": 9,
@@ -278,7 +286,8 @@
                 "7\"",
                 "CDs"
             ],
-            "website": "https://assai.co.uk/"
+            "website": "https://assai.co.uk/",
+            "bio": "Overlooking Grindlay Street beneath Edinburgh Castle, Assai Records Edinburgh is a flagship indie retailer known for its premier stock of brand-new vinyl releases, exclusive Assai limited-edition obi-strip pressings, and high-end audio turntables. Hosting intimate in-store acoustic gigs and signing sessions from internationally touring artists, Assai is a cornerstone of the Scottish modern music scene."
         },
         {
             "id": 10,
@@ -307,7 +316,8 @@
                 "CDs",
                 "Cassettes"
             ],
-            "website": "https://backtracksmusic.co.uk/"
+            "website": "https://backtracksmusic.co.uk/",
+            "bio": "Standing strong on Brougham Street since 1989, Backtracks is Edinburgh's classic collector's depot. Packed with thousands of retro vinyl records, cassette tapes, CDs, vintage hi-fi separates, and music memorabilia, it's a paradise for diggers who love the thrill of the hunt. Whether you're searching for original 70s rock LPs, rare 80s 12-inch dance mixes, or replacement turntable needles, Backtracks has it in the bins."
         },
         {
             "id": 11,
@@ -336,7 +346,8 @@
                 "7\"",
                 "CDs"
             ],
-            "website": "https://thornerecords.com/"
+            "website": "https://thornerecords.com/",
+            "bio": "Founded by veteran record store manager Mark Thorne, this bright, welcoming South Edinburgh boutique on Bruntsfield Place offers an expertly chosen balance of brand-new indie releases, classic reissues, and curated second-hand gems. Known for its warm hospitality, knowledgeable personal recommendations, and spotless organization, Thorne Records makes browsing feel effortless and joyful for collectors of every generation."
         },
         {
             "id": 12,
@@ -375,7 +386,8 @@
                 "7\"",
                 "CDs"
             ],
-            "website": "https://www.undergroundsolushn.com/"
+            "website": "https://www.undergroundsolushn.com/",
+            "bio": "An undisputed cultural landmark on Cockburn Street since 1995, Underground Solu'shn is the heartbeat of Edinburgh's electronic, club, and DJ culture. Stocking deep crates of house, techno, drum & bass, hip-hop, funk, soul, and jazz alongside professional DJ hardware, synthesizers, and vinyl care supplies, 'US' is the definitive meeting ground for local DJs, visiting selectors, and sound enthusiasts."
         },
         {
             "id": 13,
@@ -402,7 +414,8 @@
                 "12\"",
                 "Cassettes"
             ],
-            "website": "https://slowprogress.co.uk/"
+            "website": "https://slowprogress.co.uk/",
+            "bio": "Combining the finest specialty plant-based coffee, bakery treats, and an expertly curated vinyl selection on Blackfriars Street, Slow Progress is a cosy haven just off the Royal Mile. Specialising in emo, punk, hardcore, post-rock, and alternative indie labels, you can enjoy a flat white while browsing limited-run vinyl or auditioning new underground bands on their customer turntables."
         },
         {
             "id": 14,
@@ -431,7 +444,8 @@
                 "7\"",
                 "CDs"
             ],
-            "website": "https://www.vinylvillainsedinburgh.co.uk/"
+            "website": "https://www.vinylvillainsedinburgh.co.uk/",
+            "bio": "Holding court at the top of Leith Walk on Elm Row since 1983, Vinyl Villains is Edinburgh's oldest surviving independent second-hand record shop. Packed floor-to-ceiling with vintage rock, punk, new wave, prog, metal, and reggae vinyl, its seasoned crates have provided generations of crate diggers with authentic first pressings, rare bootlegs, and bargain gems at honest, realistic prices."
         },
         {
             "id": 15,
@@ -460,7 +474,8 @@
                 "7\"",
                 "CDs"
             ],
-            "website": "https://www.elvisshakespeare.com/"
+            "website": "https://www.elvisshakespeare.com/",
+            "bio": "A Leith Walk cultural institution since 2005, Elvis Shakespeare uniquely pairs an extensive selection of second-hand and rare vinyl with alternative literature and poetry. Renowned for its punk, indie, post-punk, and alternative rock sections, the shop frequently hosts live acoustic performances during Record Store Day and prides itself on supporting independent artists, fanzines, and local Edinburgh music."
         },
         {
             "id": 16,
@@ -497,7 +512,8 @@
                 "12\"",
                 "7\""
             ],
-            "website": "https://lounge33.co.uk/"
+            "website": "https://lounge33.co.uk/",
+            "bio": "An intimate, relaxed record den located on middle Leith Walk, Lounge 33 combines a passion for vintage vinyl with comfortable, music-first vibes. Featuring a hand-picked collection of soul, funk, disco, jazz, 90s hip-hop, and classic rock, it's designed as a laid-back retreat where music fans can take their time thumbing through carefully graded sleeves and discovering new grooves."
         },
         {
             "id": 17,
@@ -525,7 +541,8 @@
                 "12\"",
                 "Cassettes"
             ],
-            "website": "https://goodvibesneighbourhoodstore.com/"
+            "website": "https://goodvibesneighbourhoodstore.com/",
+            "bio": "Situated down on Constitution Street in historic Leith, Good Vibes Neighbourhood Store is a community-minded creative hub. Stocking a vibrant selection of new and pre-loved vinyl—with a keen focus on soul, afro-funk, indie, electronic, and Scottish grassroots releases—alongside curated books, local art, and artisan provisions, it brings genuine warmth and good tunes to the port district."
         },
         {
             "id": 18,
@@ -552,7 +569,8 @@
                 "7\"",
                 "CDs"
             ],
-            "website": "https://avalancherecords.co.uk/"
+            "website": "https://avalancherecords.co.uk/",
+            "bio": "Originally established in 1984 and now housed within the Waverley Market directly above Edinburgh Waverley Station, Avalanche Records is an iconic Scottish music brand. Renowned historically for supporting Scottish indie royalty including Belle & Sebastian, Mogwai, and Frightened Rabbit, Avalanche pairs Scottish indie and alternative vinyl with vintage rock art prints, band t-shirts, and cultural memorabilia."
         },
         {
             "id": 19,
@@ -573,14 +591,77 @@
             "ultrasonic_cleaned": false,
             "has_bargain_crates": true,
             "has_coffee_bar": false,
-            "description": "Vintage and rare vinyl specialist on Falkirk High Street, just inside the western 20-mile boundary.",
+            "description": "Vintage and rare vinyl specialist on Falkirk High Street with deep crates of classic rock and metal.",
             "reviews": [],
             "formats": [
                 "12\"",
                 "7\"",
                 "CDs"
             ],
-            "website": "https://silvermachinerecords.co.uk/"
+            "website": "https://silvermachinerecords.co.uk/",
+            "bio": "Located inside The Avenue on Falkirk's High Street, Silver Machine Records is Central Scotland's champion for classic and rare vinyl. Named with a nod to Hawkwind, the shop is a treasure chest of vintage 60s/70s/80s rock, heavy metal, prog, psych, and folk. Known for fair pricing, friendly rock banter, and an ever-rotating inventory of clean pre-loved vinyl, it's an essential stop on any Forth Valley crate-digging expedition."
+        },
+        {
+            "id": 20,
+            "name": "Europa Music",
+            "area": "Stirling",
+            "address": "10 Friars St, Stirling FK8 1HA",
+            "lat": 56.1205,
+            "lng": -3.938,
+            "stock_type": "Mix (New & Used)",
+            "genres": [
+                "Rock",
+                "Folk",
+                "Blues",
+                "Jazz",
+                "Punk",
+                "Reggae"
+            ],
+            "has_listening_deck": true,
+            "buys_collections": true,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "One of Scotland's largest independent record shops, trading since 1992 with massive collections across all genres.",
+            "bio": "Established in 1992 on Friars Street in Stirling, Europa Music is one of Scotland's largest and most legendary independent music stores. Housed in a sprawling traditional shopfront just 22 miles from South Queensferry, it boasts tens of thousands of new and second-hand vinyl records spanning rock, folk, blues, jazz, punk, reggae, and classical, plus a massive CD and cassette department. A true Scottish crate-digging cathedral.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs",
+                "Cassettes"
+            ],
+            "website": "https://www.europamusic.co.uk/"
+        },
+        {
+            "id": 21,
+            "name": "D&J Records",
+            "area": "Bathgate, West Lothian",
+            "address": "28 George St, Bathgate EH48 1PW",
+            "lat": 55.9038,
+            "lng": -3.6409,
+            "stock_type": "Used Heavy",
+            "genres": [
+                "Rock",
+                "Pop",
+                "Soul",
+                "Country",
+                "Indie"
+            ],
+            "has_listening_deck": false,
+            "buys_collections": true,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "Beloved West Lothian vinyl and CD shop packed with pre-owned rock, pop, soul, and country classics.",
+            "bio": "Located on George Street in the heart of Bathgate, D&J Records is a cherished West Lothian hub for collectors and everyday music fans. Offering a warm, welcoming community feel with an extensive stock of pre-owned 12\" vinyl, 7\" singles, CDs, and audio gear across rock, pop, soul, country, and Scottish traditional music, D&J is an essential local crate-digging stop.",
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://www.facebook.com/djrecordsbathgate/"
         }
     ]
 }

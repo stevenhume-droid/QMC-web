@@ -2,7 +2,7 @@
 
 **Project Name:** Vinyl Store Radar (Queensferry Music Collective Vinyl Directory)  
 **Current Status:** Milestone 1 & 2 Completed • Live at `http://www.queensferrymusiccollective.co.uk/record-shops/`  
-**Target Scope:** Forth & Lothian 20-Mile Catchment (Edinburgh, West Lothian, Fife, Falkirk)  
+**Target Scope:** Forth & Lothian 25-Mile Catchment (Edinburgh, West Lothian, Fife, Falkirk, Stirling)  
 
 ---
 

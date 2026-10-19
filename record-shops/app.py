@@ -8,7 +8,7 @@ DB_PATH = "vinyl_radar.db"
 # Center point: Forth Bridges / South Queensferry (EH30)
 HOME_LAT = 55.9903
 HOME_LNG = -3.3965
-MAX_RADIUS_MILES = 20.0
+MAX_RADIUS_MILES = 25.0
 
 def haversine_miles(lat1, lon1, lat2, lon2):
     R = 3958.8  # Earth radius in miles
@@ -37,7 +37,9 @@ SEED_STORES = [
     ("Lounge 33", "Leith Walk, Edinburgh", "373-375 Leith Walk, EH6 8SE", 55.9651, -3.1751, "Mix (New & Used)", "Jazz, Soul, Funk, Blues, Hip-Hop", 1, 0, 0, 0, 1, "Vinyl listening space and specialty coffee lounge built around jazz, soul, funk, and hip-hop records."),
     ("Good Vibes Neighbourhood Store", "Leith, Edinburgh", "151-153 Constitution St, EH6 7AD", 55.9739, -3.1672, "New & Reissues", "Psych, Ambient, Electronic, Jazz, Folk", 0, 0, 0, 0, 0, "Curated selection of specialist labels, spiritual jazz, ambient, and psyche in the heart of Leith."),
     ("Avalanche Records", "City Centre, Edinburgh", "Waverley Market, 3 Princes St, EH1 1BQ", 55.9524, -3.1901, "Mix (New & Vintage)", "Scottish Indie, Post-Rock, Alternative", 0, 0, 0, 0, 0, "Long-running champion of Scottish independent bands alongside vintage vinyl crates."),
-    ("Silver Machine Records", "Falkirk", "The Avenue, 165 High St, FK1 1DU", 55.9994, -3.7845, "Used Heavy", "60s/70s Rock, Psych, Prog, Soul", 1, 1, 0, 1, 0, "Vintage and rare vinyl specialist on Falkirk High Street, just inside the western 20-mile boundary.")
+    ("Silver Machine Records", "Falkirk", "The Avenue, 165 High St, FK1 1DU", 55.9994, -3.7845, "Used Heavy", "60s/70s Rock, Psych, Prog, Soul", 1, 1, 0, 1, 0, "Vintage and rare vinyl specialist on Falkirk High Street with deep crates of classic rock and metal."),
+    ("Europa Music", "Stirling", "10 Friars St, Stirling FK8 1HA", 56.1205, -3.9380, "Mix (New & Used)", "Rock, Folk, Blues, Jazz, Punk, Reggae", 1, 1, 0, 1, 0, "One of Scotland's largest independent record shops, trading since 1992 with massive collections across all genres."),
+    ("D&J Records", "Bathgate, West Lothian", "28 George St, Bathgate EH48 1PW", 55.9038, -3.6409, "Used Heavy", "Rock, Pop, Soul, Country, Indie", 0, 1, 0, 1, 0, "Beloved West Lothian vinyl and CD shop packed with pre-owned rock, pop, soul, and country classics.")
 ]
 
 SEED_REVIEWS = [
@@ -152,7 +154,7 @@ HTML_TEMPLATE = """
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>20-Mile Vinyl Store Radar | Forth & Lothian Vinyl Directory</title>
+<title>25-Mile Vinyl Store Radar | Forth & Lothian Vinyl Directory</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -197,8 +199,8 @@ HTML_TEMPLATE = """
 <body>
 <header>
   <div>
-    <h1>20-MILE VINYL STORE RADAR</h1>
-    <span style="font-size:0.78rem; color:var(--muted);">Centred on South Queensferry (EH30) • Edinburgh, Fife, West Lothian & Falkirk</span>
+    <h1>25-MILE VINYL STORE RADAR</h1>
+    <span style="font-size:0.78rem; color:var(--muted);">Centred on South Queensferry (EH30) • Edinburgh, Fife, West Lothian, Falkirk & Stirling</span>
   </div>
   <div class="filters">
     <input type="text" id="searchInput" placeholder="Search store or genre (e.g. Jazz, Dub)..." oninput="renderStores()">
@@ -263,9 +265,9 @@ function initMap(center) {
     maxZoom: 19
   }).addTo(map);
 
-  // Draw 20-mile radius ring (20 miles = 32186.9 meters)
+  // Draw 25-mile radius ring (25 miles = 40233.6 meters)
   L.circle([center.lat, center.lng], {
-    radius: 32186.9, color: '#f59e0b', weight: 1.5, fillOpacity: 0.04, dashArray: '6, 6'
+    radius: 40233.6, color: '#f59e0b', weight: 1.5, fillOpacity: 0.04, dashArray: '6, 6'
   }).addTo(map);
 
   // Home marker
