@@ -208,6 +208,7 @@ HTML_TEMPLATE = """
     <span style="font-size:0.78rem; color:var(--muted);">Centred on South Queensferry (EH30) • Edinburgh, Fife, West Lothian, Falkirk & Stirling</span>
   </div>
   <div class="filters">
+    <button id="clearFiltersBtn" class="chip" onclick="clearAllFilters()" style="display:none; background:#ef4444; color:#fff; border-color:#ef4444;">✕ Clear</button>
     <input type="text" id="searchInput" placeholder="Search store or genre (e.g. Jazz, Dub)..." oninput="renderStores()">
     <button class="chip" onclick="toggleFilter('has_listening_deck', this)">Listening Deck</button>
     <button class="chip" onclick="toggleFilter('ultrasonic_cleaned', this)">Ultrasonic Cleaned</button>
@@ -302,11 +303,24 @@ function toggleFilter(key, btn) {
   renderStores();
 }
 
+function clearAllFilters() {
+  document.getElementById('searchInput').value = '';
+  activeFilters = {};
+  document.querySelectorAll('.filters .chip').forEach(b => b.classList.remove('active'));
+  renderStores();
+}
+
 function renderStores() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
   const listEl = document.getElementById('storeList');
   listEl.innerHTML = '';
   markersLayer.clearLayers();
+
+  const clearBtn = document.getElementById('clearFiltersBtn');
+  if (clearBtn) {
+    const hasAny = q.length > 0 || Object.values(activeFilters).some(Boolean);
+    clearBtn.style.display = hasAny ? 'inline-block' : 'none';
+  }
 
   const filtered = allStores.filter(s => {
     if (q && !(s.name.toLowerCase().includes(q) || s.genres.toLowerCase().includes(q) || s.area.toLowerCase().includes(q))) return false;

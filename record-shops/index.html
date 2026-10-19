@@ -366,6 +366,36 @@
             box-shadow: 0 2px 10px rgba(56, 189, 248, 0.35);
         }
 
+        .cr-chip.cr-chip-clear {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.4);
+            font-weight: 600;
+            display: none;
+            padding: 6px 14px;
+        }
+
+        .cr-chip.cr-chip-clear:hover {
+            background: #ef4444;
+            color: #ffffff;
+            border-color: #ef4444;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 10px rgba(239, 68, 68, 0.4);
+        }
+
+        [data-theme="light"] .cr-chip.cr-chip-clear {
+            background: #fee2e2;
+            color: #dc2626;
+            border-color: #fca5a5;
+        }
+
+        [data-theme="light"] .cr-chip.cr-chip-clear:hover {
+            background: #dc2626;
+            color: #ffffff;
+            border-color: #dc2626;
+            box-shadow: 0 2px 10px rgba(220, 38, 38, 0.25);
+        }
+
         [data-theme="light"] .cr-chip.cr-chip-format {
             border-color: rgba(2, 132, 199, 0.3);
             color: #0284c7;
@@ -1478,6 +1508,7 @@
             </div>
 
             <div class="cr-chips">
+                <button id="crClearFiltersBtn" class="cr-chip cr-chip-clear" onclick="clearAllFilters()" title="Clear all active filters and search">✕ Clear Filters</button>
                 <button class="cr-chip cr-chip-format" data-format="12&quot;" onclick="toggleFormatFilter('12&quot;', this)">💿 12" Vinyl</button>
                 <button class="cr-chip cr-chip-format" data-format="7&quot;" onclick="toggleFormatFilter('7&quot;', this)">🔘 7" Singles</button>
                 <button class="cr-chip cr-chip-format" data-format="CDs" onclick="toggleFormatFilter('CDs', this)">💽 CDs</button>
@@ -1800,6 +1831,29 @@
             renderStores();
         }
 
+        function clearAllFilters() {
+            // 1. Clear search input
+            const input = document.getElementById('crSearchInput');
+            if (input) input.value = '';
+            const searchClear = document.getElementById('crSearchClear');
+            if (searchClear) searchClear.style.display = 'none';
+
+            // 2. Clear format filters
+            activeFormats.clear();
+            document.querySelectorAll('.cr-chip-format').forEach(btn => btn.classList.remove('active'));
+
+            // 3. Clear perk filters
+            activeFilters = {};
+            document.querySelectorAll('.cr-chip[data-key]').forEach(btn => btn.classList.remove('active'));
+
+            // 4. Hide clear button
+            const clearBtn = document.getElementById('crClearFiltersBtn');
+            if (clearBtn) clearBtn.style.display = 'none';
+
+            // 5. Re-render full list
+            renderStores();
+        }
+
         let mapHidden = false;
 
         function toggleMapVisibility() {
@@ -2073,6 +2127,16 @@
             // Update counter
             document.getElementById('crCounterPill').innerText = `${filtered.length} of ${allStores.length} Shops`;
 
+            // Toggle visibility of the Clear Filters button in toolbar
+            const hasActivePerks = Object.values(activeFilters).some(Boolean);
+            const hasActiveFormats = activeFormats.size > 0;
+            const hasSearch = q.length > 0;
+            const hasAnyFilter = hasActivePerks || hasActiveFormats || hasSearch;
+            const clearBtn = document.getElementById('crClearFiltersBtn');
+            if (clearBtn) {
+                clearBtn.style.display = hasAnyFilter ? 'inline-flex' : 'none';
+            }
+
             if (filtered.length === 0) {
                 const emptyMsg = document.createElement('div');
                 emptyMsg.style.padding = '40px 20px';
@@ -2081,7 +2145,8 @@
                 emptyMsg.innerHTML = `
                     <div style="font-size:2rem; margin-bottom:10px;">🔍</div>
                     <strong style="color:var(--text-main); font-size:1.1rem; display:block; margin-bottom:6px;">No Record Shops Found</strong>
-                    No stores matched your current search and filters. Try clearing your search or toggling off some filters.
+                    <p style="margin-bottom:14px; font-size:0.86rem;">No stores matched your current search and filters.</p>
+                    <button class="cr-btn" onclick="clearAllFilters()" style="margin:0 auto; display:inline-flex; align-items:center; gap:6px;">✕ Clear All Filters</button>
                 `;
                 listEl.appendChild(emptyMsg);
                 return;
