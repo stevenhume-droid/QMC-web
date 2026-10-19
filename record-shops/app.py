@@ -39,7 +39,8 @@ SEED_STORES = [
     ("Avalanche Records", "City Centre, Edinburgh", "Waverley Market, 3 Princes St, EH1 1BQ", 55.9524, -3.1901, "Mix (New & Vintage)", "Scottish Indie, Post-Rock, Alternative", 0, 0, 0, 0, 0, "Long-running champion of Scottish independent bands alongside vintage vinyl crates."),
     ("Silver Machine Records", "Falkirk", "The Avenue, 165 High St, FK1 1DU", 55.9994, -3.7845, "Used Heavy", "60s/70s Rock, Psych, Prog, Soul", 1, 1, 0, 1, 0, "Vintage and rare vinyl specialist on Falkirk High Street with deep crates of classic rock and metal."),
     ("Europa Music", "Stirling", "10 Friars St, Stirling FK8 1HA", 56.1205, -3.9380, "Mix (New & Used)", "Rock, Folk, Blues, Jazz, Punk, Reggae", 1, 1, 0, 1, 0, "One of Scotland's largest independent record shops, trading since 1992 with massive collections across all genres."),
-    ("D&J Records", "Bathgate, West Lothian", "28 George St, Bathgate EH48 1PW", 55.9038, -3.6409, "Used Heavy", "Rock, Pop, Soul, Country, Indie", 0, 1, 0, 1, 0, "Beloved West Lothian vinyl and CD shop packed with pre-owned rock, pop, soul, and country classics.")
+    ("D&J Records", "Bathgate, West Lothian", "28 George St, Bathgate EH48 1PW", 55.9038, -3.6409, "Used Heavy", "Rock, Pop, Soul, Country, Indie", 0, 1, 0, 1, 0, "Beloved West Lothian vinyl and CD shop packed with pre-owned rock, pop, soul, and country classics."),
+    ("JPMJ Vinyl @ Flemings Antique Centre", "Inverkeithing, Fife", "3 Boreland Rd, Inverkeithing KY11 1NH", 56.0332, -3.3960, "Used Heavy", "Rock, Pop, Soul, Jazz, Prog, Dance", 0, 1, 0, 1, 1, "Extensive vintage vinyl selection inside Flemings Antique Centre, with on-site Majestic Tea Room just 3 miles across the Forth.")
 ]
 
 SEED_REVIEWS = [
