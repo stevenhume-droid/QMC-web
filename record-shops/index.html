@@ -17,8 +17,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        // Apply saved theme before paint to avoid a theme flash
-        if (localStorage.getItem('theme') === 'light') {
+        // Default to Light Theme unless explicitly saved as 'dark'
+        if (localStorage.getItem('theme') !== 'dark') {
             document.documentElement.setAttribute('data-theme', 'light');
         }
     </script>
@@ -1868,9 +1868,12 @@
         }
 
         function initTheme() {
-            const isLight = document.documentElement.getAttribute('data-theme') === 'light' || localStorage.getItem('theme') === 'light';
-            if (isLight) {
+            // Default to Light Theme unless user explicitly chose 'dark'
+            const isDark = localStorage.getItem('theme') === 'dark';
+            if (!isDark) {
                 document.documentElement.setAttribute('data-theme', 'light');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
             }
             const toggleBtn = document.getElementById('theme-toggle');
             if (toggleBtn) {
