@@ -1941,15 +1941,18 @@
 
         async function initDirectory() {
             try {
-                const res = await fetch('./stores.json');
+                // Cache-bust stores.json so updates appear immediately without browser disk cache delays
+                const res = await fetch('./stores.json?v=' + Date.now(), { cache: 'no-store' });
                 if (!res.ok) throw new Error('Fetch failed with status ' + res.status);
                 const data = await res.json();
                 hubCenter = data.center || hubCenter;
-                allStores = data.stores;
+                allStores = data.stores || [];
             } catch (err) {
                 console.warn('Loading stores.json directly failed (common when opened over file://), using fallback seed data.', err);
                 // Fallback store list ensures offline and file:// preview resilience
-                allStores = getFallbackStores();
+                const fallback = getFallbackStores();
+                hubCenter = fallback.center || hubCenter;
+                allStores = fallback.stores || [];
             }
 
             if (!map) initMap(hubCenter);
