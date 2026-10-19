@@ -152,7 +152,7 @@ HTML_TEMPLATE = """
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>20-Mile Crate Radar | Forth & Lothian Vinyl Directory</title>
+<title>20-Mile Vinyl Radar | Forth & Lothian Vinyl Directory</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -197,7 +197,7 @@ HTML_TEMPLATE = """
 <body>
 <header>
   <div>
-    <h1>20-MILE CRATE RADAR</h1>
+    <h1>20-MILE VINYL RADAR</h1>
     <span style="font-size:0.78rem; color:var(--muted);">Centred on South Queensferry (EH30) • Edinburgh, Fife, West Lothian & Falkirk</span>
   </div>
   <div class="filters">
@@ -313,7 +313,7 @@ function renderStores() {
     const perks = [];
     if (s.has_listening_deck) perks.push('Listening Deck');
     if (s.ultrasonic_cleaned) perks.push('Ultrasonic Cleaned');
-    if (s.buys_collections) perks.push('Buys Wax');
+    if (s.buys_collections) perks.push('Buys Vinyl');
     if (s.has_bargain_crates) perks.push('£1-£3 Crates');
     if (s.has_coffee_bar) perks.push('Coffee / Lounge');
 

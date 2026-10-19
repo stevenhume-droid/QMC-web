@@ -26,7 +26,13 @@
             "has_bargain_crates": true,
             "has_coffee_bar": false,
             "description": "Curated second-hand shop in west Edinburgh offering ultrasonic record cleaning and fair cash/trade on collections.",
-            "reviews": []
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://www.almondriverrecords.com/"
         },
         {
             "id": 2,
@@ -34,7 +40,7 @@
             "area": "Dunfermline, Fife",
             "address": "20 East Port, KY12 7JB",
             "lat": 56.0717,
-            "lng": -3.4580,
+            "lng": -3.458,
             "stock_type": "Mix (New & Used)",
             "genres": [
                 "Rock",
@@ -48,7 +54,14 @@
             "has_bargain_crates": true,
             "has_coffee_bar": false,
             "description": "Welcoming Fife independent with super honest condition grading across pre-loved and new vinyl.",
-            "reviews": []
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs",
+                "Cassettes"
+            ],
+            "website": "https://www.venenomusic.co.uk/"
         },
         {
             "id": 3,
@@ -70,7 +83,13 @@
             "has_bargain_crates": true,
             "has_coffee_bar": false,
             "description": "Independent Dunfermline spot strong on UK indie rarities, limited box sets, and pre-owned crates.",
-            "reviews": []
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://themusicbox.co.uk/"
         },
         {
             "id": 4,
@@ -92,7 +111,7 @@
             "ultrasonic_cleaned": true,
             "has_bargain_crates": true,
             "has_coffee_bar": false,
-            "description": "Famous for pristine front-shop stock and the legendary £1-£3 bargain basement room out back.",
+            "description": "Famous for pristine front-shop stock and the legendary \u00a31-\u00a33 bargain basement room out back.",
             "reviews": [
                 {
                     "reviewer_name": "CrateDigger_EH30",
@@ -100,9 +119,14 @@
                     "grading_score": 5,
                     "vibe_score": 5,
                     "best_pull": "Boards of Canada - Twoism (Warp Reissue)",
-                    "comment": "Front racks are immaculately clean, and the £2 backroom always yields a weird library record or 12-inch for sampling."
+                    "comment": "Front racks are immaculately clean, and the \u00a32 backroom always yields a weird library record or 12-inch for sampling."
                 }
-            ]
+            ],
+            "formats": [
+                "12\"",
+                "7\""
+            ],
+            "website": "https://voxboxmusic.co.uk/"
         },
         {
             "id": 5,
@@ -125,7 +149,14 @@
             "has_bargain_crates": true,
             "has_coffee_bar": false,
             "description": "Dedicated music charity shop receiving some of Edinburgh's best donated vinyl collections.",
-            "reviews": []
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs",
+                "Cassettes"
+            ],
+            "website": "https://www.oxfam.org.uk/"
         },
         {
             "id": 6,
@@ -147,7 +178,13 @@
             "has_bargain_crates": false,
             "has_coffee_bar": false,
             "description": "Linlithgow's local independent record shop. Great for indie exclusives, Ninja Tune/4AD/Soul Jazz releases, and RSD drops.",
-            "reviews": []
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://www.lowportmusic.co.uk/"
         },
         {
             "id": 7,
@@ -169,7 +206,12 @@
             "has_bargain_crates": true,
             "has_coffee_bar": false,
             "description": "Specialist shop dealing in underground club 12-inches, electronic, dub, and global experimental sounds.",
-            "reviews": []
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "Cassettes"
+            ],
+            "website": "https://greenhouserecords.co.uk/"
         },
         {
             "id": 8,
@@ -202,7 +244,12 @@
                     "best_pull": "Donald Byrd - Places and Spaces",
                     "comment": "Every used record is play-graded and ultrasonic cleaned. You can trust their VG+ sticker without hesitation."
                 }
-            ]
+            ],
+            "formats": [
+                "12\"",
+                "7\""
+            ],
+            "website": "https://umbrellavinyl.com/"
         },
         {
             "id": 9,
@@ -225,7 +272,13 @@
             "has_bargain_crates": false,
             "has_coffee_bar": false,
             "description": "Spacious new-release powerhouse known for numbered Japanese-style Obi editions and hardware/sleeves.",
-            "reviews": []
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://assai.co.uk/"
         },
         {
             "id": 10,
@@ -247,7 +300,14 @@
             "has_bargain_crates": true,
             "has_coffee_bar": false,
             "description": "Old-school floor-to-ceiling crate digger's staple with thousands of used LPs and 45s.",
-            "reviews": []
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs",
+                "Cassettes"
+            ],
+            "website": "https://backtracksmusic.co.uk/"
         },
         {
             "id": 11,
@@ -270,7 +330,13 @@
             "has_bargain_crates": false,
             "has_coffee_bar": false,
             "description": "Dog-friendly neighbourhood shop with super clean rack spacing and thoughtfully curated new pressings.",
-            "reviews": []
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://thornerecords.com/"
         },
         {
             "id": 12,
@@ -303,7 +369,13 @@
                     "best_pull": "DJ Krush - Strictly Turntablized",
                     "comment": "Still the undisputed king for dance 12s, hip-hop beats, and grabbing replacement styli in town."
                 }
-            ]
+            ],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://www.undergroundsolushn.com/"
         },
         {
             "id": 13,
@@ -325,7 +397,12 @@
             "has_bargain_crates": false,
             "has_coffee_bar": true,
             "description": "Independent record shop and specialty coffee bar tucked just off the Royal Mile.",
-            "reviews": []
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "Cassettes"
+            ],
+            "website": "https://slowprogress.co.uk/"
         },
         {
             "id": 14,
@@ -348,7 +425,13 @@
             "has_bargain_crates": true,
             "has_coffee_bar": false,
             "description": "At the top of Leith Walk since 1982. Deep second-hand racks and unpretentious staff knowledge.",
-            "reviews": []
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://www.vinylvillainsedinburgh.co.uk/"
         },
         {
             "id": 15,
@@ -371,7 +454,13 @@
             "has_bargain_crates": true,
             "has_coffee_bar": false,
             "description": "A proper treasure trove of second-hand vinyl and rare books; allow at least an hour to dig properly.",
-            "reviews": []
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://www.elvisshakespeare.com/"
         },
         {
             "id": 16,
@@ -403,7 +492,12 @@
                     "best_pull": "Thievery Corporation - The Richest Man in Babylon",
                     "comment": "Grab a flat white from Mr Eion beans, sit down with a stack of jazz and trip-hop records, and lose an afternoon."
                 }
-            ]
+            ],
+            "formats": [
+                "12\"",
+                "7\""
+            ],
+            "website": "https://lounge33.co.uk/"
         },
         {
             "id": 17,
@@ -426,7 +520,12 @@
             "has_bargain_crates": false,
             "has_coffee_bar": false,
             "description": "Curated selection of specialist labels, spiritual jazz, ambient, and psyche in the heart of Leith.",
-            "reviews": []
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "Cassettes"
+            ],
+            "website": "https://goodvibesneighbourhoodstore.com/"
         },
         {
             "id": 18,
@@ -447,7 +546,13 @@
             "has_bargain_crates": false,
             "has_coffee_bar": false,
             "description": "Long-running champion of Scottish independent bands alongside vintage vinyl crates.",
-            "reviews": []
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://avalancherecords.co.uk/"
         },
         {
             "id": 19,
@@ -469,7 +574,13 @@
             "has_bargain_crates": true,
             "has_coffee_bar": false,
             "description": "Vintage and rare vinyl specialist on Falkirk High Street, just inside the western 20-mile boundary.",
-            "reviews": []
+            "reviews": [],
+            "formats": [
+                "12\"",
+                "7\"",
+                "CDs"
+            ],
+            "website": "https://silvermachinerecords.co.uk/"
         }
     ]
 }
