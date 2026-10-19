@@ -728,7 +728,10 @@
         <div class="section-title"><span>3. Share & Export</span></div>
         <div class="action-row">
           <button id="downloadBtn">Download High-Res PNG</button>
-          <button id="fbShareBtn" class="facebook-share-btn" title="Export poster PNG & post directly to Queensferry Music Collective Facebook Group">
+          <button class="secondary" id="copyImageBtn" title="Copy high-res poster image directly to your clipboard for pasting (Ctrl+V) into Facebook, chats, or documents">
+            📋 Copy Poster Image
+          </button>
+          <button id="fbShareBtn" class="facebook-share-btn" title="Export poster image & post directly to Queensferry Music Collective Facebook Group">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
             </svg>
@@ -803,27 +806,37 @@
         <button class="modal-close" onclick="closeFbExportModal()">&times;</button>
       </div>
       <div style="font-size:0.9rem; line-height:1.55; color:var(--ui-text); display:flex; flex-direction:column; gap:12px; padding:10px 0;">
-        <div style="background:rgba(24, 119, 242, 0.1); border:1px solid rgba(24, 119, 242, 0.35); border-radius:8px; padding:12px; display:flex; gap:10px; align-items:flex-start;">
-          <span style="font-size:1.3rem;">🖼️</span>
-          <div>
-            <strong style="color:#ffffff;">1. High-Res Poster Downloaded</strong><br>
-            <span style="font-size:0.82rem; color:var(--ui-muted);">Check your browser's Downloads folder for <code>myqmc15-poster.png</code>.</span>
+        <div style="background:rgba(24, 119, 242, 0.1); border:1px solid rgba(24, 119, 242, 0.35); border-radius:8px; padding:12px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <span style="font-size:1.3rem;">📋</span>
+            <div>
+              <strong style="color:#ffffff;">1. Poster Image (Ready to Paste)</strong><br>
+              <span style="font-size:0.82rem; color:var(--ui-muted);" id="fbImgStatusText">Copied to clipboard (hit <b>Ctrl+V</b> in post) & saved to Downloads.</span>
+            </div>
           </div>
+          <button id="modalCopyImageBtn" class="secondary" style="flex:0 0 auto; font-size:0.8rem; padding:6px 12px; white-space:nowrap;" onclick="copyPosterImageFromModal()">
+            Copy Image
+          </button>
         </div>
 
-        <div style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.35); border-radius:8px; padding:12px; display:flex; gap:10px; align-items:flex-start;">
-          <span style="font-size:1.3rem;">📋</span>
-          <div>
-            <strong style="color:#ffffff;">2. Album List Copied to Clipboard</strong><br>
-            <span style="font-size:0.82rem; color:var(--ui-muted);">Your full 15 album titles and interactive link are copied and ready to paste into your post.</span>
+        <div style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.35); border-radius:8px; padding:12px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <span style="font-size:1.3rem;">📝</span>
+            <div>
+              <strong style="color:#ffffff;">2. Album List Caption</strong><br>
+              <span style="font-size:0.82rem; color:var(--ui-muted);">Your full 15 album titles and interactive board link.</span>
+            </div>
           </div>
+          <button id="modalCopyTextBtn" class="secondary" style="flex:0 0 auto; font-size:0.8rem; padding:6px 12px; white-space:nowrap;" onclick="copyTextCaptionFromModal()">
+            Copy Caption
+          </button>
         </div>
 
         <div style="background:#14161b; border:1px solid var(--ui-border); border-radius:8px; padding:12px; display:flex; gap:10px; align-items:flex-start;">
           <span style="font-size:1.3rem;">🚀</span>
           <div>
-            <strong style="color:#ffffff;">3. Drop into the Group Post</strong><br>
-            <span style="font-size:0.82rem; color:var(--ui-muted);">The Queensferry Music Collective Facebook Group opened in your other tab. Attach your downloaded PNG image and paste the text!</span>
+            <strong style="color:#ffffff;">3. Easy Facebook Posting:</strong><br>
+            <span style="font-size:0.82rem; color:var(--ui-muted);">In the Facebook Group tab, click <b>"Write something..."</b>, press <b>Ctrl + V</b> to paste the poster image, paste your caption, and share!</span>
           </div>
         </div>
       </div>
@@ -1039,12 +1052,14 @@
     const uploadTriggerBtn = document.getElementById("uploadTriggerBtn");
     const customFileInput = document.getElementById("customFileInput");
     const downloadBtn = document.getElementById("downloadBtn");
+    const copyImageBtn = document.getElementById("copyImageBtn");
     const fbShareBtn = document.getElementById("fbShareBtn");
     const shareUrlBtn = document.getElementById("shareUrlBtn");
     const copyListBtn = document.getElementById("copyListBtn");
     const clearBoardBtn = document.getElementById("clearBoardBtn");
 
     const fbExportModal = document.getElementById("fbExportModal");
+    const fbImgStatusText = document.getElementById("fbImgStatusText");
     const searchModal = document.getElementById("searchModal");
     const modalTitle = document.getElementById("modalTitle");
     const modalCloseBtn = document.getElementById("modalCloseBtn");
@@ -1495,161 +1510,166 @@
       });
     }
 
+    async function generatePosterBlob() {
+      const theme = THEMES[state.theme] || THEMES.paper;
+      const isLandscape = state.orientation === "landscape";
+      const isGenreRows = state.orientation === "genre-rows";
+      const genreLayout = isGenreRows ? getRowLayout() : null;
+      const cols = isGenreRows ? genreLayout.cols : (isLandscape ? 5 : 3);
+      const rows = isGenreRows ? genreLayout.rows.length : (isLandscape ? 3 : 5);
+      // Map each slot index to its [row, col] position
+      const positions = [];
+      if (isGenreRows) {
+        genreLayout.rows.forEach((row, r) => {
+          for (let c = 0; c < row.count; c++) positions[row.start + c] = [r, c];
+        });
+      } else {
+        for (let i = 0; i < TOTAL_SLOTS; i++) positions[i] = [Math.floor(i / cols), i % cols];
+      }
+
+      const padding = 80;
+      const gap = 34;
+      const coverSize = 340;
+      const captionHeight = state.captionStyle === "under" ? 56 : 0;
+      const headerHeight = 175;
+      const rowHeaderHeight = isGenreRows ? 50 : 0;
+      const footerHeight = state.captionStyle === "footer" ? 210 : 40;
+
+      const canvasWidth = padding * 2 + cols * coverSize + (cols - 1) * gap;
+      const canvasHeight = padding * 2 + headerHeight + rows * (coverSize + captionHeight + rowHeaderHeight) + (rows - 1) * gap + footerHeight;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      const ctx = canvas.getContext("2d");
+
+      if (typeof theme.canvasGradient === "function") {
+        ctx.fillStyle = theme.canvasGradient(ctx, canvasWidth, canvasHeight);
+      } else {
+        ctx.fillStyle = theme.bg;
+      }
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+      ctx.fillStyle = theme.text;
+      ctx.globalAlpha = 0.65;
+      ctx.font = "700 20px -apple-system, BlinkMacSystemFont, sans-serif";
+      const metaText = theme.meta || `MYQMC15 · ${theme.name.toUpperCase()}`;
+      ctx.fillText(metaText, padding, padding + 20);
+
+      const rightMeta = "· WHAT WAS PLAYING ON YOUR STEREO?";
+      const rightWidth = ctx.measureText(rightMeta).width;
+      ctx.fillText(rightMeta, canvasWidth - padding - rightWidth, padding + 20);
+
+      ctx.strokeStyle = theme.text;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(padding, padding + 40);
+      ctx.lineTo(canvasWidth - padding, padding + 40);
+      ctx.stroke();
+
+      ctx.globalAlpha = 1;
+      ctx.font = "800 52px -apple-system, BlinkMacSystemFont, sans-serif";
+      ctx.fillText(state.title || "The 15 Albums That Made Me", padding, padding + 115);
+
+      if (state.handle) {
+        ctx.globalAlpha = 0.75;
+        ctx.font = "600 28px -apple-system, BlinkMacSystemFont, sans-serif";
+        const handleWidth = ctx.measureText(state.handle).width;
+        ctx.fillText(state.handle, canvasWidth - padding - handleWidth, padding + 115);
+      }
+
+      const loadedImages = await Promise.all(
+        state.slots.map(slot => (slot && slot.coverUrl) ? loadCorsImage(slot.coverUrl) : null)
+      );
+      const failedCount = state.slots.filter((s, i) => s && !loadedImages[i]).length;
+
+      const gridStartY = padding + headerHeight;
+
+      for (let i = 0; i < TOTAL_SLOTS; i++) {
+        const [r, c] = positions[i];
+        const rowHeaderOffset = isGenreRows ? (r + 1) * rowHeaderHeight : 0;
+        const x = padding + c * (coverSize + gap);
+        const y = gridStartY + rowHeaderOffset + r * (coverSize + captionHeight) + (r * gap);
+        const slot = state.slots[i];
+        const img = loadedImages[i];
+        const numStr = String(i + 1).padStart(2, "0");
+
+        if (isGenreRows && c === 0) {
+          ctx.globalAlpha = 0.8;
+          ctx.fillStyle = theme.text;
+          ctx.font = "800 20px -apple-system, BlinkMacSystemFont, sans-serif";
+          ctx.fillText((state.rowHeaders[r] || `Row ${r + 1}`).toUpperCase(), padding, y - 16);
+          ctx.strokeStyle = theme.text;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(padding, y - 8);
+          ctx.lineTo(canvasWidth - padding, y - 8);
+          ctx.stroke();
+        }
+
+        if (img) {
+          ctx.globalAlpha = 1;
+          ctx.drawImage(img, x, y, coverSize, coverSize);
+        } else {
+          ctx.globalAlpha = 0.15;
+          ctx.fillStyle = theme.text;
+          ctx.fillRect(x, y, coverSize, coverSize);
+          ctx.globalAlpha = 0.45;
+          ctx.font = "700 32px -apple-system, BlinkMacSystemFont, sans-serif";
+          ctx.fillText(numStr, x + coverSize / 2 - 20, y + coverSize / 2 + 10);
+        }
+
+        if (state.captionStyle === "under") {
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = theme.text;
+          ctx.font = "700 20px -apple-system, BlinkMacSystemFont, sans-serif";
+          const titleLine = slot ? `${numStr}. ${slot.title}` : `${numStr}. —`;
+          ctx.fillText(truncateCanvasText(ctx, titleLine, coverSize), x, y + coverSize + 26);
+
+          ctx.globalAlpha = 0.72;
+          ctx.font = "500 18px -apple-system, BlinkMacSystemFont, sans-serif";
+          const artistLine = slot ? slot.artist : "";
+          ctx.fillText(truncateCanvasText(ctx, artistLine, coverSize), x, y + coverSize + 50);
+        }
+      }
+
+      if (state.captionStyle === "footer") {
+        const footerY = canvasHeight - 160;
+        ctx.globalAlpha = 0.65;
+        ctx.strokeStyle = theme.text;
+        ctx.beginPath();
+        ctx.moveTo(padding, footerY);
+        ctx.lineTo(canvasWidth - padding, footerY);
+        ctx.stroke();
+
+        const colWidth = (canvasWidth - padding * 2 - gap * 2) / 3;
+        ctx.font = "600 18px -apple-system, BlinkMacSystemFont, sans-serif";
+        state.slots.forEach((slot, idx) => {
+          const fc = Math.floor(idx / 5);
+          const fr = idx % 5;
+          const fx = padding + fc * (colWidth + gap);
+          const fy = footerY + 32 + fr * 28;
+          const num = String(idx + 1).padStart(2, "0");
+          const label = slot ? `${num}  ${slot.title} — ${slot.artist}` : `${num}  —`;
+          ctx.globalAlpha = 0.9;
+          ctx.fillText(truncateCanvasText(ctx, label, colWidth), fx, fy);
+        });
+      }
+
+      const blob = await new Promise((resolve, reject) => {
+        try { canvas.toBlob(b => b ? resolve(b) : reject(new Error("Empty canvas")), "image/png"); }
+        catch (err) { reject(err); }
+      });
+
+      return { blob, failedCount };
+    }
+
     async function exportPosterPng() {
       downloadBtn.disabled = true;
       downloadBtn.textContent = "Rendering PNG...";
 
       try {
-        const theme = THEMES[state.theme] || THEMES.paper;
-        const isLandscape = state.orientation === "landscape";
-        const isGenreRows = state.orientation === "genre-rows";
-        const genreLayout = isGenreRows ? getRowLayout() : null;
-        const cols = isGenreRows ? genreLayout.cols : (isLandscape ? 5 : 3);
-        const rows = isGenreRows ? genreLayout.rows.length : (isLandscape ? 3 : 5);
-        // Map each slot index to its [row, col] position
-        const positions = [];
-        if (isGenreRows) {
-          genreLayout.rows.forEach((row, r) => {
-            for (let c = 0; c < row.count; c++) positions[row.start + c] = [r, c];
-          });
-        } else {
-          for (let i = 0; i < TOTAL_SLOTS; i++) positions[i] = [Math.floor(i / cols), i % cols];
-        }
-
-        const padding = 80;
-        const gap = 34;
-        const coverSize = 340;
-        const captionHeight = state.captionStyle === "under" ? 56 : 0;
-        const headerHeight = 175;
-        const rowHeaderHeight = isGenreRows ? 50 : 0;
-        const footerHeight = state.captionStyle === "footer" ? 210 : 40;
-
-        const canvasWidth = padding * 2 + cols * coverSize + (cols - 1) * gap;
-        const canvasHeight = padding * 2 + headerHeight + rows * (coverSize + captionHeight + rowHeaderHeight) + (rows - 1) * gap + footerHeight;
-
-        const canvas = document.createElement("canvas");
-        canvas.width = canvasWidth;
-        canvas.height = canvasHeight;
-        const ctx = canvas.getContext("2d");
-
-        if (typeof theme.canvasGradient === "function") {
-          ctx.fillStyle = theme.canvasGradient(ctx, canvasWidth, canvasHeight);
-        } else {
-          ctx.fillStyle = theme.bg;
-        }
-        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-        ctx.fillStyle = theme.text;
-        ctx.globalAlpha = 0.65;
-        ctx.font = "700 20px -apple-system, BlinkMacSystemFont, sans-serif";
-        const metaText = theme.meta || `MYQMC15 · ${theme.name.toUpperCase()}`;
-        ctx.fillText(metaText, padding, padding + 20);
-
-        const rightMeta = "· WHAT WAS PLAYING ON YOUR STEREO?";
-        const rightWidth = ctx.measureText(rightMeta).width;
-        ctx.fillText(rightMeta, canvasWidth - padding - rightWidth, padding + 20);
-
-        ctx.strokeStyle = theme.text;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(padding, padding + 40);
-        ctx.lineTo(canvasWidth - padding, padding + 40);
-        ctx.stroke();
-
-        ctx.globalAlpha = 1;
-        ctx.font = "800 52px -apple-system, BlinkMacSystemFont, sans-serif";
-        ctx.fillText(state.title || "The 15 Albums That Made Me", padding, padding + 115);
-
-        if (state.handle) {
-          ctx.globalAlpha = 0.75;
-          ctx.font = "600 28px -apple-system, BlinkMacSystemFont, sans-serif";
-          const handleWidth = ctx.measureText(state.handle).width;
-          ctx.fillText(state.handle, canvasWidth - padding - handleWidth, padding + 115);
-        }
-
-        const loadedImages = await Promise.all(
-          state.slots.map(slot => (slot && slot.coverUrl) ? loadCorsImage(slot.coverUrl) : null)
-        );
-        const failedCount = state.slots.filter((s, i) => s && !loadedImages[i]).length;
-
-        const gridStartY = padding + headerHeight;
-
-        for (let i = 0; i < TOTAL_SLOTS; i++) {
-          const [r, c] = positions[i];
-          const rowHeaderOffset = isGenreRows ? (r + 1) * rowHeaderHeight : 0;
-          const x = padding + c * (coverSize + gap);
-          const y = gridStartY + rowHeaderOffset + r * (coverSize + captionHeight) + (r * gap);
-          const slot = state.slots[i];
-          const img = loadedImages[i];
-          const numStr = String(i + 1).padStart(2, "0");
-
-          if (isGenreRows && c === 0) {
-            ctx.globalAlpha = 0.8;
-            ctx.fillStyle = theme.text;
-            ctx.font = "800 20px -apple-system, BlinkMacSystemFont, sans-serif";
-            ctx.fillText((state.rowHeaders[r] || `Row ${r + 1}`).toUpperCase(), padding, y - 16);
-            ctx.strokeStyle = theme.text;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(padding, y - 8);
-            ctx.lineTo(canvasWidth - padding, y - 8);
-            ctx.stroke();
-          }
-
-          if (img) {
-            ctx.globalAlpha = 1;
-            ctx.drawImage(img, x, y, coverSize, coverSize);
-          } else {
-            ctx.globalAlpha = 0.15;
-            ctx.fillStyle = theme.text;
-            ctx.fillRect(x, y, coverSize, coverSize);
-            ctx.globalAlpha = 0.45;
-            ctx.font = "700 32px -apple-system, BlinkMacSystemFont, sans-serif";
-            ctx.fillText(numStr, x + coverSize / 2 - 20, y + coverSize / 2 + 10);
-          }
-
-          if (state.captionStyle === "under") {
-            ctx.globalAlpha = 1;
-            ctx.fillStyle = theme.text;
-            ctx.font = "700 20px -apple-system, BlinkMacSystemFont, sans-serif";
-            const titleLine = slot ? `${numStr}. ${slot.title}` : `${numStr}. —`;
-            ctx.fillText(truncateCanvasText(ctx, titleLine, coverSize), x, y + coverSize + 26);
-
-            ctx.globalAlpha = 0.72;
-            ctx.font = "500 18px -apple-system, BlinkMacSystemFont, sans-serif";
-            const artistLine = slot ? slot.artist : "";
-            ctx.fillText(truncateCanvasText(ctx, artistLine, coverSize), x, y + coverSize + 50);
-          }
-        }
-
-        if (state.captionStyle === "footer") {
-          const footerY = canvasHeight - 160;
-          ctx.globalAlpha = 0.65;
-          ctx.strokeStyle = theme.text;
-          ctx.beginPath();
-          ctx.moveTo(padding, footerY);
-          ctx.lineTo(canvasWidth - padding, footerY);
-          ctx.stroke();
-
-          const colWidth = (canvasWidth - padding * 2 - gap * 2) / 3;
-          ctx.font = "600 18px -apple-system, BlinkMacSystemFont, sans-serif";
-          state.slots.forEach((slot, idx) => {
-            const fc = Math.floor(idx / 5);
-            const fr = idx % 5;
-            const fx = padding + fc * (colWidth + gap);
-            const fy = footerY + 32 + fr * 28;
-            const num = String(idx + 1).padStart(2, "0");
-            const label = slot ? `${num}  ${slot.title} — ${slot.artist}` : `${num}  —`;
-            ctx.globalAlpha = 0.9;
-            ctx.fillText(truncateCanvasText(ctx, label, colWidth), fx, fy);
-          });
-        }
-
-        // toBlob is far more memory-friendly than a multi-MB data URL
-        const blob = await new Promise((resolve, reject) => {
-          try { canvas.toBlob(b => b ? resolve(b) : reject(new Error("Empty canvas")), "image/png"); }
-          catch (err) { reject(err); }
-        });
+        const { blob, failedCount } = await generatePosterBlob();
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.download = "myqmc15-poster.png";
@@ -1667,6 +1687,41 @@
       } finally {
         downloadBtn.disabled = false;
         downloadBtn.textContent = "Download High-Res PNG";
+      }
+    }
+
+    async function copyPosterImageToClipboard() {
+      const filledCount = state.slots.filter(Boolean).length;
+      if (filledCount === 0) {
+        alert("Please pick some albums first before copying the poster image!");
+        return false;
+      }
+
+      if (!navigator.clipboard || !window.ClipboardItem) {
+        alert("Your browser does not support copying images directly to clipboard. Please use 'Download High-Res PNG' instead.");
+        return false;
+      }
+
+      const originalText = copyImageBtn.textContent;
+      copyImageBtn.disabled = true;
+      copyImageBtn.textContent = "Rendering Image...";
+
+      try {
+        const { blob } = await generatePosterBlob();
+        await navigator.clipboard.write([
+          new ClipboardItem({ "image/png": blob })
+        ]);
+
+        copyImageBtn.textContent = "Copied Image! (Ctrl+V)";
+        setTimeout(() => { copyImageBtn.textContent = originalText; }, 3000);
+        return true;
+      } catch (err) {
+        console.error("Copy image failed:", err);
+        alert("Could not copy image to clipboard: " + err.message + ". You can use 'Download High-Res PNG' to save it.");
+        copyImageBtn.textContent = originalText;
+        return false;
+      } finally {
+        copyImageBtn.disabled = false;
       }
     }
 
@@ -1794,6 +1849,7 @@
     });
 
     downloadBtn.addEventListener("click", exportPosterPng);
+    copyImageBtn.addEventListener("click", copyPosterImageToClipboard);
 
     function openFbExportModal() {
       if (fbExportModal) fbExportModal.style.display = "flex";
@@ -1801,6 +1857,51 @@
 
     function closeFbExportModal() {
       if (fbExportModal) fbExportModal.style.display = "none";
+    }
+
+    function buildFbPostCaption() {
+      const albumLines = state.slots
+        .map((s, idx) => s ? `${String(idx + 1).padStart(2, '0')}. ${s.title} — ${s.artist}` : null)
+        .filter(Boolean)
+        .join('\n');
+
+      const shareSlots = state.slots.map(s => (s && String(s.coverUrl).startsWith("data:")) ? null : s);
+      const jsonStr = JSON.stringify({
+        slots: shareSlots,
+        title: state.title,
+        handle: state.handle,
+        theme: state.theme,
+        orientation: state.orientation,
+        captionStyle: state.captionStyle,
+        rowCount: state.rowCount,
+        rowHeaders: state.rowHeaders
+      });
+      const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
+      const shareUrl = "https://www.queensferrymusiccollective.co.uk/myqmc15.html#board=" + encoded;
+
+      return `🎵 My QMC 15 Albums — "${state.title || 'The 15 Albums That Made Me'}"\n` +
+        (state.handle ? `Curated by: ${state.handle}\n\n` : '\n') +
+        albumLines +
+        `\n\nCurate your own 15 albums at:\n${shareUrl}`;
+    }
+
+    async function copyPosterImageFromModal() {
+      const btn = document.getElementById("modalCopyImageBtn");
+      if (btn) btn.textContent = "Copying...";
+      const ok = await copyPosterImageToClipboard();
+      if (btn) {
+        btn.textContent = ok ? "Copied! (Ctrl+V)" : "Try Download";
+        setTimeout(() => { btn.textContent = "Copy Image"; }, 2500);
+      }
+    }
+
+    async function copyTextCaptionFromModal() {
+      const btn = document.getElementById("modalCopyTextBtn");
+      const text = buildFbPostCaption();
+      if (await copyText(text)) {
+        if (btn) btn.textContent = "Copied!";
+        setTimeout(() => { if (btn) btn.textContent = "Copy Caption"; }, 2000);
+      }
     }
 
     async function exportToFacebookGroup() {
@@ -1812,44 +1913,49 @@
 
       const originalHtml = fbShareBtn.innerHTML;
       fbShareBtn.disabled = true;
-      fbShareBtn.innerHTML = `<span>⏳ Preparing...</span>`;
+      fbShareBtn.innerHTML = `<span>⏳ Preparing Image...</span>`;
 
       try {
-        // 1. Prepare and copy the structured post caption to clipboard
-        const albumLines = state.slots
-          .map((s, idx) => s ? `${String(idx + 1).padStart(2, '0')}. ${s.title} — ${s.artist}` : null)
-          .filter(Boolean)
-          .join('\n');
+        // 1. Render and get poster blob
+        const { blob, failedCount } = await generatePosterBlob();
 
-        const shareSlots = state.slots.map(s => (s && String(s.coverUrl).startsWith("data:")) ? null : s);
-        const jsonStr = JSON.stringify({
-          slots: shareSlots,
-          title: state.title,
-          handle: state.handle,
-          theme: state.theme,
-          orientation: state.orientation,
-          captionStyle: state.captionStyle,
-          rowCount: state.rowCount,
-          rowHeaders: state.rowHeaders
-        });
-        const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
-        const shareUrl = "https://www.queensferrymusiccollective.co.uk/myqmc15.html#board=" + encoded;
+        // 2. Copy poster image directly to system clipboard so user can press Ctrl+V into Facebook
+        let imageCopied = false;
+        if (navigator.clipboard && window.ClipboardItem) {
+          try {
+            await navigator.clipboard.write([
+              new ClipboardItem({ "image/png": blob })
+            ]);
+            imageCopied = true;
+          } catch (e) {
+            console.warn("Direct image copy to clipboard failed:", e);
+          }
+        }
 
-        const postText = `🎵 My QMC 15 Albums — "${state.title || 'The 15 Albums That Made Me'}"\n` +
-          (state.handle ? `Curated by: ${state.handle}\n\n` : '\n') +
-          albumLines +
-          `\n\nCurate your own 15 albums at:\n${shareUrl}`;
+        // 3. Download PNG to user's device as reliable backup
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.download = "myqmc15-poster.png";
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
 
-        await copyText(postText);
+        // 4. Update modal text to let user know image is ready on clipboard
+        if (fbImgStatusText) {
+          if (imageCopied) {
+            fbImgStatusText.innerHTML = `Copied to your clipboard! Press <b>Ctrl + V</b> directly in Facebook post (or use downloaded PNG).`;
+          } else {
+            fbImgStatusText.innerHTML = `Saved to your Downloads folder as <code>myqmc15-poster.png</code>.`;
+          }
+        }
 
-        // 2. Render and trigger PNG poster download
-        await exportPosterPng();
-
-        // 3. Open Facebook group URL in a new tab
+        // 5. Open Facebook Group in new tab
         const fbGroupUrl = "https://www.facebook.com/share/g/18iS5o58EB/?mibextid=wwXIfr";
         window.open(fbGroupUrl, "_blank", "noopener,noreferrer");
 
-        // 4. Show the instructional modal
+        // 6. Show the step-by-step modal
         openFbExportModal();
       } catch (err) {
         console.error("Facebook export error:", err);
