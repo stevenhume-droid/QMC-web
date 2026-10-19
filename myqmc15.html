@@ -251,6 +251,28 @@
       flex: 1;
     }
 
+    .facebook-share-btn {
+      background: #1877f2;
+      color: #ffffff !important;
+      border: 1px solid #166fe5;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .facebook-share-btn:hover {
+      background: #166fe5;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(24, 119, 242, 0.4);
+    }
+
+    .facebook-share-btn:active {
+      transform: translateY(1px);
+    }
+
     /* Poster Preview Area */
     .preview-container {
       display: flex;
@@ -706,7 +728,16 @@
         <div class="section-title"><span>3. Share & Export</span></div>
         <div class="action-row">
           <button id="downloadBtn">Download High-Res PNG</button>
-          <button class="secondary" id="shareUrlBtn">Copy Share Link</button>
+          <button id="fbShareBtn" class="facebook-share-btn" title="Export poster PNG & post directly to Queensferry Music Collective Facebook Group">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+            Export to FB Group
+          </button>
+        </div>
+        <div class="action-row" style="margin-top: 8px;">
+          <button class="secondary" id="shareUrlBtn" title="Copy interactive link to this curated board">Copy Share Link</button>
+          <button class="secondary" id="copyListBtn" title="Copy formatted album list text to clipboard">Copy Text List</button>
           <button class="secondary" id="clearBoardBtn">Clear</button>
         </div>
       </div>
@@ -755,6 +786,55 @@
       <div id="modalResults" class="modal-results">
         <div style="color:var(--ui-muted); font-size:0.85rem; text-align:center; padding:24px;">Type above to search
           archive.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Facebook Export Modal Dialog -->
+  <div id="fbExportModal" class="modal-backdrop" style="display: none;" onclick="if(event.target===this) closeFbExportModal()">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <div class="modal-title" style="display:flex; align-items:center; gap:8px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#1877f2">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+          </svg>
+          Export to QMC Facebook Group
+        </div>
+        <button class="modal-close" onclick="closeFbExportModal()">&times;</button>
+      </div>
+      <div style="font-size:0.9rem; line-height:1.55; color:var(--ui-text); display:flex; flex-direction:column; gap:12px; padding:10px 0;">
+        <div style="background:rgba(24, 119, 242, 0.1); border:1px solid rgba(24, 119, 242, 0.35); border-radius:8px; padding:12px; display:flex; gap:10px; align-items:flex-start;">
+          <span style="font-size:1.3rem;">🖼️</span>
+          <div>
+            <strong style="color:#ffffff;">1. High-Res Poster Downloaded</strong><br>
+            <span style="font-size:0.82rem; color:var(--ui-muted);">Check your browser's Downloads folder for <code>myqmc15-poster.png</code>.</span>
+          </div>
+        </div>
+
+        <div style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.35); border-radius:8px; padding:12px; display:flex; gap:10px; align-items:flex-start;">
+          <span style="font-size:1.3rem;">📋</span>
+          <div>
+            <strong style="color:#ffffff;">2. Album List Copied to Clipboard</strong><br>
+            <span style="font-size:0.82rem; color:var(--ui-muted);">Your full 15 album titles and interactive link are copied and ready to paste into your post.</span>
+          </div>
+        </div>
+
+        <div style="background:#14161b; border:1px solid var(--ui-border); border-radius:8px; padding:12px; display:flex; gap:10px; align-items:flex-start;">
+          <span style="font-size:1.3rem;">🚀</span>
+          <div>
+            <strong style="color:#ffffff;">3. Drop into the Group Post</strong><br>
+            <span style="font-size:0.82rem; color:var(--ui-muted);">The Queensferry Music Collective Facebook Group opened in your other tab. Attach your downloaded PNG image and paste the text!</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:8px;">
+        <button class="secondary" onclick="closeFbExportModal()" style="flex:0 0 auto; padding:8px 16px;">Done</button>
+        <a href="https://www.facebook.com/share/g/18iS5o58EB/?mibextid=wwXIfr" target="_blank" rel="noopener" class="facebook-share-btn" style="text-decoration:none; padding:10px 18px; border-radius:8px; font-weight:600; font-size:0.9rem; flex:1;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+          </svg>
+          Go to Facebook Group →
+        </a>
       </div>
     </div>
   </div>
@@ -959,9 +1039,12 @@
     const uploadTriggerBtn = document.getElementById("uploadTriggerBtn");
     const customFileInput = document.getElementById("customFileInput");
     const downloadBtn = document.getElementById("downloadBtn");
+    const fbShareBtn = document.getElementById("fbShareBtn");
     const shareUrlBtn = document.getElementById("shareUrlBtn");
+    const copyListBtn = document.getElementById("copyListBtn");
     const clearBoardBtn = document.getElementById("clearBoardBtn");
 
+    const fbExportModal = document.getElementById("fbExportModal");
     const searchModal = document.getElementById("searchModal");
     const modalTitle = document.getElementById("modalTitle");
     const modalCloseBtn = document.getElementById("modalCloseBtn");
@@ -1711,6 +1794,97 @@
     });
 
     downloadBtn.addEventListener("click", exportPosterPng);
+
+    function openFbExportModal() {
+      if (fbExportModal) fbExportModal.style.display = "flex";
+    }
+
+    function closeFbExportModal() {
+      if (fbExportModal) fbExportModal.style.display = "none";
+    }
+
+    async function exportToFacebookGroup() {
+      const filledCount = state.slots.filter(Boolean).length;
+      if (filledCount === 0) {
+        alert("Please pick some albums first before exporting to the Facebook Group!");
+        return;
+      }
+
+      const originalHtml = fbShareBtn.innerHTML;
+      fbShareBtn.disabled = true;
+      fbShareBtn.innerHTML = `<span>⏳ Preparing...</span>`;
+
+      try {
+        // 1. Prepare and copy the structured post caption to clipboard
+        const albumLines = state.slots
+          .map((s, idx) => s ? `${String(idx + 1).padStart(2, '0')}. ${s.title} — ${s.artist}` : null)
+          .filter(Boolean)
+          .join('\n');
+
+        const shareSlots = state.slots.map(s => (s && String(s.coverUrl).startsWith("data:")) ? null : s);
+        const jsonStr = JSON.stringify({
+          slots: shareSlots,
+          title: state.title,
+          handle: state.handle,
+          theme: state.theme,
+          orientation: state.orientation,
+          captionStyle: state.captionStyle,
+          rowCount: state.rowCount,
+          rowHeaders: state.rowHeaders
+        });
+        const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
+        const shareUrl = "https://www.queensferrymusiccollective.co.uk/myqmc15.html#board=" + encoded;
+
+        const postText = `🎵 My QMC 15 Albums — "${state.title || 'The 15 Albums That Made Me'}"\n` +
+          (state.handle ? `Curated by: ${state.handle}\n\n` : '\n') +
+          albumLines +
+          `\n\nCurate your own 15 albums at:\n${shareUrl}`;
+
+        await copyText(postText);
+
+        // 2. Render and trigger PNG poster download
+        await exportPosterPng();
+
+        // 3. Open Facebook group URL in a new tab
+        const fbGroupUrl = "https://www.facebook.com/share/g/18iS5o58EB/?mibextid=wwXIfr";
+        window.open(fbGroupUrl, "_blank", "noopener,noreferrer");
+
+        // 4. Show the instructional modal
+        openFbExportModal();
+      } catch (err) {
+        console.error("Facebook export error:", err);
+        alert("Facebook export notice: " + err.message);
+      } finally {
+        fbShareBtn.disabled = false;
+        fbShareBtn.innerHTML = originalHtml;
+      }
+    }
+
+    fbShareBtn.addEventListener("click", exportToFacebookGroup);
+
+    copyListBtn.addEventListener("click", async () => {
+      const filledCount = state.slots.filter(Boolean).length;
+      if (filledCount === 0) {
+        alert("Pick some album covers first to generate your text list!");
+        return;
+      }
+
+      const albumLines = state.slots
+        .map((s, idx) => s ? `${String(idx + 1).padStart(2, '0')}. ${s.title} — ${s.artist}` : `${String(idx + 1).padStart(2, '0')}. [Empty Slot]`)
+        .join('\n');
+
+      const text = `🎵 My QMC 15 Albums — "${state.title || 'The 15 Albums That Made Me'}"\n` +
+        (state.handle ? `Curator: ${state.handle}\n\n` : '\n') +
+        albumLines +
+        `\n\nCurate your own 15 albums at: https://www.queensferrymusiccollective.co.uk/myqmc15.html`;
+
+      if (await copyText(text)) {
+        copyListBtn.textContent = "Copied List!";
+        setTimeout(() => { copyListBtn.textContent = "Copy Text List"; }, 2000);
+      } else {
+        prompt("Copy your album list:", text);
+      }
+    });
 
     clearBoardBtn.addEventListener("click", () => {
       if (confirm("Clear all 15 album slots?")) {
