@@ -109,9 +109,60 @@
             <div class="border-b border-borderDark pb-4">
                 <div class="text-xs font-semibold uppercase tracking-wider text-forthRed mb-1">Step 2 of 3</div>
                 <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-clock text-forthRed"></i> Transport & Timing Setup
+                    <i class="fa-solid fa-clock text-forthRed"></i> Route Endpoints, Transport & Timing
                 </h2>
-                <p class="text-sm text-gray-400 mt-0.5">Choose how you're travelling and your schedule parameters.</p>
+                <p class="text-sm text-gray-400 mt-0.5">Choose your departure and return points, how you're travelling, and your schedule parameters.</p>
+            </div>
+
+            <!-- Depart & Return Point Selectors -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-2 border-b border-borderDark/70">
+                <!-- Departure Point -->
+                <div class="space-y-2">
+                    <label for="departurePointSelect" class="block text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        <i class="fa-solid fa-flag-checkered text-forthRed mr-1"></i> Departure Point
+                    </label>
+                    <select id="departurePointSelect" onchange="handleDeparturePointChange()" class="w-full bg-gray-900 border border-borderDark rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-forthRed transition">
+                        <option value="sq_hub" selected>South Queensferry Hub (EH30)</option>
+                        <option value="dalmeny_stn">Dalmeny Station (South Queensferry)</option>
+                        <option value="edinburgh_waverley">Edinburgh Waverley Station</option>
+                        <option value="haymarket_stn">Edinburgh Haymarket Station</option>
+                        <option value="dunfermline_city">Dunfermline City Centre</option>
+                        <option value="linlithgow_stn">Linlithgow Station / High St</option>
+                        <option value="falkirk_high">Falkirk Town Centre</option>
+                        <option value="stirling_stn">Stirling Station / Town Centre</option>
+                        <option value="alloa_town">Alloa Town Centre</option>
+                        <option value="live_gps">📍 Use My Live GPS Location</option>
+                        <option value="custom">✏️ Custom Departure Point...</option>
+                    </select>
+                    <div id="customDepartureWrap" class="hidden pt-1">
+                        <input type="text" id="customDepartureInput" placeholder="Enter custom starting point (e.g. Kirkcaldy, Leith Walk...)" class="w-full bg-gray-900/80 border border-borderDark rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-forthRed transition">
+                    </div>
+                </div>
+
+                <!-- Return / Finish Point -->
+                <div class="space-y-2">
+                    <label for="returnPointSelect" class="block text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        <i class="fa-solid fa-champagne-glasses text-emerald-400 mr-1"></i> Return / Finish Point
+                    </label>
+                    <select id="returnPointSelect" onchange="handleReturnPointChange()" class="w-full bg-gray-900 border border-borderDark rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-forthRed transition">
+                        <option value="los_hermanos" selected>Los Hermanos Pícaros, South Queensferry (Debrief HQ)</option>
+                        <option value="same_as_depart">🔄 Return to Departure Point</option>
+                        <option value="sq_hub">South Queensferry Hub (EH30)</option>
+                        <option value="dalmeny_stn">Dalmeny Station (South Queensferry)</option>
+                        <option value="edinburgh_waverley">Edinburgh Waverley / Old Town Pubs</option>
+                        <option value="haymarket_stn">Edinburgh Haymarket Station</option>
+                        <option value="leith_walk">Leith Walk / Foot of the Walk</option>
+                        <option value="dunfermline_city">Dunfermline City Centre</option>
+                        <option value="linlithgow_stn">Linlithgow High St / Canal Basin</option>
+                        <option value="falkirk_high">Falkirk Town Centre</option>
+                        <option value="stirling_stn">Stirling Town Centre</option>
+                        <option value="last_store">🛑 Finish at Final Record Shop (No Return Leg)</option>
+                        <option value="custom">✏️ Custom Return / Pub Venue...</option>
+                    </select>
+                    <div id="customReturnWrap" class="hidden pt-1">
+                        <input type="text" id="customReturnInput" placeholder="Enter custom finish venue or station..." class="w-full bg-gray-900/80 border border-borderDark rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-forthRed transition">
+                    </div>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -200,8 +251,8 @@
                     <div id="statTransportMode" class="text-base sm:text-lg font-bold text-white capitalize">Driving</div>
                 </div>
                 <div>
-                    <div class="text-[11px] uppercase tracking-wider text-gray-400">Final Debrief</div>
-                    <div class="text-base sm:text-lg font-bold text-emerald-400">Los Hermanos</div>
+                    <div class="text-[11px] uppercase tracking-wider text-gray-400">Final Stop</div>
+                    <div id="statFinishPoint" class="text-base sm:text-lg font-bold text-emerald-400 truncate px-1">Los Hermanos</div>
                 </div>
             </div>
 
@@ -309,6 +360,121 @@
             radius_miles: 25.0
         };
 
+        // Preset Departure & Return Endpoints across the 25-mile catchment
+        const ROUTE_ENDPOINTS = {
+            sq_hub: {
+                title: "QMC Hub Departure",
+                shortName: "South Queensferry",
+                location: "South Queensferry (EH30)",
+                address: "High St, South Queensferry EH30 9PP",
+                lat: 55.9903,
+                lng: -3.3965,
+                startDesc: "Gathering at South Queensferry Hub. Tote bag checks and crate route briefing.",
+                finishDesc: "Returning to South Queensferry Hub with the day's vinyl haul."
+            },
+            los_hermanos: {
+                title: "Los Hermanos Pícaros",
+                shortName: "Los Hermanos",
+                location: "South Queensferry",
+                address: "7-8 shore, South Queensferry EH30 9TG",
+                lat: 55.9912,
+                lng: -3.3988,
+                startDesc: "Starting out from Los Hermanos Pícaros on the South Queensferry shorefront.",
+                finishDesc: "End-of-crawl celebration! Tapas, cold pints, bag checks, and spinning your best 7-inch finds."
+            },
+            dalmeny_stn: {
+                title: "Dalmeny Station",
+                shortName: "Dalmeny Stn",
+                location: "South Queensferry",
+                address: "Station Rd, South Queensferry EH30 9JU",
+                lat: 55.9834,
+                lng: -3.3852,
+                startDesc: "Meeting at Dalmeny ScotRail Station platform for the crawl departure.",
+                finishDesc: "Wrapping up at Dalmeny Station for easy rail connections home."
+            },
+            edinburgh_waverley: {
+                title: "Edinburgh Waverley",
+                shortName: "Waverley",
+                location: "Central Edinburgh",
+                address: "Waverley Bridge, Edinburgh EH1 1BB",
+                lat: 55.9520,
+                lng: -3.1899,
+                startDesc: "Central Edinburgh rendezvous at Waverley steps before hitting the crates.",
+                finishDesc: "Finishing up in central Edinburgh for post-crawl pints and sleeve inspection."
+            },
+            haymarket_stn: {
+                title: "Edinburgh Haymarket",
+                shortName: "Haymarket",
+                location: "West End, Edinburgh",
+                address: "Haymarket Terrace, Edinburgh EH12 5EY",
+                lat: 55.9456,
+                lng: -3.2183,
+                startDesc: "West End / Haymarket hub departure for Edinburgh & Lothian digging.",
+                finishDesc: "Wrapping up the tour at Haymarket for West End pubs and transit links."
+            },
+            leith_walk: {
+                title: "Leith Walk Hub",
+                shortName: "Leith Walk",
+                location: "Leith, Edinburgh",
+                address: "Leith Walk, Edinburgh EH6 8RN",
+                lat: 55.9651,
+                lng: -3.1751,
+                startDesc: "Starting the crawl on Leith Walk in the heart of East Edinburgh's vinyl strip.",
+                finishDesc: "Wrapping up the crawl on Leith Walk for drinks and record chat."
+            },
+            dunfermline_city: {
+                title: "Dunfermline City Centre",
+                shortName: "Dunfermline",
+                location: "Dunfermline, Fife",
+                address: "High St, Dunfermline KY12 7DL",
+                lat: 56.0715,
+                lng: -3.4590,
+                startDesc: "Fife departure hub in historic Dunfermline before heading out on the route.",
+                finishDesc: "Returning to Dunfermline to compare Fife & Lothian crate pulls."
+            },
+            linlithgow_stn: {
+                title: "Linlithgow High St / Station",
+                shortName: "Linlithgow",
+                location: "Linlithgow, West Lothian",
+                address: "High St, Linlithgow EH49 7ED",
+                lat: 55.9765,
+                lng: -3.5960,
+                startDesc: "West Lothian departure point in historic Linlithgow.",
+                finishDesc: "Finishing up in Linlithgow by the canal basin after a day in the racks."
+            },
+            falkirk_high: {
+                title: "Falkirk Town Centre",
+                shortName: "Falkirk",
+                location: "Falkirk",
+                address: "High St, Falkirk FK1 1NW",
+                lat: 55.9990,
+                lng: -3.7840,
+                startDesc: "Forth Valley departure hub on Falkirk High Street.",
+                finishDesc: "Wrapping up the record crawl back in Falkirk Town Centre."
+            },
+            stirling_stn: {
+                title: "Stirling Station / Town Centre",
+                shortName: "Stirling",
+                location: "Stirling",
+                address: "Goosecroft Rd, Stirling FK8 1PF",
+                lat: 56.1190,
+                lng: -3.9355,
+                startDesc: "Stirling departure hub at the top of the Forth Valley.",
+                finishDesc: "Wrapping up the crawl in central Stirling."
+            },
+            alloa_town: {
+                title: "Alloa Town Centre",
+                shortName: "Alloa",
+                location: "Alloa, Clackmannanshire",
+                address: "Primrose St, Alloa FK10 1JJ",
+                lat: 56.1165,
+                lng: -3.7913,
+                startDesc: "Clackmannanshire departure hub in central Alloa.",
+                finishDesc: "Returning to Alloa after the day's record digging."
+            }
+        };
+
+        let liveGpsCoords = null;
         let storesData = [];
         let selectedRegion = 'all';
         let selectedTransport = 'driving';
@@ -1060,12 +1226,141 @@
             });
         }
 
-        // Nearest-neighbor route optimization starting from South Queensferry Hub
-        function optimizeStoreOrder(selectedStores) {
+        // Resolve selected Departure Point object
+        function getSelectedDeparturePoint() {
+            const key = document.getElementById('departurePointSelect')?.value || 'sq_hub';
+            if (key === 'live_gps' && liveGpsCoords) {
+                return {
+                    key: 'live_gps',
+                    title: "My Live GPS Location",
+                    shortName: "Your Location",
+                    location: "Live GPS Coordinates",
+                    address: `${liveGpsCoords.lat.toFixed(4)}, ${liveGpsCoords.lng.toFixed(4)}`,
+                    lat: liveGpsCoords.lat,
+                    lng: liveGpsCoords.lng,
+                    startDesc: "Starting crawl directly from your current live GPS coordinates.",
+                    finishDesc: "Returning to your starting GPS coordinates."
+                };
+            }
+            if (key === 'custom') {
+                const customLabel = (document.getElementById('customDepartureInput')?.value || '').trim() || 'Custom Departure Point';
+                return {
+                    key: 'custom',
+                    title: customLabel,
+                    shortName: customLabel,
+                    location: customLabel,
+                    address: customLabel,
+                    lat: hubCenter.lat,
+                    lng: hubCenter.lng,
+                    startDesc: `Departing from ${customLabel}. Tote bag checks and crate route briefing.`,
+                    finishDesc: `Returning to ${customLabel} with the day's vinyl haul.`
+                };
+            }
+            return { key, ...(ROUTE_ENDPOINTS[key] || ROUTE_ENDPOINTS.sq_hub) };
+        }
+
+        // Resolve selected Return / Finish Point object
+        function getSelectedReturnPoint(departPoint, lastStore) {
+            const key = document.getElementById('returnPointSelect')?.value || 'los_hermanos';
+            if (key === 'last_store') {
+                return {
+                    key: 'last_store',
+                    isLastStoreOnly: true,
+                    title: lastStore ? lastStore.name : 'Final Shop',
+                    shortName: lastStore ? lastStore.name : 'Final Shop',
+                    location: lastStore ? lastStore.location : '',
+                    address: lastStore ? lastStore.address : ''
+                };
+            }
+            if (key === 'same_as_depart') {
+                return {
+                    ...departPoint,
+                    key: 'same_as_depart',
+                    title: departPoint.title.replace(' Departure', ''),
+                    finishDesc: departPoint.finishDesc || `Returning to ${departPoint.title} to wrap up the crawl.`
+                };
+            }
+            if (key === 'custom') {
+                const customLabel = (document.getElementById('customReturnInput')?.value || '').trim() || 'Custom Finish Venue';
+                return {
+                    key: 'custom',
+                    title: customLabel,
+                    shortName: customLabel,
+                    location: customLabel,
+                    address: customLabel,
+                    lat: departPoint.lat,
+                    lng: departPoint.lng,
+                    finishDesc: `End-of-crawl debrief and record haul celebration at ${customLabel}!`
+                };
+            }
+            return { key, ...(ROUTE_ENDPOINTS[key] || ROUTE_ENDPOINTS.los_hermanos) };
+        }
+
+        // Recalculate store card distances when Departure Point changes
+        function refreshStoreDistancesFromDeparture() {
+            const depart = getSelectedDeparturePoint();
+            storesData.forEach(s => {
+                s.distanceMiles = haversineMiles(depart.lat, depart.lng, s.lat, s.lng);
+                s.distance = `${s.distanceMiles} miles from ${depart.shortName}`;
+            });
+            storesData.sort((a, b) => a.distanceMiles - b.distanceMiles);
+            renderStoreGrid();
+        }
+
+        function handleDeparturePointChange() {
+            const key = document.getElementById('departurePointSelect').value;
+            const customWrap = document.getElementById('customDepartureWrap');
+            if (key === 'custom') {
+                customWrap.classList.remove('hidden');
+                document.getElementById('customDepartureInput').focus();
+            } else {
+                customWrap.classList.add('hidden');
+            }
+
+            if (key === 'live_gps') {
+                if (!navigator.geolocation) {
+                    showToast("Geolocation is not supported by your browser; using South Queensferry.", "error");
+                    document.getElementById('departurePointSelect').value = 'sq_hub';
+                    refreshStoreDistancesFromDeparture();
+                    return;
+                }
+                showToast("Locating your live GPS position...");
+                navigator.geolocation.getCurrentPosition(
+                    pos => {
+                        liveGpsCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                        refreshStoreDistancesFromDeparture();
+                        showToast("Departure set to your live GPS location!");
+                    },
+                    () => {
+                        showToast("Could not access GPS; defaulting to South Queensferry Hub.");
+                        document.getElementById('departurePointSelect').value = 'sq_hub';
+                        refreshStoreDistancesFromDeparture();
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+                return;
+            }
+
+            refreshStoreDistancesFromDeparture();
+        }
+
+        function handleReturnPointChange() {
+            const key = document.getElementById('returnPointSelect').value;
+            const customWrap = document.getElementById('customReturnWrap');
+            if (key === 'custom') {
+                customWrap.classList.remove('hidden');
+                document.getElementById('customReturnInput').focus();
+            } else {
+                customWrap.classList.add('hidden');
+            }
+        }
+
+        // Nearest-neighbor route optimization starting from chosen Departure Point
+        function optimizeStoreOrder(selectedStores, startPoint) {
             const remaining = [...selectedStores];
             const ordered = [];
-            let currLat = hubCenter.lat;
-            let currLng = hubCenter.lng;
+            let currLat = startPoint.lat;
+            let currLng = startPoint.lng;
 
             while (remaining.length > 0) {
                 let bestIdx = 0;
@@ -1105,7 +1400,10 @@
                 return;
             }
 
-            const orderedStores = optimizeStoreOrder(activeStores);
+            const departPoint = getSelectedDeparturePoint();
+            const orderedStores = optimizeStoreOrder(activeStores, departPoint);
+            const lastStore = orderedStores[orderedStores.length - 1];
+            const returnPoint = getSelectedReturnPoint(departPoint, lastStore);
 
             const depTimeStr = document.getElementById('departureTime').value || "10:00";
             const browseMins = parseInt(document.getElementById('browseDuration').value) || 45;
@@ -1117,17 +1415,18 @@
 
             currentItinerary = [];
 
-            // Starting point: South Queensferry QMC Base
+            // Starting point
             currentItinerary.push({
                 type: 'start',
-                title: 'QMC Base Departure',
-                location: 'South Queensferry (EH30)',
+                title: departPoint.title,
+                location: departPoint.location,
+                address: departPoint.address,
                 time: formatTime(currentTimeMinutes),
-                desc: 'Gathering at South Queensferry Hub. Tote bag checks and crate route briefing.'
+                desc: departPoint.startDesc
             });
 
-            let prevLat = hubCenter.lat;
-            let prevLng = hubCenter.lng;
+            let prevLat = departPoint.lat;
+            let prevLng = departPoint.lng;
 
             orderedStores.forEach((store, index) => {
                 const legMiles = haversineMiles(prevLat, prevLng, store.lat, store.lng);
@@ -1169,37 +1468,44 @@
                 prevLng = store.lng;
             });
 
-            // Final Stop: Return from last store to Los Hermanos Tapas Bar, South Queensferry
-            const returnMiles = haversineMiles(prevLat, prevLng, hubCenter.lat, hubCenter.lng);
-            const returnMins = estimateLegMinutes(returnMiles, selectedTransport);
-            currentTimeMinutes += returnMins;
-            let pubArrival = currentTimeMinutes;
-            currentTimeMinutes += 90; // 1.5 hours pints & debrief
+            // Final Stop: Return / Finish Point (unless user chose to finish at last record shop)
+            if (!returnPoint.isLastStoreOnly) {
+                const returnMiles = haversineMiles(prevLat, prevLng, returnPoint.lat, returnPoint.lng);
+                const returnMins = estimateLegMinutes(returnMiles, selectedTransport);
+                currentTimeMinutes += returnMins;
+                let finishArrival = currentTimeMinutes;
+                currentTimeMinutes += 90; // 1.5 hours debrief
 
-            currentItinerary.push({
-                type: 'transit',
-                title: 'Return Transit to South Queensferry',
-                time: formatTime(pubArrival),
-                desc: `Heading back to South Queensferry (${returnMiles} mi • ~${returnMins} mins).`
-            });
+                currentItinerary.push({
+                    type: 'transit',
+                    title: `Return Transit to ${returnPoint.shortName}`,
+                    time: formatTime(finishArrival),
+                    desc: `Heading to ${returnPoint.title} (${returnMiles} mi • ~${returnMins} mins).`
+                });
 
-            currentItinerary.push({
-                type: 'finish',
-                title: 'Los Hermanos Pícaros',
-                location: 'South Queensferry',
-                time: formatTime(pubArrival),
-                departTime: formatTime(currentTimeMinutes),
-                desc: 'End-of-crawl celebration! Tapas, cold pints, bag checks, and spinning your best 7-inch finds.'
-            });
+                currentItinerary.push({
+                    type: 'finish',
+                    title: returnPoint.title,
+                    location: returnPoint.location,
+                    address: returnPoint.address,
+                    time: formatTime(finishArrival),
+                    departTime: formatTime(currentTimeMinutes),
+                    desc: returnPoint.finishDesc
+                });
+            }
 
             const totalDurationMins = currentTimeMinutes - startMinutes;
             const totalHours = Math.floor(totalDurationMins / 60);
             const remMins = totalDurationMins % 60;
             document.getElementById('statTotalTime').innerText = `${totalHours}h ${remMins}m`;
+            document.getElementById('statFinishPoint').innerText = returnPoint.shortName;
+            document.getElementById('itinerarySubtitle').innerText = returnPoint.isLastStoreOnly
+                ? `Optimized route departing from ${departPoint.shortName} and finishing at ${lastStore.name}.`
+                : `Optimized route departing from ${departPoint.shortName} and finishing at ${returnPoint.title}.`;
 
             renderTimeline(orderedStores.length);
             renderCompanionStops();
-            populateReportStoreSelect(orderedStores);
+            populateReportStoreSelect(orderedStores, returnPoint);
 
             // Show Section & Scroll smooth
             const section = document.getElementById('itinerarySection');
@@ -1346,7 +1652,7 @@
             document.getElementById('crateReportModal').classList.add('hidden');
         }
 
-        function populateReportStoreSelect(orderedStores) {
+        function populateReportStoreSelect(orderedStores, returnPoint) {
             const select = document.getElementById('reportStoreSelect');
             select.innerHTML = '';
             (orderedStores || storesData.filter(s => s.defaultSelected)).forEach(s => {
@@ -1355,10 +1661,13 @@
                 opt.innerText = `${s.name} (${s.location})`;
                 select.appendChild(opt);
             });
-            const pubOpt = document.createElement('option');
-            pubOpt.value = 'Los Hermanos Pícaros';
-            pubOpt.innerText = 'Los Hermanos Pícaros (HQ)';
-            select.appendChild(pubOpt);
+            if (!returnPoint || !returnPoint.isLastStoreOnly) {
+                const finTitle = returnPoint ? returnPoint.title : 'Los Hermanos Pícaros';
+                const pubOpt = document.createElement('option');
+                pubOpt.value = finTitle;
+                pubOpt.innerText = `${finTitle} (Finish / Debrief)`;
+                select.appendChild(pubOpt);
+            }
         }
 
         function submitCrateReport(e) {
@@ -1372,15 +1681,20 @@
 
         // Copy Itinerary Text
         function copyItineraryText() {
+            const finishItem = currentItinerary.find(i => i.type === 'finish');
             let text = "🎵 QMC SATURDAY RECORD CRAWL ITINERARY 🎵\n";
             text += "========================================\n\n";
             currentItinerary.forEach(i => {
-                if (i.type === 'start') text += `[START] ${i.time} - ${i.title}\n`;
+                if (i.type === 'start') text += `[START] ${i.time} - ${i.title} (${i.location})\n`;
                 else if (i.type === 'transit') text += `  ➔ ${i.time}: ${i.desc}\n`;
                 else if (i.type === 'store') text += `[STOP] ${i.arriveTime}–${i.departTime} - ${i.title} (${i.address}, ${i.location})\n`;
-                else if (i.type === 'finish') text += `[FINISH] ${i.time} - ${i.title}\n`;
+                else if (i.type === 'finish') text += `[FINISH] ${i.time} - ${i.title} (${i.location})\n`;
             });
-            text += "\nEnding up at Los Hermanos Pícaros, South Queensferry. Queensferry Music Collective.";
+            if (finishItem) {
+                text += `\nFinishing at ${finishItem.title} (${finishItem.location}). Queensferry Music Collective.`;
+            } else {
+                text += "\nQueensferry Music Collective.";
+            }
 
             const textarea = document.createElement('textarea');
             textarea.value = text;
@@ -1400,6 +1714,13 @@
             selectedRegion = 'all';
             const searchInput = document.getElementById('storeSearchInput');
             if (searchInput) searchInput.value = '';
+            const depSelect = document.getElementById('departurePointSelect');
+            if (depSelect) depSelect.value = 'sq_hub';
+            const retSelect = document.getElementById('returnPointSelect');
+            if (retSelect) retSelect.value = 'los_hermanos';
+            document.getElementById('customDepartureWrap')?.classList.add('hidden');
+            document.getElementById('customReturnWrap')?.classList.add('hidden');
+            refreshStoreDistancesFromDeparture();
             setRegionFilter('all');
             updateSelectedCount();
             document.getElementById('itinerarySection').classList.add('hidden');
