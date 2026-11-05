@@ -259,6 +259,20 @@
                 </div>
             </div>
 
+            <!-- Closing Time Advisory Banner (Shown when stops are tight or past closing) -->
+            <div id="closingWarningBanner" class="hidden rounded-xl border p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-start gap-3">
+                    <i id="closingWarningIcon" class="fa-solid fa-clock-rotate-left text-amber-400 text-lg mt-0.5"></i>
+                    <div class="text-xs sm:text-sm">
+                        <div id="closingWarningTitle" class="font-bold text-white">Closing Time Advisory</div>
+                        <p id="closingWarningText" class="text-gray-300 mt-0.5"></p>
+                    </div>
+                </div>
+                <button id="autoAdjustScheduleBtn" onclick="autoFixScheduleForClosing()" class="bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs px-4 py-2.5 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 shadow-md">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Fit Schedule
+                </button>
+            </div>
+
             <!-- Timeline Container -->
             <div id="timelineContainer" class="relative pl-4 sm:pl-8 space-y-6 before:absolute before:left-2 sm:before:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-gradient-to-b before:from-forthRed before:via-gray-700 before:to-emerald-500">
                 <!-- Timeline items injected dynamically -->
@@ -504,9 +518,53 @@
             return 'other';
         }
 
+        // Default Opening & Closing Hours map by Store ID (fallback if stores.json is cached)
+        const STORE_HOURS_BY_ID = {
+            1:  { open: "11:00", close: "17:00" }, // Almond River Records
+            2:  { open: "10:00", close: "17:00" }, // Veneno Music Store
+            3:  { open: "10:00", close: "16:30" }, // The Music Box
+            4:  { open: "10:30", close: "17:00" }, // VoxBox Music
+            5:  { open: "10:00", close: "17:00" }, // Oxfam Music Stockbridge
+            6:  { open: "10:00", close: "18:00" }, // Low Port Music
+            7:  { open: "11:00", close: "17:00" }, // Greenhouse Records
+            8:  { open: "10:00", close: "17:00" }, // Umbrella Vinyl
+            9:  { open: "10:00", close: "17:30" }, // Assai Records
+            10: { open: "10:00", close: "17:30" }, // Backtracks Music
+            11: { open: "09:00", close: "18:00" }, // Thorne Records
+            12: { open: "10:00", close: "18:00" }, // Underground Solu'shn
+            13: { open: "10:00", close: "17:00" }, // Slow Progress Records & Coffee
+            14: { open: "10:00", close: "17:30" }, // Vinyl Villains
+            16: { open: "10:00", close: "17:00" }, // Lounge 33
+            17: { open: "10:00", close: "17:00" }, // Good Vibes Neighbourhood Store
+            18: { open: "10:00", close: "17:00" }, // Avalanche Records
+            19: { open: "10:00", close: "17:00" }, // Silver Machine Records
+            20: { open: "10:00", close: "17:30" }, // Europa Music (Stirling)
+            21: { open: "09:00", close: "17:00" }, // D&J Records
+            22: { open: "09:00", close: "17:00" }, // JPMJ Vinyl @ Flemings
+            23: { open: "10:00", close: "16:30" }, // KCC Vinyl
+            24: { open: "10:00", close: "17:30" }, // Backbeat Records
+            25: { open: "10:00", close: "17:00" }  // Europa Music (Alloa)
+        };
+
+        function parseTimeStrToMins(timeStr, fallbackMins) {
+            if (!timeStr || typeof timeStr !== 'string' || !timeStr.includes(':')) return fallbackMins;
+            const [h, m] = timeStr.split(':').map(Number);
+            if (isNaN(h) || isNaN(m)) return fallbackMins;
+            return h * 60 + m;
+        }
+
         // Transform raw store entry from record-shops/stores.json into planner format
         function normalizeStore(raw, center) {
             const distMiles = haversineMiles(center.lat, center.lng, raw.lat, raw.lng);
+            const fallbackHours = STORE_HOURS_BY_ID[raw.id] || { open: "10:00", close: "17:00" };
+            const openTimeStr = raw.open_time || fallbackHours.open;
+            const closeTimeStr = raw.close_time || fallbackHours.close;
+            const openMins = parseTimeStrToMins(openTimeStr, 600);
+            const closeMins = parseTimeStrToMins(closeTimeStr, 1020);
+            const openFormatted = formatTime(openMins);
+            const closeFormatted = formatTime(closeMins);
+            const hoursLabel = `${openFormatted} – ${closeFormatted}`;
+
             const tags = [];
             if (raw.has_record_label) tags.push('🏷️ Record Label');
             if (raw.ultrasonic_cleaned) tags.push('✨ Ultrasonic cleaning');
@@ -538,6 +596,13 @@
                 address: raw.address,
                 lat: raw.lat,
                 lng: raw.lng,
+                openTimeStr,
+                closeTimeStr,
+                openMins,
+                closeMins,
+                openFormatted,
+                closeFormatted,
+                hoursLabel,
                 stock_type: raw.stock_type,
                 genres: raw.genres || [],
                 formats: raw.formats || [],
@@ -1171,7 +1236,12 @@
                     <div>
                         <div class="flex items-start justify-between gap-2 mb-2">
                             <div>
-                                <span class="text-[10px] font-bold uppercase tracking-wider text-forthRed bg-forthRed/10 px-2 py-0.5 rounded">${store.location}</span>
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-forthRed bg-forthRed/10 px-2 py-0.5 rounded">${store.location}</span>
+                                    <span class="text-[10px] font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded flex items-center gap-1" title="Saturday Opening & Closing Hours">
+                                        <i class="fa-regular fa-clock text-[9px]"></i> ${store.hoursLabel}
+                                    </span>
+                                </div>
                                 <h3 class="font-bold text-white text-base mt-1">${store.name}</h3>
                             </div>
                             <div class="store-checkbox w-6 h-6 rounded-lg border flex-shrink-0 flex items-center justify-center transition ${isSelected ? 'bg-forthRed border-forthRed text-white' : 'border-gray-700 bg-gray-800 text-transparent'}">
@@ -1379,24 +1449,111 @@
             }
         }
 
-        // Nearest-neighbor route optimization starting from chosen Departure Point
-        function optimizeStoreOrder(selectedStores, startPoint) {
+        // Evaluate a candidate store visit order against opening/closing hours and travel time
+        function evaluateRouteSchedule(storesOrder, startPoint, startMinutes, browseMins, mode) {
+            let currTime = startMinutes;
+            let prevLat = startPoint.lat;
+            let prevLng = startPoint.lng;
+            let closedCount = 0;
+            let trimmedCount = 0;
+            let totalOverrunMins = 0;
+            let totalWaitMins = 0;
+            let totalTravelMins = 0;
+
+            for (const store of storesOrder) {
+                const legMiles = haversineMiles(prevLat, prevLng, store.lat, store.lng);
+                const travelMins = estimateLegMinutes(legMiles, mode);
+                totalTravelMins += travelMins;
+                currTime += travelMins;
+
+                // If arriving before the store opens, wait until openMins
+                if (currTime < store.openMins) {
+                    totalWaitMins += (store.openMins - currTime);
+                    currTime = store.openMins;
+                }
+
+                const remainingOpen = store.closeMins - currTime;
+                if (remainingOpen < 15) {
+                    // Closed on arrival (or less than 15m before doors shut)
+                    closedCount++;
+                    totalOverrunMins += Math.max(15, currTime + browseMins - store.closeMins);
+                    currTime += browseMins;
+                } else if (remainingOpen < browseMins) {
+                    // Tight window: must trim browse time to finish by closing time
+                    trimmedCount++;
+                    totalOverrunMins += (browseMins - remainingOpen);
+                    currTime = store.closeMins;
+                } else {
+                    currTime += browseMins;
+                }
+
+                prevLat = store.lat;
+                prevLng = store.lng;
+            }
+
+            // Composite penalty: prioritize 0 closed stores, then 0 trimmed stores, then minimal wait + travel
+            const penalty = (closedCount * 1000000) + (trimmedCount * 50000) + (totalOverrunMins * 500) + (totalWaitMins * 4) + (totalTravelMins * 10);
+            return { penalty, closedCount, trimmedCount, totalWaitMins, totalTravelMins };
+        }
+
+        // Closing-time-aware route optimization starting from chosen Departure Point & Time
+        function optimizeStoreOrder(selectedStores, startPoint, startMinutes = 600, browseMins = 45, mode = 'driving') {
+            if (selectedStores.length <= 1) return [...selectedStores];
+
+            // For up to 7 stores (<= 5,040 permutations), evaluate exact permutations to find the best open-hours + travel fit
+            if (selectedStores.length <= 7) {
+                let bestOrder = [...selectedStores];
+                let bestScore = Infinity;
+
+                function permute(arr, m = []) {
+                    if (arr.length === 0) {
+                        const res = evaluateRouteSchedule(m, startPoint, startMinutes, browseMins, mode);
+                        if (res.penalty < bestScore) {
+                            bestScore = res.penalty;
+                            bestOrder = m;
+                        }
+                        return;
+                    }
+                    for (let i = 0; i < arr.length; i++) {
+                        const curr = arr.slice();
+                        const next = curr.splice(i, 1);
+                        permute(curr, m.concat(next));
+                    }
+                }
+
+                permute(selectedStores);
+                return bestOrder;
+            }
+
+            // For >7 stores, use a time-window + distance greedy heuristic
             const remaining = [...selectedStores];
             const ordered = [];
             let currLat = startPoint.lat;
             let currLng = startPoint.lng;
+            let currTime = startMinutes;
 
             while (remaining.length > 0) {
                 let bestIdx = 0;
-                let bestDist = Infinity;
+                let bestCost = Infinity;
                 remaining.forEach((s, idx) => {
                     const d = haversineMiles(currLat, currLng, s.lat, s.lng);
-                    if (d < bestDist) {
-                        bestDist = d;
+                    const travelMins = estimateLegMinutes(d, mode);
+                    const arrive = currTime + travelMins;
+                    const waitMins = Math.max(0, s.openMins - arrive);
+                    const effectiveStart = Math.max(arrive, s.openMins);
+                    const slackBeforeClose = s.closeMins - (effectiveStart + browseMins);
+                    // Favor close distance, penalize waiting for late openers, urgency boost for early closers
+                    let cost = travelMins * 3 + waitMins * 2 + (s.closeMins * 0.15);
+                    if (slackBeforeClose < 0) cost += 5000;
+                    else if (slackBeforeClose < 45) cost -= 25;
+                    if (cost < bestCost) {
+                        bestCost = cost;
                         bestIdx = idx;
                     }
                 });
                 const nextStore = remaining.splice(bestIdx, 1)[0];
+                const d = haversineMiles(currLat, currLng, nextStore.lat, nextStore.lng);
+                currTime = Math.max(currTime + estimateLegMinutes(d, mode), nextStore.openMins) + browseMins;
                 ordered.push(nextStore);
                 currLat = nextStore.lat;
                 currLng = nextStore.lng;
@@ -1416,6 +1573,50 @@
             }
         }
 
+        // One-click auto-adjust to fit all selected stores before their closing times
+        function autoFixScheduleForClosing() {
+            const activeStores = storesData.filter(s => s.defaultSelected && (selectedRegion === 'all' || s.region === selectedRegion));
+            if (activeStores.length < 1) return;
+
+            const departPoint = getSelectedDeparturePoint();
+            const candidateBrowseTimes = [45, 30];
+            const currentBrowse = parseInt(document.getElementById('browseDuration').value) || 45;
+            if (!candidateBrowseTimes.includes(currentBrowse)) candidateBrowseTimes.unshift(currentBrowse);
+
+            // Search for a departure time (between 08:30 and 12:00 in 15m steps) and browse duration that eliminates closed/trimmed stops
+            let bestDepMins = 540; // 09:00
+            let bestBrowse = 30;
+            let bestEval = { penalty: Infinity };
+
+            for (const bMins of candidateBrowseTimes) {
+                for (let depMins = 510; depMins <= 720; depMins += 15) {
+                    const ordered = optimizeStoreOrder(activeStores, departPoint, depMins, bMins, selectedTransport);
+                    const ev = evaluateRouteSchedule(ordered, departPoint, depMins, bMins, selectedTransport);
+                    if (ev.closedCount === 0 && ev.trimmedCount === 0) {
+                        bestDepMins = depMins;
+                        bestBrowse = bMins;
+                        bestEval = ev;
+                        break;
+                    }
+                    if (ev.penalty < bestEval.penalty) {
+                        bestEval = ev;
+                        bestDepMins = depMins;
+                        bestBrowse = bMins;
+                    }
+                }
+                if (bestEval.closedCount === 0 && bestEval.trimmedCount === 0) break;
+            }
+
+            const hh = String(Math.floor(bestDepMins / 60)).padStart(2, '0');
+            const mm = String(bestDepMins % 60).padStart(2, '0');
+            document.getElementById('departureTime').value = `${hh}:${mm}`;
+            document.getElementById('browseDuration').value = bestBrowse;
+            document.getElementById('browseDurationVal').innerText = `${bestBrowse} mins`;
+
+            generateItinerary();
+            showToast(`Schedule adjusted to ${formatTime(bestDepMins)} departure (${bestBrowse}m/stop) to beat closing times!`);
+        }
+
         // Generate Itinerary Logic
         function generateItinerary() {
             const activeStores = storesData.filter(s => s.defaultSelected && (selectedRegion === 'all' || s.region === selectedRegion));
@@ -1424,11 +1625,6 @@
                 return;
             }
 
-            const departPoint = getSelectedDeparturePoint();
-            const orderedStores = optimizeStoreOrder(activeStores, departPoint);
-            const lastStore = orderedStores[orderedStores.length - 1];
-            const returnPoint = getSelectedReturnPoint(departPoint, lastStore);
-
             const depTimeStr = document.getElementById('departureTime').value || "10:00";
             const browseMins = parseInt(document.getElementById('browseDuration').value) || 45;
 
@@ -1436,6 +1632,11 @@
             let [hours, minutes] = depTimeStr.split(':').map(Number);
             let startMinutes = hours * 60 + minutes;
             let currentTimeMinutes = startMinutes;
+
+            const departPoint = getSelectedDeparturePoint();
+            const orderedStores = optimizeStoreOrder(activeStores, departPoint, startMinutes, browseMins, selectedTransport);
+            const lastStore = orderedStores[orderedStores.length - 1];
+            const returnPoint = getSelectedReturnPoint(departPoint, lastStore);
 
             currentItinerary = [];
 
@@ -1451,6 +1652,8 @@
 
             let prevLat = departPoint.lat;
             let prevLng = departPoint.lng;
+            let closedStoresList = [];
+            let trimmedStoresList = [];
 
             orderedStores.forEach((store, index) => {
                 const legMiles = haversineMiles(prevLat, prevLng, store.lat, store.lng);
@@ -1470,9 +1673,41 @@
                     desc: travelText
                 });
 
-                // Store Stop
+                // Check if arriving before store opens
+                let waitBufferMins = 0;
+                if (currentTimeMinutes < store.openMins) {
+                    waitBufferMins = store.openMins - currentTimeMinutes;
+                    currentItinerary.push({
+                        type: 'transit',
+                        title: `Wait for Opening`,
+                        time: formatTime(currentTimeMinutes),
+                        desc: `☕ ${store.name} opens at ${store.openFormatted} (${waitBufferMins}m coffee/early arrival buffer)`
+                    });
+                    currentTimeMinutes = store.openMins;
+                }
+
+                // Check store closing time constraints
                 let arriveMins = currentTimeMinutes;
-                currentTimeMinutes += browseMins;
+                let actualBrowseMins = browseMins;
+                let hoursStatus = 'open'; // 'open' | 'trimmed' | 'closed'
+                let hoursStatusNote = `Open ${store.hoursLabel}`;
+
+                const minsUntilClose = store.closeMins - arriveMins;
+                if (minsUntilClose < 15) {
+                    hoursStatus = 'closed';
+                    hoursStatusNote = `🚨 Closed by arrival! (${store.name} closes at ${store.closeFormatted})`;
+                    closedStoresList.push(store.name);
+                    currentTimeMinutes += browseMins;
+                } else if (minsUntilClose < browseMins) {
+                    hoursStatus = 'trimmed';
+                    actualBrowseMins = minsUntilClose;
+                    hoursStatusNote = `⚠️ Dig trimmed to ${actualBrowseMins}m to beat ${store.closeFormatted} closing`;
+                    trimmedStoresList.push(`${store.name} (${actualBrowseMins}m)`);
+                    currentTimeMinutes = store.closeMins;
+                } else {
+                    currentTimeMinutes += browseMins;
+                }
+
                 currentItinerary.push({
                     type: 'store',
                     storeId: store.id,
@@ -1481,9 +1716,13 @@
                     address: store.address,
                     website: store.website,
                     tags: store.tags,
+                    hoursLabel: store.hoursLabel,
+                    closeFormatted: store.closeFormatted,
+                    hoursStatus,
+                    hoursStatusNote,
                     arriveTime: formatTime(arriveMins),
                     departTime: formatTime(currentTimeMinutes),
-                    browseDuration: browseMins,
+                    browseDuration: actualBrowseMins,
                     desc: store.description,
                     goals: store.goals
                 });
@@ -1518,14 +1757,36 @@
                 });
             }
 
+            // Update Closing Time Advisory Banner
+            const warningBanner = document.getElementById('closingWarningBanner');
+            const warningTitle = document.getElementById('closingWarningTitle');
+            const warningText = document.getElementById('closingWarningText');
+            const warningIcon = document.getElementById('closingWarningIcon');
+
+            if (closedStoresList.length > 0) {
+                warningBanner.className = "rounded-xl border border-red-500/50 bg-red-950/30 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3";
+                warningIcon.className = "fa-solid fa-triangle-exclamation text-red-400 text-lg mt-0.5";
+                warningTitle.innerText = `Closing Time Conflict (${closedStoresList.length} ${closedStoresList.length === 1 ? 'shop' : 'shops'} closed on arrival)`;
+                warningText.innerText = `Your current schedule reaches ${closedStoresList.join(', ')} after closing time. Click "Auto-Fit Schedule" to shift departure earlier or tighten browse time.`;
+                warningBanner.classList.remove('hidden');
+            } else if (trimmedStoresList.length > 0) {
+                warningBanner.className = "rounded-xl border border-amber-500/40 bg-amber-950/25 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3";
+                warningIcon.className = "fa-solid fa-clock-rotate-left text-amber-400 text-lg mt-0.5";
+                warningTitle.innerText = `Tight Closing Window at ${trimmedStoresList.length} ${trimmedStoresList.length === 1 ? 'Stop' : 'Stops'}`;
+                warningText.innerText = `Browse time was trimmed at ${trimmedStoresList.join(', ')} to finish before doors close. Click "Auto-Fit Schedule" if you want full browse time.`;
+                warningBanner.classList.remove('hidden');
+            } else {
+                warningBanner.classList.add('hidden');
+            }
+
             const totalDurationMins = currentTimeMinutes - startMinutes;
             const totalHours = Math.floor(totalDurationMins / 60);
             const remMins = totalDurationMins % 60;
             document.getElementById('statTotalTime').innerText = `${totalHours}h ${remMins}m`;
             document.getElementById('statFinishPoint').innerText = returnPoint.shortName;
             document.getElementById('itinerarySubtitle').innerText = returnPoint.isLastStoreOnly
-                ? `Optimized route departing from ${departPoint.shortName} and finishing at ${lastStore.name}.`
-                : `Optimized route departing from ${departPoint.shortName} and finishing at ${returnPoint.title}.`;
+                ? `Closing-time optimized route departing from ${departPoint.shortName} and finishing at ${lastStore.name}.`
+                : `Closing-time optimized route departing from ${departPoint.shortName} and finishing at ${returnPoint.title}.`;
 
             renderTimeline(orderedStores.length);
             renderCompanionStops();
@@ -1538,7 +1799,9 @@
 
             // Show Companion Button in Nav
             document.getElementById('navCompanionBtn').classList.remove('hidden');
-            showToast("Crawl itinerary successfully optimized!");
+            showToast(closedStoresList.length > 0
+                ? "⚠️ Route generated — check closing time alert on late stops!"
+                : "Crawl itinerary optimized around shop opening & closing hours!");
         }
 
         function formatTime(totalMins) {
@@ -1572,22 +1835,41 @@
                         </div>
                     `;
                 } else if (item.type === 'transit') {
+                    const isWait = item.isOpeningWait;
                     node.innerHTML = `
-                        <div class="absolute -left-[5px] sm:-left-[9px] top-2 w-3 h-3 rounded-full bg-gray-700 border-2 border-darkBg"></div>
-                        <div class="text-xs text-gray-400 py-1 flex items-center gap-2">
-                            <span class="font-semibold text-gray-300"><i class="fa-solid fa-arrow-turn-down mr-1"></i> ${item.time}</span>
+                        <div class="absolute -left-[5px] sm:-left-[9px] top-2 w-3 h-3 rounded-full ${isWait ? 'bg-amber-500' : 'bg-gray-700'} border-2 border-darkBg"></div>
+                        <div class="text-xs ${isWait ? 'text-amber-300 bg-amber-950/30 border border-amber-500/30 rounded-lg px-3 py-1.5' : 'text-gray-400 py-1'} flex items-center gap-2">
+                            <span class="font-semibold ${isWait ? 'text-amber-400' : 'text-gray-300'}"><i class="fa-solid ${isWait ? 'fa-mug-hot' : 'fa-arrow-turn-down'} mr-1"></i> ${item.time}</span>
                             <span>•</span>
                             <span>${item.desc}</span>
                         </div>
                     `;
                 } else if (item.type === 'store') {
                     storeIndex++;
+                    const statusBadgeClass = item.hoursStatus === 'closed'
+                        ? 'text-red-300 bg-red-500/15 border border-red-500/40'
+                        : item.hoursStatus === 'trimmed'
+                            ? 'text-amber-300 bg-amber-500/15 border border-amber-500/40'
+                            : 'text-emerald-300 bg-emerald-500/10 border border-emerald-500/30';
+                    const cardBorderClass = item.hoursStatus === 'closed'
+                        ? 'border-red-500/50 bg-red-950/15'
+                        : item.hoursStatus === 'trimmed'
+                            ? 'border-amber-500/40 bg-gray-900'
+                            : 'border-borderDark bg-gray-900';
+                    const dotColorClass = item.hoursStatus === 'closed'
+                        ? 'bg-red-500'
+                        : item.hoursStatus === 'trimmed'
+                            ? 'bg-amber-500'
+                            : 'bg-forthRed';
                     node.innerHTML = `
-                        <div class="absolute -left-[9px] sm:-left-[13px] top-1.5 w-5 h-5 rounded-full bg-forthRed border-4 border-darkBg flex items-center justify-center shadow"></div>
-                        <div class="bg-gray-900 border border-borderDark rounded-xl p-4 sm:p-5 shadow-lg space-y-3">
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                        <div class="absolute -left-[9px] sm:-left-[13px] top-1.5 w-5 h-5 rounded-full ${dotColorClass} border-4 border-darkBg flex items-center justify-center shadow"></div>
+                        <div class="${cardBorderClass} border rounded-xl p-4 sm:p-5 shadow-lg space-y-3">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                 <div>
-                                    <span class="text-[10px] font-bold uppercase tracking-wider text-forthRed bg-forthRed/10 px-2 py-0.5 rounded">Stop #${storeIndex} • ${item.arriveTime} – ${item.departTime}</span>
+                                    <div class="flex flex-wrap items-center gap-1.5">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-forthRed bg-forthRed/10 px-2 py-0.5 rounded">Stop #${storeIndex} • ${item.arriveTime} – ${item.departTime} ${item.browseDuration ? `(${item.browseDuration}m)` : ''}</span>
+                                        ${item.hoursStatusNote ? `<span class="text-[10px] font-semibold px-2 py-0.5 rounded ${statusBadgeClass}"><i class="fa-regular fa-clock mr-1"></i>${item.hoursStatusNote}</span>` : ''}
+                                    </div>
                                     <h4 class="font-bold text-white text-lg mt-1">${item.title}</h4>
                                 </div>
                                 <span class="text-xs text-gray-400"><i class="fa-solid fa-location-dot text-forthRed mr-1"></i> ${item.address}, ${item.location}</span>
@@ -1711,7 +1993,7 @@
             currentItinerary.forEach(i => {
                 if (i.type === 'start') text += `[START] ${i.time} - ${i.title} (${i.location})\n`;
                 else if (i.type === 'transit') text += `  ➔ ${i.time}: ${i.desc}\n`;
-                else if (i.type === 'store') text += `[STOP] ${i.arriveTime}–${i.departTime} - ${i.title} (${i.address}, ${i.location})\n`;
+                else if (i.type === 'store') text += `[STOP] ${i.arriveTime}–${i.departTime} - ${i.title} (${i.address}, ${i.location})${i.hoursStatusNote ? ` [${i.hoursStatusNote}]` : ''}\n`;
                 else if (i.type === 'finish') text += `[FINISH] ${i.time} - ${i.title} (${i.location})\n`;
             });
             if (finishItem) {
