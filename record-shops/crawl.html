@@ -353,8 +353,8 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // Default Featured Store IDs selected on startup (Almond River, VoxBox, Underground Solu'shn, Vinyl Villains)
-        const DEFAULT_SELECTED_IDS = new Set([1, 4, 12, 14]);
+        // Start with a clean slate so only stores the user explicitly selects (or filters by region) are included
+        const DEFAULT_SELECTED_IDS = new Set();
 
         let hubCenter = {
             name: "South Queensferry Hub (EH30)",
@@ -1098,7 +1098,7 @@
             });
         }
 
-        function setRegionFilter(region) {
+        function setRegionFilter(region, keepExistingSelection = false) {
             selectedRegion = region;
             document.querySelectorAll('.region-btn').forEach(btn => {
                 const r = btn.getAttribute('data-region');
@@ -1108,7 +1108,21 @@
                     btn.className = "region-btn text-xs px-3 py-1.5 rounded-lg border border-borderDark bg-gray-900/60 text-gray-400 hover:text-white transition";
                 }
             });
+
+            if (region !== 'all' && !keepExistingSelection) {
+                // Deselect stores from other regions so hidden stores are never added to a regional crawl
+                storesData.forEach(s => {
+                    if (s.region !== region) s.defaultSelected = false;
+                });
+                // If no stores in this region are selected yet, auto-select up to 4 closest stores in this region
+                const regionStores = storesData.filter(s => s.region === region);
+                if (!regionStores.some(s => s.defaultSelected)) {
+                    regionStores.slice(0, 4).forEach(s => s.defaultSelected = true);
+                }
+            }
+
             renderStoreGrid();
+            updateSelectedCount();
         }
 
         function getVisibleStores() {
@@ -1217,7 +1231,7 @@
         }
 
         function updateSelectedCount() {
-            const count = storesData.filter(s => s.defaultSelected).length;
+            const count = storesData.filter(s => s.defaultSelected && (selectedRegion === 'all' || s.region === selectedRegion)).length;
             document.getElementById('selectedCountBadge').innerText = `${count} Selected`;
         }
 
@@ -1404,9 +1418,9 @@
 
         // Generate Itinerary Logic
         function generateItinerary() {
-            const activeStores = storesData.filter(s => s.defaultSelected);
-            if (activeStores.length < 2) {
-                showToast("Please select at least 2 record stores for a crawl!", "error");
+            const activeStores = storesData.filter(s => s.defaultSelected && (selectedRegion === 'all' || s.region === selectedRegion));
+            if (activeStores.length < 1) {
+                showToast("Please select at least 1 record store for your crawl!", "error");
                 return;
             }
 
