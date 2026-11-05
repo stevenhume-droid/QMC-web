@@ -1565,6 +1565,8 @@
                     onclick="toggleFilter('ultrasonic_cleaned', this)">✨ Ultrasonic Cleaned</button>
                 <button class="cr-chip" data-key="has_vinyl_flattening"
                     onclick="toggleFilter('has_vinyl_flattening', this)">💿 Vinyl Flattening</button>
+                <button class="cr-chip" data-key="has_record_label"
+                    onclick="toggleFilter('has_record_label', this)">🏷️ Record Label</button>
                 <button class="cr-chip" data-key="has_bargain_crates"
                     onclick="toggleFilter('has_bargain_crates', this)">📦 £1–£3 Crates</button>
                 <button class="cr-chip" data-key="has_coffee_bar" onclick="toggleFilter('has_coffee_bar', this)">☕
@@ -2247,6 +2249,7 @@
                         ${s.has_bargain_crates ? '<span class="cr-badge perk" style="font-size:0.68rem;">📦 £1–£3 Crates</span>' : ''}
                         ${s.has_coffee_bar ? '<span class="cr-badge perk" style="font-size:0.68rem;">☕ Coffee</span>' : ''}
                         ${s.has_vinyl_flattening ? '<span class="cr-badge perk-emerald" style="font-size:0.68rem;">💿 Vinyl Flattening</span>' : ''}
+                        ${s.has_record_label ? '<span class="cr-badge perk-emerald" style="font-size:0.68rem;">🏷️ Record Label</span>' : ''}
                     </div>
                     <div style="display:flex; gap:6px; flex-wrap:wrap;">
                         ${websitePopupBtn}
@@ -2261,6 +2264,7 @@
                 if (s.has_bargain_crates) perks.push({ text: '📦 £1–£3 Crates', cls: 'perk' });
                 if (s.has_coffee_bar) perks.push({ text: '☕ Coffee / Lounge', cls: 'perk' });
                 if (s.has_vinyl_flattening) perks.push({ text: '💿 Vinyl Flattening', cls: 'perk-emerald' });
+                if (s.has_record_label) perks.push({ text: '🏷️ Record Label', cls: 'perk-emerald' });
 
                 const reviewsHtml = s.all_reviews.map(r => `
                     <div class="cr-rev-item">
@@ -2560,6 +2564,7 @@
                             "7\""
                         ],
                         "website": "https://voxboxmusic.co.uk/",
+            "has_record_label": true,
                         "bio": "Tucked away on cobbled St Stephen Street in Stockbridge, VoxBox Music is one of Scotland's most beloved vinyl sanctuaries. Spread across two atmospheric rooms of vintage records, VoxBox specialises in original UK pressings of classic rock, blues, jazz, and Scottish indie, accompanied by bargain \u00a31.50 crates in the back room. The staff are seasoned musicians and collectors who pride themselves on strictly honest visual and audio grading without inflated collector hype.",
                         "has_vinyl_flattening": false
                     },
@@ -2622,6 +2627,7 @@
                             "CDs"
                         ],
                         "website": "https://www.lowportmusic.co.uk/",
+            "has_record_label": true,
                         "bio": "Just steps from historic Linlithgow Palace and the canal basin, Low Port Music is a vibrant West Lothian institution. Combining a passion for indie, rock, Scottish folk, and Americana vinyl with musical instruments, turntable accessories, and guitar strings, owner Chris has created a warm, community-first space where locals and visiting diggers can chat gear, swap music recommendations, and unearth pristine vintage wax.",
                         "has_vinyl_flattening": false
                     },
@@ -2723,6 +2729,7 @@
                             "CDs"
                         ],
                         "website": "https://assai.co.uk/",
+            "has_record_label": true,
                         "bio": "Overlooking Grindlay Street beneath Edinburgh Castle, Assai Records Edinburgh is a flagship indie retailer known for its premier stock of brand-new vinyl releases, exclusive Assai limited-edition obi-strip pressings, and high-end audio turntables. Hosting intimate in-store acoustic gigs and signing sessions from internationally touring artists, Assai is a cornerstone of the Scottish modern music scene.",
                         "has_vinyl_flattening": false
                     },
@@ -2785,6 +2792,7 @@
                             "CDs"
                         ],
                         "website": "https://thornerecords.com/",
+            "has_record_label": true,
                         "bio": "Founded by veteran record store manager Mark Thorne, this bright, welcoming South Edinburgh boutique on Bruntsfield Place offers an expertly chosen balance of brand-new indie releases, classic reissues, and curated second-hand gems. Known for its warm hospitality, knowledgeable personal recommendations, and spotless organization, Thorne Records makes browsing feel effortless and joyful for collectors of every generation.",
                         "has_vinyl_flattening": false
                     },
@@ -2986,6 +2994,7 @@
                             "CDs"
                         ],
                         "website": "https://avalancherecords.co.uk/",
+            "has_record_label": true,
                         "bio": "Originally established in 1984 and now housed within the Waverley Market directly above Edinburgh Waverley Station, Avalanche Records is an iconic Scottish music brand. Renowned historically for supporting Scottish indie royalty including Belle & Sebastian, Mogwai, and Frightened Rabbit, Avalanche pairs Scottish indie and alternative vinyl with vintage rock art prints, band t-shirts, and cultural memorabilia.",
                         "has_vinyl_flattening": false
                     },

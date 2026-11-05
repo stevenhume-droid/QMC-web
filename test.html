@@ -505,6 +505,7 @@
         function normalizeStore(raw, center) {
             const distMiles = haversineMiles(center.lat, center.lng, raw.lat, raw.lng);
             const tags = [];
+            if (raw.has_record_label) tags.push('🏷️ Record Label');
             if (raw.ultrasonic_cleaned) tags.push('✨ Ultrasonic cleaning');
             if (raw.has_listening_deck) tags.push('🎧 Listening deck');
             if (raw.has_bargain_crates) tags.push('📦 £1–£3 bargain bins');
@@ -515,6 +516,7 @@
             (raw.genres || []).slice(0, 2).forEach(g => tags.push(g));
 
             const goals = [];
+            if (raw.has_record_label) goals.push('Check out their in-house record label releases & exclusives');
             if (raw.has_bargain_crates) goals.push('Dig through the £1–£3 bargain crates');
             if (raw.has_listening_deck) goals.push('Audition test pulls on the listening deck');
             if (raw.ultrasonic_cleaned) goals.push('Check ultrasonic-cleaned vintage pressings');
@@ -632,6 +634,7 @@
                         "description": "Famous for pristine front-shop stock and the legendary £1-£3 bargain basement room out back.",
                         "formats": ["12\"", "7\""],
                         "website": "https://voxboxmusic.co.uk/",
+                        "has_record_label": true,
                         "bio": "Tucked away on cobbled St Stephen Street in Stockbridge, VoxBox Music is one of Scotland's most beloved vinyl sanctuaries. Spread across two atmospheric rooms of vintage records, VoxBox specialises in original UK pressings of classic rock, blues, jazz, and Scottish indie.",
                         "has_vinyl_flattening": false
                     },
@@ -672,6 +675,7 @@
                         "description": "Linlithgow's local independent record shop. Great for indie exclusives, Ninja Tune/4AD/Soul Jazz releases, and RSD drops.",
                         "formats": ["12\"", "7\"", "CDs"],
                         "website": "https://www.lowportmusic.co.uk/",
+                        "has_record_label": true,
                         "bio": "Just steps from historic Linlithgow Palace and the canal basin, Low Port Music is a vibrant West Lothian institution.",
                         "has_vinyl_flattening": false
                     },
@@ -732,6 +736,7 @@
                         "description": "Spacious new-release powerhouse known for numbered Japanese-style Obi editions and hardware/sleeves.",
                         "formats": ["12\"", "7\"", "CDs"],
                         "website": "https://assai.co.uk/",
+                        "has_record_label": true,
                         "bio": "Overlooking Grindlay Street beneath Edinburgh Castle, Assai Records Edinburgh is a flagship indie retailer known for its premier stock of brand-new vinyl releases and exclusive Assai obi-strip pressings.",
                         "has_vinyl_flattening": false
                     },
@@ -772,6 +777,7 @@
                         "description": "Dog-friendly neighbourhood shop offering an expertly curated mix of brand-new releases and clean pre-loved second-hand vinyl.",
                         "formats": ["12\"", "7\"", "CDs"],
                         "website": "https://thornerecords.com/",
+                        "has_record_label": true,
                         "bio": "Founded by veteran record store manager Mark Thorne, this bright, welcoming South Edinburgh boutique on Bruntsfield Place offers an expertly chosen balance of brand-new indie releases, classic reissues, and curated second-hand gems.",
                         "has_vinyl_flattening": false
                     },
@@ -892,6 +898,7 @@
                         "description": "Long-running champion of Scottish independent bands alongside vintage vinyl crates.",
                         "formats": ["12\"", "7\"", "CDs"],
                         "website": "https://avalancherecords.co.uk/",
+                        "has_record_label": true,
                         "bio": "Originally established in 1984 and now housed within the Waverley Market directly above Edinburgh Waverley Station, Avalanche Records is an iconic Scottish music brand.",
                         "has_vinyl_flattening": false
                     },

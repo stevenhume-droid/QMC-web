@@ -34,7 +34,8 @@
             ],
             "website": "https://almondriverrecords.online/",
             "bio": "Founded by passionate crate diggers, Almond River Records is West Edinburgh's premier haven for quality second-hand vinyl, CDs, and audio gear. Specialising in meticulously graded 60s/70s classic rock, prog, indie, and jazz, every pre-loved record is inspected with care, and ultrasonic deep-cleaning is available in-store to bring vintage grooves back to life. A friendly, knowledgeable neighbourhood hub that actively buys collections with fair cash or trade appraisals.",
-            "has_vinyl_flattening": false
+            "has_vinyl_flattening": false,
+            "has_record_label": false
         },
         {
             "id": 2,
@@ -65,7 +66,8 @@
             ],
             "website": "https://venenomusicstore.com/",
             "bio": "Located in historic Dunfermline just across the Queensferry Crossing, Veneno Music Store has quickly earned a glowing reputation for its curated crates of heavy rock, metal, 90s alternative, and punk alongside fresh indie pressings. The store champions physical formats with transparent condition grading, dedicated listening decks where you can audition before you buy, and an active trade-in counter welcoming wax collectors from across Fife and the Lothians.",
-            "has_vinyl_flattening": false
+            "has_vinyl_flattening": false,
+            "has_record_label": false
         },
         {
             "id": 3,
@@ -95,7 +97,8 @@
             ],
             "website": "https://www.facebook.com/p/The-Music-Box-61579984413547/",
             "bio": "A relatively new outlet opening just over a year ago servicing the Dunfermline and broader area. The Music Box is an old school treasure trove packed to the rafters with rock, folk, blues, and pop vinyl across 12-inch LPs and 7-inch singles. Renowned for its bargain discovery crates and deep CD archives, it's the definition of a traditional digger's spot where taking your time flipping through the stacks is always rewarded with forgotten classics at honest prices.",
-            "has_vinyl_flattening": false
+            "has_vinyl_flattening": false,
+            "has_record_label": false
         },
         {
             "id": 4,
@@ -117,7 +120,7 @@
             "ultrasonic_cleaned": true,
             "has_bargain_crates": true,
             "has_coffee_bar": false,
-            "description": "Famous for pristine front-shop stock and the legendary £1-£3 bargain basement room out back.",
+            "description": "Famous for pristine front-shop stock, the legendary £1-£3 bargain basement room, and its own VoxBox Records label.",
             "reviews": [
                 {
                     "reviewer_name": "CrateDigger_EH30",
@@ -134,8 +137,9 @@
                 "7\""
             ],
             "website": "https://voxboxmusic.co.uk/",
-            "bio": "Tucked away on cobbled St Stephen Street in Stockbridge, VoxBox Music is one of Scotland's most beloved vinyl sanctuaries. Spread across two atmospheric rooms of vintage records, VoxBox specialises in original UK pressings of classic rock, blues, jazz, and Scottish indie, accompanied by bargain £1.50 crates in the back room. The staff are seasoned musicians and collectors who pride themselves on strictly honest visual and audio grading without inflated collector hype.",
-            "has_vinyl_flattening": false
+            "bio": "Tucked away on cobbled St Stephen Street in Stockbridge, VoxBox Music is one of Scotland's most beloved vinyl sanctuaries. Spread across two atmospheric rooms of vintage records, VoxBox specialises in original UK pressings of classic rock, blues, jazz, and Scottish indie, accompanied by bargain £1.50 crates in the back room—plus its own in-house VoxBox / FoxBox record label releasing local Scottish artists. The staff are seasoned musicians and collectors who pride themselves on strictly honest visual and audio grading.",
+            "has_vinyl_flattening": false,
+            "has_record_label": true
         },
         {
             "id": 5,
@@ -167,7 +171,8 @@
             ],
             "website": "https://www.oxfam.org.uk/shops/oxfam-music-shop-raeburn-place/",
             "bio": "Celebrated as one of the UK's flagship charity music shops, Oxfam Music on Raeburn Place is a legendary goldmine for Edinburgh vinyl hunters. Run by devoted music-enthusiast volunteers who carefully curate every incoming estate and donation, its shelves constantly rotate with rare classical, folk, jazz, classic rock, and quirky 7-inch obscurities, all fairly priced with proceeds supporting global humanitarian causes.",
-            "has_vinyl_flattening": false
+            "has_vinyl_flattening": false,
+            "has_record_label": false
         },
         {
             "id": 6,
@@ -191,7 +196,7 @@
             "ultrasonic_cleaned": false,
             "has_bargain_crates": false,
             "has_coffee_bar": false,
-            "description": "Linlithgow's local independent record shop. Great for indie exclusives, Ninja Tune/4AD/Soul Jazz releases, and RSD drops.",
+            "description": "Linlithgow's local independent record shop & label. Great for indie exclusives, in-house releases, Ninja Tune/4AD/Soul Jazz, and RSD drops.",
             "reviews": [],
             "formats": [
                 "12\"",
@@ -199,8 +204,9 @@
                 "CDs"
             ],
             "website": "https://www.lowportmusic.co.uk/",
-            "bio": "Just steps from historic Linlithgow Palace and the canal basin, Low Port Music is a vibrant West Lothian institution. Combining a passion for indie, rock, Scottish folk, and Americana vinyl with musical instruments, owner Chris has created a warm, community-first space where locals and visiting diggers can chat gear, swap music recommendations, and unearth pristine vintage wax. Look out for Low Port Record Fairs in Linlithgow and beyond! ",
-            "has_vinyl_flattening": false
+            "bio": "Just steps from historic Linlithgow Palace and the canal basin, Low Port Music is a vibrant West Lothian institution and independent record label. Combining a passion for indie, rock, Scottish folk, and Americana vinyl with musical instruments and its own label releases, owner Chris has created a warm, community-first space where locals and visiting diggers can chat gear, swap music recommendations, and unearth pristine vintage wax. Look out for Low Port Record Fairs in Linlithgow and beyond!",
+            "has_vinyl_flattening": false,
+            "has_record_label": true
         },
         {
             "id": 7,
@@ -229,7 +235,8 @@
             ],
             "website": "https://greenhouserecords.co.uk/",
             "bio": "Perched in leafy Bruntsfield, Greenhouse Records is a chic, daylight-filled sanctuary for audiophiles and curious selectors. With an impeccably curated roster spanning ambient, jazz, electronic, soul, and left-field indie, Greenhouse champions small independent labels, local Edinburgh releases, and pristine Japanese pressings, paired with a welcoming vibe and listening stations to lose yourself in.",
-            "has_vinyl_flattening": false
+            "has_vinyl_flattening": false,
+            "has_record_label": false
         },
         {
             "id": 8,
@@ -270,7 +277,8 @@
             ],
             "website": "https://umbrellavinyl.com/",
             "bio": "Situated on Valleyfield Street in Tollcross, Umbrella Vinyl is run by two dedicated diggers who hand-pick their stock across the globe. Famous for an eclectic, genre-spanning selection that dives deep into 70s Japanese funk, city pop, reggae, Afrobeat, psych, and post-punk, Umbrella treats vinyl digging as an art form. Every record is clean, sleeved, accurately graded, and ready for home or club listening.",
-            "has_vinyl_flattening": false
+            "has_vinyl_flattening": false,
+            "has_record_label": false
         },
         {
             "id": 9,
@@ -292,7 +300,7 @@
             "ultrasonic_cleaned": false,
             "has_bargain_crates": false,
             "has_coffee_bar": false,
-            "description": "Spacious new-release powerhouse known for numbered Japanese-style Obi editions and hardware/sleeves.",
+            "description": "Spacious new-release powerhouse & label imprint known for numbered Assai Obi editions, exclusive pressings, and hardware.",
             "reviews": [],
             "formats": [
                 "12\"",
@@ -300,8 +308,9 @@
                 "CDs"
             ],
             "website": "https://assai.co.uk/",
-            "bio": "Overlooking Grindlay Street beneath Edinburgh Castle, Assai Records Edinburgh is a flagship indie retailer known for its premier stock of brand-new vinyl releases, exclusive Assai limited-edition obi-strip pressings, and high-end audio turntables. Hosting intimate in-store acoustic gigs and signing sessions from internationally touring artists, Assai is a cornerstone of the Scottish modern music scene.",
-            "has_vinyl_flattening": false
+            "bio": "Overlooking Grindlay Street beneath Edinburgh Castle, Assai Records Edinburgh is a flagship indie retailer and label imprint known for its premier stock of brand-new vinyl releases, exclusive Assai limited-edition obi-strip pressings, and high-end audio turntables. Hosting intimate in-store acoustic gigs and signing sessions from internationally touring artists, Assai is a cornerstone of the Scottish modern music scene.",
+            "has_vinyl_flattening": false,
+            "has_record_label": true
         },
         {
             "id": 10,
@@ -332,7 +341,8 @@
             ],
             "website": "https://backtracksmusic.co.uk/",
             "bio": "Standing strong on Brougham Street since 1989, Backtracks is Edinburgh's classic collector's depot. Packed with thousands of retro vinyl records, cassette tapes, CDs, vintage hi-fi separates, and music memorabilia, it's a paradise for diggers who love the thrill of the hunt. Whether you're searching for original 70s rock LPs, rare 80s 12-inch dance mixes, or replacement turntable needles, Backtracks has it in the bins.",
-            "has_vinyl_flattening": false
+            "has_vinyl_flattening": false,
+            "has_record_label": false
         },
         {
             "id": 11,
@@ -354,7 +364,7 @@
             "ultrasonic_cleaned": false,
             "has_bargain_crates": false,
             "has_coffee_bar": false,
-            "description": "Dog-friendly neighbourhood shop offering an expertly curated mix of brand-new releases and clean pre-loved second-hand vinyl.",
+            "description": "Dog-friendly neighbourhood shop & independent record label offering brand-new releases, own-label pressings, and clean pre-loved vinyl.",
             "reviews": [],
             "formats": [
                 "12\"",
@@ -362,8 +372,9 @@
                 "CDs"
             ],
             "website": "https://thornerecords.com/",
-            "bio": "Founded by veteran record store manager Mark Thorne, this bright, welcoming South Edinburgh boutique on Bruntsfield Place offers an expertly chosen balance of brand-new indie releases, classic reissues, and curated second-hand gems. Known for its warm hospitality, knowledgeable personal recommendations, and spotless organization, Thorne Records makes browsing feel effortless and joyful for collectors of every generation.",
-            "has_vinyl_flattening": false
+            "bio": "Founded by veteran record store manager Mark Thorne, this bright, welcoming South Edinburgh boutique and independent record label on Bruntsfield Place offers an expertly chosen balance of brand-new indie releases, Thorne Records label pressings, classic reissues, and curated second-hand gems. Known for its warm hospitality, knowledgeable personal recommendations, and spotless organization, Thorne Records makes browsing feel effortless and joyful.",
+            "has_vinyl_flattening": false,
+            "has_record_label": true
         },
         {
             "id": 12,
@@ -405,7 +416,8 @@
             ],
             "website": "https://undergroundsolution.com",
             "bio": "An undisputed cultural landmark on Cockburn Street since 1995, Underground Solu'shn is the heartbeat of Edinburgh's electronic, club, and DJ culture. Stocking deep crates of house, techno, drum & bass, hip-hop, funk, soul, and jazz alongside professional DJ hardware, synthesizers, and vinyl care supplies, 'US' is the definitive meeting ground for local DJs, visiting selectors, and sound enthusiasts.",
-            "has_vinyl_flattening": false
+            "has_vinyl_flattening": false,
+            "has_record_label": false
         },
         {
             "id": 13,
@@ -434,7 +446,8 @@
             ],
             "website": "https://slowprogress.co.uk/",
             "bio": "Combining the finest specialty plant-based coffee, bakery treats, and an expertly curated vinyl selection on Blackfriars Street, Slow Progress is a cosy haven just off the Royal Mile. Specialising in emo, punk, hardcore, post-rock, and alternative indie labels, you can enjoy a flat white while browsing limited-run vinyl or auditioning new underground bands on their customer turntables.",
-            "has_vinyl_flattening": false
+            "has_vinyl_flattening": false,
+            "has_record_label": false
         },
         {
             "id": 14,
@@ -465,7 +478,8 @@
             ],
             "website": "https://vinylvillains.co.uk",
             "bio": "Holding court at the top of Leith Walk on Elm Row since 1983, Vinyl Villains is Edinburgh's oldest surviving independent second-hand record shop. Packed floor-to-ceiling with vintage rock, punk, new wave, prog, metal, and reggae vinyl, its seasoned crates have provided generations of crate diggers with authentic first pressings, rare bootlegs, and bargain gems at honest, realistic prices.",
-            "has_vinyl_flattening": false
+            "has_vinyl_flattening": false,
+            "has_record_label": false
         },
         {
             "id": 16,
@@ -505,7 +519,8 @@
             ],
             "website": "https://lounge33edinburgh.co.uk",
             "bio": "An intimate, relaxed record den located on middle Leith Walk, Lounge 33 combines a passion for vintage vinyl with comfortable, music-first vibes. Featuring a hand-picked collection of soul, funk, disco, jazz, 90s hip-hop, and classic rock, it's designed as a laid-back retreat where music fans can take their time thumbing through carefully graded sleeves and discovering new grooves.",
-            "has_vinyl_flattening": false
+            "has_vinyl_flattening": false,
+            "has_record_label": false
         },
         {
             "id": 17,
@@ -535,7 +550,8 @@
             ],
             "website": "https://good-vibes.space",
             "bio": "Situated down on Constitution Street in historic Leith, Good Vibes Neighbourhood Store is a community-minded creative hub. Stocking a vibrant selection of new and pre-loved vinyl—with a keen focus on soul, afro-funk, indie, electronic, and Scottish grassroots releases—alongside curated books, local art, and artisan provisions, it brings genuine warmth and good tunes to the port district.",
-            "has_vinyl_flattening": false
+            "has_vinyl_flattening": false,
+            "has_record_label": false
         },
         {
             "id": 18,
@@ -555,7 +571,7 @@
             "ultrasonic_cleaned": false,
             "has_bargain_crates": false,
             "has_coffee_bar": false,
-            "description": "Long-running champion of Scottish independent bands alongside vintage vinyl crates.",
+            "description": "Long-running champion & historic label of Scottish independent bands alongside vintage vinyl crates.",
             "reviews": [],
             "formats": [
                 "12\"",
@@ -563,8 +579,9 @@
                 "CDs"
             ],
             "website": "https://avalancherecords.co.uk/",
-            "bio": "Originally established in 1984 and now housed within the Waverley Market directly above Edinburgh Waverley Station, Avalanche Records is an iconic Scottish music brand. Renowned historically for supporting Scottish indie royalty including Belle & Sebastian, Mogwai, and Frightened Rabbit, Avalanche pairs Scottish indie and alternative vinyl with vintage rock art prints, band t-shirts, and cultural memorabilia.",
-            "has_vinyl_flattening": false
+            "bio": "Originally established in 1984 and now housed within the Waverley Market directly above Edinburgh Waverley Station, Avalanche Records is an iconic Scottish music shop and grassroots label. Renowned historically for releasing local bands and supporting Scottish indie royalty including Belle & Sebastian, Mogwai, and Frightened Rabbit, Avalanche pairs Scottish indie and alternative vinyl with vintage rock art prints, band t-shirts, and cultural memorabilia.",
+            "has_vinyl_flattening": false,
+            "has_record_label": true
         },
         {
             "id": 19,
@@ -594,7 +611,8 @@
             ],
             "website": "https://silvermachinerecords.co.uk/",
             "bio": "Located inside The Avenue on Falkirk's High Street, Silver Machine Records is Central Scotland's champion for classic and rare vinyl. Named with a nod to Hawkwind, the shop is a treasure chest of vintage 60s/70s/80s rock, heavy metal, prog, psych, and folk. Known for fair pricing, friendly rock banter, and an ever-rotating inventory of clean pre-loved vinyl, it's an essential stop on any Forth Valley crate-digging expedition.",
-            "has_vinyl_flattening": false
+            "has_vinyl_flattening": false,
+            "has_record_label": false
         },
         {
             "id": 20,
@@ -627,7 +645,8 @@
                 "Cassettes"
             ],
             "website": "https://www.facebook.com/EuropaMusic",
-            "has_vinyl_flattening": false
+            "has_vinyl_flattening": false,
+            "has_record_label": false
         },
         {
             "id": 21,
@@ -658,7 +677,8 @@
                 "CDs"
             ],
             "website": "https://dandjrecords.co.uk",
-            "has_vinyl_flattening": true
+            "has_vinyl_flattening": true,
+            "has_record_label": false
         },
         {
             "id": 22,
@@ -690,7 +710,8 @@
                 "CDs"
             ],
             "website": "https://www.flemingsfurniture.co.uk/accessories/records-vinyl-large-cjoic/",
-            "has_vinyl_flattening": false
+            "has_vinyl_flattening": false,
+            "has_record_label": false
         },
         {
             "id": 23,
@@ -722,7 +743,8 @@
                 "CDs"
             ],
             "website": "https://linktr.ee/KCCVinyl",
-            "has_vinyl_flattening": false
+            "has_vinyl_flattening": false,
+            "has_record_label": false
         },
         {
             "id": 24,
@@ -754,7 +776,8 @@
                 "CDs"
             ],
             "website": "https://recordshop.directory/edinburgh/edinburgh/backbeat-records/",
-            "has_vinyl_flattening": false
+            "has_vinyl_flattening": false,
+            "has_record_label": false
         },
         {
             "id": 25,
@@ -787,7 +810,8 @@
                 "Cassettes"
             ],
             "website": "https://www.facebook.com/EuropaMusic",
-            "has_vinyl_flattening": false
+            "has_vinyl_flattening": false,
+            "has_record_label": false
         }
     ]
 }
