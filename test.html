@@ -86,11 +86,11 @@
             <!-- Region Filter Bar -->
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div class="flex flex-wrap gap-1.5" id="regionFilterBar">
-                    <button type="button" onclick="setRegionFilter('all')" data-region="all" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-forthRed bg-forthRed/20 text-white font-medium transition">All Featured (23)</button>
+                    <button type="button" onclick="setRegionFilter('all')" data-region="all" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-forthRed bg-forthRed/20 text-white font-medium transition">All Featured (24)</button>
                     <button type="button" onclick="setRegionFilter('edinburgh')" data-region="edinburgh" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-borderDark bg-gray-900/60 text-gray-400 hover:text-white transition">Edinburgh</button>
                     <button type="button" onclick="setRegionFilter('fife')" data-region="fife" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-borderDark bg-gray-900/60 text-gray-400 hover:text-white transition">Fife</button>
                     <button type="button" onclick="setRegionFilter('west-lothian')" data-region="west-lothian" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-borderDark bg-gray-900/60 text-gray-400 hover:text-white transition">West Lothian</button>
-                    <button type="button" onclick="setRegionFilter('forth-valley')" data-region="forth-valley" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-borderDark bg-gray-900/60 text-gray-400 hover:text-white transition">Falkirk & Stirling</button>
+                    <button type="button" onclick="setRegionFilter('forth-valley')" data-region="forth-valley" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-borderDark bg-gray-900/60 text-gray-400 hover:text-white transition">Forth Valley</button>
                 </div>
                 <div class="relative w-full sm:w-56">
                     <input type="text" id="storeSearchInput" oninput="renderStoreGrid()" placeholder="Filter by shop or genre..." class="w-full bg-gray-900 border border-borderDark rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-forthRed">
@@ -331,7 +331,7 @@
             if (a.includes('edinburgh')) return 'edinburgh';
             if (a.includes('fife') || a.includes('dunfermline') || a.includes('inverkeithing') || a.includes('glenrothes')) return 'fife';
             if (a.includes('west lothian') || a.includes('linlithgow') || a.includes('bathgate')) return 'west-lothian';
-            if (a.includes('falkirk') || a.includes('stirling')) return 'forth-valley';
+            if (a.includes('falkirk') || a.includes('stirling') || a.includes('alloa') || a.includes('clackmannanshire')) return 'forth-valley';
             return 'other';
         }
 
@@ -848,6 +848,26 @@
                         "website": "https://recordshop.directory/edinburgh/edinburgh/backbeat-records/",
                         "bio": "A Southside Edinburgh fixture since 1981, Backbeat Records on East Crosscauseway is run by legendary owner Dougie McShane.",
                         "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 25,
+                        "name": "Europa Music (Alloa)",
+                        "area": "Alloa, Clackmannanshire",
+                        "address": "Primrose St, Alloa FK10 1JJ",
+                        "lat": 56.1165,
+                        "lng": -3.7913,
+                        "stock_type": "Mix (New & Used)",
+                        "genres": ["Rock", "Folk", "Blues", "Jazz", "Indie", "Soul"],
+                        "has_listening_deck": true,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": true,
+                        "has_coffee_bar": false,
+                        "description": "Europa Music's newly opened Alloa branch returning to Primrose Street with deep crates of pre-loved and new vinyl.",
+                        "formats": ["12\"", "7\"", "CDs", "Cassettes"],
+                        "website": "https://www.facebook.com/EuropaMusic",
+                        "bio": "Marking a celebratory return to the town where Europa Music first began before moving to Stirling in 1992, the new Alloa shop on Primrose Street brings Europa's legendary crate-digging heritage back to Clackmannanshire.",
+                        "has_vinyl_flattening": false
                     }
                 ]
             };
@@ -894,7 +914,7 @@
                 edinburgh: `Edinburgh (${counts.edinburgh})`,
                 fife: `Fife (${counts.fife})`,
                 'west-lothian': `West Lothian (${counts['west-lothian']})`,
-                'forth-valley': `Falkirk & Stirling (${counts['forth-valley']})`
+                'forth-valley': `Forth Valley (${counts['forth-valley']})`
             };
             document.querySelectorAll('.region-btn').forEach(btn => {
                 const r = btn.getAttribute('data-region');
