@@ -49,7 +49,10 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <a href="./record-shops/index.html" class="hidden sm:inline-flex text-xs bg-gray-800 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg border border-gray-700 hover:border-gray-500 transition items-center gap-1.5">
+                <a href="../index.html" class="hidden sm:inline-flex text-xs bg-gray-800 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg border border-gray-700 hover:border-gray-500 transition items-center gap-1.5">
+                    ← QMC Home
+                </a>
+                <a href="./index.html" class="hidden sm:inline-flex text-xs bg-gray-800 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg border border-gray-700 hover:border-gray-500 transition items-center gap-1.5">
                     <i class="fa-solid fa-compass-drafting text-forthRed"></i> Store Radar Directory
                 </a>
                 <button id="navCompanionBtn" onclick="toggleCompanionMode(true)" class="hidden text-xs bg-forthRed text-white px-3 py-1.5 rounded-lg font-medium hover:bg-forthRedHover transition flex items-center gap-1.5 shadow-sm">
@@ -1050,7 +1053,7 @@
         async function loadStoresFromJson() {
             let data = null;
             try {
-                const res = await fetch('./record-shops/stores.json?v=' + Date.now(), { cache: 'no-store' });
+                const res = await fetch('./stores.json?v=' + Date.now(), { cache: 'no-store' });
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 const rawText = await res.text();
                 // Sanitize any missing commas between adjacent string literals on consecutive lines in stores.json
