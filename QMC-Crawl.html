@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QMC Record Crawl Itinerary Planner</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --surface-card: #282828;
+            --accent-red: #b32400;
+            --accent-red-hover: #d12a00;
+            --text-main: #f0f0f0;
+            --text-muted: #a0a0a0;
+            --border-color: #333333;
+            --success-green: #2e7d32;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--accent-red);
+            padding-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            color: var(--text-main);
+            margin-bottom: 5px;
+        }
+
+        header h1 span {
+            color: var(--accent-red);
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .card {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--text-main);
+            border-left: 4px solid var(--accent-red);
+            padding-left: 10px;
+        }
+
+        .region-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .region-tab {
+            background-color: var(--surface-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 8px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .region-tab.active {
+            background-color: var(--accent-red);
+            color: white;
+            border-color: var(--accent-red);
+        }
+
+        .shop-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 12px;
+            max-height: 280px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .shop-item {
+            background-color: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .shop-item.selected {
+            border-color: var(--accent-red);
+            background-color: rgba(179, 36, 0, 0.08);
+        }
+
+        .shop-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 3px;
+        }
+
+        .shop-location {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .shop-tags {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            background: rgba(255,255,255,0.07);
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: var(--text-muted);
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        select, input {
+            width: 100%;
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            background-color: var(--accent-red);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-red-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--surface-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border-color);
+        }
+
+        /* Timeline View */
+        .timeline {
+            position: relative;
+            padding-left: 25px;
+            margin-top: 15px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 5px;
+            bottom: 5px;
+            width: 2px;
+            background: var(--border-color);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px 15px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -22px;
+            top: 14px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent-red);
+            border: 2px solid var(--bg-color);
+        }
+
+        .timeline-time {
+            font-size: 0.8rem;
+            color: var(--accent-red);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .timeline-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 2px 0;
+        }
+
+        .timeline-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>QMC <span>Crate Radar</span> Itinerary Planner</h1>
+        <p>Build your multi-stop record crawl across South Queensferry, Edinburgh, West Lothian & Forth Valley</p>
+    </header>
+
+    <!-- Builder Step 1: Region & Store Selection -->
+    <div class="card" id="builder-card">
+        <h2>1. Select Crawl Region & Stops</h2>
+        <div class="region-tabs">
+            <div class="region-tab active" onclick="filterRegion('lothians')">Lothians & Edinburgh</div>
+            <div class="region-tab" onclick="filterRegion('west-lothian')">West Lothian</div>
+            <div class="region-tab" onclick="filterRegion('forth-valley')">Forth Valley / Central</div>
+        </div>
+        <div class="shop-list" id="shop-list-container">
+            <!-- Dynamically populated shops -->
+        </div>
+
+        <div class="controls-grid">
+            <div class="control-group">
+                <label for="transport-mode">Transport Mode</label>
+                <select id="transport-mode">
+                    <option value="drive">🚗 Driving</option>
+                    <option value="transit">🚆 Public Transit</option>
+                    <option value="bike">🚲 Gravel / Road Bike</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="start-time">Departure Time</label>
+                <input type="time" id="start-time" value="10:00">
+            </div>
+        </div>
+
+        <button class="btn" onclick="generateItinerary()">⚡ Generate Crawl Itinerary</button>
+    </div>
+
+    <!-- Step 2: Itinerary Output -->
+    <div class="card hidden" id="itinerary-card">
+        <h2>Your Custom QMC Crawl Schedule</h2>
+        <div class="timeline" id="timeline-container">
+            <!-- Dynamically populated timeline -->
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn" style="margin-top:0;" onclick="copyItinerary()">📋 Copy Itinerary for WhatsApp</button>
+            <button class="btn btn-secondary" style="margin-top:0;" onclick="resetBuilder()">🔄 Edit Stops</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const shopsData = [
+        { id: 1, name: "Almond River Records", region: "lothians", location: "St John's Rd, Corstorphine", tags: ["Classic Rock", "Fresh Stock", "Gateway Stop"] },
+        { id: 2, name: "VoxBox Music", region: "lothians", location: "Stockbridge, Edinburgh", tags: ["Ultrasonic Clean", "Used Gold", "£1 Bins"] },
+        { id: 3, name: "Underground Solu-Shn", region: "lothians", location: "Cockburn St, Edinburgh", tags: ["Electronic", "Hip-Hop", "DJ Gear"] },
+        { id: 4, name: "Assai Records", region: "lothians", location: "Grindlay St, Tollcross", tags: ["New Releases", "Indie Exclusives"] },
+        { id: 5, name: "D&J Records", region: "west-lothian", location: "George St, Bathgate", tags: ["Ultrasonic Clean", "Flattening", "Pre-loved"] },
+        { id: 6, name: "Europa Music", region: "forth-valley", location: "Primrose St, Alloa", tags: ["New Store Opening", "Massive Selection"] },
+        { id: 7, name: "Europa Music (Stirling)", region: "forth-valley", location: "Friars St, Stirling", tags: ["Heavyweight Anchor", "Decades Strong"] }
+    ];
+
+    let selectedRegion = 'lothians';
+    let selectedShopIds = [1, 2, 3]; // Default selections
+
+    function initShopList() {
+        const container = document.getElementById('shop-list-container');
+        container.innerHTML = '';
+        
+        const filtered = shopsData.filter(s => s.region === selectedRegion);
+        
+        filtered.forEach(shop => {
+            const isSelected = selectedShopIds.includes(shop.id);
+            const div = document.createElement('div');
+            div.className = `shop-item ${isSelected ? 'selected' : ''}`;
+            div.onclick = () => toggleShop(shop.id);
+            
+            div.innerHTML = `
+                <div>
+                    <div class="shop-name">${shop.name}</div>
+                    <div class="shop-location">📍 ${shop.location}</div>
+                </div>
+                <div class="shop-tags">
+                    ${shop.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function filterRegion(region) {
+        selectedRegion = region;
+        document.querySelectorAll('.region-tab').forEach(tab => tab.classList.remove('active'));
+        event.target.classList.add('active');
+        initShopList();
+    }
+
+    function toggleShop(id) {
+        if (selectedShopIds.includes(id)) {
+            selectedShopIds = selectedShopIds.filter(i => i !== id);
+        } else {
+            selectedShopIds.push(id);
+        }
+        initShopList();
+    }
+
+    function generateItinerary() {
+        if (selectedShopIds.length === 0) {
+            alert("Please select at least one record shop for your crawl.");
+            return;
+        }
+
+        const startTimeVal = document.getElementById('start-time').value || "10:00";
+        const [startHour, startMin] = startTimeVal.split(':').map(Number);
+        
+        let currentTime = new Date();
+        currentTime.setHours(startHour, startMin, 0, 0);
+
+        const timelineContainer = document.getElementById('timeline-container');
+        timelineContainer.innerHTML = '';
+
+        // Starting point (South Queensferry homebase)
+        timelineContainer.innerHTML += `
+            <div class="timeline-item">
+                <div class="timeline-time">${formatTime(currentTime)}</div>
+                <div class="timeline-title">🚀 Departure: South Queensferry</div>
+                <div class="timeline-desc">Gather crates, check bags, and head out.</div>
+            </div>
+        `;
+
+        // Add transit & shop stops
+        selectedShopIds.forEach((id, index) => {
+            const shop = shopsData.find(s => s.id === id);
+            
+            // Add travel leg (approx 20 mins)
+            currentTime.setMinutes(currentTime.getMinutes() + 25);
+            const arrivalLeg = formatTime(currentTime);
+
+            // Add browse time (approx 50 mins)
+            currentTime.setMinutes(currentTime.getMinutes() + 50);
+            const departureLeg = formatTime(currentTime);
+
+            timelineContainer.innerHTML += `
+                <div class="timeline-item">
+                    <div class="timeline-time">${arrivalLeg} – ${departureLeg}</div>
+                    <div class="timeline-title">🛍️ Stop ${index + 1}: ${shop.name}</div>
+                    <div class="timeline-desc">${shop.location} — Tags: ${shop.tags.join(', ')}</div>
+                </div>
+            `;
+        });
+
+        // End tradition at Los Hermanos
+        currentTime.setMinutes(currentTime.getMinutes() + 45);
+        const debriefTime = formatTime(currentTime);
+
+        timelineContainer.innerHTML += `
+            <div class="timeline-item">
+                <div class="timeline-time">${debriefTime} Onward</div>
+                <div class="timeline-title">🍻 Final Station: Los Hermanos Tapas Bar (South Queensferry)</div>
+                <div class="timeline-desc">Post-crawl debrief, bag drop, cold drinks, and spinning finds.</div>
+            </div>
+        `;
+
+        document.getElementById('builder-card').classList.add('hidden');
+        document.getElementById('itinerary-card').classList.remove('hidden');
+    }
+
+    function formatTime(date) {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    }
+
+    function resetBuilder() {
+        document.getElementById('itinerary-card').classList.add('hidden');
+        document.getElementById('builder-card').classList.remove('hidden');
+    }
+
+    function copyItinerary() {
+        const items = document.querySelectorAll('.timeline-item');
+        let text = "🎵 QMC Record Crawl Itinerary 🎵\n\n";
+        items.forEach(item => {
+            const time = item.querySelector('.timeline-time').innerText;
+            const title = item.querySelector('.timeline-title').innerText;
+            text += `[${time}] ${title}\n`;
+        });
+        
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Itinerary copied to clipboard ready for WhatsApp!");
+        });
+    }
+
+    // Initialize on load
+    initShopList();
+</script>
+
+</body>
+</html>
