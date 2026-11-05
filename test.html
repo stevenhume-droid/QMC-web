@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QMC Record Crawl Itinerary Planner</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        forthRed: '#b32400',
+                        forthRedHover: '#961d00',
+                        darkBg: '#121212',
+                        cardBg: '#1e1e1e',
+                        borderDark: '#2a2a2a'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-darkBg text-gray-100 font-sans min-h-full flex flex-col antialiased selection:bg-forthRed selection:text-white">
+
+    <!-- Header Navigation -->
+    <header class="bg-cardBg border-b border-borderDark sticky top-0 z-40 backdrop-blur-md bg-opacity-95">
+        <div class="max-w-5xl mx-auto px-4 py-3 sm:px-6 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-forthRed flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                    <i class="fa-solid fa-record-vinyl animate-spin" style="animation-duration: 8s;"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        QMC Record Crawl <span class="text-xs px-2 py-0.5 rounded-full bg-forthRed/20 text-forthRed border border-forthRed/30 hidden sm:inline-block">Radar v2.4</span>
+                    </h1>
+                    <p class="text-xs text-gray-400">Queensferry Music Collective • Lothian Crate Planner</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="navCompanionBtn" onclick="toggleCompanionMode(true)" class="hidden text-xs bg-forthRed text-white px-3 py-1.5 rounded-lg font-medium hover:bg-forthRedHover transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-compass"></i> Live Companion
+                </button>
+                <button onclick="resetPlanner()" class="text-xs bg-gray-800 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg border border-gray-700 hover:border-gray-500 transition">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Reset
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-5xl w-full mx-auto px-4 py-6 sm:px-6 space-y-8">
+
+        <!-- STEP 1: Store Selector -->
+        <section id="step1Section" class="bg-cardBg rounded-2xl border border-borderDark p-5 sm:p-6 shadow-xl space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-borderDark pb-4">
+                <div>
+                    <div class="text-xs font-semibold uppercase tracking-wider text-forthRed mb-1">Step 1 of 3</div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-store text-forthRed"></i> Select Your Record Stores
+                    </h2>
+                    <p class="text-sm text-gray-400 mt-0.5">Pick 2 to 5 independent vinyl havens within the 25-mile South Queensferry radius.</p>
+                </div>
+                <div class="text-right flex items-center gap-2">
+                    <span id="selectedCountBadge" class="text-xs px-3 py-1 rounded-full bg-gray-800 border border-gray-700 text-gray-300 font-medium">0 Selected</span>
+                    <button onclick="selectAllStores()" class="text-xs text-forthRed hover:underline font-medium">Select All</button>
+                </div>
+            </div>
+
+            <!-- Store Grid -->
+            <div id="storeGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Dynamically populated via JavaScript -->
+            </div>
+        </section>
+
+        <!-- STEP 2: Transport & Timing Selector -->
+        <section id="step2Section" class="bg-cardBg rounded-2xl border border-borderDark p-5 sm:p-6 shadow-xl space-y-6">
+            <div class="border-b border-borderDark pb-4">
+                <div class="text-xs font-semibold uppercase tracking-wider text-forthRed mb-1">Step 2 of 3</div>
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-clock text-forthRed"></i> Transport & Timing Setup
+                </h2>
+                <p class="text-sm text-gray-400 mt-0.5">Choose how you're travelling and your schedule parameters.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Transport Mode -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400">Transport Mode</label>
+                    <div class="grid grid-cols-3 gap-2" id="transportOptions">
+                        <button type="button" onclick="setTransport('driving')" data-mode="driving" class="transport-btn flex flex-col items-center justify-center p-3 rounded-xl border border-forthRed bg-forthRed/10 text-white transition text-xs font-medium">
+                            <i class="fa-solid fa-car text-base mb-1 text-forthRed"></i> Driving
+                        </button>
+                        <button type="button" onclick="setTransport('transit')" data-mode="transit" class="transport-btn flex flex-col items-center justify-center p-3 rounded-xl border border-borderDark bg-gray-900/50 text-gray-400 hover:border-gray-600 transition text-xs font-medium">
+                            <i class="fa-solid fa-train-subway text-base mb-1"></i> Transit
+                        </button>
+                        <button type="button" onclick="setTransport('bike')" data-mode="bike" class="transport-btn flex flex-col items-center justify-center p-3 rounded-xl border border-borderDark bg-gray-900/50 text-gray-400 hover:border-gray-600 transition text-xs font-medium">
+                            <i class="fa-solid fa-bicycle text-base mb-1"></i> Bike
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Departure Time -->
+                <div class="space-y-2">
+                    <label for="departureTime" class="block text-xs font-semibold uppercase tracking-wider text-gray-400">Departure Time</label>
+                    <div class="relative">
+                        <input type="time" id="departureTime" value="10:00" class="w-full bg-gray-900 border border-borderDark rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-forthRed transition">
+                        <div class="absolute right-3 top-3.5 text-gray-500 pointer-events-none">
+                            <i class="fa-regular fa-clock"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Browse Time per Shop -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label for="browseDuration" class="block text-xs font-semibold uppercase tracking-wider text-gray-400">Browse Time / Stop</label>
+                        <span id="browseDurationVal" class="text-xs font-bold text-forthRed">45 mins</span>
+                    </div>
+                    <input type="range" id="browseDuration" min="30" max="90" step="15" value="45" oninput="document.getElementById('browseDurationVal').innerText = this.value + ' mins'" class="w-full accent-forthRed bg-gray-900 h-2 rounded-lg cursor-pointer">
+                    <div class="flex justify-between text-[10px] text-gray-500">
+                        <span>30m (Quick dig)</span>
+                        <span>60m (Deep crate)</span>
+                        <span>90m (Collector)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generate Button Container -->
+            <div class="pt-2">
+                <button onclick="generateItinerary()" class="w-full bg-forthRed hover:bg-forthRedHover text-white py-4 rounded-xl font-bold shadow-lg shadow-forthRed/25 transition flex items-center justify-center gap-2 text-base">
+                    <i class="fa-solid fa-route"></i> Generate Optimized Crawl Itinerary
+                </button>
+            </div>
+        </section>
+
+        <!-- STEP 3: Itinerary Timeline View (Hidden initially) -->
+        <section id="itinerarySection" class="hidden bg-cardBg rounded-2xl border border-borderDark p-5 sm:p-6 shadow-xl space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-borderDark pb-4">
+                <div>
+                    <div class="text-xs font-semibold uppercase tracking-wider text-forthRed mb-1">Step 3 of 3</div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-map-location-dot text-forthRed"></i> Saturday Crawl Itinerary
+                    </h2>
+                    <p id="itinerarySubtitle" class="text-sm text-gray-400 mt-0.5">Optimized route starting in South Queensferry and ending with pints at Los Hermanos.</p>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <button onclick="toggleCompanionMode(true)" class="bg-forthRed hover:bg-forthRedHover text-white text-xs px-4 py-2 rounded-xl font-medium transition flex items-center gap-1.5 shadow-md">
+                        <i class="fa-solid fa-compass"></i> Launch Live Companion
+                    </button>
+                    <button onclick="copyItineraryText()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs px-3 py-2 rounded-xl border border-gray-700 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-copy"></i> Copy Text
+                    </button>
+                </div>
+            </div>
+
+            <!-- Summary Stats Banner -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-gray-900/60 p-4 rounded-xl border border-borderDark text-center">
+                <div>
+                    <div class="text-[11px] uppercase tracking-wider text-gray-400">Total Duration</div>
+                    <div id="statTotalTime" class="text-base sm:text-lg font-bold text-white">5h 15m</div>
+                </div>
+                <div>
+                    <div class="text-[11px] uppercase tracking-wider text-gray-400">Stores Visited</div>
+                    <div id="statStoresCount" class="text-base sm:text-lg font-bold text-forthRed">4 Shops</div>
+                </div>
+                <div>
+                    <div class="text-[11px] uppercase tracking-wider text-gray-400">Mode</div>
+                    <div id="statTransportMode" class="text-base sm:text-lg font-bold text-white capitalize">Driving</div>
+                </div>
+                <div>
+                    <div class="text-[11px] uppercase tracking-wider text-gray-400">Final Debrief</div>
+                    <div class="text-base sm:text-lg font-bold text-emerald-400">Los Hermanos</div>
+                </div>
+            </div>
+
+            <!-- Timeline Container -->
+            <div id="timelineContainer" class="relative pl-4 sm:pl-8 space-y-6 before:absolute before:left-2 sm:before:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-gradient-to-b before:from-forthRed before:via-gray-700 before:to-emerald-500">
+                <!-- Timeline items injected dynamically -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- LIVE COMPANION MODAL / VIEW OVERLAY -->
+    <div id="companionModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex flex-col">
+        <!-- Companion Header -->
+        <div class="bg-cardBg border-b border-borderDark px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+                <h3 class="font-bold text-white text-sm sm:text-base flex items-center gap-2">
+                    Live Crawl Companion <span class="text-xs px-2 py-0.5 rounded bg-forthRed/20 text-forthRed border border-forthRed/30">Active Mode</span>
+                </h3>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="openCrateModal()" class="bg-gray-800 hover:bg-gray-700 text-forthRed border border-forthRed/40 text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1">
+                    <i class="fa-solid fa-feather-pointed"></i> Drop Crate Report
+                </button>
+                <button onclick="toggleCompanionMode(false)" class="text-gray-400 hover:text-white p-1.5 rounded-lg bg-gray-800/80">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Companion Body -->
+        <div class="flex-grow max-w-3xl w-full mx-auto p-4 sm:p-6 overflow-y-auto space-y-6">
+            <div class="bg-forthRed/10 border border-forthRed/30 rounded-xl p-4 flex items-start gap-3">
+                <i class="fa-solid fa-circle-info text-forthRed text-lg mt-0.5"></i>
+                <div class="text-xs sm:text-sm text-gray-300">
+                    <span class="font-bold text-white">Road Rules:</span> Use this companion view while digging. Check off your goals at each stop and tap <span class="text-forthRed font-semibold">"Drop Crate Report"</span> to share live finds with other QMC members back in South Queensferry!
+                </div>
+            </div>
+
+            <!-- Active Companion Stops List -->
+            <div id="companionStopsList" class="space-y-4">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- CRATE REPORT MODAL -->
+    <div id="crateReportModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-cardBg border border-borderDark rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-borderDark pb-3">
+                <h3 class="font-bold text-white text-base flex items-center gap-2">
+                    <i class="fa-solid fa-bullhorn text-forthRed"></i> Drop a QMC Crate Report
+                </h3>
+                <button onclick="closeCrateModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="submitCrateReport(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Select Store</label>
+                    <select id="reportStoreSelect" class="w-full bg-gray-900 border border-borderDark rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-forthRed">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Crate Update / Find</label>
+                    <textarea id="reportText" rows="3" placeholder="e.g. Fresh crate of 70s rock & Japanese pressings just put out in the back!" required class="w-full bg-gray-900 border border-borderDark rounded-xl p-3 text-sm text-white focus:outline-none focus:border-forthRed resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Vibe Tag</label>
+                    <select id="reportTag" class="w-full bg-gray-900 border border-borderDark rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-forthRed">
+                        <option value="🔥 Fresh Stock">🔥 Fresh Stock</option>
+                        <option value="💷 Bargain Goldmine">💷 Bargain Goldmine</option>
+                        <option value="🎧 Great Listening Deck">🎧 Great Listening Deck</option>
+                        <option value="✨ Rare 7-Inches">✨ Rare 7-Inches</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-forthRed hover:bg-forthRedHover text-white py-3 rounded-xl font-bold transition text-sm">
+                    Broadcast to QMC Network
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 bg-gray-900 border border-borderDark text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300">
+        <div id="toastIcon" class="text-forthRed text-lg"><i class="fa-solid fa-circle-check"></i></div>
+        <div id="toastMsg" class="text-xs sm:text-sm font-medium">Notification message</div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-borderDark py-6 text-center text-xs text-gray-500 space-y-1 mt-auto">
+        <p>Queensferry Music Collective • Connecting Lothian Vinyl Diggers & Community Sound Systems</p>
+        <p class="text-gray-600">Always finishing the tour with cold drinks at Los Hermanos Pícaros, South Queensferry.</p>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Store Database (Within 25 miles of South Queensferry)
+        const storesData = [
+            {
+                id: 'almond',
+                name: 'Almond River Records',
+                location: 'Corstorphine',
+                distance: '4.8 miles from South Queensferry',
+                address: 'St John\'s Road, Corstorphine, EH12 7XD',
+                tags: ['Ultrasonic cleaning', 'Listening deck', 'Local indie'],
+                description: 'Situated on St John\'s Road in Corstorphine. Excellent selection of contemporary indie, rock, and local Scottish releases with top-tier ultrasonic cleaning.',
+                defaultSelected: true
+            },
+            {
+                id: 'blackbyrd',
+                name: 'Blackbyrd Records',
+                location: 'Edinburgh (Central)',
+                distance: '10.5 miles',
+                address: 'St. Stephen St, Stockbridge, EH3 5AQ',
+                tags: ['£1-3 bargain bins', 'Jazz & Soul', 'Rare pressings'],
+                description: 'Legendary basement crates in Stockbridge. Unmatched for jazz, soul, and vintage rock finds.',
+                defaultSelected: true
+            },
+            {
+                id: 'elvis',
+                name: 'Elvis Shakespeare',
+                location: 'Leith, Edinburgh',
+                distance: '12.8 miles',
+                address: 'Dalry Rd / Leith Walk',
+                tags: ['£1-3 bargain bins', 'Listening deck', 'Books & Vinyl'],
+                description: 'A staple of the Edinburgh record digging scene for decades. Massive second-hand selection and bargain goldmines.',
+                defaultSelected: true
+            },
+            {
+                id: 'solushn',
+                name: 'Underground Solu-Shn',
+                location: 'Edinburgh Old Town',
+                distance: '11.2 miles',
+                address: 'Cockburn St, Edinburgh EH1 1BS',
+                tags: ['Electronic / Dance', 'Promos', 'Underground imports'],
+                description: 'The epicenter for underground electronic music, house, techno, hip-hop, and specialist 12-inch singles.',
+                defaultSelected: true
+            },
+            {
+                id: 'assai',
+                name: 'Assai Records',
+                location: 'Edinburgh (Granton / Central)',
+                distance: '9.4 miles',
+                address: 'Broughton St, Edinburgh EH1 3SB',
+                tags: ['Exclusive variants', 'Audiophile', 'New releases'],
+                description: 'Known for exclusive colour vinyl variants, signed editions, and immaculate rock and pop stock.',
+                defaultSelected: false
+            },
+            {
+                id: 'villains',
+                name: 'Vinyl Villains',
+                location: 'Leith Walk, Edinburgh',
+                distance: '12.2 miles',
+                address: 'Leith Walk, Edinburgh EH6 8NR',
+                tags: ['£1-3 bargain bins', 'Punk / Metal', 'True crate digging'],
+                description: 'A true old-school independent second-hand record shop. Dive deep into the £1-3 crates for hidden masterpieces.',
+                defaultSelected: true
+            }
+        ];
+
+        let selectedTransport = 'driving';
+        let currentItinerary = [];
+
+        // Initialize App on Load
+        window.addEventListener('DOMContentLoaded', () => {
+            renderStoreGrid();
+            updateSelectedCount();
+        });
+
+        // Render Store Cards
+        function renderStoreGrid() {
+            const grid = document.getElementById('storeGrid');
+            grid.innerHTML = '';
+
+            storesData.forEach(store => {
+                const isSelected = store.defaultSelected;
+                const card = document.createElement('div');
+                card.className = `store-card relative rounded-xl border p-4 transition-all cursor-pointer flex flex-col justify-between ${isSelected ? 'bg-gray-900/90 border-forthRed shadow-md shadow-forthRed/10' : 'bg-gray-900/40 border-borderDark hover:border-gray-700'}`;
+                card.onclick = (e) => {
+                    // Prevent toggle if clicking tags
+                    if(e.target.closest('.tag')) return;
+                    toggleStore(store.id);
+                };
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-start justify-between gap-2 mb-2">
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-forthRed bg-forthRed/10 px-2 py-0.5 rounded">${store.location}</span>
+                                <h3 class="font-bold text-white text-base mt-1">${store.name}</h3>
+                            </div>
+                            <div class="store-checkbox w-6 h-6 rounded-lg border flex items-center justify-center transition ${isSelected ? 'bg-forthRed border-forthRed text-white' : 'border-gray-700 bg-gray-800 text-transparent'}">
+                                <i class="fa-solid fa-check text-xs"></i>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-400 line-clamp-2 mb-3">${store.description}</p>
+                    </div>
+                    <div>
+                        <div class="flex flex-wrap gap-1.5 mb-2">
+                            ${store.tags.map(t => `<span class="tag text-[10px] bg-gray-800 text-gray-300 px-2 py-0.5 rounded border border-gray-700/60">${t}</span>`).join('')}
+                        </div>
+                        <div class="text-[11px] text-gray-500 flex items-center gap-1">
+                            <i class="fa-solid fa-location-arrow"></i> ${store.distance}
+                        </div>
+                    </div>
+                `;
+                card.id = `store-card-${store.id}`;
+                grid.appendChild(card);
+            });
+        }
+
+        // Toggle Store Selection
+        function toggleStore(id) {
+            const store = storesData.find(s => s.id === id);
+            if(store) {
+                store.defaultSelected = !store.defaultSelected;
+                const card = document.getElementById(`store-card-${id}`);
+                const checkbox = card.querySelector('.store-checkbox');
+                
+                if(store.defaultSelected) {
+                    card.className = "store-card relative rounded-xl border p-4 transition-all cursor-pointer flex flex-col justify-between bg-gray-900/90 border-forthRed shadow-md shadow-forthRed/10";
+                    checkbox.className = "store-checkbox w-6 h-6 rounded-lg border flex items-center justify-center transition bg-forthRed border-forthRed text-white";
+                } else {
+                    card.className = "store-card relative rounded-xl border p-4 transition-all cursor-pointer flex flex-col justify-between bg-gray-900/40 border-borderDark hover:border-gray-700";
+                    checkbox.className = "store-checkbox w-6 h-6 rounded-lg border flex items-center justify-center transition border-gray-700 bg-gray-800 text-transparent";
+                }
+                updateSelectedCount();
+            }
+        }
+
+        function selectAllStores() {
+            storesData.forEach(s => s.defaultSelected = true);
+            renderStoreGrid();
+            updateSelectedCount();
+            showToast("All stores selected!");
+        }
+
+        function updateSelectedCount() {
+            const count = storesData.filter(s => s.defaultSelected).length;
+            document.getElementById('selectedCountBadge').innerText = `${count} Selected`;
+        }
+
+        // Set Transport Mode
+        function setTransport(mode) {
+            selectedTransport = mode;
+            document.querySelectorAll('.transport-btn').forEach(btn => {
+                const m = btn.getAttribute('data-mode');
+                if(m === mode) {
+                    btn.className = "transport-btn flex flex-col items-center justify-center p-3 rounded-xl border border-forthRed bg-forthRed/10 text-white transition text-xs font-medium";
+                    btn.querySelector('i').className = btn.querySelector('i').className.replace(/text-gray-400/g, '') + ' text-forthRed';
+                } else {
+                    btn.className = "transport-btn flex flex-col items-center justify-center p-3 rounded-xl border border-borderDark bg-gray-900/50 text-gray-400 hover:border-gray-600 transition text-xs font-medium";
+                    btn.querySelector('i').className = btn.querySelector('i').className.replace(/text-forthRed/g, 'text-gray-400');
+                }
+            });
+        }
+
+        // Generate Itinerary Logic
+        function generateItinerary() {
+            const activeStores = storesData.filter(s => s.defaultSelected);
+            if(activeStores.length < 2) {
+                showToast("Please select at least 2 record stores for a crawl!", "error");
+                return;
+            }
+
+            const depTimeStr = document.getElementById('departureTime').value || "10:00";
+            const browseMins = parseInt(document.getElementById('browseDuration').value) || 45;
+
+            // Parse departure time
+            let [hours, minutes] = depTimeStr.split(':').map(Number);
+            let currentTimeMinutes = hours * 60 + minutes;
+
+            currentItinerary = [];
+
+            // Starting point: South Queensferry QMC Base
+            currentItinerary.push({
+                type: 'start',
+                title: 'QMC Base Departure',
+                location: 'South Queensferry',
+                time: formatTime(currentTimeMinutes),
+                desc: 'Gathering at South Queensferry. Bag checks and crate route briefing.'
+            });
+
+            // Travel times modifier based on mode
+            // First leg to Corstorphine (Almond River Records) is shorter (~10-15 mins driving from SQ)
+            let firstLegModifier = selectedTransport === 'driving' ? 12 : selectedTransport === 'transit' ? 22 : 30;
+            let standardTravelMins = selectedTransport === 'driving' ? 18 : selectedTransport === 'transit' ? 30 : 45;
+
+            activeStores.forEach((store, index) => {
+                // Travel Leg
+                let travelMins = (index === 0) ? firstLegModifier : standardTravelMins;
+                currentTimeMinutes += travelMins;
+                let travelText = selectedTransport === 'driving' ? `Drive via A90 / Corstorphine Road (~${travelMins} mins)` :
+                                 selectedTransport === 'transit' ? `ScotRail / Lothian Bus transit leg (~${travelMins} mins)` :
+                                 `Scenic cycle route via West Edinburgh path network (~${travelMins} mins)`;
+
+                currentItinerary.push({
+                    type: 'transit',
+                    title: `Transit to Stop ${index + 1}`,
+                    time: formatTime(currentTimeMinutes),
+                    desc: travelText
+                });
+
+                // Store Stop
+                let arriveMins = currentTimeMinutes;
+                currentTimeMinutes += browseMins;
+                currentItinerary.push({
+                    type: 'store',
+                    storeId: store.id,
+                    title: store.name,
+                    location: store.location,
+                    address: store.address,
+                    tags: store.tags,
+                    arriveTime: formatTime(arriveMins),
+                    departTime: formatTime(currentTimeMinutes),
+                    browseDuration: browseMins,
+                    desc: store.desc,
+                    goals: ['Check £1-3 bargain bins', 'Inspect fresh arrivals', 'Chat with store staff']
+                });
+            });
+
+            // Final Stop: Los Hermanos Tapas Bar
+            currentTimeMinutes += 25; // travel back to South Queensferry
+            let pubArrival = currentTimeMinutes;
+            currentTimeMinutes += 90; // 1.5 hours pints & debrief
+
+            currentItinerary.push({
+                type: 'transit',
+                title: 'Return Transit to South Queensferry',
+                time: formatTime(pubArrival),
+                desc: 'Heading back west across the Firth to South Queensferry.'
+            });
+
+            currentItinerary.push({
+                type: 'finish',
+                title: 'Los Hermanos Pícaros',
+                location: 'South Queensferry',
+                time: formatTime(pubArrival),
+                departTime: formatTime(currentTimeMinutes),
+                desc: 'End-of-crawl celebration! Tapas, cold pints, bag checks, and playing your best 7-inch finds.'
+            });
+
+            renderTimeline();
+            renderCompanionStops();
+            populateReportStoreSelect();
+
+            // Show Section & Scroll smooth
+            const section = document.getElementById('itinerarySection');
+            section.classList.remove('hidden');
+            section.scrollIntoView({ behavior: 'smooth' });
+
+            // Show Companion Button in Nav
+            document.getElementById('navCompanionBtn').classList.remove('hidden');
+            showToast("Crawl itinerary successfully optimized!");
+        }
+
+        function formatTime(totalMins) {
+            let h = Math.floor(totalMins / 60) % 24;
+            let m = totalMins % 60;
+            let ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12;
+            h = h ? h : 12;
+            let mStr = m < 10 ? '0' + m : m;
+            return `${h}:${mStr} ${ampm}`;
+        }
+
+        // Render Timeline UI
+        function renderTimeline() {
+            const container = document.getElementById('timelineContainer');
+            container.innerHTML = '';
+
+            let storeIndex = 0;
+
+            currentItinerary.forEach((item, idx) => {
+                const node = document.createElement('div');
+                node.className = 'relative pl-6 sm:pl-8';
+
+                if(item.type === 'start') {
+                    node.innerHTML = `
+                        <div class="absolute -left-[9px] sm:-left-[13px] top-1.5 w-5 h-5 rounded-full bg-forthRed border-4 border-darkBg flex items-center justify-center"></div>
+                        <div class="bg-gray-900/80 border border-borderDark rounded-xl p-4 shadow-md">
+                            <span class="text-xs font-bold text-forthReg">${item.time}</span>
+                            <h4 class="font-bold text-white text-base">${item.title}</h4>
+                            <p class="text-xs text-gray-400 mt-1">${item.desc}</p>
+                        </div>
+                    `;
+                } else if(item.type === 'transit') {
+                    node.innerHTML = `
+                        <div class="absolute -left-[5px] sm:-left-[9px] top-2 w-3 h-3 rounded-full bg-gray-700 border-2 border-darkBg"></div>
+                        <div class="text-xs text-gray-400 py-1 flex items-center gap-2">
+                            <span class="font-semibold text-gray-300"><i class="fa-solid fa-arrow-turn-down mr-1"></i> ${item.time}</span>
+                            <span>•</span>
+                            <span>${item.desc}</span>
+                        </div>
+                    `;
+                } else if(item.type === 'store') {
+                    storeIndex++;
+                    node.innerHTML = `
+                        <div class="absolute -left-[9px] sm:-left-[13px] top-1.5 w-5 h-5 rounded-full bg-forthRed border-4 border-darkBg flex items-center justify-center shadow"></div>
+                        <div class="bg-gray-900 border border-borderDark rounded-xl p-4 sm:p-5 shadow-lg space-y-3">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <div>
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-forthRed bg-forthRed/10 px-2 py-0.5 rounded">Stop #${storeIndex} • ${item.arriveTime} – ${item.departTime}</span>
+                                    <h4 class="font-bold text-white text-lg mt-1">${item.title}</h4>
+                                </div>
+                                <span class="text-xs text-gray-400"><i class="fa-solid fa-location-dot text-forthRed mr-1"></i> ${item.address}</span>
+                            </div>
+                            <p class="text-xs text-gray-300">${item.desc}</p>
+                            <div class="flex flex-wrap gap-1.5 pt-1">
+                                ${item.tags.map(t => `<span class="text-[10px] bg-gray-800 text-gray-300 px-2 py-0.5 rounded border border-gray-700">${t}</span>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                } else if(item.type === 'finish') {
+                    node.innerHTML = `
+                        <div class="absolute -left-[9px] sm:-left-[13px] top-1.5 w-5 h-5 rounded-full bg-emerald-500 border-4 border-darkBg flex items-center justify-center shadow"></div>
+                        <div class="bg-gradient-to-br from-emerald-950/40 to-gray-900 border border-emerald-500/40 rounded-xl p-4 sm:p-5 shadow-xl space-y-2">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">Final Destination • ${item.time} Onwards</span>
+                            <h4 class="font-bold text-white text-lg flex items-center gap-2">
+                                <i class="fa-solid fa-champagne-glasses text-emerald-400"></i> ${item.title}
+                            </h4>
+                            <p class="text-xs text-gray-300">${item.desc}</p>
+                        </div>
+                    `;
+                }
+                container.appendChild(node);
+            });
+
+            // Update stats
+            const activeStores = storesData.filter(s => s.defaultSelected);
+            document.getElementById('statStoresCount').innerText = `${activeStores.length} Shops`;
+            document.getElementById('statTransportMode').innerText = selectedTransport;
+        }
+
+        // Render Companion Stops View
+        function renderCompanionStops() {
+            const list = document.getElementById('companionStopsList');
+            list.innerHTML = '';
+
+            const storeItems = currentItinerary.filter(i => i.type === 'store' || i.type === 'finish');
+
+            storeItems.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = "bg-gray-900 border border-borderDark rounded-xl p-4 sm:p-5 space-y-3";
+                
+                let goalsHtml = item.goals ? item.goals.map((g, gIdx) => `
+                    <label class="flex items-center gap-2.5 text-xs text-gray-300 cursor-pointer select-none hover:text-white">
+                        <input type="checkbox" class="w-4 h-4 accent-forthRed rounded bg-gray-800 border-gray-700">
+                        <span>${g}</span>
+                    </label>
+                `).join('') : '';
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-borderDark pb-3">
+                        <div>
+                            <span class="text-[10px] font-bold text-forthRed uppercase">${item.type === 'finish' ? 'Debrief Stop' : 'Stop ' + (idx + 1)}</span>
+                            <h4 class="font-bold text-white text-base">${item.title}</h4>
+                        </div>
+                        <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + ' ' + (item.address || 'South Queensferry'))}" target="_blank" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-200 px-3 py-1.5 rounded-lg border border-gray-700 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-map-location-dot text-forthRed"></i> Map
+                        </a>
+                    </div>
+                    ${item.goals ? `<div class="space-y-2 pt-1"><div class="text-[11px] uppercase tracking-wider text-gray-500 font-semibold">Crate Digging Goals:</div>${goalsHtml}</div>` : '<p class="text-xs text-gray-400">Time to celebrate the haul and enjoy cold drinks with fellow QMC members.</p>'}
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        // Companion Mode Toggle
+        function toggleCompanionMode(show) {
+            const modal = document.getElementById('companionModal');
+            if(show) {
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            } else {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // Crate Report Modal
+        function openCrateModal() {
+            document.getElementById('crateReportModal').classList.remove('hidden');
+        }
+
+        function closeCrateModal() {
+            document.getElementById('crateReportModal').classList.add('hidden');
+        }
+
+        function populateReportStoreSelect() {
+            const select = document.getElementById('reportStoreSelect');
+            select.innerHTML = '';
+            storesData.filter(s => s.defaultSelected).forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.name;
+                opt.innerText = s.name;
+                select.appendChild(opt);
+            });
+            const pubOpt = document.createElement('option');
+            pubOpt.value = 'Los Hermanos Pícaros';
+            pubOpt.innerText = 'Los Hermanos Pícaros (HQ)';
+            select.appendChild(pubOpt);
+        }
+
+        function submitCrateReport(e) {
+            e.preventDefault();
+            const store = document.getElementById('reportStoreSelect').value;
+            const text = document.getElementById('reportText').value;
+            const tag = document.getElementById('reportTag').value;
+
+            closeCrateModal();
+            showToast(`Crate report broadcasted for ${store}! 📢`);
+            document.getElementById('reportText').value = '';
+        }
+
+        // Copy Itinerary Text
+        function copyItineraryText() {
+            let text = "🎵 QMC SATURDAY RECORD CRAWL ITINERARY 🎵\n";
+            text += "========================================\n\n";
+            currentItinerary.forEach(i => {
+                if(i.type === 'start') text += `[START] ${i.time} - ${i.title}\n`;
+                else if(i.type === 'transit') text += `  ➔ ${i.time}: ${i.desc}\n`;
+                else if(i.type === 'store') text += `[STOP] ${i.arriveTime} - ${i.title} (${i.location})\n`;
+                else if(i.type === 'finish') text += `[FINISH] ${i.time} - ${i.title}\n`;
+            });
+            text += "\nEnding up at Los Hermanos Pícaros, South Queensferry. Queensferry Music Collective.";
+
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            showToast("Itinerary copied to clipboard!");
+        }
+
+        // Reset Planner
+        function resetPlanner() {
+            storesData.forEach(s => s.defaultSelected = true);
+            renderStoreGrid();
+            updateSelectedCount();
+            document.getElementById('itinerarySection').classList.add('hidden');
+            document.getElementById('navCompanionBtn').classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            showToast("Planner reset successfully.");
+        }
+
+        // Toast Notification Helper
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toastMsg');
+            msgEl.innerText = msg;
+
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
