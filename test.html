@@ -45,10 +45,13 @@
                     <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
                         QMC Record Crawl <span class="text-xs px-2 py-0.5 rounded-full bg-forthRed/20 text-forthRed border border-forthRed/30 hidden sm:inline-block">Radar v2.4</span>
                     </h1>
-                    <p class="text-xs text-gray-400">Queensferry Music Collective • Lothian Crate Planner</p>
+                    <p class="text-xs text-gray-400">Queensferry Music Collective • Lothian & Forth Crate Planner</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
+                <a href="./record-shops/index.html" class="hidden sm:inline-flex text-xs bg-gray-800 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg border border-gray-700 hover:border-gray-500 transition items-center gap-1.5">
+                    <i class="fa-solid fa-compass-drafting text-forthRed"></i> Store Radar Directory
+                </a>
                 <button id="navCompanionBtn" onclick="toggleCompanionMode(true)" class="hidden text-xs bg-forthRed text-white px-3 py-1.5 rounded-lg font-medium hover:bg-forthRedHover transition flex items-center gap-1.5 shadow-sm">
                     <i class="fa-solid fa-compass"></i> Live Companion
                 </button>
@@ -68,19 +71,36 @@
                 <div>
                     <div class="text-xs font-semibold uppercase tracking-wider text-forthRed mb-1">Step 1 of 3</div>
                     <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-store text-forthRed"></i> Select Your Record Stores
+                        <i class="fa-solid fa-store text-forthRed"></i> Select Your Featured Record Stores
                     </h2>
-                    <p class="text-sm text-gray-400 mt-0.5">Pick 2 to 5 independent vinyl havens within the 25-mile South Queensferry radius.</p>
+                    <p class="text-sm text-gray-400 mt-0.5">Pick 2 or more featured vinyl havens from the QMC 25-mile South Queensferry radar directory.</p>
                 </div>
-                <div class="text-right flex items-center gap-2">
+                <div class="text-right flex items-center gap-2 flex-wrap">
                     <span id="selectedCountBadge" class="text-xs px-3 py-1 rounded-full bg-gray-800 border border-gray-700 text-gray-300 font-medium">0 Selected</span>
-                    <button onclick="selectAllStores()" class="text-xs text-forthRed hover:underline font-medium">Select All</button>
+                    <button onclick="selectAllStores()" class="text-xs text-forthRed hover:underline font-medium">Select Visible</button>
+                    <span class="text-gray-600">•</span>
+                    <button onclick="clearStoreSelection()" class="text-xs text-gray-400 hover:text-white hover:underline font-medium">Clear</button>
+                </div>
+            </div>
+
+            <!-- Region Filter Bar -->
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap gap-1.5" id="regionFilterBar">
+                    <button type="button" onclick="setRegionFilter('all')" data-region="all" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-forthRed bg-forthRed/20 text-white font-medium transition">All Featured (23)</button>
+                    <button type="button" onclick="setRegionFilter('edinburgh')" data-region="edinburgh" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-borderDark bg-gray-900/60 text-gray-400 hover:text-white transition">Edinburgh</button>
+                    <button type="button" onclick="setRegionFilter('fife')" data-region="fife" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-borderDark bg-gray-900/60 text-gray-400 hover:text-white transition">Fife</button>
+                    <button type="button" onclick="setRegionFilter('west-lothian')" data-region="west-lothian" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-borderDark bg-gray-900/60 text-gray-400 hover:text-white transition">West Lothian</button>
+                    <button type="button" onclick="setRegionFilter('forth-valley')" data-region="forth-valley" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-borderDark bg-gray-900/60 text-gray-400 hover:text-white transition">Falkirk & Stirling</button>
+                </div>
+                <div class="relative w-full sm:w-56">
+                    <input type="text" id="storeSearchInput" oninput="renderStoreGrid()" placeholder="Filter by shop or genre..." class="w-full bg-gray-900 border border-borderDark rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-forthRed">
+                    <i class="fa-solid fa-magnifying-glass text-gray-500 text-xs absolute left-2.5 top-2"></i>
                 </div>
             </div>
 
             <!-- Store Grid -->
             <div id="storeGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Dynamically populated via JavaScript -->
+                <!-- Dynamically populated via JavaScript from record-shops/stores.json -->
             </div>
         </section>
 
@@ -279,77 +299,637 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // Store Database (Within 25 miles of South Queensferry)
-        const storesData = [
-            {
-                id: 'almond',
-                name: 'Almond River Records',
-                location: 'Corstorphine',
-                distance: '4.8 miles from South Queensferry',
-                address: 'St John\'s Road, Corstorphine, EH12 7XD',
-                tags: ['Ultrasonic cleaning', 'Listening deck', 'Local indie'],
-                description: 'Situated on St John\'s Road in Corstorphine. Excellent selection of contemporary indie, rock, and local Scottish releases with top-tier ultrasonic cleaning.',
-                defaultSelected: true
-            },
-            {
-                id: 'blackbyrd',
-                name: 'Blackbyrd Records',
-                location: 'Edinburgh (Central)',
-                distance: '10.5 miles',
-                address: 'St. Stephen St, Stockbridge, EH3 5AQ',
-                tags: ['£1-3 bargain bins', 'Jazz & Soul', 'Rare pressings'],
-                description: 'Legendary basement crates in Stockbridge. Unmatched for jazz, soul, and vintage rock finds.',
-                defaultSelected: true
-            },
-            {
-                id: 'elvis',
-                name: 'Elvis Shakespeare',
-                location: 'Leith, Edinburgh',
-                distance: '12.8 miles',
-                address: 'Dalry Rd / Leith Walk',
-                tags: ['£1-3 bargain bins', 'Listening deck', 'Books & Vinyl'],
-                description: 'A staple of the Edinburgh record digging scene for decades. Massive second-hand selection and bargain goldmines.',
-                defaultSelected: true
-            },
-            {
-                id: 'solushn',
-                name: 'Underground Solu-Shn',
-                location: 'Edinburgh Old Town',
-                distance: '11.2 miles',
-                address: 'Cockburn St, Edinburgh EH1 1BS',
-                tags: ['Electronic / Dance', 'Promos', 'Underground imports'],
-                description: 'The epicenter for underground electronic music, house, techno, hip-hop, and specialist 12-inch singles.',
-                defaultSelected: true
-            },
-            {
-                id: 'assai',
-                name: 'Assai Records',
-                location: 'Edinburgh (Granton / Central)',
-                distance: '9.4 miles',
-                address: 'Broughton St, Edinburgh EH1 3SB',
-                tags: ['Exclusive variants', 'Audiophile', 'New releases'],
-                description: 'Known for exclusive colour vinyl variants, signed editions, and immaculate rock and pop stock.',
-                defaultSelected: false
-            },
-            {
-                id: 'villains',
-                name: 'Vinyl Villains',
-                location: 'Leith Walk, Edinburgh',
-                distance: '12.2 miles',
-                address: 'Leith Walk, Edinburgh EH6 8NR',
-                tags: ['£1-3 bargain bins', 'Punk / Metal', 'True crate digging'],
-                description: 'A true old-school independent second-hand record shop. Dive deep into the £1-3 crates for hidden masterpieces.',
-                defaultSelected: true
-            }
-        ];
+        // Default Featured Store IDs selected on startup (Almond River, VoxBox, Underground Solu'shn, Vinyl Villains)
+        const DEFAULT_SELECTED_IDS = new Set([1, 4, 12, 14]);
 
+        let hubCenter = {
+            name: "South Queensferry Hub (EH30)",
+            lat: 55.9903,
+            lng: -3.3965,
+            radius_miles: 25.0
+        };
+
+        let storesData = [];
+        let selectedRegion = 'all';
         let selectedTransport = 'driving';
         let currentItinerary = [];
 
-        // Initialize App on Load
-        window.addEventListener('DOMContentLoaded', () => {
+        // Haversine calculation (miles) matching record-shops/index.html
+        function haversineMiles(lat1, lon1, lat2, lon2) {
+            const R = 3958.8;
+            const toRad = deg => deg * (Math.PI / 180);
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const a = Math.sin(dLat / 2) ** 2 +
+                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+            return Number((R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(1));
+        }
+
+        // Classify store area into region filter bucket
+        function getStoreRegion(area) {
+            const a = (area || '').toLowerCase();
+            if (a.includes('edinburgh')) return 'edinburgh';
+            if (a.includes('fife') || a.includes('dunfermline') || a.includes('inverkeithing') || a.includes('glenrothes')) return 'fife';
+            if (a.includes('west lothian') || a.includes('linlithgow') || a.includes('bathgate')) return 'west-lothian';
+            if (a.includes('falkirk') || a.includes('stirling')) return 'forth-valley';
+            return 'other';
+        }
+
+        // Transform raw store entry from record-shops/stores.json into planner format
+        function normalizeStore(raw, center) {
+            const distMiles = haversineMiles(center.lat, center.lng, raw.lat, raw.lng);
+            const tags = [];
+            if (raw.ultrasonic_cleaned) tags.push('✨ Ultrasonic cleaning');
+            if (raw.has_listening_deck) tags.push('🎧 Listening deck');
+            if (raw.has_bargain_crates) tags.push('📦 £1–£3 bargain bins');
+            if (raw.has_coffee_bar) tags.push('☕ Coffee bar');
+            if (raw.has_vinyl_flattening) tags.push('💿 Vinyl flattening');
+            if (raw.buys_collections) tags.push('💽 Buys collections');
+            if (raw.stock_type) tags.push(raw.stock_type);
+            (raw.genres || []).slice(0, 2).forEach(g => tags.push(g));
+
+            const goals = [];
+            if (raw.has_bargain_crates) goals.push('Dig through the £1–£3 bargain crates');
+            if (raw.has_listening_deck) goals.push('Audition test pulls on the listening deck');
+            if (raw.ultrasonic_cleaned) goals.push('Check ultrasonic-cleaned vintage pressings');
+            if (raw.has_coffee_bar) goals.push('Grab a specialty coffee while flipping racks');
+            if (raw.has_vinyl_flattening) goals.push('Ask about in-store vinyl flattening service');
+            if (raw.genres && raw.genres.length) goals.push(`Browse ${raw.genres.slice(0, 3).join(', ')} sections`);
+            goals.push('Inspect fresh arrivals & chat with store staff');
+
+            return {
+                id: raw.id,
+                name: raw.name,
+                location: raw.area,
+                region: getStoreRegion(raw.area),
+                distanceMiles: distMiles,
+                distance: `${distMiles} miles from South Queensferry`,
+                address: raw.address,
+                lat: raw.lat,
+                lng: raw.lng,
+                stock_type: raw.stock_type,
+                genres: raw.genres || [],
+                formats: raw.formats || [],
+                website: raw.website || '',
+                tags: tags.slice(0, 4),
+                description: raw.description || raw.bio || '',
+                bio: raw.bio || raw.description || '',
+                goals: goals.slice(0, 3),
+                defaultSelected: DEFAULT_SELECTED_IDS.has(raw.id)
+            };
+        }
+
+        // Exact fallback mirror of record-shops/stores.json for file:// protocol resilience
+        function getFallbackStoresJson() {
+            return {
+                "center": {
+                    "name": "South Queensferry Hub (EH30)",
+                    "lat": 55.9903,
+                    "lng": -3.3965,
+                    "radius_miles": 25.0
+                },
+                "stores": [
+                    {
+                        "id": 1,
+                        "name": "Almond River Records",
+                        "area": "Corstorphine, Edinburgh",
+                        "address": "253 St John's Rd, EH12 7XD",
+                        "lat": 55.9427,
+                        "lng": -3.2905,
+                        "stock_type": "Used Heavy",
+                        "genres": ["Rock", "Indie", "Soul", "Pop"],
+                        "has_listening_deck": false,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": true,
+                        "has_bargain_crates": true,
+                        "has_coffee_bar": false,
+                        "description": "Curated second-hand shop in west Edinburgh offering ultrasonic record cleaning and fair cash/trade on collections.",
+                        "formats": ["12\"", "7\"", "CDs"],
+                        "website": "https://almondriverrecords.online/",
+                        "bio": "Founded by passionate crate diggers, Almond River Records is West Edinburgh's premier haven for quality second-hand vinyl, CDs, and audio gear. Specialising in meticulously graded 60s/70s classic rock, prog, indie, and jazz, every pre-loved record is inspected with care, and ultrasonic deep-cleaning is available in-store to bring vintage grooves back to life.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 2,
+                        "name": "Veneno Music Store",
+                        "area": "Dunfermline, Fife",
+                        "address": "20 East Port, KY12 7JB",
+                        "lat": 56.0717,
+                        "lng": -3.458,
+                        "stock_type": "Mix (New & Used)",
+                        "genres": ["Rock", "Metal", "Indie", "Pop"],
+                        "has_listening_deck": true,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": true,
+                        "has_bargain_crates": true,
+                        "has_coffee_bar": false,
+                        "description": "Welcoming Fife independent with super honest condition grading across pre-loved and new vinyl.",
+                        "formats": ["12\"", "7\"", "CDs", "Cassettes"],
+                        "website": "https://venenomusicstore.com/",
+                        "bio": "Located in historic Dunfermline just across the Queensferry Crossing, Veneno Music Store has quickly earned a glowing reputation for its curated crates of heavy rock, metal, 90s alternative, and punk alongside fresh indie pressings.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 3,
+                        "name": "The Music Box",
+                        "area": "Dunfermline, Fife",
+                        "address": "37 Queen Anne St, KY12 7BA",
+                        "lat": 56.0725,
+                        "lng": -3.4612,
+                        "stock_type": "Mix (New & Used)",
+                        "genres": ["Indie", "Britpop", "Rock", "Rarities"],
+                        "has_listening_deck": false,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": true,
+                        "has_coffee_bar": false,
+                        "description": "Independent Dunfermline spot strong on UK indie rarities, limited box sets, and pre-owned crates.",
+                        "formats": ["12\"", "7\"", "CDs"],
+                        "website": "https://www.facebook.com/p/The-Music-Box-61579984413547/",
+                        "bio": "A relatively new outlet servicing the Dunfermline and broader area. The Music Box is an old school treasure trove packed to the rafters with rock, folk, blues, and pop vinyl across 12-inch LPs and 7-inch singles.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 4,
+                        "name": "VoxBox Music",
+                        "area": "Stockbridge, Edinburgh",
+                        "address": "21 St Stephen St, EH3 6TQ",
+                        "lat": 55.9576,
+                        "lng": -3.2078,
+                        "stock_type": "Used Heavy",
+                        "genres": ["Jazz", "Indie", "Rock", "60s/70s", "Scottish"],
+                        "has_listening_deck": true,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": true,
+                        "has_bargain_crates": true,
+                        "has_coffee_bar": false,
+                        "description": "Famous for pristine front-shop stock and the legendary £1-£3 bargain basement room out back.",
+                        "formats": ["12\"", "7\""],
+                        "website": "https://voxboxmusic.co.uk/",
+                        "bio": "Tucked away on cobbled St Stephen Street in Stockbridge, VoxBox Music is one of Scotland's most beloved vinyl sanctuaries. Spread across two atmospheric rooms of vintage records, VoxBox specialises in original UK pressings of classic rock, blues, jazz, and Scottish indie.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 5,
+                        "name": "Oxfam Music Stockbridge",
+                        "area": "Stockbridge, Edinburgh",
+                        "address": "64 Raeburn Pl, EH4 1HN",
+                        "lat": 55.9589,
+                        "lng": -3.2117,
+                        "stock_type": "Used Only",
+                        "genres": ["Rock", "Classical", "Jazz", "Folk", "Soundtracks"],
+                        "has_listening_deck": false,
+                        "buys_collections": false,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": true,
+                        "has_coffee_bar": false,
+                        "description": "Dedicated music charity shop receiving some of Edinburgh's best donated vinyl collections.",
+                        "formats": ["12\"", "7\"", "CDs", "Cassettes"],
+                        "website": "https://www.oxfam.org.uk/shops/oxfam-music-shop-raeburn-place/",
+                        "bio": "Celebrated as one of the UK's flagship charity music shops, Oxfam Music on Raeburn Place is a legendary goldmine for Edinburgh vinyl hunters.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 6,
+                        "name": "Low Port Music",
+                        "area": "Linlithgow, West Lothian",
+                        "address": "15A Low Port, EH49 7HZ",
+                        "lat": 55.9765,
+                        "lng": -3.5932,
+                        "stock_type": "Mix (New & Used)",
+                        "genres": ["Indie", "Alternative", "Electronic", "Post Rock", "Soul", "Jazz", "Funk"],
+                        "has_listening_deck": false,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": false,
+                        "has_coffee_bar": false,
+                        "description": "Linlithgow's local independent record shop. Great for indie exclusives, Ninja Tune/4AD/Soul Jazz releases, and RSD drops.",
+                        "formats": ["12\"", "7\"", "CDs"],
+                        "website": "https://www.lowportmusic.co.uk/",
+                        "bio": "Just steps from historic Linlithgow Palace and the canal basin, Low Port Music is a vibrant West Lothian institution.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 7,
+                        "name": "Greenhouse Records",
+                        "area": "Bruntsfield, Edinburgh",
+                        "address": "10 Barclay Terrace, EH10 4HP",
+                        "lat": 55.9392,
+                        "lng": -3.2055,
+                        "stock_type": "Mix (New & Used)",
+                        "genres": ["Underground Dance", "Leftfield", "Dub", "Experimental"],
+                        "has_listening_deck": true,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": true,
+                        "has_coffee_bar": false,
+                        "description": "Specialist shop dealing in underground club 12-inches, electronic, dub, and global experimental sounds.",
+                        "formats": ["12\"", "Cassettes"],
+                        "website": "https://greenhouserecords.co.uk/",
+                        "bio": "Perched in leafy Bruntsfield, Greenhouse Records is a chic, daylight-filled sanctuary for audiophiles and curious selectors.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 8,
+                        "name": "Umbrella Vinyl",
+                        "area": "Tollcross, Edinburgh",
+                        "address": "15B Brougham St, EH3 9JS",
+                        "lat": 55.9422,
+                        "lng": -3.2023,
+                        "stock_type": "Used Heavy",
+                        "genres": ["Jazz", "Soul", "Funk", "Dub", "Afrobeat", "Library"],
+                        "has_listening_deck": true,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": true,
+                        "has_bargain_crates": true,
+                        "has_coffee_bar": false,
+                        "description": "Play-graded specialist second-hand shop covering global sounds, deep jazz, funk, dub, and library records.",
+                        "formats": ["12\"", "7\""],
+                        "website": "https://umbrellavinyl.com/",
+                        "bio": "Situated in Tollcross, Umbrella Vinyl is run by two dedicated diggers who hand-pick their stock across the globe.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 9,
+                        "name": "Assai Records",
+                        "area": "Tollcross, Edinburgh",
+                        "address": "1 Grindlay St, EH3 9AT",
+                        "lat": 55.9458,
+                        "lng": -3.2038,
+                        "stock_type": "New Only",
+                        "genres": ["Indie", "Rock", "Jazz", "Hip-Hop", "Soundtracks"],
+                        "has_listening_deck": false,
+                        "buys_collections": false,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": false,
+                        "has_coffee_bar": false,
+                        "description": "Spacious new-release powerhouse known for numbered Japanese-style Obi editions and hardware/sleeves.",
+                        "formats": ["12\"", "7\"", "CDs"],
+                        "website": "https://assai.co.uk/",
+                        "bio": "Overlooking Grindlay Street beneath Edinburgh Castle, Assai Records Edinburgh is a flagship indie retailer known for its premier stock of brand-new vinyl releases and exclusive Assai obi-strip pressings.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 10,
+                        "name": "Backtracks Music",
+                        "area": "Tollcross, Edinburgh",
+                        "address": "52 Brougham St, EH3 9QG",
+                        "lat": 55.9416,
+                        "lng": -3.2018,
+                        "stock_type": "Used Heavy",
+                        "genres": ["Rock", "Pop", "Soul", "7-Inch Singles"],
+                        "has_listening_deck": true,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": true,
+                        "has_coffee_bar": false,
+                        "description": "Old-school floor-to-ceiling crate digger's staple with thousands of used LPs and 45s.",
+                        "formats": ["12\"", "7\"", "CDs", "Cassettes"],
+                        "website": "https://backtracksmusic.co.uk/",
+                        "bio": "Standing strong on Brougham Street since 1989, Backtracks is Edinburgh's classic collector's depot.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 11,
+                        "name": "Thorne Records",
+                        "area": "Morningside, Edinburgh",
+                        "address": "125 Bruntsfield Pl, EH10 4EQ",
+                        "lat": 55.9365,
+                        "lng": -3.2089,
+                        "stock_type": "Mix (New & Used)",
+                        "genres": ["Indie", "Americana", "Jazz", "Electronic", "Folk"],
+                        "has_listening_deck": false,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": false,
+                        "has_coffee_bar": false,
+                        "description": "Dog-friendly neighbourhood shop offering an expertly curated mix of brand-new releases and clean pre-loved second-hand vinyl.",
+                        "formats": ["12\"", "7\"", "CDs"],
+                        "website": "https://thornerecords.com/",
+                        "bio": "Founded by veteran record store manager Mark Thorne, this bright, welcoming South Edinburgh boutique on Bruntsfield Place offers an expertly chosen balance of brand-new indie releases, classic reissues, and curated second-hand gems.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 12,
+                        "name": "Underground Solu'shn",
+                        "area": "Old Town, Edinburgh",
+                        "address": "9 Cockburn St, EH1 1BP",
+                        "lat": 55.9507,
+                        "lng": -3.1878,
+                        "stock_type": "New Heavy",
+                        "genres": ["House", "Techno", "Hip-Hop", "Beats", "Funk", "Soul"],
+                        "has_listening_deck": true,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": true,
+                        "has_coffee_bar": false,
+                        "description": "Edinburgh's institution for DJs and beatmakers: dance 12s, hip-hop, jazz reissues, Ortofon carts, and Technics accessories.",
+                        "formats": ["12\"", "7\"", "CDs"],
+                        "website": "https://undergroundsolution.com",
+                        "bio": "An undisputed cultural landmark on Cockburn Street since 1995, Underground Solu'shn is the heartbeat of Edinburgh's electronic, club, and DJ culture.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 13,
+                        "name": "Slow Progress Records & Coffee",
+                        "area": "Old Town, Edinburgh",
+                        "address": "53 Blackfriars St, EH1 1NB",
+                        "lat": 55.9496,
+                        "lng": -3.1856,
+                        "stock_type": "New Heavy",
+                        "genres": ["Post-Punk", "Indie", "Experimental", "Ambient"],
+                        "has_listening_deck": true,
+                        "buys_collections": false,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": false,
+                        "has_coffee_bar": true,
+                        "description": "Independent record shop and specialty coffee bar tucked just off the Royal Mile.",
+                        "formats": ["12\"", "Cassettes"],
+                        "website": "https://slowprogress.co.uk/",
+                        "bio": "Combining the finest specialty plant-based coffee, bakery treats, and an expertly curated vinyl selection on Blackfriars Street, Slow Progress is a cosy haven just off the Royal Mile.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 14,
+                        "name": "Vinyl Villains",
+                        "area": "Elm Row, Edinburgh",
+                        "address": "5 Elm Row, EH7 4AQ",
+                        "lat": 55.9585,
+                        "lng": -3.1835,
+                        "stock_type": "Used Heavy",
+                        "genres": ["Punk", "New Wave", "Reggae", "Indie", "Rock"],
+                        "has_listening_deck": true,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": true,
+                        "has_coffee_bar": false,
+                        "description": "At the top of Leith Walk since 1982. Deep second-hand racks and unpretentious staff knowledge.",
+                        "formats": ["12\"", "7\"", "CDs"],
+                        "website": "https://vinylvillains.co.uk",
+                        "bio": "Holding court at the top of Leith Walk on Elm Row since 1983, Vinyl Villains is Edinburgh's oldest surviving independent second-hand record shop.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 16,
+                        "name": "Lounge 33",
+                        "area": "Leith Walk, Edinburgh",
+                        "address": "373-375 Leith Walk, EH6 8SE",
+                        "lat": 55.9651,
+                        "lng": -3.1751,
+                        "stock_type": "Mix (New & Used)",
+                        "genres": ["Jazz", "Soul", "Funk", "Blues", "Hip-Hop"],
+                        "has_listening_deck": true,
+                        "buys_collections": false,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": false,
+                        "has_coffee_bar": true,
+                        "description": "Vinyl listening space and specialty coffee lounge built around jazz, soul, funk, and hip-hop records.",
+                        "formats": ["12\"", "7\""],
+                        "website": "https://lounge33edinburgh.co.uk",
+                        "bio": "An intimate, relaxed record den located on middle Leith Walk, Lounge 33 combines a passion for vintage vinyl with comfortable, music-first vibes.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 17,
+                        "name": "Good Vibes Neighbourhood Store",
+                        "area": "Leith, Edinburgh",
+                        "address": "151-153 Constitution St, EH6 7AD",
+                        "lat": 55.9739,
+                        "lng": -3.1672,
+                        "stock_type": "New & Reissues",
+                        "genres": ["Psych", "Ambient", "Electronic", "Jazz", "Folk"],
+                        "has_listening_deck": false,
+                        "buys_collections": false,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": false,
+                        "has_coffee_bar": false,
+                        "description": "Curated selection of specialist labels, spiritual jazz, ambient, and psyche in the heart of Leith.",
+                        "formats": ["12\"", "Cassettes"],
+                        "website": "https://good-vibes.space",
+                        "bio": "Situated down on Constitution Street in historic Leith, Good Vibes Neighbourhood Store is a community-minded creative hub.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 18,
+                        "name": "Avalanche Records",
+                        "area": "City Centre, Edinburgh",
+                        "address": "Waverley Market, 3 Princes St, EH1 1BQ",
+                        "lat": 55.9524,
+                        "lng": -3.1901,
+                        "stock_type": "Mix (New & Vintage)",
+                        "genres": ["Scottish Indie", "Post-Rock", "Alternative"],
+                        "has_listening_deck": false,
+                        "buys_collections": false,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": false,
+                        "has_coffee_bar": false,
+                        "description": "Long-running champion of Scottish independent bands alongside vintage vinyl crates.",
+                        "formats": ["12\"", "7\"", "CDs"],
+                        "website": "https://avalancherecords.co.uk/",
+                        "bio": "Originally established in 1984 and now housed within the Waverley Market directly above Edinburgh Waverley Station, Avalanche Records is an iconic Scottish music brand.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 19,
+                        "name": "Silver Machine Records",
+                        "area": "Falkirk",
+                        "address": "The Avenue, 165 High St, FK1 1DU",
+                        "lat": 55.9994,
+                        "lng": -3.7845,
+                        "stock_type": "Used Heavy",
+                        "genres": ["60s/70s Rock", "Psych", "Prog", "Soul"],
+                        "has_listening_deck": true,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": true,
+                        "has_coffee_bar": false,
+                        "description": "Vintage and rare vinyl specialist on Falkirk High Street with deep crates of classic rock and metal.",
+                        "formats": ["12\"", "7\"", "CDs"],
+                        "website": "https://silvermachinerecords.co.uk/",
+                        "bio": "Located inside The Avenue on Falkirk's High Street, Silver Machine Records is Central Scotland's champion for classic and rare vinyl.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 20,
+                        "name": "Europa Music",
+                        "area": "Stirling",
+                        "address": "10 Friars St, Stirling FK8 1HA",
+                        "lat": 56.1205,
+                        "lng": -3.938,
+                        "stock_type": "Mix (New & Used)",
+                        "genres": ["Rock", "Folk", "Blues", "Jazz", "Punk", "Reggae"],
+                        "has_listening_deck": true,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": true,
+                        "has_coffee_bar": false,
+                        "description": "One of Scotland's largest independent record shops, trading since 1992 with massive collections across all genres.",
+                        "formats": ["12\"", "7\"", "CDs", "Cassettes"],
+                        "website": "https://www.facebook.com/EuropaMusic",
+                        "bio": "Established in 1992 on Friars Street in Stirling, Europa Music is one of Scotland's largest and most legendary independent music stores.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 21,
+                        "name": "D&J Records",
+                        "area": "Bathgate, West Lothian",
+                        "address": "28 George St, Bathgate EH48 1PW",
+                        "lat": 55.9038,
+                        "lng": -3.6409,
+                        "stock_type": "Used Heavy",
+                        "genres": ["Rock", "Pop", "Soul", "Country", "Indie"],
+                        "has_listening_deck": false,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": true,
+                        "has_coffee_bar": false,
+                        "description": "Beloved West Lothian vinyl and CD shop packed with pre-owned classics, plus professional in-store record flattening.",
+                        "formats": ["12\"", "7\"", "CDs"],
+                        "website": "https://dandjrecords.co.uk",
+                        "bio": "Located on George Street in the heart of Bathgate, D&J Records is a cherished West Lothian hub for collectors and everyday music fans.",
+                        "has_vinyl_flattening": true
+                    },
+                    {
+                        "id": 22,
+                        "name": "JPMJ Vinyl @ Flemings Antique Centre",
+                        "area": "Inverkeithing, Fife",
+                        "address": "3 Boreland Rd, Inverkeithing KY11 1NH",
+                        "lat": 56.0332,
+                        "lng": -3.396,
+                        "stock_type": "Used Heavy",
+                        "genres": ["Rock", "Pop", "Soul", "Jazz", "Prog", "Dance"],
+                        "has_listening_deck": false,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": true,
+                        "has_coffee_bar": true,
+                        "description": "Extensive vintage vinyl selection inside Flemings Antique Centre, with on-site Majestic Tea Room just 3 miles across the Forth.",
+                        "formats": ["12\"", "7\"", "CDs"],
+                        "website": "https://www.flemingsfurniture.co.uk/accessories/records-vinyl-large-cjoic/",
+                        "bio": "Located just across the Queensferry Crossing in Inverkeithing, JPMJ Vinyl is a hidden crate-digging treasure housed within Fleming's Furniture & Antique Centre.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 23,
+                        "name": "KCC Vinyl",
+                        "area": "Glenrothes, Fife",
+                        "address": "42 Unicorn Way, Kingdom Centre, KY7 5NU",
+                        "lat": 56.1962,
+                        "lng": -3.174,
+                        "stock_type": "Used Heavy",
+                        "genres": ["Rock", "Indie", "Metal", "Pop", "Soul", "Folk"],
+                        "has_listening_deck": true,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": true,
+                        "has_coffee_bar": false,
+                        "description": "Friendly Fife independent record store in the Kingdom Centre specialising in pre-owned vinyl, CDs, and guitars.",
+                        "formats": ["12\"", "7\"", "CDs"],
+                        "website": "https://linktr.ee/KCCVinyl",
+                        "bio": "Located inside the Kingdom Shopping Centre on Unicorn Way in Glenrothes, KCC Vinyl is a friendly local haven for Fife music lovers and crate diggers.",
+                        "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 24,
+                        "name": "Backbeat Records",
+                        "area": "Southside, Edinburgh",
+                        "address": "31 East Crosscauseway, EH8 9HE",
+                        "lat": 55.9437,
+                        "lng": -3.1828,
+                        "stock_type": "Used Heavy",
+                        "genres": ["Classic Rock", "Prog", "Psych", "Jazz", "Reggae", "Punk"],
+                        "has_listening_deck": false,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": true,
+                        "has_coffee_bar": false,
+                        "description": "Legendary Southside institution since 1981 holding over 65,000 vintage records and CDs stacked high to the ceiling.",
+                        "formats": ["12\"", "7\"", "CDs"],
+                        "website": "https://recordshop.directory/edinburgh/edinburgh/backbeat-records/",
+                        "bio": "A Southside Edinburgh fixture since 1981, Backbeat Records on East Crosscauseway is run by legendary owner Dougie McShane.",
+                        "has_vinyl_flattening": false
+                    }
+                ]
+            };
+        }
+
+        // Load featured stores from record-shops/stores.json (with sanitization & offline fallback)
+        async function loadStoresFromJson() {
+            let data = null;
+            try {
+                const res = await fetch('./record-shops/stores.json?v=' + Date.now(), { cache: 'no-store' });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const rawText = await res.text();
+                // Sanitize any missing commas between adjacent string literals on consecutive lines in stores.json
+                const sanitizedText = rawText.replace(/"\s*\r?\n(\s*)"/g, '",\n$1"');
+                data = JSON.parse(sanitizedText);
+            } catch (err) {
+                console.warn('Could not fetch ./record-shops/stores.json directly (e.g. file:// mode); using embedded stores.json dataset.', err);
+                data = getFallbackStoresJson();
+            }
+
+            if (data && data.center) {
+                hubCenter = data.center;
+            }
+            const rawStores = (data && Array.isArray(data.stores)) ? data.stores : [];
+            storesData = rawStores
+                .map(s => normalizeStore(s, hubCenter))
+                .sort((a, b) => a.distanceMiles - b.distanceMiles);
+
+            updateRegionButtonCounts();
             renderStoreGrid();
             updateSelectedCount();
+        }
+
+        function updateRegionButtonCounts() {
+            const counts = {
+                all: storesData.length,
+                edinburgh: storesData.filter(s => s.region === 'edinburgh').length,
+                fife: storesData.filter(s => s.region === 'fife').length,
+                'west-lothian': storesData.filter(s => s.region === 'west-lothian').length,
+                'forth-valley': storesData.filter(s => s.region === 'forth-valley').length
+            };
+            const labels = {
+                all: `All Featured (${counts.all})`,
+                edinburgh: `Edinburgh (${counts.edinburgh})`,
+                fife: `Fife (${counts.fife})`,
+                'west-lothian': `West Lothian (${counts['west-lothian']})`,
+                'forth-valley': `Falkirk & Stirling (${counts['forth-valley']})`
+            };
+            document.querySelectorAll('.region-btn').forEach(btn => {
+                const r = btn.getAttribute('data-region');
+                if (labels[r]) btn.innerText = labels[r];
+            });
+        }
+
+        function setRegionFilter(region) {
+            selectedRegion = region;
+            document.querySelectorAll('.region-btn').forEach(btn => {
+                const r = btn.getAttribute('data-region');
+                if (r === region) {
+                    btn.className = "region-btn text-xs px-3 py-1.5 rounded-lg border border-forthRed bg-forthRed/20 text-white font-medium transition";
+                } else {
+                    btn.className = "region-btn text-xs px-3 py-1.5 rounded-lg border border-borderDark bg-gray-900/60 text-gray-400 hover:text-white transition";
+                }
+            });
+            renderStoreGrid();
+        }
+
+        function getVisibleStores() {
+            const q = (document.getElementById('storeSearchInput')?.value || '').trim().toLowerCase();
+            return storesData.filter(s => {
+                if (selectedRegion !== 'all' && s.region !== selectedRegion) return false;
+                if (q) {
+                    const haystack = `${s.name} ${s.location} ${s.address} ${s.genres.join(' ')} ${s.tags.join(' ')}`.toLowerCase();
+                    if (!haystack.includes(q)) return false;
+                }
+                return true;
+            });
+        }
+
+        // Initialize App on Load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStoresFromJson();
         });
 
         // Render Store Cards
@@ -357,13 +937,23 @@
             const grid = document.getElementById('storeGrid');
             grid.innerHTML = '';
 
-            storesData.forEach(store => {
+            const visibleStores = getVisibleStores();
+
+            if (visibleStores.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-8 text-gray-400 text-sm">
+                        No featured stores match your current filter.
+                    </div>
+                `;
+                return;
+            }
+
+            visibleStores.forEach(store => {
                 const isSelected = store.defaultSelected;
                 const card = document.createElement('div');
                 card.className = `store-card relative rounded-xl border p-4 transition-all cursor-pointer flex flex-col justify-between ${isSelected ? 'bg-gray-900/90 border-forthRed shadow-md shadow-forthRed/10' : 'bg-gray-900/40 border-borderDark hover:border-gray-700'}`;
                 card.onclick = (e) => {
-                    // Prevent toggle if clicking tags
-                    if(e.target.closest('.tag')) return;
+                    if (e.target.closest('.tag') || e.target.closest('a')) return;
                     toggleStore(store.id);
                 };
 
@@ -374,7 +964,7 @@
                                 <span class="text-[10px] font-bold uppercase tracking-wider text-forthRed bg-forthRed/10 px-2 py-0.5 rounded">${store.location}</span>
                                 <h3 class="font-bold text-white text-base mt-1">${store.name}</h3>
                             </div>
-                            <div class="store-checkbox w-6 h-6 rounded-lg border flex items-center justify-center transition ${isSelected ? 'bg-forthRed border-forthRed text-white' : 'border-gray-700 bg-gray-800 text-transparent'}">
+                            <div class="store-checkbox w-6 h-6 rounded-lg border flex-shrink-0 flex items-center justify-center transition ${isSelected ? 'bg-forthRed border-forthRed text-white' : 'border-gray-700 bg-gray-800 text-transparent'}">
                                 <i class="fa-solid fa-check text-xs"></i>
                             </div>
                         </div>
@@ -384,8 +974,9 @@
                         <div class="flex flex-wrap gap-1.5 mb-2">
                             ${store.tags.map(t => `<span class="tag text-[10px] bg-gray-800 text-gray-300 px-2 py-0.5 rounded border border-gray-700/60">${t}</span>`).join('')}
                         </div>
-                        <div class="text-[11px] text-gray-500 flex items-center gap-1">
-                            <i class="fa-solid fa-location-arrow"></i> ${store.distance}
+                        <div class="flex items-center justify-between text-[11px] text-gray-500 pt-1 border-t border-gray-800/80">
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-location-arrow text-forthRed"></i> ${store.distance}</span>
+                            ${store.website ? `<a href="${store.website}" target="_blank" rel="noopener" class="text-gray-400 hover:text-white underline">Website ↗</a>` : ''}
                         </div>
                     </div>
                 `;
@@ -397,27 +988,36 @@
         // Toggle Store Selection
         function toggleStore(id) {
             const store = storesData.find(s => s.id === id);
-            if(store) {
+            if (store) {
                 store.defaultSelected = !store.defaultSelected;
                 const card = document.getElementById(`store-card-${id}`);
-                const checkbox = card.querySelector('.store-checkbox');
-                
-                if(store.defaultSelected) {
-                    card.className = "store-card relative rounded-xl border p-4 transition-all cursor-pointer flex flex-col justify-between bg-gray-900/90 border-forthRed shadow-md shadow-forthRed/10";
-                    checkbox.className = "store-checkbox w-6 h-6 rounded-lg border flex items-center justify-center transition bg-forthRed border-forthRed text-white";
-                } else {
-                    card.className = "store-card relative rounded-xl border p-4 transition-all cursor-pointer flex flex-col justify-between bg-gray-900/40 border-borderDark hover:border-gray-700";
-                    checkbox.className = "store-checkbox w-6 h-6 rounded-lg border flex items-center justify-center transition border-gray-700 bg-gray-800 text-transparent";
+                if (card) {
+                    const checkbox = card.querySelector('.store-checkbox');
+                    if (store.defaultSelected) {
+                        card.className = "store-card relative rounded-xl border p-4 transition-all cursor-pointer flex flex-col justify-between bg-gray-900/90 border-forthRed shadow-md shadow-forthRed/10";
+                        checkbox.className = "store-checkbox w-6 h-6 rounded-lg border flex-shrink-0 flex items-center justify-center transition bg-forthRed border-forthRed text-white";
+                    } else {
+                        card.className = "store-card relative rounded-xl border p-4 transition-all cursor-pointer flex flex-col justify-between bg-gray-900/40 border-borderDark hover:border-gray-700";
+                        checkbox.className = "store-checkbox w-6 h-6 rounded-lg border flex-shrink-0 flex items-center justify-center transition border-gray-700 bg-gray-800 text-transparent";
+                    }
                 }
                 updateSelectedCount();
             }
         }
 
         function selectAllStores() {
-            storesData.forEach(s => s.defaultSelected = true);
+            const visibleStores = getVisibleStores();
+            visibleStores.forEach(s => s.defaultSelected = true);
             renderStoreGrid();
             updateSelectedCount();
-            showToast("All stores selected!");
+            showToast(`Selected ${visibleStores.length} visible stores!`);
+        }
+
+        function clearStoreSelection() {
+            storesData.forEach(s => s.defaultSelected = false);
+            renderStoreGrid();
+            updateSelectedCount();
+            showToast("Cleared store selection.");
         }
 
         function updateSelectedCount() {
@@ -430,7 +1030,7 @@
             selectedTransport = mode;
             document.querySelectorAll('.transport-btn').forEach(btn => {
                 const m = btn.getAttribute('data-mode');
-                if(m === mode) {
+                if (m === mode) {
                     btn.className = "transport-btn flex flex-col items-center justify-center p-3 rounded-xl border border-forthRed bg-forthRed/10 text-white transition text-xs font-medium";
                     btn.querySelector('i').className = btn.querySelector('i').className.replace(/text-gray-400/g, '') + ' text-forthRed';
                 } else {
@@ -440,20 +1040,60 @@
             });
         }
 
+        // Nearest-neighbor route optimization starting from South Queensferry Hub
+        function optimizeStoreOrder(selectedStores) {
+            const remaining = [...selectedStores];
+            const ordered = [];
+            let currLat = hubCenter.lat;
+            let currLng = hubCenter.lng;
+
+            while (remaining.length > 0) {
+                let bestIdx = 0;
+                let bestDist = Infinity;
+                remaining.forEach((s, idx) => {
+                    const d = haversineMiles(currLat, currLng, s.lat, s.lng);
+                    if (d < bestDist) {
+                        bestDist = d;
+                        bestIdx = idx;
+                    }
+                });
+                const nextStore = remaining.splice(bestIdx, 1)[0];
+                ordered.push(nextStore);
+                currLat = nextStore.lat;
+                currLng = nextStore.lng;
+            }
+            return ordered;
+        }
+
+        // Estimate leg travel minutes from Haversine distance & transport mode
+        function estimateLegMinutes(legMiles, mode) {
+            if (mode === 'driving') {
+                return Math.max(6, Math.round(legMiles * 2.2 + 5));
+            } else if (mode === 'transit') {
+                return Math.max(10, Math.round(legMiles * 3.5 + 10));
+            } else {
+                // bike
+                return Math.max(8, Math.round(legMiles * 5.0 + 4));
+            }
+        }
+
         // Generate Itinerary Logic
         function generateItinerary() {
             const activeStores = storesData.filter(s => s.defaultSelected);
-            if(activeStores.length < 2) {
+            if (activeStores.length < 2) {
                 showToast("Please select at least 2 record stores for a crawl!", "error");
                 return;
             }
+
+            const orderedStores = optimizeStoreOrder(activeStores);
 
             const depTimeStr = document.getElementById('departureTime').value || "10:00";
             const browseMins = parseInt(document.getElementById('browseDuration').value) || 45;
 
             // Parse departure time
             let [hours, minutes] = depTimeStr.split(':').map(Number);
-            let currentTimeMinutes = hours * 60 + minutes;
+            let startMinutes = hours * 60 + minutes;
+            let currentTimeMinutes = startMinutes;
 
             currentItinerary = [];
 
@@ -461,23 +1101,24 @@
             currentItinerary.push({
                 type: 'start',
                 title: 'QMC Base Departure',
-                location: 'South Queensferry',
+                location: 'South Queensferry (EH30)',
                 time: formatTime(currentTimeMinutes),
-                desc: 'Gathering at South Queensferry. Bag checks and crate route briefing.'
+                desc: 'Gathering at South Queensferry Hub. Tote bag checks and crate route briefing.'
             });
 
-            // Travel times modifier based on mode
-            // First leg to Corstorphine (Almond River Records) is shorter (~10-15 mins driving from SQ)
-            let firstLegModifier = selectedTransport === 'driving' ? 12 : selectedTransport === 'transit' ? 22 : 30;
-            let standardTravelMins = selectedTransport === 'driving' ? 18 : selectedTransport === 'transit' ? 30 : 45;
+            let prevLat = hubCenter.lat;
+            let prevLng = hubCenter.lng;
 
-            activeStores.forEach((store, index) => {
-                // Travel Leg
-                let travelMins = (index === 0) ? firstLegModifier : standardTravelMins;
+            orderedStores.forEach((store, index) => {
+                const legMiles = haversineMiles(prevLat, prevLng, store.lat, store.lng);
+                const travelMins = estimateLegMinutes(legMiles, selectedTransport);
                 currentTimeMinutes += travelMins;
-                let travelText = selectedTransport === 'driving' ? `Drive via A90 / Corstorphine Road (~${travelMins} mins)` :
-                                 selectedTransport === 'transit' ? `ScotRail / Lothian Bus transit leg (~${travelMins} mins)` :
-                                 `Scenic cycle route via West Edinburgh path network (~${travelMins} mins)`;
+
+                const travelText = selectedTransport === 'driving'
+                    ? `Drive to ${store.location} (${legMiles} mi • ~${travelMins} mins)`
+                    : selectedTransport === 'transit'
+                    ? `ScotRail / Bus transit to ${store.location} (${legMiles} mi • ~${travelMins} mins)`
+                    : `Cycle leg to ${store.location} (${legMiles} mi • ~${travelMins} mins)`;
 
                 currentItinerary.push({
                     type: 'transit',
@@ -495,17 +1136,23 @@
                     title: store.name,
                     location: store.location,
                     address: store.address,
+                    website: store.website,
                     tags: store.tags,
                     arriveTime: formatTime(arriveMins),
                     departTime: formatTime(currentTimeMinutes),
                     browseDuration: browseMins,
-                    desc: store.desc,
-                    goals: ['Check £1-3 bargain bins', 'Inspect fresh arrivals', 'Chat with store staff']
+                    desc: store.description,
+                    goals: store.goals
                 });
+
+                prevLat = store.lat;
+                prevLng = store.lng;
             });
 
-            // Final Stop: Los Hermanos Tapas Bar
-            currentTimeMinutes += 25; // travel back to South Queensferry
+            // Final Stop: Return from last store to Los Hermanos Tapas Bar, South Queensferry
+            const returnMiles = haversineMiles(prevLat, prevLng, hubCenter.lat, hubCenter.lng);
+            const returnMins = estimateLegMinutes(returnMiles, selectedTransport);
+            currentTimeMinutes += returnMins;
             let pubArrival = currentTimeMinutes;
             currentTimeMinutes += 90; // 1.5 hours pints & debrief
 
@@ -513,7 +1160,7 @@
                 type: 'transit',
                 title: 'Return Transit to South Queensferry',
                 time: formatTime(pubArrival),
-                desc: 'Heading back west across the Firth to South Queensferry.'
+                desc: `Heading back to South Queensferry (${returnMiles} mi • ~${returnMins} mins).`
             });
 
             currentItinerary.push({
@@ -522,12 +1169,17 @@
                 location: 'South Queensferry',
                 time: formatTime(pubArrival),
                 departTime: formatTime(currentTimeMinutes),
-                desc: 'End-of-crawl celebration! Tapas, cold pints, bag checks, and playing your best 7-inch finds.'
+                desc: 'End-of-crawl celebration! Tapas, cold pints, bag checks, and spinning your best 7-inch finds.'
             });
 
-            renderTimeline();
+            const totalDurationMins = currentTimeMinutes - startMinutes;
+            const totalHours = Math.floor(totalDurationMins / 60);
+            const remMins = totalDurationMins % 60;
+            document.getElementById('statTotalTime').innerText = `${totalHours}h ${remMins}m`;
+
+            renderTimeline(orderedStores.length);
             renderCompanionStops();
-            populateReportStoreSelect();
+            populateReportStoreSelect(orderedStores);
 
             // Show Section & Scroll smooth
             const section = document.getElementById('itinerarySection');
@@ -550,26 +1202,26 @@
         }
 
         // Render Timeline UI
-        function renderTimeline() {
+        function renderTimeline(storesCount) {
             const container = document.getElementById('timelineContainer');
             container.innerHTML = '';
 
             let storeIndex = 0;
 
-            currentItinerary.forEach((item, idx) => {
+            currentItinerary.forEach((item) => {
                 const node = document.createElement('div');
                 node.className = 'relative pl-6 sm:pl-8';
 
-                if(item.type === 'start') {
+                if (item.type === 'start') {
                     node.innerHTML = `
                         <div class="absolute -left-[9px] sm:-left-[13px] top-1.5 w-5 h-5 rounded-full bg-forthRed border-4 border-darkBg flex items-center justify-center"></div>
                         <div class="bg-gray-900/80 border border-borderDark rounded-xl p-4 shadow-md">
-                            <span class="text-xs font-bold text-forthReg">${item.time}</span>
+                            <span class="text-xs font-bold text-forthRed">${item.time}</span>
                             <h4 class="font-bold text-white text-base">${item.title}</h4>
                             <p class="text-xs text-gray-400 mt-1">${item.desc}</p>
                         </div>
                     `;
-                } else if(item.type === 'transit') {
+                } else if (item.type === 'transit') {
                     node.innerHTML = `
                         <div class="absolute -left-[5px] sm:-left-[9px] top-2 w-3 h-3 rounded-full bg-gray-700 border-2 border-darkBg"></div>
                         <div class="text-xs text-gray-400 py-1 flex items-center gap-2">
@@ -578,7 +1230,7 @@
                             <span>${item.desc}</span>
                         </div>
                     `;
-                } else if(item.type === 'store') {
+                } else if (item.type === 'store') {
                     storeIndex++;
                     node.innerHTML = `
                         <div class="absolute -left-[9px] sm:-left-[13px] top-1.5 w-5 h-5 rounded-full bg-forthRed border-4 border-darkBg flex items-center justify-center shadow"></div>
@@ -588,15 +1240,18 @@
                                     <span class="text-[10px] font-bold uppercase tracking-wider text-forthRed bg-forthRed/10 px-2 py-0.5 rounded">Stop #${storeIndex} • ${item.arriveTime} – ${item.departTime}</span>
                                     <h4 class="font-bold text-white text-lg mt-1">${item.title}</h4>
                                 </div>
-                                <span class="text-xs text-gray-400"><i class="fa-solid fa-location-dot text-forthRed mr-1"></i> ${item.address}</span>
+                                <span class="text-xs text-gray-400"><i class="fa-solid fa-location-dot text-forthRed mr-1"></i> ${item.address}, ${item.location}</span>
                             </div>
                             <p class="text-xs text-gray-300">${item.desc}</p>
-                            <div class="flex flex-wrap gap-1.5 pt-1">
-                                ${item.tags.map(t => `<span class="text-[10px] bg-gray-800 text-gray-300 px-2 py-0.5 rounded border border-gray-700">${t}</span>`).join('')}
+                            <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                                <div class="flex flex-wrap gap-1.5">
+                                    ${item.tags.map(t => `<span class="text-[10px] bg-gray-800 text-gray-300 px-2 py-0.5 rounded border border-gray-700">${t}</span>`).join('')}
+                                </div>
+                                ${item.website ? `<a href="${item.website}" target="_blank" rel="noopener" class="text-xs text-forthRed hover:underline font-medium">Store Website ↗</a>` : ''}
                             </div>
                         </div>
                     `;
-                } else if(item.type === 'finish') {
+                } else if (item.type === 'finish') {
                     node.innerHTML = `
                         <div class="absolute -left-[9px] sm:-left-[13px] top-1.5 w-5 h-5 rounded-full bg-emerald-500 border-4 border-darkBg flex items-center justify-center shadow"></div>
                         <div class="bg-gradient-to-br from-emerald-950/40 to-gray-900 border border-emerald-500/40 rounded-xl p-4 sm:p-5 shadow-xl space-y-2">
@@ -612,8 +1267,7 @@
             });
 
             // Update stats
-            const activeStores = storesData.filter(s => s.defaultSelected);
-            document.getElementById('statStoresCount').innerText = `${activeStores.length} Shops`;
+            document.getElementById('statStoresCount').innerText = `${storesCount} Shops`;
             document.getElementById('statTransportMode').innerText = selectedTransport;
         }
 
@@ -627,8 +1281,8 @@
             storeItems.forEach((item, idx) => {
                 const card = document.createElement('div');
                 card.className = "bg-gray-900 border border-borderDark rounded-xl p-4 sm:p-5 space-y-3";
-                
-                let goalsHtml = item.goals ? item.goals.map((g, gIdx) => `
+
+                let goalsHtml = item.goals ? item.goals.map((g) => `
                     <label class="flex items-center gap-2.5 text-xs text-gray-300 cursor-pointer select-none hover:text-white">
                         <input type="checkbox" class="w-4 h-4 accent-forthRed rounded bg-gray-800 border-gray-700">
                         <span>${g}</span>
@@ -638,7 +1292,7 @@
                 card.innerHTML = `
                     <div class="flex items-center justify-between border-b border-borderDark pb-3">
                         <div>
-                            <span class="text-[10px] font-bold text-forthRed uppercase">${item.type === 'finish' ? 'Debrief Stop' : 'Stop ' + (idx + 1)}</span>
+                            <span class="text-[10px] font-bold text-forthRed uppercase">${item.type === 'finish' ? 'Debrief Stop' : 'Stop ' + (idx + 1) + ' • ' + item.location}</span>
                             <h4 class="font-bold text-white text-base">${item.title}</h4>
                         </div>
                         <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + ' ' + (item.address || 'South Queensferry'))}" target="_blank" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-200 px-3 py-1.5 rounded-lg border border-gray-700 transition flex items-center gap-1.5">
@@ -654,7 +1308,7 @@
         // Companion Mode Toggle
         function toggleCompanionMode(show) {
             const modal = document.getElementById('companionModal');
-            if(show) {
+            if (show) {
                 modal.classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
             } else {
@@ -672,13 +1326,13 @@
             document.getElementById('crateReportModal').classList.add('hidden');
         }
 
-        function populateReportStoreSelect() {
+        function populateReportStoreSelect(orderedStores) {
             const select = document.getElementById('reportStoreSelect');
             select.innerHTML = '';
-            storesData.filter(s => s.defaultSelected).forEach(s => {
+            (orderedStores || storesData.filter(s => s.defaultSelected)).forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s.name;
-                opt.innerText = s.name;
+                opt.innerText = `${s.name} (${s.location})`;
                 select.appendChild(opt);
             });
             const pubOpt = document.createElement('option');
@@ -690,8 +1344,6 @@
         function submitCrateReport(e) {
             e.preventDefault();
             const store = document.getElementById('reportStoreSelect').value;
-            const text = document.getElementById('reportText').value;
-            const tag = document.getElementById('reportTag').value;
 
             closeCrateModal();
             showToast(`Crate report broadcasted for ${store}! 📢`);
@@ -703,10 +1355,10 @@
             let text = "🎵 QMC SATURDAY RECORD CRAWL ITINERARY 🎵\n";
             text += "========================================\n\n";
             currentItinerary.forEach(i => {
-                if(i.type === 'start') text += `[START] ${i.time} - ${i.title}\n`;
-                else if(i.type === 'transit') text += `  ➔ ${i.time}: ${i.desc}\n`;
-                else if(i.type === 'store') text += `[STOP] ${i.arriveTime} - ${i.title} (${i.location})\n`;
-                else if(i.type === 'finish') text += `[FINISH] ${i.time} - ${i.title}\n`;
+                if (i.type === 'start') text += `[START] ${i.time} - ${i.title}\n`;
+                else if (i.type === 'transit') text += `  ➔ ${i.time}: ${i.desc}\n`;
+                else if (i.type === 'store') text += `[STOP] ${i.arriveTime}–${i.departTime} - ${i.title} (${i.address}, ${i.location})\n`;
+                else if (i.type === 'finish') text += `[FINISH] ${i.time} - ${i.title}\n`;
             });
             text += "\nEnding up at Los Hermanos Pícaros, South Queensferry. Queensferry Music Collective.";
 
@@ -722,17 +1374,22 @@
 
         // Reset Planner
         function resetPlanner() {
-            storesData.forEach(s => s.defaultSelected = true);
-            renderStoreGrid();
+            storesData.forEach(s => {
+                s.defaultSelected = DEFAULT_SELECTED_IDS.has(s.id);
+            });
+            selectedRegion = 'all';
+            const searchInput = document.getElementById('storeSearchInput');
+            if (searchInput) searchInput.value = '';
+            setRegionFilter('all');
             updateSelectedCount();
             document.getElementById('itinerarySection').classList.add('hidden');
             document.getElementById('navCompanionBtn').classList.add('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            showToast("Planner reset successfully.");
+            showToast("Planner reset to default featured stores.");
         }
 
         // Toast Notification Helper
-        function showToast(msg, type = 'success') {
+        function showToast(msg) {
             const toast = document.getElementById('toast');
             const msgEl = document.getElementById('toastMsg');
             msgEl.innerText = msg;
