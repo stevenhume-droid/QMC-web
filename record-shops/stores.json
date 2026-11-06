@@ -308,7 +308,25 @@
             "website": "https://www.lowportmusic.co.uk/",
             "bio": "Just steps from historic Linlithgow Palace and the canal basin, Low Port Music is a vibrant West Lothian institution and independent record label. Combining a passion for indie, rock, Scottish folk, and Americana vinyl with musical instruments and its own label releases, owner Chris has created a warm, community-first space where locals and visiting diggers can chat gear, swap music recommendations, and unearth pristine vintage wax. Look out for Low Port Record Fairs in Linlithgow and beyond!",
             "has_vinyl_flattening": false,
-            "has_record_label": true
+            "has_record_label": true,
+            "nearby_spots": [
+                {
+                    "name": "The Coffee Neuk / Manners Coffee Bar",
+                    "type": "cafe",
+                    "vibe": "High St Specialty Coffee",
+                    "walk_mins": 2,
+                    "address": "High St, Linlithgow",
+                    "note": "Relaxed specialty espresso right along historic Linlithgow High Street."
+                },
+                {
+                    "name": "The Four Marys",
+                    "type": "pub",
+                    "vibe": "Historic Real Ale & Malt Tavern",
+                    "walk_mins": 2,
+                    "address": "65 High St, Linlithgow",
+                    "note": "Named after the 16th-century Mary Queen of Scots ballad; extensive real ales & malts near the racks."
+                }
+            ]
         },
         {
             "id": 7,
