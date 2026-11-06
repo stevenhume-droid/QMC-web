@@ -358,7 +358,25 @@
             "website": "https://greenhouserecords.co.uk/",
             "bio": "Perched in leafy Bruntsfield, Greenhouse Records is a chic, daylight-filled sanctuary for audiophiles and curious selectors. With an impeccably curated roster spanning ambient, jazz, electronic, soul, and left-field indie, Greenhouse champions small independent labels, local Edinburgh releases, and pristine Japanese pressings, paired with a welcoming vibe and listening stations to lose yourself in.",
             "has_vinyl_flattening": false,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "Project Coffee / Artisan Roast",
+                    "type": "cafe",
+                    "vibe": "Bruntsfield Pour-Over Café",
+                    "walk_mins": 2,
+                    "address": "192 Bruntsfield Pl, Edinburgh",
+                    "note": "Ideal morning coffee stop while waiting for Greenhouse Records' 11:00 AM opening."
+                },
+                {
+                    "name": "Bennets Bar",
+                    "type": "pub",
+                    "vibe": "1839 Victorian Mahogany Pub",
+                    "walk_mins": 3,
+                    "address": "8 Leven St, Edinburgh",
+                    "note": "Historic stained-glass & brass snug bar next to the King's Theatre."
+                }
+            ]
         },
         {
             "id": 8,
@@ -402,7 +420,25 @@
             "website": "https://umbrellavinyl.com/",
             "bio": "Situated on Valleyfield Street in Tollcross, Umbrella Vinyl is run by two dedicated diggers who hand-pick their stock across the globe. Famous for an eclectic, genre-spanning selection that dives deep into 70s Japanese funk, city pop, reggae, Afrobeat, psych, and post-punk, Umbrella treats vinyl digging as an art form. Every record is clean, sleeved, accurately graded, and ready for home or club listening.",
             "has_vinyl_flattening": false,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "lovecrumbs & West Port Bookshops",
+                    "type": "cafe",
+                    "vibe": "Bohemian Literary Café",
+                    "walk_mins": 5,
+                    "address": "155 West Port, Edinburgh",
+                    "note": "Window-seat coffee & cake surrounded by West Port's famous secondhand bookshops."
+                },
+                {
+                    "name": "The Blue Blazer / Cloisters Bar",
+                    "type": "pub",
+                    "vibe": "Cask Ale & Whisky Tavern",
+                    "walk_mins": 2,
+                    "address": "2 Spittal St / 26 Brougham St, Edinburgh",
+                    "note": "Unpretentious real-ale & rum/malt institutions steps from Umbrella Vinyl."
+                }
+            ]
         },
         {
             "id": 9,
@@ -436,7 +472,25 @@
             "website": "https://assai.co.uk/",
             "bio": "Overlooking Grindlay Street beneath Edinburgh Castle, Assai Records Edinburgh is a flagship indie retailer and label imprint known for its premier stock of brand-new vinyl releases, exclusive Assai limited-edition obi-strip pressings, and high-end audio turntables. Hosting intimate in-store acoustic gigs and signing sessions from internationally touring artists, Assai is a cornerstone of the Scottish modern music scene.",
             "has_vinyl_flattening": false,
-            "has_record_label": true
+            "has_record_label": true,
+            "nearby_spots": [
+                {
+                    "name": "lovecrumbs (West Port Bookshop Strip)",
+                    "type": "cafe",
+                    "vibe": "Bookshop Quarter Espresso",
+                    "walk_mins": 3,
+                    "address": "155 West Port, Edinburgh",
+                    "note": "Right on Edinburgh's secondhand bookshop street (Armchair Books & Main Point Books)."
+                },
+                {
+                    "name": "The Blue Blazer / The Bow Bar",
+                    "type": "pub",
+                    "vibe": "Literary & Cask Ale Haunt",
+                    "walk_mins": 3,
+                    "address": "2 Spittal St / 80 West Bow, Edinburgh",
+                    "note": "Classic cask ale and single malt sanctuaries tucked beneath Castle Rock."
+                }
+            ]
         },
         {
             "id": 10,
@@ -470,7 +524,25 @@
             "website": "https://backtracksmusic.co.uk/",
             "bio": "Standing strong on Brougham Street since 1989, Backtracks is Edinburgh's classic collector's depot. Packed with thousands of retro vinyl records, cassette tapes, CDs, vintage hi-fi separates, and music memorabilia, it's a paradise for diggers who love the thrill of the hunt. Whether you're searching for original 70s rock LPs, rare 80s 12-inch dance mixes, or replacement turntable needles, Backtracks has it in the bins.",
             "has_vinyl_flattening": false,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "Cult Espresso / Filament Coffee",
+                    "type": "cafe",
+                    "vibe": "Indie & Vinyl-Friendly Coffee",
+                    "walk_mins": 5,
+                    "address": "104 Buccleuch St, Edinburgh",
+                    "note": "Specialty coffee with curated playlists and laid-back seating."
+                },
+                {
+                    "name": "Cloisters Bar",
+                    "type": "pub",
+                    "vibe": "Converted Parsonage Alehouse",
+                    "walk_mins": 1,
+                    "address": "26 Brougham St, Edinburgh",
+                    "note": "Historic stone-built cask ale pub literally across the road from Backtracks."
+                }
+            ]
         },
         {
             "id": 11,
@@ -504,7 +576,25 @@
             "website": "https://thornerecords.com/",
             "bio": "Founded by veteran record store manager Mark Thorne, this bright, welcoming South Edinburgh boutique and independent record label on Bruntsfield Place offers an expertly chosen balance of brand-new indie releases, Thorne Records label pressings, classic reissues, and curated second-hand gems. Known for its warm hospitality, knowledgeable personal recommendations, and spotless organization, Thorne Records makes browsing feel effortless and joyful.",
             "has_vinyl_flattening": false,
-            "has_record_label": true
+            "has_record_label": true,
+            "nearby_spots": [
+                {
+                    "name": "Project Coffee Bruntsfield",
+                    "type": "cafe",
+                    "vibe": "Morning Flat White Hub",
+                    "walk_mins": 1,
+                    "address": "192 Bruntsfield Pl, Edinburgh",
+                    "note": "Opens early alongside Thorne Records' 9:00 AM doors for a morning flat white."
+                },
+                {
+                    "name": "The Canny Man's",
+                    "type": "pub",
+                    "vibe": "Eccentric 1871 Literary Institution",
+                    "walk_mins": 5,
+                    "address": "237 Morningside Rd, Edinburgh",
+                    "note": "Iconic curiosity-filled Edinburgh tavern celebrated by authors and musicians since 1871."
+                }
+            ]
         },
         {
             "id": 12,
@@ -549,7 +639,25 @@
             "website": "https://undergroundsolution.com",
             "bio": "An undisputed cultural landmark on Cockburn Street since 1995, Underground Solu'shn is the heartbeat of Edinburgh's electronic, club, and DJ culture. Stocking deep crates of house, techno, drum & bass, hip-hop, funk, soul, and jazz alongside professional DJ hardware, synthesizers, and vinyl care supplies, 'US' is the definitive meeting ground for local DJs, visiting selectors, and sound enthusiasts.",
             "has_vinyl_flattening": false,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "The Milkman",
+                    "type": "cafe",
+                    "vibe": "Cockburn St Espresso Den",
+                    "walk_mins": 1,
+                    "address": "7 Cockburn St, Edinburgh",
+                    "note": "Moody brick-and-timber specialty coffee shop two doors from Underground Solu'shn."
+                },
+                {
+                    "name": "The Bow Bar / The Jazz Bar",
+                    "type": "pub",
+                    "vibe": "Whisky, Cask Ale & Live Grooves",
+                    "walk_mins": 4,
+                    "address": "80 West Bow / 1A Chambers St, Edinburgh",
+                    "note": "No-nonsense cask ales at The Bow Bar or basement live jazz/funk at The Jazz Bar."
+                }
+            ]
         },
         {
             "id": 13,
@@ -581,7 +689,25 @@
             "website": "https://slowprogress.co.uk/",
             "bio": "Combining the finest specialty plant-based coffee, bakery treats, and an expertly curated vinyl selection on Blackfriars Street, Slow Progress is a cosy haven just off the Royal Mile. Specialising in emo, punk, hardcore, post-rock, and alternative indie labels, you can enjoy a flat white while browsing limited-run vinyl or auditioning new underground bands on their customer turntables.",
             "has_vinyl_flattening": false,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "Slow Progress In-Store Coffee Bar",
+                    "type": "cafe",
+                    "vibe": "Vinyl & Specialty Espresso",
+                    "walk_mins": 0,
+                    "address": "53 Blackfriars St, Edinburgh",
+                    "note": "Built-in specialty coffee bar right inside the record shop—sip while you dig!"
+                },
+                {
+                    "name": "Sandy Bell's / The Jazz Bar",
+                    "type": "pub",
+                    "vibe": "Legendary Folk & Jazz Cellars",
+                    "walk_mins": 4,
+                    "address": "25 Forrest Rd / 1A Chambers St, Edinburgh",
+                    "note": "Historic 1960s folk revival pub (Bert Jansch's old haunt) and Chambers St live jazz."
+                }
+            ]
         },
         {
             "id": 14,
@@ -615,7 +741,25 @@
             "website": "https://vinylvillains.co.uk",
             "bio": "Holding court at the top of Leith Walk on Elm Row since 1983, Vinyl Villains is Edinburgh's oldest surviving independent second-hand record shop. Packed floor-to-ceiling with vintage rock, punk, new wave, prog, metal, and reggae vinyl, its seasoned crates have provided generations of crate diggers with authentic first pressings, rare bootlegs, and bargain gems at honest, realistic prices.",
             "has_vinyl_flattening": false,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "Typewronger Books & Argonaut Books",
+                    "type": "cafe",
+                    "vibe": "Bookshop, Zines & Coffee",
+                    "walk_mins": 2,
+                    "address": "4A Haddington Pl / 15-17 Leith Walk, Edinburgh",
+                    "note": "Indie bookshops with typewriter culture and specialty coffee at the top of Leith Walk."
+                },
+                {
+                    "name": "The Tourmalet",
+                    "type": "pub",
+                    "vibe": "Indie & Belgian Beer Pub",
+                    "walk_mins": 3,
+                    "address": "25 Buchanan St, Edinburgh",
+                    "note": "Cycling & indie-music pub vibe off Leith Walk with Trappist beers and great tunes."
+                }
+            ]
         },
         {
             "id": 16,
@@ -658,7 +802,25 @@
             "website": "https://lounge33edinburgh.co.uk",
             "bio": "An intimate, relaxed record den located on middle Leith Walk, Lounge 33 combines a passion for vintage vinyl with comfortable, music-first vibes. Featuring a hand-picked collection of soul, funk, disco, jazz, 90s hip-hop, and classic rock, it's designed as a laid-back retreat where music fans can take their time thumbing through carefully graded sleeves and discovering new grooves.",
             "has_vinyl_flattening": false,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "Lounge 33 Coffee Bar & Argonaut Books",
+                    "type": "cafe",
+                    "vibe": "In-Store Vinyl Coffee Lounge",
+                    "walk_mins": 0,
+                    "address": "373 Leith Walk, Edinburgh",
+                    "note": "Mr Eion specialty coffee served on-site alongside jazz/soul listening decks."
+                },
+                {
+                    "name": "The Tourmalet / The Lioness of Leith",
+                    "type": "pub",
+                    "vibe": "Leith Indie & Vintage Pubs",
+                    "walk_mins": 2,
+                    "address": "25 Buchanan St / 21-25 Duke St, Edinburgh",
+                    "note": "Vibrant Leith neighbourhood pubs with vintage decor, food, and music ethos."
+                }
+            ]
         },
         {
             "id": 17,
@@ -691,7 +853,25 @@
             "website": "https://good-vibes.space",
             "bio": "Situated down on Constitution Street in historic Leith, Good Vibes Neighbourhood Store is a community-minded creative hub. Stocking a vibrant selection of new and pre-loved vinyl—with a keen focus on soul, afro-funk, indie, electronic, and Scottish grassroots releases—alongside curated books, local art, and artisan provisions, it brings genuine warmth and good tunes to the port district.",
             "has_vinyl_flattening": false,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "Williams & Johnson Coffee Co.",
+                    "type": "cafe",
+                    "vibe": "Custom Lane Roastery & Arts",
+                    "walk_mins": 4,
+                    "address": "Custom Lane, The Shore, Leith",
+                    "note": "Waterside specialty coffee roastery and design/music hub at The Shore."
+                },
+                {
+                    "name": "Nobles / Lost in Leith",
+                    "type": "pub",
+                    "vibe": "Victorian Bar & Audiophile Taproom",
+                    "walk_mins": 2,
+                    "address": "44A Constitution St / 82 Commercial St, Leith",
+                    "note": "Stained-glass charm at Nobles, or vinyl DJ sessions on Lost in Leith's sound system."
+                }
+            ]
         },
         {
             "id": 18,
@@ -723,7 +903,25 @@
             "website": "https://avalancherecords.co.uk/",
             "bio": "Originally established in 1984 and now housed within the Waverley Market directly above Edinburgh Waverley Station, Avalanche Records is an iconic Scottish music shop and grassroots label. Renowned historically for releasing local bands and supporting Scottish indie royalty including Belle & Sebastian, Mogwai, and Frightened Rabbit, Avalanche pairs Scottish indie and alternative vinyl with vintage rock art prints, band t-shirts, and cultural memorabilia.",
             "has_vinyl_flattening": false,
-            "has_record_label": true
+            "has_record_label": true,
+            "nearby_spots": [
+                {
+                    "name": "Lowdown Coffee / Wellington Coffee",
+                    "type": "cafe",
+                    "vibe": "New Town Specialty Espresso",
+                    "walk_mins": 4,
+                    "address": "40 George St / 33A George St, Edinburgh",
+                    "note": "High-grade filter & espresso between Waverley and New Town record stops."
+                },
+                {
+                    "name": "The Café Royal Circle Bar / Oxford Bar",
+                    "type": "pub",
+                    "vibe": "Victorian Literary & Indie Haunt",
+                    "walk_mins": 2,
+                    "address": "19 West Register St, Edinburgh",
+                    "note": "Grand ceramic-tiled Victorian drinking hall just across from Waverley Market."
+                }
+            ]
         },
         {
             "id": 19,
@@ -756,7 +954,25 @@
             "website": "https://silvermachinerecords.co.uk/",
             "bio": "Located inside The Avenue on Falkirk's High Street, Silver Machine Records is Central Scotland's champion for classic and rare vinyl. Named with a nod to Hawkwind, the shop is a treasure chest of vintage 60s/70s/80s rock, heavy metal, prog, psych, and folk. Known for fair pricing, friendly rock banter, and an ever-rotating inventory of clean pre-loved vinyl, it's an essential stop on any Forth Valley crate-digging expedition.",
             "has_vinyl_flattening": false,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "Callendar Coffee / Bean Row Café",
+                    "type": "cafe",
+                    "vibe": "High St Coffee Break",
+                    "walk_mins": 2,
+                    "address": "High St, Falkirk",
+                    "note": "Relaxed daytime refuel steps from The Avenue on Falkirk High Street."
+                },
+                {
+                    "name": "Behind The Wall / Wheatsheaf Inn",
+                    "type": "pub",
+                    "vibe": "Historic Wynd Pub & Music Venue",
+                    "walk_mins": 2,
+                    "address": "14 Melville St / Baxters Wynd, Falkirk",
+                    "note": "Cozy historic wynd tavern & music spot for inspecting vintage rock gatefolds."
+                }
+            ]
         },
         {
             "id": 20,
@@ -792,7 +1008,25 @@
             ],
             "website": "https://www.facebook.com/EuropaMusic",
             "has_vinyl_flattening": false,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "The Book Nook & Cranachan Cafe",
+                    "type": "cafe",
+                    "vibe": "Indie Bookshop & Coffee House",
+                    "walk_mins": 3,
+                    "address": "24 Upper Craigs, Stirling",
+                    "note": "Independent bookshop & specialty coffee house made for flipping through sleeve art."
+                },
+                {
+                    "name": "The Settle Inn / Curly Coo Bar",
+                    "type": "pub",
+                    "vibe": "1733 Folk Alehouse & Whisky Bar",
+                    "walk_mins": 3,
+                    "address": "91 St Mary's Wynd / 51 Barnton St, Stirling",
+                    "note": "Stirling's oldest pub (1733) hosting folk sessions, plus cosy whisky haven Curly Coo."
+                }
+            ]
         },
         {
             "id": 21,
@@ -826,7 +1060,25 @@
             ],
             "website": "https://dandjrecords.co.uk",
             "has_vinyl_flattening": true,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "George Street Artisan Bakery & Coffee",
+                    "type": "cafe",
+                    "vibe": "Morning Espresso & Pastry",
+                    "walk_mins": 1,
+                    "address": "George St, Bathgate",
+                    "note": "Right on George Street for an early coffee alongside D&J's 9:00 AM opening."
+                },
+                {
+                    "name": "Dreadnought Rock / The Ballencrieff",
+                    "type": "pub",
+                    "vibe": "West Lothian Rock & Ale Haunt",
+                    "walk_mins": 4,
+                    "address": "Bathgate, West Lothian",
+                    "note": "Classic West Lothian pub stop after browsing D&J's vinyl crates."
+                }
+            ]
         },
         {
             "id": 22,
@@ -861,7 +1113,25 @@
             ],
             "website": "https://www.flemingsfurniture.co.uk/accessories/records-vinyl-large-cjoic/",
             "has_vinyl_flattening": false,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "Majestic Tea Room (On-Site)",
+                    "type": "cafe",
+                    "vibe": "In-Store Vintage Tea Room",
+                    "walk_mins": 0,
+                    "address": "3 Boreland Rd, Inverkeithing",
+                    "note": "On-site tea, coffee & home baking inside Flemings Antique & Vinyl Centre."
+                },
+                {
+                    "name": "The Albert Hotel / Hawes Inn",
+                    "type": "pub",
+                    "vibe": "Literary Forth Bridge Tavern",
+                    "walk_mins": 5,
+                    "address": "North / South Queensferry",
+                    "note": "Historic Forth waterfront taverns immortalised in Robert Louis Stevenson's Kidnapped."
+                }
+            ]
         },
         {
             "id": 23,
@@ -896,7 +1166,25 @@
             ],
             "website": "https://linktr.ee/KCCVinyl",
             "has_vinyl_flattening": false,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "Caffèocco Kingdom Centre",
+                    "type": "cafe",
+                    "vibe": "Quick Espresso Refuel",
+                    "walk_mins": 2,
+                    "address": "Unicorn Way, Glenrothes",
+                    "note": "Handy flat white stop right on Unicorn Way before KCC's 4:30 PM close."
+                },
+                {
+                    "name": "The Golden Acorn / Commercial Inn",
+                    "type": "pub",
+                    "vibe": "Fife Post-Dig Pint",
+                    "walk_mins": 4,
+                    "address": "Glenrothes, Fife",
+                    "note": "Relaxed Fife pub stop to celebrate pre-owned vinyl & guitar finds."
+                }
+            ]
         },
         {
             "id": 24,
@@ -931,7 +1219,25 @@
             ],
             "website": "https://recordshop.directory/edinburgh/edinburgh/backbeat-records/",
             "has_vinyl_flattening": false,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "Lighthouse Bookshop & Cult Espresso",
+                    "type": "cafe",
+                    "vibe": "Radical Bookshop & Filter Coffee",
+                    "walk_mins": 2,
+                    "address": "43 West Nicholson St / 104 Buccleuch St, Edinburgh",
+                    "note": "Edinburgh's indie bookshop & Southside specialty coffee right around the corner."
+                },
+                {
+                    "name": "The Dagda Bar / Paradise Palms",
+                    "type": "pub",
+                    "vibe": "Literary Snug & Vinyl Dive Bar",
+                    "walk_mins": 2,
+                    "address": "93 Buccleuch St / 41 Lothian St, Edinburgh",
+                    "note": "Wood-panelled literary pub at The Dagda, or vinyl DJs & label HQ at Paradise Palms."
+                }
+            ]
         },
         {
             "id": 25,
@@ -967,7 +1273,25 @@
             ],
             "website": "https://www.facebook.com/EuropaMusic",
             "has_vinyl_flattening": false,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "ginger&brew Specialty Coffee",
+                    "type": "cafe",
+                    "vibe": "Indie Coffee & Bakehouse",
+                    "walk_mins": 2,
+                    "address": "Mill St / Primrose St, Alloa",
+                    "note": "Relaxed daytime coffee & cake steps from Europa Music Alloa."
+                },
+                {
+                    "name": "The Old Brewery Tavern",
+                    "type": "pub",
+                    "vibe": "Historic Brewing-Town Pub",
+                    "walk_mins": 4,
+                    "address": "Alloa, Clackmannanshire",
+                    "note": "Traditional pint in Scotland's historic brewing town after digging Europa's racks."
+                }
+            ]
         }
     ]
 }

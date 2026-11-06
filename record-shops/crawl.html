@@ -95,9 +95,63 @@
                     <button type="button" onclick="setRegionFilter('west-lothian')" data-region="west-lothian" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-borderDark bg-gray-900/60 text-gray-400 hover:text-white transition">West Lothian</button>
                     <button type="button" onclick="setRegionFilter('forth-valley')" data-region="forth-valley" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-borderDark bg-gray-900/60 text-gray-400 hover:text-white transition">Forth Valley</button>
                 </div>
-                <div class="relative w-full sm:w-56">
-                    <input type="text" id="storeSearchInput" oninput="renderStoreGrid()" placeholder="Filter by shop or genre..." class="w-full bg-gray-900 border border-borderDark rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-forthRed">
-                    <i class="fa-solid fa-magnifying-glass text-gray-500 text-xs absolute left-2.5 top-2"></i>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button type="button" onclick="toggleCorridorGuide()" class="text-xs px-3 py-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 font-medium transition flex items-center gap-1.5 whitespace-nowrap">
+                        <i class="fa-solid fa-mug-saucer"></i> Corridor Pub & Cafe Guide
+                    </button>
+                    <div class="relative flex-grow sm:w-56">
+                        <input type="text" id="storeSearchInput" oninput="renderStoreGrid()" placeholder="Filter by shop, pub, or genre..." class="w-full bg-gray-900 border border-borderDark rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-forthRed">
+                        <i class="fa-solid fa-magnifying-glass text-gray-500 text-xs absolute left-2.5 top-2"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collapsible Literary, Music & Edinburgh Corridor Guide -->
+            <div id="corridorGuidePanel" class="hidden bg-gray-900/90 border border-amber-500/30 rounded-xl p-4 sm:p-5 space-y-4">
+                <div class="flex items-start justify-between gap-2 border-b border-borderDark pb-3">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">Literary • Edinburgh • Vinyl Vibes</span>
+                        <h3 class="text-sm sm:text-base font-bold text-white mt-1">Recommended Cafes, Bookshops & Pubs by Crawl Corridor</h3>
+                        <p class="text-xs text-gray-400">Paired within a 1–5 min walk of featured shops—automatically woven into your itinerary when Fuel Stops are enabled in Step 2.</p>
+                    </div>
+                    <button type="button" onclick="toggleCorridorGuide()" class="text-gray-400 hover:text-white text-sm px-2 py-1"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+                    <div class="bg-gray-950/60 border border-borderDark rounded-lg p-3 space-y-1.5">
+                        <div class="font-bold text-amber-400">Stockbridge & New Town</div>
+                        <div class="text-[11px] text-gray-400">VoxBox, Oxfam Stockbridge, Avalanche</div>
+                        <p class="text-gray-300"><span class="text-amber-300 font-semibold">☕ Cafes:</span> Artisan Roast, Söderberg, Lowdown Coffee, Wellington Coffee</p>
+                        <p class="text-gray-300"><span class="text-emerald-400 font-semibold">🍺 Pubs:</span> The Antiquary (Walter Scott gothic cellar), The Bailie, The Oxford Bar (Ian Rankin/Rebus haunt), Café Royal</p>
+                    </div>
+                    <div class="bg-gray-950/60 border border-borderDark rounded-lg p-3 space-y-1.5">
+                        <div class="font-bold text-amber-400">Old Town, West Port & Southside</div>
+                        <div class="text-[11px] text-gray-400">Assai, Underground Solu'shn, Slow Progress, Umbrella, Backbeat</div>
+                        <p class="text-gray-300"><span class="text-amber-300 font-semibold">☕📚 Cafes/Books:</span> The Milkman (Cockburn St), lovecrumbs (West Port bookshop strip), Lighthouse Bookshop, Cult Espresso</p>
+                        <p class="text-gray-300"><span class="text-emerald-400 font-semibold">🍺🎵 Pubs:</span> The Bow Bar, Sandy Bell's (60s folk legend), The Jazz Bar, The Dagda Bar, Paradise Palms (vinyl label bar)</p>
+                    </div>
+                    <div class="bg-gray-950/60 border border-borderDark rounded-lg p-3 space-y-1.5">
+                        <div class="font-bold text-amber-400">Bruntsfield, Morningside & West</div>
+                        <div class="text-[11px] text-gray-400">Thorne Records, Greenhouse, Backtracks, Almond River</div>
+                        <p class="text-gray-300"><span class="text-amber-300 font-semibold">☕ Cafes:</span> Project Coffee (9 AM opener next to Thorne), Filament Coffee, Mimi's Bakehouse</p>
+                        <p class="text-gray-300"><span class="text-emerald-400 font-semibold">🍺 Pubs:</span> The Canny Man's (eccentric 1871 institution), Bennets Bar, Cloisters Bar</p>
+                    </div>
+                    <div class="bg-gray-950/60 border border-borderDark rounded-lg p-3 space-y-1.5">
+                        <div class="font-bold text-amber-400">Leith & Leith Walk Corridor</div>
+                        <div class="text-[11px] text-gray-400">Vinyl Villains, Lounge 33, Good Vibes</div>
+                        <p class="text-gray-300"><span class="text-amber-300 font-semibold">☕📚 Cafes/Books:</span> Typewronger Books, Argonaut Books (indie bookshop + coffee), Williams & Johnson (Custom Lane), Lounge 33</p>
+                        <p class="text-gray-300"><span class="text-emerald-400 font-semibold">🍺🎵 Pubs:</span> The Tourmalet (indie/Belgian beer pub), Lost in Leith (audiophile vinyl DJ bar), Nobles, Lioness of Leith</p>
+                    </div>
+                    <div class="bg-gray-950/60 border border-borderDark rounded-lg p-3 space-y-1.5">
+                        <div class="font-bold text-amber-400">Linlithgow, Fife & Forth Valley</div>
+                        <div class="text-[11px] text-gray-400">Low Port, Veneno, Music Box, Europa (Stirling/Alloa), Silver Machine, D&J</div>
+                        <p class="text-gray-300"><span class="text-amber-300 font-semibold">☕📚 Cafes:</span> The Coffee Neuk & Manners (Linlithgow), Fire Station Creative & Haberdashery (Dunfermline), The Book Nook & Cranachan (Stirling)</p>
+                        <p class="text-gray-300"><span class="text-emerald-400 font-semibold">🍺🎵 Pubs:</span> The Four Marys (Linlithgow), The Settle Inn (1733 folk pub, Stirling) & Curly Coo, The Commercial Inn (Dunfermline)</p>
+                    </div>
+                    <div class="bg-emerald-950/30 border border-emerald-500/30 rounded-lg p-3 space-y-1.5">
+                        <div class="font-bold text-emerald-400">South Queensferry (Official Finish)</div>
+                        <div class="text-[11px] text-gray-300">Los Hermanos Pícaros • ⭐ 4.6 • £30–£40 • Opens 12:00 PM</div>
+                        <p class="text-gray-300">High Street tapas & pint headquarters for the post-crawl "haul reveal". <span class="text-gray-400">(Early arrival tip: Hawes Inn—where R.L. Stevenson wrote <em>Kidnapped</em>—or Manna House Bakery).</span></p>
+                    </div>
                 </div>
             </div>
 
@@ -207,6 +261,53 @@
                         <span>30m (Quick dig)</span>
                         <span>60m (Deep crate)</span>
                         <span>90m (Collector)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fuel Stops: Literary, Coffee & Music Pub Breaks -->
+            <div class="border-t border-borderDark/70 pt-5 space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-amber-400">
+                        <i class="fa-solid fa-mug-hot mr-1"></i> Crawl Fuel Stops (Literary, Coffee & Music Pub Pairings)
+                    </label>
+                    <span class="text-[11px] text-gray-400">Auto-picks the closest corridor cafe/bookshop or vinyl-friendly pub along your route</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Mid-Morning Coffee / Bookshop Stop -->
+                    <div class="bg-gray-900/70 border border-borderDark rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <label class="flex items-start gap-3 cursor-pointer select-none">
+                            <input type="checkbox" id="includeCoffeeStop" checked class="w-4 h-4 mt-0.5 accent-amber-500 rounded bg-gray-800 border-gray-700">
+                            <div>
+                                <div class="text-xs font-bold text-white flex items-center gap-1.5">
+                                    <span>☕📚 Mid-Crawl Coffee / Bookshop Break</span>
+                                </div>
+                                <p class="text-[11px] text-gray-400 mt-0.5">Pairs with Stop #1 or fills any pre-opening wait with a nearby literary/indie cafe.</p>
+                            </div>
+                        </label>
+                        <select id="coffeeStopDuration" class="bg-gray-950 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-amber-300 font-medium focus:outline-none focus:border-amber-500 whitespace-nowrap">
+                            <option value="20" selected>20m Flat White</option>
+                            <option value="30">30m Book & Brew</option>
+                            <option value="45">45m Sit-Down</option>
+                        </select>
+                    </div>
+
+                    <!-- Mid-Crawl Pub / Lunch Break -->
+                    <div class="bg-gray-900/70 border border-borderDark rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <label class="flex items-start gap-3 cursor-pointer select-none">
+                            <input type="checkbox" id="includePubStop" checked class="w-4 h-4 mt-0.5 accent-emerald-500 rounded bg-gray-800 border-gray-700">
+                            <div>
+                                <div class="text-xs font-bold text-white flex items-center gap-1.5">
+                                    <span>🍺🎵 Mid-Crawl Pub / Lunch Break (~1:00 PM)</span>
+                                </div>
+                                <p class="text-[11px] text-gray-400 mt-0.5">Schedules a cask ale / literary tavern or vinyl bar break mid-route.</p>
+                            </div>
+                        </label>
+                        <select id="pubStopDuration" class="bg-gray-950 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-emerald-300 font-medium focus:outline-none focus:border-emerald-500 whitespace-nowrap">
+                            <option value="30">30m Quick Pint</option>
+                            <option value="45" selected>45m Pub Lunch</option>
+                            <option value="60">60m Long Session</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -410,74 +511,74 @@
                 finishDesc: "Wrapping up at Dalmeny Station for easy rail connections home."
             },
             edinburgh_waverley: {
-                title: "Edinburgh Waverley",
-                shortName: "Waverley",
+                title: "Edinburgh Old Town Pubs (The Bow Bar / Sandy Bell's / Jazz Bar)",
+                shortName: "Old Town Pubs",
                 location: "Central Edinburgh",
-                address: "Waverley Bridge, Edinburgh EH1 1BB",
+                address: "80 West Bow / 25 Forrest Rd, Edinburgh",
                 lat: 55.9520,
                 lng: -3.1899,
                 startDesc: "Central Edinburgh rendezvous at Waverley steps before hitting the crates.",
-                finishDesc: "Finishing up in central Edinburgh for post-crawl pints and sleeve inspection."
+                finishDesc: "Post-crawl cask ales, malts, and live folk/grooves at The Bow Bar, Sandy Bell's, or The Jazz Bar while comparing pressings."
             },
             haymarket_stn: {
-                title: "Edinburgh Haymarket",
+                title: "Edinburgh Haymarket / West End (The Blue Blazer / Cloisters)",
                 shortName: "Haymarket",
                 location: "West End, Edinburgh",
                 address: "Haymarket Terrace, Edinburgh EH12 5EY",
                 lat: 55.9456,
                 lng: -3.2183,
                 startDesc: "West End / Haymarket hub departure for Edinburgh & Lothian digging.",
-                finishDesc: "Wrapping up the tour at Haymarket for West End pubs and transit links."
+                finishDesc: "Wrapping up the tour at Haymarket & West End for cask ales and easy ScotRail links."
             },
             leith_walk: {
-                title: "Leith Walk Hub",
+                title: "Leith Corridor Pubs (The Tourmalet / Lost in Leith / Nobles)",
                 shortName: "Leith Walk",
                 location: "Leith, Edinburgh",
-                address: "Leith Walk, Edinburgh EH6 8RN",
+                address: "25 Buchanan St / 82 Commercial St, Leith",
                 lat: 55.9651,
                 lng: -3.1751,
                 startDesc: "Starting the crawl on Leith Walk in the heart of East Edinburgh's vinyl strip.",
-                finishDesc: "Wrapping up the crawl on Leith Walk for drinks and record chat."
+                finishDesc: "Finishing on the Leith corridor with Belgian beers at The Tourmalet, vinyl DJs at Lost in Leith, or a pint at Nobles."
             },
             dunfermline_city: {
-                title: "Dunfermline City Centre",
+                title: "The Commercial Inn / Dunfermline City Centre",
                 shortName: "Dunfermline",
                 location: "Dunfermline, Fife",
-                address: "High St, Dunfermline KY12 7DL",
+                address: "19 Douglas St, Dunfermline KY12 7EB",
                 lat: 56.0715,
                 lng: -3.4590,
                 startDesc: "Fife departure hub in historic Dunfermline before heading out on the route.",
-                finishDesc: "Returning to Dunfermline to compare Fife & Lothian crate pulls."
+                finishDesc: "Post-dig pints and haul celebration at The Commercial Inn in historic Dunfermline."
             },
             linlithgow_stn: {
-                title: "Linlithgow High St / Station",
+                title: "The Four Marys / Linlithgow High St",
                 shortName: "Linlithgow",
                 location: "Linlithgow, West Lothian",
-                address: "High St, Linlithgow EH49 7ED",
+                address: "65 High St, Linlithgow EH49 7ED",
                 lat: 55.9765,
                 lng: -3.5960,
                 startDesc: "West Lothian departure point in historic Linlithgow.",
-                finishDesc: "Finishing up in Linlithgow by the canal basin after a day in the racks."
+                finishDesc: "Finishing up at historic real-ale & malt tavern The Four Marys on Linlithgow High Street."
             },
             falkirk_high: {
-                title: "Falkirk Town Centre",
+                title: "Behind The Wall / Falkirk Town Centre",
                 shortName: "Falkirk",
                 location: "Falkirk",
-                address: "High St, Falkirk FK1 1NW",
+                address: "14 Melville St, Falkirk FK1 1HZ",
                 lat: 55.9990,
                 lng: -3.7840,
                 startDesc: "Forth Valley departure hub on Falkirk High Street.",
-                finishDesc: "Wrapping up the record crawl back in Falkirk Town Centre."
+                finishDesc: "Wrapping up the record crawl over a pint at Behind The Wall / Wheatsheaf Inn in Falkirk."
             },
             stirling_stn: {
-                title: "Stirling Station / Town Centre",
+                title: "The Settle Inn / Curly Coo Bar (Stirling)",
                 shortName: "Stirling",
                 location: "Stirling",
-                address: "Goosecroft Rd, Stirling FK8 1PF",
+                address: "91 St Mary's Wynd / 51 Barnton St, Stirling",
                 lat: 56.1190,
                 lng: -3.9355,
                 startDesc: "Stirling departure hub at the top of the Forth Valley.",
-                finishDesc: "Wrapping up the crawl in central Stirling."
+                finishDesc: "Celebratory pint at Stirling's oldest alehouse The Settle Inn (1733) or whisky bar Curly Coo."
             },
             alloa_town: {
                 title: "Alloa Town Centre",
@@ -546,6 +647,111 @@
             25: { open: "10:00", close: "17:00" }  // Europa Music (Alloa)
         };
 
+        // Curated Literary, Music & Edinburgh/Regional Corridor Cafe & Pub Pairings by Store ID
+        const STORE_NEARBY_SPOTS_BY_ID = {
+            1: [
+                { name: "Mimi's Bakehouse Corstorphine", type: "cafe", vibe: "Artisan Bakery & Espresso", walk_mins: 2, address: "277 St John's Rd, Edinburgh", note: "Cosy bakehouse right on St John's Rd; ideal pre-11:00 AM coffee before Almond River opens." },
+                { name: "The Corstorphine Inn", type: "pub", vibe: "Historic Coaching Inn", walk_mins: 2, address: "176 St John's Rd, Edinburgh", note: "Traditional West Edinburgh tavern steeped in local Sir Walter Scott folklore." }
+            ],
+            2: [
+                { name: "Fire Station Creative Café", type: "cafe", vibe: "Arts, Literary & Music Hub", walk_mins: 4, address: "Carnegie Dr, Dunfermline", note: "1930s Art Deco firehouse turned gallery, acoustic space, and specialty coffee hub." },
+                { name: "The Commercial Inn", type: "pub", vibe: "Indie & Live Music Pub", walk_mins: 3, address: "19 Douglas St, Dunfermline", note: "Welcoming traditional Dunfermline pub with strong local music roots." }
+            ],
+            3: [
+                { name: "The Haberdashery Café", type: "cafe", vibe: "Heritage Coffee & Lunch", walk_mins: 3, address: "Queen Anne St, Dunfermline", note: "Relaxed daytime coffee & lunch spot in Andrew Carnegie's historic literary quarter." },
+                { name: "The Commercial Inn", type: "pub", vibe: "Traditional Ale & Vinyl Haunt", walk_mins: 2, address: "19 Douglas St, Dunfermline", note: "Classic Dunfermline pub to celebrate UK indie & bargain crate pulls." }
+            ],
+            4: [
+                { name: "Artisan Roast / Söderberg Stockbridge", type: "cafe", vibe: "Specialty Coffee & Pastries", walk_mins: 2, address: "100A Raeburn Pl / Circus Pl, Edinburgh", note: "Perfect pre-10:30 AM flat white & cardamom bun while waiting for VoxBox to open." },
+                { name: "The Antiquary / The Bailie Bar", type: "pub", vibe: "Literary Cellar & Cask Ale Pub", walk_mins: 1, address: "72 St Stephen St, Edinburgh", note: "Named after Sir Walter Scott's novel; gothic literary cellar bar right on VoxBox's cobbled street." }
+            ],
+            5: [
+                { name: "Artisan Roast Stockbridge", type: "cafe", vibe: "Indie Roastery Café", walk_mins: 1, address: "100A Raeburn Pl, Edinburgh", note: "Laid-back seating right on Raeburn Place for sorting charity-shop vinyl pulls." },
+                { name: "The Oxford Bar", type: "pub", vibe: "Ian Rankin / Rebus Literary Pub", walk_mins: 6, address: "8 Young St, Edinburgh", note: "Inspector Rebus's famous haunt—author Ian Rankin is a regular Stockbridge vinyl collector." }
+            ],
+            6: [
+                { name: "The Coffee Neuk / Manners Coffee Bar", type: "cafe", vibe: "High St Specialty Coffee", walk_mins: 2, address: "High St, Linlithgow", note: "Relaxed specialty espresso right along historic Linlithgow High Street." },
+                { name: "The Four Marys", type: "pub", vibe: "Historic Real Ale & Malt Tavern", walk_mins: 2, address: "65 High St, Linlithgow", note: "Named after the 16th-century Mary Queen of Scots ballad; extensive real ales & malts near the racks." }
+            ],
+            7: [
+                { name: "Project Coffee / Artisan Roast", type: "cafe", vibe: "Bruntsfield Pour-Over Café", walk_mins: 2, address: "192 Bruntsfield Pl, Edinburgh", note: "Ideal morning coffee stop while waiting for Greenhouse Records' 11:00 AM opening." },
+                { name: "Bennets Bar", type: "pub", vibe: "1839 Victorian Mahogany Pub", walk_mins: 3, address: "8 Leven St, Edinburgh", note: "Historic stained-glass & brass snug bar next to the King's Theatre." }
+            ],
+            8: [
+                { name: "lovecrumbs & West Port Bookshops", type: "cafe", vibe: "Bohemian Literary Café", walk_mins: 5, address: "155 West Port, Edinburgh", note: "Window-seat coffee & cake surrounded by West Port's famous secondhand bookshops." },
+                { name: "The Blue Blazer / Cloisters Bar", type: "pub", vibe: "Cask Ale & Whisky Tavern", walk_mins: 2, address: "2 Spittal St / 26 Brougham St, Edinburgh", note: "Unpretentious real-ale & rum/malt institutions steps from Umbrella Vinyl." }
+            ],
+            9: [
+                { name: "lovecrumbs (West Port Bookshop Strip)", type: "cafe", vibe: "Bookshop Quarter Espresso", walk_mins: 3, address: "155 West Port, Edinburgh", note: "Right on Edinburgh's secondhand bookshop street (Armchair Books & Main Point Books)." },
+                { name: "The Blue Blazer / The Bow Bar", type: "pub", vibe: "Literary & Cask Ale Haunt", walk_mins: 3, address: "2 Spittal St / 80 West Bow, Edinburgh", note: "Classic cask ale and single malt sanctuaries tucked beneath Castle Rock." }
+            ],
+            10: [
+                { name: "Cult Espresso / Filament Coffee", type: "cafe", vibe: "Indie & Vinyl-Friendly Coffee", walk_mins: 5, address: "104 Buccleuch St, Edinburgh", note: "Specialty coffee with curated playlists and laid-back seating." },
+                { name: "Cloisters Bar", type: "pub", vibe: "Converted Parsonage Alehouse", walk_mins: 1, address: "26 Brougham St, Edinburgh", note: "Historic stone-built cask ale pub literally across the road from Backtracks." }
+            ],
+            11: [
+                { name: "Project Coffee Bruntsfield", type: "cafe", vibe: "Morning Flat White Hub", walk_mins: 1, address: "192 Bruntsfield Pl, Edinburgh", note: "Opens early alongside Thorne Records' 9:00 AM doors for a morning flat white." },
+                { name: "The Canny Man's", type: "pub", vibe: "Eccentric 1871 Literary Institution", walk_mins: 5, address: "237 Morningside Rd, Edinburgh", note: "Iconic curiosity-filled Edinburgh tavern celebrated by authors and musicians since 1871." }
+            ],
+            12: [
+                { name: "The Milkman", type: "cafe", vibe: "Cockburn St Espresso Den", walk_mins: 1, address: "7 Cockburn St, Edinburgh", note: "Moody brick-and-timber specialty coffee shop two doors from Underground Solu'shn." },
+                { name: "The Bow Bar / The Jazz Bar", type: "pub", vibe: "Whisky, Cask Ale & Live Grooves", walk_mins: 4, address: "80 West Bow / 1A Chambers St, Edinburgh", note: "No-nonsense cask ales at The Bow Bar or basement live jazz/funk at The Jazz Bar." }
+            ],
+            13: [
+                { name: "Slow Progress In-Store Coffee Bar", type: "cafe", vibe: "Vinyl & Specialty Espresso", walk_mins: 0, address: "53 Blackfriars St, Edinburgh", note: "Built-in specialty coffee bar right inside the record shop—sip while you dig!" },
+                { name: "Sandy Bell's / The Jazz Bar", type: "pub", vibe: "Legendary Folk & Jazz Cellars", walk_mins: 4, address: "25 Forrest Rd / 1A Chambers St, Edinburgh", note: "Historic 1960s folk revival pub (Bert Jansch's old haunt) and Chambers St live jazz." }
+            ],
+            14: [
+                { name: "Typewronger Books & Argonaut Books", type: "cafe", vibe: "Bookshop, Zines & Coffee", walk_mins: 2, address: "4A Haddington Pl / 15-17 Leith Walk, Edinburgh", note: "Indie bookshops with typewriter culture and specialty coffee at the top of Leith Walk." },
+                { name: "The Tourmalet", type: "pub", vibe: "Indie & Belgian Beer Pub", walk_mins: 3, address: "25 Buchanan St, Edinburgh", note: "Cycling & indie-music pub vibe off Leith Walk with Trappist beers and great tunes." }
+            ],
+            16: [
+                { name: "Lounge 33 Coffee Bar & Argonaut Books", type: "cafe", vibe: "In-Store Vinyl Coffee Lounge", walk_mins: 0, address: "373 Leith Walk, Edinburgh", note: "Mr Eion specialty coffee served on-site alongside jazz/soul listening decks." },
+                { name: "The Tourmalet / The Lioness of Leith", type: "pub", vibe: "Leith Indie & Vintage Pubs", walk_mins: 2, address: "25 Buchanan St / 21-25 Duke St, Edinburgh", note: "Vibrant Leith neighbourhood pubs with vintage decor, food, and music ethos." }
+            ],
+            17: [
+                { name: "Williams & Johnson Coffee Co.", type: "cafe", vibe: "Custom Lane Roastery & Arts", walk_mins: 4, address: "Custom Lane, The Shore, Leith", note: "Waterside specialty coffee roastery and design/music hub at The Shore." },
+                { name: "Nobles / Lost in Leith", type: "pub", vibe: "Victorian Bar & Audiophile Taproom", walk_mins: 2, address: "44A Constitution St / 82 Commercial St, Leith", note: "Stained-glass charm at Nobles, or vinyl DJ sessions on Lost in Leith's sound system." }
+            ],
+            18: [
+                { name: "Lowdown Coffee / Wellington Coffee", type: "cafe", vibe: "New Town Specialty Espresso", walk_mins: 4, address: "40 George St / 33A George St, Edinburgh", note: "High-grade filter & espresso between Waverley and New Town record stops." },
+                { name: "The Café Royal Circle Bar / Oxford Bar", type: "pub", vibe: "Victorian Literary & Indie Haunt", walk_mins: 2, address: "19 West Register St, Edinburgh", note: "Grand ceramic-tiled Victorian drinking hall just across from Waverley Market." }
+            ],
+            19: [
+                { name: "Callendar Coffee / Bean Row Café", type: "cafe", vibe: "High St Coffee Break", walk_mins: 2, address: "High St, Falkirk", note: "Relaxed daytime refuel steps from The Avenue on Falkirk High Street." },
+                { name: "Behind The Wall / Wheatsheaf Inn", type: "pub", vibe: "Historic Wynd Pub & Music Venue", walk_mins: 2, address: "14 Melville St / Baxters Wynd, Falkirk", note: "Cozy historic wynd tavern & music spot for inspecting vintage rock gatefolds." }
+            ],
+            20: [
+                { name: "The Book Nook & Cranachan Cafe", type: "cafe", vibe: "Indie Bookshop & Coffee House", walk_mins: 3, address: "24 Upper Craigs, Stirling", note: "Independent bookshop & specialty coffee house made for flipping through sleeve art." },
+                { name: "The Settle Inn / Curly Coo Bar", type: "pub", vibe: "1733 Folk Alehouse & Whisky Bar", walk_mins: 3, address: "91 St Mary's Wynd / 51 Barnton St, Stirling", note: "Stirling's oldest pub (1733) hosting folk sessions, plus cosy whisky haven Curly Coo." }
+            ],
+            21: [
+                { name: "George Street Artisan Bakery & Coffee", type: "cafe", vibe: "Morning Espresso & Pastry", walk_mins: 1, address: "George St, Bathgate", note: "Right on George Street for an early coffee alongside D&J's 9:00 AM opening." },
+                { name: "Dreadnought Rock / The Ballencrieff", type: "pub", vibe: "West Lothian Rock & Ale Haunt", walk_mins: 4, address: "Bathgate, West Lothian", note: "Classic West Lothian pub stop after browsing D&J's vinyl crates." }
+            ],
+            22: [
+                { name: "Majestic Tea Room (On-Site)", type: "cafe", vibe: "In-Store Vintage Tea Room", walk_mins: 0, address: "3 Boreland Rd, Inverkeithing", note: "On-site tea, coffee & home baking inside Flemings Antique & Vinyl Centre." },
+                { name: "The Albert Hotel / Hawes Inn", type: "pub", vibe: "Literary Forth Bridge Tavern", walk_mins: 5, address: "North / South Queensferry", note: "Historic Forth waterfront taverns immortalised in Robert Louis Stevenson's Kidnapped." }
+            ],
+            23: [
+                { name: "Caffèocco Kingdom Centre", type: "cafe", vibe: "Quick Espresso Refuel", walk_mins: 2, address: "Unicorn Way, Glenrothes", note: "Handy flat white stop right on Unicorn Way before KCC's 4:30 PM close." },
+                { name: "The Golden Acorn / Commercial Inn", type: "pub", vibe: "Fife Post-Dig Pint", walk_mins: 4, address: "Glenrothes, Fife", note: "Relaxed Fife pub stop to celebrate pre-owned vinyl & guitar finds." }
+            ],
+            24: [
+                { name: "Lighthouse Bookshop & Cult Espresso", type: "cafe", vibe: "Radical Bookshop & Filter Coffee", walk_mins: 2, address: "43 West Nicholson St / 104 Buccleuch St, Edinburgh", note: "Edinburgh's indie bookshop & Southside specialty coffee right around the corner." },
+                { name: "The Dagda Bar / Paradise Palms", type: "pub", vibe: "Literary Snug & Vinyl Dive Bar", walk_mins: 2, address: "93 Buccleuch St / 41 Lothian St, Edinburgh", note: "Wood-panelled literary pub at The Dagda, or vinyl DJs & label HQ at Paradise Palms." }
+            ],
+            25: [
+                { name: "ginger&brew Specialty Coffee", type: "cafe", vibe: "Indie Coffee & Bakehouse", walk_mins: 2, address: "Mill St / Primrose St, Alloa", note: "Relaxed daytime coffee & cake steps from Europa Music Alloa." },
+                { name: "The Old Brewery Tavern", type: "pub", vibe: "Historic Brewing-Town Pub", walk_mins: 4, address: "Alloa, Clackmannanshire", note: "Traditional pint in Scotland's historic brewing town after digging Europa's racks." }
+            ]
+        };
+
+        function toggleCorridorGuide() {
+            const panel = document.getElementById('corridorGuidePanel');
+            if (panel) panel.classList.toggle('hidden');
+        }
+
         function parseTimeStrToMins(timeStr, fallbackMins) {
             if (!timeStr || typeof timeStr !== 'string' || !timeStr.includes(':')) return fallbackMins;
             const [h, m] = timeStr.split(':').map(Number);
@@ -564,6 +770,12 @@
             const openFormatted = formatTime(openMins);
             const closeFormatted = formatTime(closeMins);
             const hoursLabel = `${openFormatted} – ${closeFormatted}`;
+
+            const nearbySpots = (Array.isArray(raw.nearby_spots) && raw.nearby_spots.length > 0)
+                ? raw.nearby_spots
+                : (STORE_NEARBY_SPOTS_BY_ID[raw.id] || []);
+            const cafeSpot = nearbySpots.find(sp => sp.type === 'cafe') || null;
+            const pubSpot = nearbySpots.find(sp => sp.type === 'pub') || null;
 
             const tags = [];
             if (raw.has_record_label) tags.push('🏷️ Record Label');
@@ -584,6 +796,8 @@
             if (raw.has_coffee_bar) goals.push('Grab a specialty coffee while flipping racks');
             if (raw.has_vinyl_flattening) goals.push('Ask about in-store vinyl flattening service');
             if (raw.genres && raw.genres.length) goals.push(`Browse ${raw.genres.slice(0, 3).join(', ')} sections`);
+            if (cafeSpot) goals.push(`Coffee/Book pairing: ${cafeSpot.name} (${cafeSpot.walk_mins === 0 ? 'in-store' : cafeSpot.walk_mins + 'm walk'})`);
+            if (pubSpot) goals.push(`Pint pairing: ${pubSpot.name} (${pubSpot.walk_mins}m walk)`);
             goals.push('Inspect fresh arrivals & chat with store staff');
 
             return {
@@ -603,6 +817,9 @@
                 openFormatted,
                 closeFormatted,
                 hoursLabel,
+                nearbySpots,
+                cafeSpot,
+                pubSpot,
                 stock_type: raw.stock_type,
                 genres: raw.genres || [],
                 formats: raw.formats || [],
@@ -610,7 +827,7 @@
                 tags: tags.slice(0, 4),
                 description: raw.description || raw.bio || '',
                 bio: raw.bio || raw.description || '',
-                goals: goals.slice(0, 3),
+                goals: goals.slice(0, 4),
                 defaultSelected: DEFAULT_SELECTED_IDS.has(raw.id)
             };
         }
@@ -1195,7 +1412,8 @@
             return storesData.filter(s => {
                 if (selectedRegion !== 'all' && s.region !== selectedRegion) return false;
                 if (q) {
-                    const haystack = `${s.name} ${s.location} ${s.address} ${s.genres.join(' ')} ${s.tags.join(' ')}`.toLowerCase();
+                    const spotsText = (s.nearbySpots || []).map(sp => `${sp.name} ${sp.vibe} ${sp.note}`).join(' ');
+                    const haystack = `${s.name} ${s.location} ${s.address} ${s.genres.join(' ')} ${s.tags.join(' ')} ${spotsText}`.toLowerCase();
                     if (!haystack.includes(q)) return false;
                 }
                 return true;
@@ -1232,6 +1450,13 @@
                     toggleStore(store.id);
                 };
 
+                const cafeBadge = store.cafeSpot
+                    ? `<span class="tag text-[10px] bg-amber-500/10 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30 flex items-center gap-1" title="${store.cafeSpot.vibe}: ${store.cafeSpot.note}">☕ ${store.cafeSpot.name.split('/')[0].trim()} (${store.cafeSpot.walk_mins === 0 ? 'in-store' : store.cafeSpot.walk_mins + 'm'})</span>`
+                    : '';
+                const pubBadge = store.pubSpot
+                    ? `<span class="tag text-[10px] bg-emerald-500/10 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30 flex items-center gap-1" title="${store.pubSpot.vibe}: ${store.pubSpot.note}">🍺 ${store.pubSpot.name.split('/')[0].trim()} (${store.pubSpot.walk_mins}m)</span>`
+                    : '';
+
                 card.innerHTML = `
                     <div>
                         <div class="flex items-start justify-between gap-2 mb-2">
@@ -1254,6 +1479,11 @@
                         <div class="flex flex-wrap gap-1.5 mb-2">
                             ${store.tags.map(t => `<span class="tag text-[10px] bg-gray-800 text-gray-300 px-2 py-0.5 rounded border border-gray-700/60">${t}</span>`).join('')}
                         </div>
+                        ${(cafeBadge || pubBadge) ? `
+                        <div class="flex flex-wrap gap-1.5 mb-2.5 pt-1.5 border-t border-gray-800/60">
+                            ${cafeBadge}
+                            ${pubBadge}
+                        </div>` : ''}
                         <div class="flex items-center justify-between text-[11px] text-gray-500 pt-1 border-t border-gray-800/80">
                             <span class="flex items-center gap-1"><i class="fa-solid fa-location-arrow text-forthRed"></i> ${store.distance}</span>
                             ${store.website ? `<a href="${store.website}" target="_blank" rel="noopener" class="text-gray-400 hover:text-white underline">Website ↗</a>` : ''}
@@ -1449,8 +1679,37 @@
             }
         }
 
-        // Evaluate a candidate store visit order against opening/closing hours and travel time
+        // Read current Fuel Stop toggle settings from Step 2
+        function getFuelStopSettings() {
+            const includeCoffee = document.getElementById('includeCoffeeStop') ? document.getElementById('includeCoffeeStop').checked : true;
+            const coffeeMins = parseInt(document.getElementById('coffeeStopDuration')?.value) || 20;
+            const includePub = document.getElementById('includePubStop') ? document.getElementById('includePubStop').checked : true;
+            const pubMins = parseInt(document.getElementById('pubStopDuration')?.value) || 45;
+            return { includeCoffee, coffeeMins, includePub, pubMins };
+        }
+
+        // Check how much slack (minutes before closing) all remaining stores have from a given time
+        function getRemainingRouteSlackMins(remainingStores, startTimeMins, startLat, startLng, browseMins, mode) {
+            let t = startTimeMins;
+            let lat = startLat;
+            let lng = startLng;
+            let minSlack = Infinity;
+            for (const st of remainingStores) {
+                const leg = haversineMiles(lat, lng, st.lat, st.lng);
+                t += estimateLegMinutes(leg, mode);
+                if (t < st.openMins) t = st.openMins;
+                const slack = st.closeMins - (t + browseMins);
+                if (slack < minSlack) minSlack = slack;
+                t += browseMins;
+                lat = st.lat;
+                lng = st.lng;
+            }
+            return minSlack;
+        }
+
+        // Evaluate a candidate store visit order against opening/closing hours, fuel breaks, and travel time
         function evaluateRouteSchedule(storesOrder, startPoint, startMinutes, browseMins, mode) {
+            const fuel = getFuelStopSettings();
             let currTime = startMinutes;
             let prevLat = startPoint.lat;
             let prevLng = startPoint.lng;
@@ -1459,32 +1718,52 @@
             let totalOverrunMins = 0;
             let totalWaitMins = 0;
             let totalTravelMins = 0;
+            let coffeeDone = !fuel.includeCoffee;
+            let pubDone = !fuel.includePub;
+            const midIdx = Math.max(0, Math.floor((storesOrder.length - 1) / 2));
 
-            for (const store of storesOrder) {
+            for (let i = 0; i < storesOrder.length; i++) {
+                const store = storesOrder[i];
                 const legMiles = haversineMiles(prevLat, prevLng, store.lat, store.lng);
                 const travelMins = estimateLegMinutes(legMiles, mode);
                 totalTravelMins += travelMins;
                 currTime += travelMins;
 
-                // If arriving before the store opens, wait until openMins
+                // If arriving before the store opens, wait until openMins (counts as pre-opening coffee break if >=15m)
                 if (currTime < store.openMins) {
-                    totalWaitMins += (store.openMins - currTime);
+                    const wait = store.openMins - currTime;
+                    totalWaitMins += wait;
+                    if (wait >= 15) coffeeDone = true;
                     currTime = store.openMins;
                 }
 
                 const remainingOpen = store.closeMins - currTime;
                 if (remainingOpen < 15) {
-                    // Closed on arrival (or less than 15m before doors shut)
                     closedCount++;
                     totalOverrunMins += Math.max(15, currTime + browseMins - store.closeMins);
                     currTime += browseMins;
                 } else if (remainingOpen < browseMins) {
-                    // Tight window: must trim browse time to finish by closing time
                     trimmedCount++;
                     totalOverrunMins += (browseMins - remainingOpen);
                     currTime = store.closeMins;
                 } else {
                     currTime += browseMins;
+                }
+
+                // Account for scheduled coffee or pub break if slack permits
+                const remainingStores = storesOrder.slice(i + 1);
+                if (!coffeeDone && i === 0 && store.cafeSpot) {
+                    const slack = getRemainingRouteSlackMins(remainingStores, currTime, store.lat, store.lng, browseMins, mode);
+                    if (slack >= fuel.coffeeMins) {
+                        currTime += fuel.coffeeMins;
+                        coffeeDone = true;
+                    }
+                } else if (!pubDone && (i === midIdx || currTime >= 720) && i < storesOrder.length - 1 && store.pubSpot) {
+                    const slack = getRemainingRouteSlackMins(remainingStores, currTime, store.lat, store.lng, browseMins, mode);
+                    if (slack >= fuel.pubMins) {
+                        currTime += fuel.pubMins;
+                        pubDone = true;
+                    }
                 }
 
                 prevLat = store.lat;
@@ -1627,6 +1906,7 @@
 
             const depTimeStr = document.getElementById('departureTime').value || "10:00";
             const browseMins = parseInt(document.getElementById('browseDuration').value) || 45;
+            const fuel = getFuelStopSettings();
 
             // Parse departure time
             let [hours, minutes] = depTimeStr.split(':').map(Number);
@@ -1654,6 +1934,9 @@
             let prevLng = departPoint.lng;
             let closedStoresList = [];
             let trimmedStoresList = [];
+            let coffeeScheduled = !fuel.includeCoffee;
+            let pubScheduled = !fuel.includePub;
+            const midStoreIdx = Math.max(0, Math.floor((orderedStores.length - 1) / 2));
 
             orderedStores.forEach((store, index) => {
                 const legMiles = haversineMiles(prevLat, prevLng, store.lat, store.lng);
@@ -1673,16 +1956,35 @@
                     desc: travelText
                 });
 
-                // Check if arriving before store opens
-                let waitBufferMins = 0;
+                // Check if arriving before store opens — pair with the shop's literary/specialty cafe!
                 if (currentTimeMinutes < store.openMins) {
-                    waitBufferMins = store.openMins - currentTimeMinutes;
-                    currentItinerary.push({
-                        type: 'transit',
-                        title: `Wait for Opening`,
-                        time: formatTime(currentTimeMinutes),
-                        desc: `☕ ${store.name} opens at ${store.openFormatted} (${waitBufferMins}m coffee/early arrival buffer)`
-                    });
+                    const waitBufferMins = store.openMins - currentTimeMinutes;
+                    if (store.cafeSpot) {
+                        currentItinerary.push({
+                            type: 'fuel',
+                            subtype: 'cafe',
+                            isPreOpeningWait: true,
+                            title: store.cafeSpot.name,
+                            vibe: store.cafeSpot.vibe,
+                            walkMins: store.cafeSpot.walk_mins,
+                            pairedStoreName: store.name,
+                            location: store.location,
+                            address: store.cafeSpot.address || store.address,
+                            arriveTime: formatTime(currentTimeMinutes),
+                            departTime: formatTime(store.openMins),
+                            duration: waitBufferMins,
+                            desc: `${store.cafeSpot.note} (Pre-opening coffee buffer until ${store.name} opens at ${store.openFormatted}).`
+                        });
+                        if (waitBufferMins >= 15) coffeeScheduled = true;
+                    } else {
+                        currentItinerary.push({
+                            type: 'transit',
+                            isOpeningWait: true,
+                            title: `Wait for Opening`,
+                            time: formatTime(currentTimeMinutes),
+                            desc: `☕ ${store.name} opens at ${store.openFormatted} (${waitBufferMins}m early arrival coffee buffer)`
+                        });
+                    }
                     currentTimeMinutes = store.openMins;
                 }
 
@@ -1716,6 +2018,8 @@
                     address: store.address,
                     website: store.website,
                     tags: store.tags,
+                    cafeSpot: store.cafeSpot,
+                    pubSpot: store.pubSpot,
                     hoursLabel: store.hoursLabel,
                     closeFormatted: store.closeFormatted,
                     hoursStatus,
@@ -1726,6 +2030,58 @@
                     desc: store.description,
                     goals: store.goals
                 });
+
+                // Schedule Mid-Crawl Coffee / Bookshop Break or Pub / Lunch Break if enabled and closing-time slack permits
+                const remainingStores = orderedStores.slice(index + 1);
+                const slackAfterStop = getRemainingRouteSlackMins(remainingStores, currentTimeMinutes, store.lat, store.lng, browseMins, selectedTransport);
+
+                if (!coffeeScheduled && store.cafeSpot && (index === 0 || currentTimeMinutes < 735)) {
+                    const breakMins = slackAfterStop >= fuel.coffeeMins
+                        ? fuel.coffeeMins
+                        : (slackAfterStop >= 15 ? slackAfterStop : 0);
+                    if (breakMins >= 15) {
+                        const fuelStart = currentTimeMinutes;
+                        currentTimeMinutes += breakMins;
+                        currentItinerary.push({
+                            type: 'fuel',
+                            subtype: 'cafe',
+                            title: store.cafeSpot.name,
+                            vibe: store.cafeSpot.vibe,
+                            walkMins: store.cafeSpot.walk_mins,
+                            pairedStoreName: store.name,
+                            location: store.location,
+                            address: store.cafeSpot.address || store.address,
+                            arriveTime: formatTime(fuelStart),
+                            departTime: formatTime(currentTimeMinutes),
+                            duration: breakMins,
+                            desc: store.cafeSpot.note
+                        });
+                        coffeeScheduled = true;
+                    }
+                } else if (!pubScheduled && store.pubSpot && (index === midStoreIdx || currentTimeMinutes >= 720) && (index < orderedStores.length - 1 || orderedStores.length === 1)) {
+                    const breakMins = slackAfterStop >= fuel.pubMins
+                        ? fuel.pubMins
+                        : (slackAfterStop >= 25 ? slackAfterStop : 0);
+                    if (breakMins >= 25) {
+                        const fuelStart = currentTimeMinutes;
+                        currentTimeMinutes += breakMins;
+                        currentItinerary.push({
+                            type: 'fuel',
+                            subtype: 'pub',
+                            title: store.pubSpot.name,
+                            vibe: store.pubSpot.vibe,
+                            walkMins: store.pubSpot.walk_mins,
+                            pairedStoreName: store.name,
+                            location: store.location,
+                            address: store.pubSpot.address || store.address,
+                            arriveTime: formatTime(fuelStart),
+                            departTime: formatTime(currentTimeMinutes),
+                            duration: breakMins,
+                            desc: store.pubSpot.note
+                        });
+                        pubScheduled = true;
+                    }
+                }
 
                 prevLat = store.lat;
                 prevLng = store.lng;
@@ -1746,14 +2102,21 @@
                     desc: `Heading to ${returnPoint.title} (${returnMiles} mi • ~${returnMins} mins).`
                 });
 
+                const isLosHermanos = returnPoint.key === 'los_hermanos';
+                const earlyFinishNote = (isLosHermanos && finishArrival < 720)
+                    ? ` (Arriving at ${formatTime(finishArrival)} before Los Hermanos' 12:00 PM opening — grab a waterfront coffee at Manna House Bakery or a literary pint at The Hawes Inn, where R.L. Stevenson wrote Kidnapped, until doors open at noon!)`
+                    : '';
+
                 currentItinerary.push({
                     type: 'finish',
+                    isLosHermanos,
+                    finishArrivalMins: finishArrival,
                     title: returnPoint.title,
                     location: returnPoint.location,
                     address: returnPoint.address,
                     time: formatTime(finishArrival),
                     departTime: formatTime(currentTimeMinutes),
-                    desc: returnPoint.finishDesc
+                    desc: returnPoint.finishDesc + earlyFinishNote
                 });
             }
 
@@ -1801,7 +2164,7 @@
             document.getElementById('navCompanionBtn').classList.remove('hidden');
             showToast(closedStoresList.length > 0
                 ? "⚠️ Route generated — check closing time alert on late stops!"
-                : "Crawl itinerary optimized around shop opening & closing hours!");
+                : "Crawl itinerary optimized with shop hours & corridor fuel stops!");
         }
 
         function formatTime(totalMins) {
@@ -1844,6 +2207,43 @@
                             <span>${item.desc}</span>
                         </div>
                     `;
+                } else if (item.type === 'fuel') {
+                    const isCafe = item.subtype === 'cafe';
+                    const accentText = isCafe ? 'text-amber-300' : 'text-teal-300';
+                    const accentBg = isCafe ? 'bg-amber-500/15 border-amber-500/35' : 'bg-teal-500/15 border-teal-500/35';
+                    const cardBg = isCafe
+                        ? 'bg-gradient-to-br from-amber-950/35 to-gray-900 border-amber-500/40'
+                        : 'bg-gradient-to-br from-teal-950/35 to-gray-900 border-teal-500/40';
+                    const dotColor = isCafe ? 'bg-amber-400' : 'bg-teal-400';
+                    const iconClass = isCafe ? 'fa-mug-saucer text-amber-400' : 'fa-beer-mug-empty text-teal-400';
+                    const breakLabel = item.isPreOpeningWait
+                        ? '☕ Pre-Opening Coffee & Literary Stop'
+                        : isCafe
+                            ? '☕📚 Mid-Crawl Coffee / Bookshop Refuel'
+                            : '🍺🎵 Mid-Crawl Literary / Music Pub Break';
+                    const walkLabel = item.walkMins === 0 ? 'In-store at ' + item.pairedStoreName : `${item.walkMins}m walk from ${item.pairedStoreName}`;
+
+                    node.innerHTML = `
+                        <div class="absolute -left-[9px] sm:-left-[13px] top-1.5 w-5 h-5 rounded-full ${dotColor} border-4 border-darkBg flex items-center justify-center shadow"></div>
+                        <div class="${cardBg} border rounded-xl p-4 sm:p-5 shadow-lg space-y-2.5">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                <div>
+                                    <div class="flex flex-wrap items-center gap-1.5">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider ${accentText} ${accentBg} border px-2 py-0.5 rounded">${breakLabel} • ${item.arriveTime} – ${item.departTime} (${item.duration}m)</span>
+                                        <span class="text-[10px] font-medium text-gray-300 bg-gray-800/90 border border-gray-700 px-2 py-0.5 rounded">${item.vibe}</span>
+                                    </div>
+                                    <h4 class="font-bold text-white text-base sm:text-lg mt-1 flex items-center gap-2">
+                                        <i class="fa-solid ${iconClass}"></i> ${item.title}
+                                    </h4>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-gray-400"><i class="fa-solid fa-person-walking ${accentText} mr-1"></i> ${walkLabel}</span>
+                                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + ' ' + item.address)}" target="_blank" rel="noopener" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-200 px-2.5 py-1 rounded-lg border border-gray-700 transition">Map ↗</a>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-300">${item.desc}</p>
+                        </div>
+                    `;
                 } else if (item.type === 'store') {
                     storeIndex++;
                     const statusBadgeClass = item.hoursStatus === 'closed'
@@ -1861,6 +2261,15 @@
                         : item.hoursStatus === 'trimmed'
                             ? 'bg-amber-500'
                             : 'bg-forthRed';
+
+                    const nearbyHtml = (item.cafeSpot || item.pubSpot) ? `
+                        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-800/80 text-[11px]">
+                            <span class="text-gray-500 font-semibold uppercase tracking-wider text-[10px]">Corridor Pairings:</span>
+                            ${item.cafeSpot ? `<span class="text-amber-300/90 bg-amber-500/10 border border-amber-500/25 px-2 py-0.5 rounded" title="${item.cafeSpot.note}">☕ ${item.cafeSpot.name} (${item.cafeSpot.walk_mins === 0 ? 'in-store' : item.cafeSpot.walk_mins + 'm walk'})</span>` : ''}
+                            ${item.pubSpot ? `<span class="text-emerald-300/90 bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 rounded" title="${item.pubSpot.note}">🍺 ${item.pubSpot.name} (${item.pubSpot.walk_mins}m walk)</span>` : ''}
+                        </div>
+                    ` : '';
+
                     node.innerHTML = `
                         <div class="absolute -left-[9px] sm:-left-[13px] top-1.5 w-5 h-5 rounded-full ${dotColorClass} border-4 border-darkBg flex items-center justify-center shadow"></div>
                         <div class="${cardBorderClass} border rounded-xl p-4 sm:p-5 shadow-lg space-y-3">
@@ -1881,16 +2290,26 @@
                                 </div>
                                 ${item.website ? `<a href="${item.website}" target="_blank" rel="noopener" class="text-xs text-forthRed hover:underline font-medium">Store Website ↗</a>` : ''}
                             </div>
+                            ${nearbyHtml}
                         </div>
                     `;
                 } else if (item.type === 'finish') {
+                    const losHermanosBadges = item.isLosHermanos ? `
+                        <div class="flex flex-wrap items-center gap-2 pt-1">
+                            <span class="text-[11px] font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded">★ 4.6 Rating</span>
+                            <span class="text-[11px] text-gray-300 bg-gray-800/90 border border-gray-700 px-2 py-0.5 rounded">£30–£40</span>
+                            <span class="text-[11px] text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded">🍽️ Tapas & Pint Haul Reveal HQ</span>
+                            <span class="text-[11px] text-gray-300 bg-gray-800/90 border border-gray-700 px-2 py-0.5 rounded"><i class="fa-regular fa-clock mr-1 text-emerald-400"></i>Opens 12:00 PM • High St, South Queensferry</span>
+                        </div>
+                    ` : '';
                     node.innerHTML = `
                         <div class="absolute -left-[9px] sm:-left-[13px] top-1.5 w-5 h-5 rounded-full bg-emerald-500 border-4 border-darkBg flex items-center justify-center shadow"></div>
-                        <div class="bg-gradient-to-br from-emerald-950/40 to-gray-900 border border-emerald-500/40 rounded-xl p-4 sm:p-5 shadow-xl space-y-2">
+                        <div class="bg-gradient-to-br from-emerald-950/40 to-gray-900 border border-emerald-500/40 rounded-xl p-4 sm:p-5 shadow-xl space-y-2.5">
                             <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">Final Destination • ${item.time} Onwards</span>
                             <h4 class="font-bold text-white text-lg flex items-center gap-2">
                                 <i class="fa-solid fa-champagne-glasses text-emerald-400"></i> ${item.title}
                             </h4>
+                            ${losHermanosBadges}
                             <p class="text-xs text-gray-300">${item.desc}</p>
                         </div>
                     `;
@@ -1908,9 +2327,9 @@
             const list = document.getElementById('companionStopsList');
             list.innerHTML = '';
 
-            const storeItems = currentItinerary.filter(i => i.type === 'store' || i.type === 'finish');
+            const companionItems = currentItinerary.filter(i => i.type === 'store' || i.type === 'fuel' || i.type === 'finish');
 
-            storeItems.forEach((item, idx) => {
+            companionItems.forEach((item, idx) => {
                 const card = document.createElement('div');
                 card.className = "bg-gray-900 border border-borderDark rounded-xl p-4 sm:p-5 space-y-3";
 
@@ -1921,17 +2340,23 @@
                     </label>
                 `).join('') : '';
 
+                const badgeLabel = item.type === 'finish'
+                    ? 'Official Debrief Stop'
+                    : item.type === 'fuel'
+                        ? (item.subtype === 'cafe' ? '☕ Literary / Coffee Refuel' : '🍺 Corridor Pub Break') + ' • ' + item.arriveTime
+                        : 'Stop • ' + item.location;
+
                 card.innerHTML = `
                     <div class="flex items-center justify-between border-b border-borderDark pb-3">
                         <div>
-                            <span class="text-[10px] font-bold text-forthRed uppercase">${item.type === 'finish' ? 'Debrief Stop' : 'Stop ' + (idx + 1) + ' • ' + item.location}</span>
+                            <span class="text-[10px] font-bold ${item.type === 'fuel' ? 'text-amber-400' : 'text-forthRed'} uppercase">${badgeLabel}</span>
                             <h4 class="font-bold text-white text-base">${item.title}</h4>
                         </div>
                         <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + ' ' + (item.address || 'South Queensferry'))}" target="_blank" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-200 px-3 py-1.5 rounded-lg border border-gray-700 transition flex items-center gap-1.5">
                             <i class="fa-solid fa-map-location-dot text-forthRed"></i> Map
                         </a>
                     </div>
-                    ${item.goals ? `<div class="space-y-2 pt-1"><div class="text-[11px] uppercase tracking-wider text-gray-500 font-semibold">Crate Digging Goals:</div>${goalsHtml}</div>` : '<p class="text-xs text-gray-400">Time to celebrate the haul and enjoy cold drinks with fellow QMC members.</p>'}
+                    ${item.goals ? `<div class="space-y-2 pt-1"><div class="text-[11px] uppercase tracking-wider text-gray-500 font-semibold">Crate Digging & Corridor Goals:</div>${goalsHtml}</div>` : `<p class="text-xs text-gray-400">${item.desc}</p>`}
                 `;
                 list.appendChild(card);
             });
@@ -1993,6 +2418,7 @@
             currentItinerary.forEach(i => {
                 if (i.type === 'start') text += `[START] ${i.time} - ${i.title} (${i.location})\n`;
                 else if (i.type === 'transit') text += `  ➔ ${i.time}: ${i.desc}\n`;
+                else if (i.type === 'fuel') text += `[${i.subtype === 'cafe' ? 'COFFEE/BOOKS' : 'PUB BREAK'}] ${i.arriveTime}–${i.departTime} - ${i.title} (${i.vibe} • ${i.walkMins === 0 ? 'in-store' : i.walkMins + 'm walk from ' + i.pairedStoreName})\n`;
                 else if (i.type === 'store') text += `[STOP] ${i.arriveTime}–${i.departTime} - ${i.title} (${i.address}, ${i.location})${i.hoursStatusNote ? ` [${i.hoursStatusNote}]` : ''}\n`;
                 else if (i.type === 'finish') text += `[FINISH] ${i.time} - ${i.title} (${i.location})\n`;
             });
