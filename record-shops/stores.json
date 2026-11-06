@@ -37,7 +37,25 @@
             "website": "https://almondriverrecords.online/",
             "bio": "Founded by passionate crate diggers, Almond River Records is West Edinburgh's premier haven for quality second-hand vinyl, CDs, and audio gear. Specialising in meticulously graded 60s/70s classic rock, prog, indie, and jazz, every pre-loved record is inspected with care, and ultrasonic deep-cleaning is available in-store to bring vintage grooves back to life. A friendly, knowledgeable neighbourhood hub that actively buys collections with fair cash or trade appraisals.",
             "has_vinyl_flattening": false,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "Mimi's Bakehouse Corstorphine",
+                    "type": "cafe",
+                    "vibe": "Artisan Bakery & Espresso",
+                    "walk_mins": 2,
+                    "address": "277 St John's Rd, Edinburgh",
+                    "note": "Cosy bakehouse right on St John's Rd; ideal pre-11:00 AM coffee before Almond River opens."
+                },
+                {
+                    "name": "The Corstorphine Inn",
+                    "type": "pub",
+                    "vibe": "Historic Coaching Inn",
+                    "walk_mins": 2,
+                    "address": "176 St John's Rd, Edinburgh",
+                    "note": "Traditional West Edinburgh tavern steeped in local Sir Walter Scott folklore."
+                }
+            ]
         },
         {
             "id": 2,
@@ -71,7 +89,25 @@
             "website": "https://venenomusicstore.com/",
             "bio": "Located in historic Dunfermline just across the Queensferry Crossing, Veneno Music Store has quickly earned a glowing reputation for its curated crates of heavy rock, metal, 90s alternative, and punk alongside fresh indie pressings. The store champions physical formats with transparent condition grading, dedicated listening decks where you can audition before you buy, and an active trade-in counter welcoming wax collectors from across Fife and the Lothians.",
             "has_vinyl_flattening": false,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "Fire Station Creative Café",
+                    "type": "cafe",
+                    "vibe": "Arts, Literary & Music Hub",
+                    "walk_mins": 4,
+                    "address": "Carnegie Dr, Dunfermline",
+                    "note": "1930s Art Deco firehouse turned gallery, acoustic space, and specialty coffee hub."
+                },
+                {
+                    "name": "The Commercial Inn",
+                    "type": "pub",
+                    "vibe": "Indie & Live Music Pub",
+                    "walk_mins": 3,
+                    "address": "19 Douglas St, Dunfermline",
+                    "note": "Welcoming traditional Dunfermline pub with strong local music roots."
+                }
+            ]
         },
         {
             "id": 3,
@@ -104,7 +140,25 @@
             "website": "https://www.facebook.com/p/The-Music-Box-61579984413547/",
             "bio": "A relatively new outlet opening just over a year ago servicing the Dunfermline and broader area. The Music Box is an old school treasure trove packed to the rafters with rock, folk, blues, and pop vinyl across 12-inch LPs and 7-inch singles. Renowned for its bargain discovery crates and deep CD archives, it's the definition of a traditional digger's spot where taking your time flipping through the stacks is always rewarded with forgotten classics at honest prices.",
             "has_vinyl_flattening": false,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "The Haberdashery Café",
+                    "type": "cafe",
+                    "vibe": "Heritage Coffee & Lunch",
+                    "walk_mins": 3,
+                    "address": "Queen Anne St, Dunfermline",
+                    "note": "Relaxed daytime coffee & lunch spot in Andrew Carnegie's historic literary quarter."
+                },
+                {
+                    "name": "The Commercial Inn",
+                    "type": "pub",
+                    "vibe": "Traditional Ale & Vinyl Haunt",
+                    "walk_mins": 2,
+                    "address": "19 Douglas St, Dunfermline",
+                    "note": "Classic Dunfermline pub to celebrate UK indie & bargain crate pulls."
+                }
+            ]
         },
         {
             "id": 4,
@@ -147,7 +201,25 @@
             "website": "https://voxboxmusic.co.uk/",
             "bio": "Tucked away on cobbled St Stephen Street in Stockbridge, VoxBox Music is one of Scotland's most beloved vinyl sanctuaries. Spread across two atmospheric rooms of vintage records, VoxBox specialises in original UK pressings of classic rock, blues, jazz, and Scottish indie, accompanied by bargain £1.50 crates in the back room—plus its own in-house VoxBox / FoxBox record label releasing local Scottish artists. The staff are seasoned musicians and collectors who pride themselves on strictly honest visual and audio grading.",
             "has_vinyl_flattening": false,
-            "has_record_label": true
+            "has_record_label": true,
+            "nearby_spots": [
+                {
+                    "name": "Artisan Roast / Söderberg Stockbridge",
+                    "type": "cafe",
+                    "vibe": "Specialty Coffee & Pastries",
+                    "walk_mins": 2,
+                    "address": "100A Raeburn Pl / Circus Pl, Edinburgh",
+                    "note": "Perfect pre-10:30 AM flat white & cardamom bun while waiting for VoxBox to open."
+                },
+                {
+                    "name": "The Antiquary / The Bailie Bar",
+                    "type": "pub",
+                    "vibe": "Literary Cellar & Cask Ale Pub",
+                    "walk_mins": 1,
+                    "address": "72 St Stephen St, Edinburgh",
+                    "note": "Named after Sir Walter Scott's novel; gothic literary cellar bar right on VoxBox's cobbled street."
+                }
+            ]
         },
         {
             "id": 5,
@@ -182,7 +254,25 @@
             "website": "https://www.oxfam.org.uk/shops/oxfam-music-shop-raeburn-place/",
             "bio": "Celebrated as one of the UK's flagship charity music shops, Oxfam Music on Raeburn Place is a legendary goldmine for Edinburgh vinyl hunters. Run by devoted music-enthusiast volunteers who carefully curate every incoming estate and donation, its shelves constantly rotate with rare classical, folk, jazz, classic rock, and quirky 7-inch obscurities, all fairly priced with proceeds supporting global humanitarian causes.",
             "has_vinyl_flattening": false,
-            "has_record_label": false
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "Artisan Roast Stockbridge",
+                    "type": "cafe",
+                    "vibe": "Indie Roastery Café",
+                    "walk_mins": 1,
+                    "address": "100A Raeburn Pl, Edinburgh",
+                    "note": "Laid-back seating right on Raeburn Place for sorting charity-shop vinyl pulls."
+                },
+                {
+                    "name": "The Oxford Bar",
+                    "type": "pub",
+                    "vibe": "Ian Rankin / Rebus Literary Pub",
+                    "walk_mins": 6,
+                    "address": "8 Young St, Edinburgh",
+                    "note": "Inspector Rebus's famous haunt—author Ian Rankin is a regular Stockbridge vinyl collector."
+                }
+            ]
         },
         {
             "id": 6,
