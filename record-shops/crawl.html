@@ -150,7 +150,7 @@
                     <div class="bg-emerald-950/30 border border-emerald-500/30 rounded-lg p-3 space-y-1.5">
                         <div class="font-bold text-emerald-400">South Queensferry (Official Finish)</div>
                         <div class="text-[11px] text-gray-300">Los Hermanos Pícaros • ⭐ 4.6 • £30–£40 • Opens 12:00 PM</div>
-                        <p class="text-gray-300">High Street tapas & pint headquarters for the post-crawl "haul reveal". <span class="text-gray-400">(Early arrival tip: Hawes Inn—where R.L. Stevenson wrote <em>Kidnapped</em>—or Manna House Bakery).</span></p>
+                        <p class="text-gray-300">High Street tapas & pint headquarters for the post-crawl "haul reveal". <span class="text-gray-400">(Also on High St: <strong>The Ferry Tap</strong> for cask ales & malts, or Manna House Bakery for early coffee).</span></p>
                     </div>
                 </div>
             </div>
@@ -203,6 +203,7 @@
                     </label>
                     <select id="returnPointSelect" onchange="handleReturnPointChange()" class="w-full bg-gray-900 border border-borderDark rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-forthRed transition">
                         <option value="los_hermanos" selected>Los Hermanos Pícaros, South Queensferry (Debrief HQ)</option>
+                        <option value="ferry_tap">The Ferry Tap, South Queensferry (High St Cask Ales & Malts)</option>
                         <option value="same_as_depart">🔄 Return to Departure Point</option>
                         <option value="sq_hub">South Queensferry Hub (EH30)</option>
                         <option value="dalmeny_stn">Dalmeny Station (South Queensferry)</option>
@@ -500,6 +501,16 @@
                 startDesc: "Starting out from Los Hermanos Pícaros on the South Queensferry shorefront.",
                 finishDesc: "End-of-crawl celebration! Tapas, cold pints, bag checks, and spinning your best 7-inch finds."
             },
+            ferry_tap: {
+                title: "The Ferry Tap",
+                shortName: "The Ferry Tap",
+                location: "South Queensferry",
+                address: "36 High St, South Queensferry EH30 9HN",
+                lat: 55.9905,
+                lng: -3.3972,
+                startDesc: "Starting out from The Ferry Tap on South Queensferry High Street.",
+                finishDesc: "Post-crawl cask ales, single malts, and vinyl haul reveal at The Ferry Tap on South Queensferry High Street."
+            },
             dalmeny_stn: {
                 title: "Dalmeny Station",
                 shortName: "Dalmeny Stn",
@@ -731,7 +742,7 @@
             ],
             22: [
                 { name: "Majestic Tea Room (On-Site)", type: "cafe", vibe: "In-Store Vintage Tea Room", walk_mins: 0, address: "3 Boreland Rd, Inverkeithing", note: "On-site tea, coffee & home baking inside Flemings Antique & Vinyl Centre." },
-                { name: "The Albert Hotel / Hawes Inn", type: "pub", vibe: "Literary Forth Bridge Tavern", walk_mins: 5, address: "North / South Queensferry", note: "Historic Forth waterfront taverns immortalised in Robert Louis Stevenson's Kidnapped." }
+                { name: "The Ferry Tap", type: "pub", vibe: "Cask Ale & Whisky Tavern", walk_mins: 5, address: "36 High St, South Queensferry EH30 9HN", note: "Award-winning cask ales and single malts at The Ferry Tap on South Queensferry High St just across the bridge." }
             ],
             23: [
                 { name: "Caffèocco Kingdom Centre", type: "cafe", vibe: "Quick Espresso Refuel", walk_mins: 2, address: "Unicorn Way, Glenrothes", note: "Handy flat white stop right on Unicorn Way before KCC's 4:30 PM close." },
@@ -2104,7 +2115,7 @@
 
                 const isLosHermanos = returnPoint.key === 'los_hermanos';
                 const earlyFinishNote = (isLosHermanos && finishArrival < 720)
-                    ? ` (Arriving at ${formatTime(finishArrival)} before Los Hermanos' 12:00 PM opening — grab a waterfront coffee at Manna House Bakery or a literary pint at The Hawes Inn, where R.L. Stevenson wrote Kidnapped, until doors open at noon!)`
+                    ? ` (Arriving at ${formatTime(finishArrival)} before Los Hermanos' 12:00 PM opening — grab a High Street coffee at Manna House Bakery or an early cask pint next door at The Ferry Tap until doors open at noon!)`
                     : '';
 
                 currentItinerary.push({
