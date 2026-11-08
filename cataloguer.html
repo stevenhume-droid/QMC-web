@@ -1,0 +1,1967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RPM-7: Archival 7" Vinyl Catalog & Research Station</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- HTML5-QRCode Scanner Library -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            vinyl: {
+              950: '#0c0d10',
+              900: '#14171d',
+              850: '#1c2029',
+              800: '#232936',
+              700: '#323a4d',
+            },
+            brass: {
+              400: '#f6d365',
+              500: '#d4af37',
+              600: '#aa8c2c',
+            },
+            groove: '#2a2f3d'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Menlo', 'Courier New', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #14171d;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2a2f3d;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #d4af37;
+    }
+
+    /* Vinyl record disc simulation styling */
+    .vinyl-grooves {
+      background: radial-gradient(circle, #252a36 0%, #151820 40%, #0e1015 70%, #050608 100%);
+      box-shadow: inset 0 0 25px rgba(0,0,0,0.9), 0 8px 24px rgba(0,0,0,0.6);
+      position: relative;
+    }
+    .vinyl-grooves::before {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border-radius: 9999px;
+      border: 1px dashed rgba(255,255,255,0.08);
+      pointer-events: none;
+    }
+    .vinyl-grooves::after {
+      content: "";
+      position: absolute;
+      inset: 22px;
+      border-radius: 9999px;
+      border: 1px solid rgba(255,255,255,0.04);
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="bg-vinyl-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-brass-500 selection:text-black">
+
+  <!-- TOP APP BAR -->
+  <header class="border-b border-vinyl-800 bg-vinyl-900/90 backdrop-blur sticky top-0 z-40 px-4 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <!-- 7" Vinyl Logo Badge -->
+      <div class="w-10 h-10 rounded-full vinyl-grooves flex items-center justify-center border border-brass-500/40 shadow-inner">
+        <div class="w-3.5 h-3.5 rounded-full bg-brass-500 border border-black flex items-center justify-center">
+          <div class="w-1.5 h-1.5 rounded-full bg-black"></div>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            RPM-7 <span class="text-xs px-2 py-0.5 rounded-full bg-brass-500/20 text-brass-400 font-mono font-medium border border-brass-500/30">Archival 45s</span>
+          </h1>
+        </div>
+        <p class="text-xs text-slate-400">7-Inch Singles Archival Research & Discographic Laboratory</p>
+      </div>
+    </div>
+
+    <!-- Global Actions -->
+    <div class="flex items-center flex-wrap gap-2.5">
+      <!-- Scan Barcode Quick Trigger -->
+      <button onclick="openScannerModal()" class="px-3.5 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 hover:border-brass-400 transition flex items-center gap-2 shadow-sm">
+        <i class="fa-solid fa-barcode text-sm"></i>
+        <span>Scan Barcode</span>
+      </button>
+
+      <!-- Add New Record Button -->
+      <button onclick="openAddEditModal()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-vinyl-950 transition flex items-center gap-2 shadow-lg shadow-brass-500/10">
+        <i class="fa-solid fa-plus text-sm"></i>
+        <span>Catalogue 7" Single</span>
+      </button>
+
+      <!-- Import / Export Menu Dropdown -->
+      <div class="relative group">
+        <button class="p-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border border-vinyl-700 transition" title="Archival Export & Options">
+          <i class="fa-solid fa-ellipsis-vertical px-1"></i>
+        </button>
+        <div class="absolute right-0 mt-1 w-48 bg-vinyl-850 border border-vinyl-700 rounded-lg shadow-2xl py-1 hidden group-hover:block hover:block z-50">
+          <button onclick="exportToCSV()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-file-csv text-emerald-400"></i> Export Archival CSV
+          </button>
+          <button onclick="exportToJSON()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-code text-blue-400"></i> Export JSON Backup
+          </button>
+          <label class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-200 flex items-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-file-import text-amber-400"></i> Import JSON Data
+            <input type="file" id="jsonFileInput" accept=".json" onchange="importFromJSON(event)" class="hidden">
+          </label>
+          <div class="border-t border-vinyl-700 my-1"></div>
+          <button onclick="loadSampleDataset()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-400 hover:text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-rotate-right text-indigo-400"></i> Reload Sample 45s
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- RESEARCH STATS & SUMMARY DASHBOARD -->
+  <section class="bg-vinyl-900 border-b border-vinyl-800 px-4 lg:px-8 py-3.5">
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+      <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex items-center justify-between">
+        <div>
+          <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Total 7" Singles</span>
+          <div id="statTotalSingles" class="text-xl font-bold font-mono text-brass-400">0</div>
+        </div>
+        <i class="fa-solid fa-record-vinyl text-vinyl-700 text-2xl"></i>
+      </div>
+
+      <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex items-center justify-between">
+        <div>
+          <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Center Hole Format</span>
+          <div id="statCenterHole" class="text-xs font-medium text-slate-200 mt-1">0 Dinked / 0 Solid</div>
+        </div>
+        <i class="fa-solid fa-circle-dot text-vinyl-700 text-xl"></i>
+      </div>
+
+      <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex items-center justify-between">
+        <div>
+          <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Avg Media Grade</span>
+          <div id="statAvgGrade" class="text-base font-bold font-mono text-emerald-400">VG+</div>
+        </div>
+        <i class="fa-solid fa-award text-vinyl-700 text-xl"></i>
+      </div>
+
+      <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex items-center justify-between">
+        <div>
+          <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Digitized / Transfer</span>
+          <div id="statTransfers" class="text-xl font-bold font-mono text-cyan-400">0</div>
+        </div>
+        <i class="fa-solid fa-wave-square text-vinyl-700 text-xl"></i>
+      </div>
+
+      <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 col-span-2 flex flex-col justify-center">
+        <div class="flex justify-between items-center text-[10px] uppercase tracking-wider font-semibold text-slate-400 mb-1">
+          <span>Primary Pressing Decades</span>
+          <span id="statDecadesSummary" class="text-slate-300 font-normal">--</span>
+        </div>
+        <!-- Mini horizontal bar distribution -->
+        <div id="decadeDistributionBar" class="w-full bg-vinyl-800 h-2 rounded-full overflow-hidden flex"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTROLS, SEARCH, AND VIEW TOGGLES -->
+  <main class="flex-1 p-4 lg:p-8 max-w-[1600px] w-full mx-auto flex flex-col gap-5">
+    
+    <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-vinyl-900/60 p-3 rounded-xl border border-vinyl-800">
+      
+      <!-- Search Input -->
+      <div class="relative flex-1">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+        <input 
+          type="text" 
+          id="globalSearch" 
+          oninput="handleSearchFilterChange()"
+          placeholder="Search by Artist, Title, Label, Matrix runout etchings, Catalog #, Producer, or Notes..." 
+          class="w-full pl-9 pr-4 py-2 bg-vinyl-850 border border-vinyl-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brass-500 focus:ring-1 focus:ring-brass-500"
+        >
+      </div>
+
+      <!-- Filters Row -->
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Grade Filter -->
+        <select id="filterGrade" onchange="handleSearchFilterChange()" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-slate-300 focus:outline-none focus:border-brass-500">
+          <option value="ALL">All Grades (Media)</option>
+          <option value="M">Mint (M)</option>
+          <option value="NM">Near Mint (NM)</option>
+          <option value="VG+">Very Good Plus (VG+)</option>
+          <option value="VG">Very Good (VG)</option>
+          <option value="G+">Good Plus (G+)</option>
+          <option value="G">Good (G)</option>
+          <option value="F">Fair (F)</option>
+          <option value="P">Poor (P)</option>
+        </select>
+
+        <!-- Center Hole Filter -->
+        <select id="filterHole" onchange="handleSearchFilterChange()" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-slate-300 focus:outline-none focus:border-brass-500">
+          <option value="ALL">All Centers</option>
+          <option value="Dinked (Large 1.5 inch)">Dinked (Large 1.5")</option>
+          <option value="Solid (Small 0.28 inch)">Solid (Small 0.28")</option>
+          <option value="Tri-Center (Knockout)">Tri-Center</option>
+          <option value="Four-Prong (Spider)">Four-Prong Pushout</option>
+        </select>
+
+        <!-- Sort By -->
+        <select id="sortBy" onchange="handleSearchFilterChange()" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-slate-300 focus:outline-none focus:border-brass-500">
+          <option value="dateAddedDesc">Added: Newest First</option>
+          <option value="artistAsc">Artist: A to Z</option>
+          <option value="titleAsc">Title: A to Z</option>
+          <option value="yearAsc">Year: Oldest First</option>
+          <option value="yearDesc">Year: Newest First</option>
+          <option value="gradeDesc">Grade: Highest Quality</option>
+        </select>
+
+        <!-- View Switcher -->
+        <div class="flex items-center bg-vinyl-850 border border-vinyl-700 rounded-lg p-0.5">
+          <button id="viewGridBtn" onclick="switchView('grid')" class="px-2.5 py-1.5 rounded text-xs bg-vinyl-700 text-brass-400 font-medium transition" title="Grid Sleeve View">
+            <i class="fa-solid fa-grip"></i>
+          </button>
+          <button id="viewListBtn" onclick="switchView('list')" class="px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition" title="Archival Table View">
+            <i class="fa-solid fa-table-list"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Tag & Filter Indicators -->
+    <div id="filterPillsContainer" class="flex flex-wrap items-center gap-1.5 empty:hidden text-xs text-slate-400"></div>
+
+    <!-- MAIN RECORDS CONTAINER -->
+    <div id="recordsViewContainer" class="w-full">
+      <!-- Grid or Table dynamically rendered here -->
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div id="emptyState" class="hidden flex-col items-center justify-center p-12 text-center border-2 border-dashed border-vinyl-800 rounded-2xl my-8">
+      <div class="w-16 h-16 rounded-full bg-vinyl-900 flex items-center justify-center mb-3 text-slate-600">
+        <i class="fa-solid fa-compact-disc text-3xl"></i>
+      </div>
+      <h3 class="text-base font-semibold text-slate-300">No 7" singles found</h3>
+      <p class="text-xs text-slate-500 max-w-sm mt-1">No catalog records match your current filter or search criteria.</p>
+      <button onclick="resetFilters()" class="mt-4 px-4 py-1.5 text-xs bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 rounded-lg border border-brass-500/20">
+        Clear All Filters
+      </button>
+    </div>
+  </main>
+
+  <!-- ============================================== -->
+  <!-- MODAL: ADD / EDIT 7" RECORD (Multi-Tabbed Form) -->
+  <!-- ============================================== -->
+  <div id="recordModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto">
+    <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-brass-500/10 border border-brass-500/30 flex items-center justify-center text-brass-400">
+            <i class="fa-solid fa-record-vinyl"></i>
+          </div>
+          <div>
+            <h2 id="modalTitle" class="text-base font-bold text-white tracking-tight">Catalogue 7" Single</h2>
+            <p class="text-[11px] text-slate-400">Archival entry for 45 RPM single pressing</p>
+          </div>
+        </div>
+        <button onclick="closeAddEditModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Quick Mock Lookup Bar in Modal -->
+      <div class="bg-vinyl-800/60 px-6 py-2.5 border-b border-vinyl-800 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2 text-xs text-slate-300">
+          <i class="fa-solid fa-wand-magic-sparkles text-brass-400"></i>
+          <span>Autofill Research Preset:</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="presetAutofill('reggae')" class="text-[11px] px-2.5 py-1 rounded bg-vinyl-700 hover:bg-vinyl-600 text-slate-300">Roots Reggae / Trojan</button>
+          <button type="button" onclick="presetAutofill('motown')" class="text-[11px] px-2.5 py-1 rounded bg-vinyl-700 hover:bg-vinyl-600 text-slate-300">Northern Soul / Motown</button>
+          <button type="button" onclick="presetAutofill('punk')" class="text-[11px] px-2.5 py-1 rounded bg-vinyl-700 hover:bg-vinyl-600 text-slate-300">77 UK Punk / Stiff</button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="flex border-b border-vinyl-800 px-6 bg-vinyl-900 overflow-x-auto text-xs font-medium">
+        <button type="button" onclick="switchFormTab('tab-general')" id="tabBtn-general" class="form-tab-btn py-3 px-3 border-b-2 border-brass-500 text-brass-400 font-semibold whitespace-nowrap">
+          1. General & Tracks
+        </button>
+        <button type="button" onclick="switchFormTab('tab-pressing')" id="tabBtn-pressing" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
+          2. Pressing & Runout Matrix
+        </button>
+        <button type="button" onclick="switchFormTab('tab-grading')" id="tabBtn-grading" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
+          3. Goldmine Grading
+        </button>
+        <button type="button" onclick="switchFormTab('tab-visuals')" id="tabBtn-visuals" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
+          4. Labels & Artwork
+        </button>
+        <button type="button" onclick="switchFormTab('tab-research')" id="tabBtn-research" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
+          5. Historical & Transfers
+        </button>
+      </div>
+
+      <!-- Form Body -->
+      <form id="recordForm" onsubmit="saveRecordForm(event)" class="overflow-y-auto flex-1 p-6 space-y-5">
+        <input type="hidden" id="recordId">
+
+        <!-- TAB 1: General Info & Tracks -->
+        <div id="tab-general" class="form-tab-pane space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Artist / Group / Sound System *</label>
+              <input type="text" id="formArtist" required placeholder="e.g. Althea & Donna" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Primary Release Title *</label>
+              <input type="text" id="formTitle" required placeholder="e.g. Uptown Top Ranking" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Record Label *</label>
+              <input type="text" id="formLabel" required placeholder="e.g. Lightning Records / Joe Gibbs" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Catalog Number</label>
+              <input type="text" id="formCatNo" placeholder="e.g. LIG 506" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-brass-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Release Year</label>
+              <input type="number" id="formYear" min="1940" max="2035" placeholder="1977" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-brass-500">
+            </div>
+          </div>
+
+          <!-- A-Side & B-Side Details -->
+          <div class="p-4 bg-vinyl-850 rounded-xl border border-vinyl-800 space-y-3">
+            <h3 class="text-xs uppercase font-bold text-brass-400 tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-compact-disc"></i> 7" Dual Tracks Architecture
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+              <div class="sm:col-span-1 text-center font-bold text-sm bg-vinyl-800 py-1.5 rounded border border-vinyl-700 text-slate-300">A</div>
+              <div class="sm:col-span-8">
+                <input type="text" id="formSideATitle" placeholder="A-Side Track Title (e.g. Uptown Top Ranking)" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-brass-500">
+              </div>
+              <div class="sm:col-span-3">
+                <input type="text" id="formSideADuration" placeholder="Duration (e.g. 3:53)" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-brass-500">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+              <div class="sm:col-span-1 text-center font-bold text-sm bg-vinyl-800 py-1.5 rounded border border-vinyl-700 text-slate-300">B</div>
+              <div class="sm:col-span-8">
+                <input type="text" id="formSideBTitle" placeholder="B-Side Track Title (e.g. Calico Suit)" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-brass-500">
+              </div>
+              <div class="sm:col-span-3">
+                <input type="text" id="formSideBDuration" placeholder="Duration (e.g. 3:12)" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-brass-500">
+              </div>
+            </div>
+          </div>
+
+          <!-- Barcode & Country -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Barcode / UPC / EAN</label>
+              <div class="flex gap-2">
+                <input type="text" id="formBarcode" placeholder="Scan or enter barcode" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-brass-500">
+                <button type="button" onclick="simulateBarcodeLookup()" class="px-3 py-2 bg-vinyl-800 hover:bg-vinyl-700 border border-vinyl-700 rounded-lg text-xs text-brass-400" title="Simulate Discogs DB Auto-Lookup">
+                  <i class="fa-solid fa-magnifying-glass-chart"></i>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Country / Region of Origin</label>
+              <input type="text" id="formCountry" placeholder="e.g. Jamaica / UK / US" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: Pressing & Runout Matrix Specifics -->
+        <div id="tab-pressing" class="form-tab-pane hidden space-y-4">
+          <div class="p-3 bg-brass-500/10 border border-brass-500/20 rounded-lg text-xs text-slate-300 flex items-start gap-2">
+            <i class="fa-solid fa-circle-info text-brass-400 mt-0.5"></i>
+            <div>
+              <strong>7-Inch Pressing Archival Identification:</strong> Center hole configurations and deadwax / runout matrix etchings (cut numbers, mastering engineer initials like <em>"Porky"</em>, <em>"Sterling"</em>, or plant symbols) are crucial for pinpointing the exact historical pressing.
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Center Hole Configuration</label>
+              <select id="formCenterHole" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+                <option value="Dinked (Large 1.5 inch)">Dinked (Large 1.5" Jukebox / US standard)</option>
+                <option value="Solid (Small 0.28 inch)">Solid Center (Small 0.28" standard spindle)</option>
+                <option value="Four-Prong (Spider)">Four-Prong Knockout / Spider</option>
+                <option value="Tri-Center (Knockout)">Tri-Center Knockout</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Playback Speed (RPM)</label>
+              <select id="formSpeed" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+                <option value="45 RPM">45 RPM (Standard)</option>
+                <option value="33 1/3 RPM">33 1/3 RPM (Extended Play / Maxi)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Matrix / Deadwax Runouts -->
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">A-Side Matrix / Deadwax Runout Etchings</label>
+              <input type="text" id="formMatrixA" placeholder='e.g. LIG 506 A-1 △ "A PORKY PRIME CUT"' class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-xs font-mono text-emerald-400 focus:outline-none focus:border-brass-500">
+              <span class="text-[10px] text-slate-500">Include stamped letters, handwritten scratchings, engineer marks, and dates.</span>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">B-Side Matrix / Deadwax Runout Etchings</label>
+              <input type="text" id="formMatrixB" placeholder='e.g. LIG 506 B-1 PECKO' class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-xs font-mono text-emerald-400 focus:outline-none focus:border-brass-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Mastering Engineer / Studio Stamp</label>
+              <input type="text" id="formMastering" placeholder="e.g. George Peckham (Porky), Sterling Sound" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Pressing Plant</label>
+              <input type="text" id="formPressingPlant" placeholder="e.g. Lyntone Recordings, Orlake, Specialty Records" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: Goldmine Grading Standard -->
+        <div id="tab-grading" class="form-tab-pane hidden space-y-4">
+          <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-lg text-xs text-slate-300">
+            <span class="font-bold text-brass-400">Goldmine Grading Scale:</span> Mint (M) > Near Mint (NM) > Very Good Plus (VG+) > Very Good (VG) > Good Plus (G+) > Good (G) > Fair (F) > Poor (P).
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Media Grade -->
+            <div class="p-4 bg-vinyl-850 rounded-xl border border-vinyl-800 space-y-2">
+              <label class="block text-xs font-bold uppercase text-slate-300 tracking-wider">Vinyl Media Grade</label>
+              <select id="formMediaGrade" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-2 text-sm font-semibold text-brass-400 focus:outline-none focus:border-brass-500">
+                <option value="M">M - Mint (Absolute pristine, unplayed or sealed)</option>
+                <option value="NM" selected>NM - Near Mint (Virtually flawless, no audible surface noise)</option>
+                <option value="VG+">VG+ - Very Good Plus (Light sleeve scuffs, plays clean)</option>
+                <option value="VG">VG - Very Good (Light surface noise, groove wear visible)</option>
+                <option value="G+">G+ - Good Plus (Significant groove wear, continuous surface noise)</option>
+                <option value="G">G - Good (Plays through without skipping, noticeable clicks)</option>
+                <option value="F">F - Fair (Warped, heavy scratches, may skip)</option>
+                <option value="P">P - Poor (Cracked, severely damaged)</option>
+              </select>
+              <textarea id="formMediaGradeNotes" rows="2" placeholder="Visual inspection notes (e.g., hairline paper scuffs under bright halogen light, slight dish warp not affecting play)..." class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-brass-500"></textarea>
+            </div>
+
+            <!-- Sleeve Grade -->
+            <div class="p-4 bg-vinyl-850 rounded-xl border border-vinyl-800 space-y-2">
+              <label class="block text-xs font-bold uppercase text-slate-300 tracking-wider">Sleeve / Company Cover Grade</label>
+              <select id="formSleeveGrade" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-2 text-sm font-semibold text-brass-400 focus:outline-none focus:border-brass-500">
+                <option value="M">M - Mint (Perfect new condition, crisp edges)</option>
+                <option value="NM">NM - Near Mint (No creases, minor handling)</option>
+                <option value="VG+" selected>VG+ - Very Good Plus (Slight ring wear, clean seam)</option>
+                <option value="VG">VG - Very Good (Seam split starting, pen marks, tape)</option>
+                <option value="G+">G+ - Good Plus (Torn flap, moderate water damage)</option>
+                <option value="G">G - Good (Heavy split seams, extensive wear)</option>
+                <option value="F">F - Fair (Shredded original paper sleeve)</option>
+                <option value="Generic">Generic / Replacement Paper Sleeve</option>
+              </select>
+              <textarea id="formSleeveGradeNotes" rows="2" placeholder="Sleeve notes (e.g., Original company paper sleeve with record store stamp from Manchester, no ring wear)..." class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-brass-500"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: Labels & Artwork Visuals -->
+        <div id="tab-visuals" class="form-tab-pane hidden space-y-4">
+          <div class="text-xs text-slate-400 mb-2">
+            Upload or capture photos for high-resolution visual authentication (center label typography, original picture sleeve):
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- Sleeve / Cover Image -->
+            <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 flex flex-col items-center">
+              <span class="text-xs font-semibold text-slate-300 mb-2">Picture Sleeve / Cover</span>
+              <div id="previewCoverBox" class="w-full h-36 bg-vinyl-900 rounded-lg border border-dashed border-vinyl-700 flex items-center justify-center overflow-hidden mb-2 relative group">
+                <img id="previewCoverImg" src="" alt="Cover Art" class="w-full h-full object-cover hidden">
+                <div id="placeholderCover" class="text-center p-3 text-slate-500">
+                  <i class="fa-regular fa-image text-2xl mb-1"></i>
+                  <p class="text-[10px]">No image uploaded</p>
+                </div>
+              </div>
+              <input type="file" id="uploadCoverInput" accept="image/*" onchange="handleImageUpload(event, 'previewCoverImg', 'placeholderCover')" class="hidden">
+              <button type="button" onclick="document.getElementById('uploadCoverInput').click()" class="w-full py-1.5 px-3 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 rounded text-xs flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-camera"></i> Select Photo
+              </button>
+            </div>
+
+            <!-- A-Side Label Image -->
+            <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 flex flex-col items-center">
+              <span class="text-xs font-semibold text-slate-300 mb-2">A-Side Center Label</span>
+              <div id="previewLabelABox" class="w-full h-36 bg-vinyl-900 rounded-lg border border-dashed border-vinyl-700 flex items-center justify-center overflow-hidden mb-2 relative">
+                <img id="previewLabelAImg" src="" alt="A-Side Label" class="w-full h-full object-cover hidden">
+                <div id="placeholderLabelA" class="text-center p-3 text-slate-500">
+                  <i class="fa-solid fa-circle-notch text-2xl mb-1"></i>
+                  <p class="text-[10px]">No label photo</p>
+                </div>
+              </div>
+              <input type="file" id="uploadLabelAInput" accept="image/*" onchange="handleImageUpload(event, 'previewLabelAImg', 'placeholderLabelA')" class="hidden">
+              <button type="button" onclick="document.getElementById('uploadLabelAInput').click()" class="w-full py-1.5 px-3 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 rounded text-xs flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-camera"></i> Select Photo
+              </button>
+            </div>
+
+            <!-- B-Side Label Image -->
+            <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 flex flex-col items-center">
+              <span class="text-xs font-semibold text-slate-300 mb-2">B-Side Center Label</span>
+              <div id="previewLabelBBox" class="w-full h-36 bg-vinyl-900 rounded-lg border border-dashed border-vinyl-700 flex items-center justify-center overflow-hidden mb-2 relative">
+                <img id="previewLabelBImg" src="" alt="B-Side Label" class="w-full h-full object-cover hidden">
+                <div id="placeholderLabelB" class="text-center p-3 text-slate-500">
+                  <i class="fa-solid fa-circle-notch text-2xl mb-1"></i>
+                  <p class="text-[10px]">No label photo</p>
+                </div>
+              </div>
+              <input type="file" id="uploadLabelBInput" accept="image/*" onchange="handleImageUpload(event, 'previewLabelBImg', 'placeholderLabelB')" class="hidden">
+              <button type="button" onclick="document.getElementById('uploadLabelBInput').click()" class="w-full py-1.5 px-3 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 rounded text-xs flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-camera"></i> Select Photo
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: Archival Research, Provenance & Audio Transfers -->
+        <div id="tab-research" class="form-tab-pane hidden space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Genre & Sub-Styles</label>
+              <input type="text" id="formGenres" placeholder="e.g. Lovers Rock, Roots Dub, Studio One" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Producer / Recording Engineer</label>
+              <input type="text" id="formProducer" placeholder="e.g. Joe Gibbs & Errol Thompson (The Mighty Two)" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Provenance & Acquired History</label>
+            <input type="text" id="formProvenance" placeholder="e.g. Acquired from Kingston sound system selector estate sale, 2018" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Digitization / Transfer Status</label>
+              <select id="formTransferStatus" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+                <option value="Not Digitized">Not Digitized</option>
+                <option value="FLAC 24-bit/96kHz">Archival FLAC (24-bit / 96kHz)</option>
+                <option value="WAV 16-bit/44.1kHz">Standard WAV (16-bit / 44.1kHz)</option>
+                <option value="MP3 320kbps">Reference MP3 (320kbps)</option>
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Transfer Rig & Stylus Details</label>
+              <input type="text" id="formTransferNotes" placeholder="e.g. Technics 1200MK2, Shure M44-7 45rpm spherical, Parks Puffin preamp" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Research Field Notes & Historical Context</label>
+            <textarea id="formResearchNotes" rows="3" placeholder="Enter discographic discoveries, band member interview references, radio play notes, master take variations..." class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-brass-500"></textarea>
+          </div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="border-t border-vinyl-800 pt-4 flex items-center justify-between">
+          <button type="button" onclick="closeAddEditModal()" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-lg transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-6 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-vinyl-950 shadow-lg shadow-brass-500/20 transition">
+            Save 7" Record
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: BARCODE SCANNER VIA WEBCAM / CAM-STREAM -->
+  <!-- ============================================== -->
+  <div id="scannerModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-lg p-6 flex flex-col shadow-2xl relative">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-barcode text-brass-400 text-lg"></i>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider">7" Barcode Optical Scanner</h3>
+        </div>
+        <button onclick="closeScannerModal()" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="relative w-full aspect-square bg-black rounded-xl overflow-hidden border border-vinyl-700 flex items-center justify-center">
+        <!-- Reader video div for Html5Qrcode -->
+        <div id="qr-reader" class="w-full h-full"></div>
+        <div id="scannerOverlay" class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-4">
+          <div class="w-64 h-32 border-2 border-brass-400/80 rounded-lg relative">
+            <div class="absolute inset-x-0 top-1/2 h-0.5 bg-red-500/70 animate-pulse"></div>
+          </div>
+          <span class="text-[11px] text-slate-300 mt-3 bg-black/70 px-2 py-1 rounded">Position 7" barcode in viewfinder</span>
+        </div>
+      </div>
+
+      <div class="mt-4 flex flex-col gap-2">
+        <p id="scanFeedback" class="text-xs text-center text-slate-400">Initializing camera feed...</p>
+        
+        <!-- Fallback Manual & Simulation Options -->
+        <div class="flex gap-2">
+          <input type="text" id="manualBarcodeInput" placeholder="Or type Barcode / UPC manually" class="flex-1 bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs text-white">
+          <button onclick="handleManualBarcode()" class="px-3 py-1.5 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold rounded-lg text-xs">
+            Lookup
+          </button>
+        </div>
+
+        <button onclick="simulateScanSample()" class="w-full mt-2 py-1.5 bg-vinyl-800 hover:bg-vinyl-700 border border-vinyl-700 text-brass-400 rounded-lg text-xs font-mono">
+          ⚡ Test with Sample Barcode (042288021175)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: RECORD FULL ARCHIVAL DETAIL VIEW -->
+  <!-- ============================================== -->
+  <div id="detailModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto">
+    <div id="detailModalContent" class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 shadow-2xl relative my-auto">
+      <!-- Populated via renderDetailModal() -->
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- APPLICATION JAVASCRIPT LOGIC -->
+  <script>
+    /* =========================================================
+       DEFAULT INITIAL ARCHIVAL SEED DATA (7" SINGLES)
+       ========================================================= */
+    const SAMPLE_RECORDS = [
+      {
+        id: "rec_7_1977_001",
+        artist: "Althea & Donna",
+        title: "Uptown Top Ranking",
+        label: "Lightning Records",
+        catNo: "LIG 506",
+        year: 1977,
+        sideATitle: "Uptown Top Ranking",
+        sideADuration: "3:53",
+        sideBTitle: "Calico Suit",
+        sideBDuration: "3:12",
+        barcode: "5012345678901",
+        country: "UK / Jamaica",
+        centerHole: "Solid (Small 0.28 inch)",
+        speed: "45 RPM",
+        matrixA: "LIG 506 A-1 △ A PORKY PRIME CUT",
+        matrixB: "LIG 506 B-1 PECKO",
+        mastering: "George Peckham ('Porky')",
+        pressingPlant: "Lyntone Recordings Ltd. (LYN 4521)",
+        mediaGrade: "VG+",
+        mediaGradeNotes: "Clean playback with light paper scuffs visible under direct light. No skips.",
+        sleeveGrade: "VG+",
+        sleeveGradeNotes: "Original Lightning company die-cut paper sleeve with slight crease.",
+        coverImage: "https://images.unsplash.com/photo-1539185441755-769473a23570?auto=format&fit=crop&w=600&q=80",
+        labelAImage: "https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80",
+        labelBImage: "",
+        genres: "Roots Reggae, Dub",
+        producer: "Joe Gibbs & Errol Thompson (The Mighty Two)",
+        provenance: "Acquired from specialist Kingston importer, Brixton 1982.",
+        transferStatus: "FLAC 24-bit/96kHz",
+        transferNotes: "Technics SL-1200MK2, Denon DL-110 high-output MC, Parks Puffin DSP flat transfer.",
+        researchNotes: "Recorded at Joe Gibbs Recording Studio, Kingston, Jamaica. Ride on the rhythm from Alton Ellis's 'I'm Still In Love With You'. Historic UK #1 reggae single in February 1978.",
+        dateAdded: "2026-10-15T12:00:00Z"
+      },
+      {
+        id: "rec_7_1976_002",
+        artist: "The Damned",
+        title: "New Rose / Help",
+        label: "Stiff Records",
+        catNo: "BUY 6",
+        year: 1976,
+        sideATitle: "New Rose",
+        sideADuration: "2:42",
+        sideBTitle: "Help (Lennon-McCartney cover)",
+        sideBDuration: "1:43",
+        barcode: "",
+        country: "United Kingdom",
+        centerHole: "Solid (Small 0.28 inch)",
+        speed: "45 RPM",
+        matrixA: "BUY 6 A-1U STIFF 6 A-1 DELGA",
+        matrixB: "BUY 6 B-1U STIFF 6 B-1",
+        mastering: "Unknown / EMI Abbey Road",
+        pressingPlant: "EMI Records, Hayes, Middlesex",
+        mediaGrade: "NM",
+        mediaGradeNotes: "Glossy lacquer finish, virtually unplayed archival copy.",
+        sleeveGrade: "VG",
+        sleeveGradeNotes: "First pressing Delga sleeve with French flipbacks. Mild ringwear on back.",
+        coverImage: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80",
+        labelAImage: "",
+        labelBImage: "",
+        genres: "Punk Rock, Garage Rock",
+        producer: "Nick Lowe",
+        provenance: "Purchased at Rough Trade Records, London in November 1976.",
+        transferStatus: "FLAC 24-bit/96kHz",
+        transferNotes: "Shure V15 Type IV, JICO SAS stylus, raw direct rip.",
+        researchNotes: "Regarded as the first UK punk single ever released (October 22, 1976), preceding the Sex Pistols' 'Anarchy in the U.K.' by over a month.",
+        dateAdded: "2026-10-18T15:20:00Z"
+      },
+      {
+        id: "rec_7_1965_003",
+        artist: "The Miracles",
+        title: "The Tracks of My Tears",
+        label: "Tamla (Motown)",
+        catNo: "T-54118",
+        year: 1965,
+        sideATitle: "The Tracks of My Tears",
+        sideADuration: "2:55",
+        sideBTitle: "A Fork in the Road",
+        sideBDuration: "3:18",
+        barcode: "",
+        country: "United States",
+        centerHole: "Dinked (Large 1.5 inch)",
+        speed: "45 RPM",
+        matrixA: "45-TM-54118-A 095408 Nashville Matrix",
+        matrixB: "45-TM-54118-B 095409",
+        mastering: "Nashville Matrix",
+        pressingPlant: "RCA Records Pressing Plant, Indianapolis",
+        mediaGrade: "VG",
+        mediaGradeNotes: "Noticeable light surface marks, plays with light vintage warmth crackle.",
+        sleeveGrade: "Generic",
+        sleeveGradeNotes: "Housed in authentic 1965 Tamla / Motown striped 7\" paper company sleeve.",
+        coverImage: "https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=600&q=80",
+        labelAImage: "https://images.unsplash.com/photo-1546707012-c46675f12716?auto=format&fit=crop&w=600&q=80",
+        labelBImage: "",
+        genres: "Northern Soul, Motown, R&B",
+        producer: "Smokey Robinson",
+        provenance: "Detroit estate crate buy, 2004.",
+        transferStatus: "Not Digitized",
+        transferNotes: "",
+        researchNotes: "Features the legendary Funk Brothers instrumentation (Marv Tarplin on opening guitar intro). Inducted into Grammy Hall of Fame.",
+        dateAdded: "2026-10-22T09:45:00Z"
+      },
+      {
+        id: "rec_7_1982_004",
+        artist: "Grandmaster Flash & The Furious Five",
+        title: "The Message",
+        label: "Sugar Hill Records",
+        catNo: "SH-584",
+        year: 1982,
+        sideATitle: "The Message",
+        sideADuration: "3:12",
+        sideBTitle: "The Message (Instrumental)",
+        sideBDuration: "3:10",
+        barcode: "042288021175",
+        country: "United States",
+        centerHole: "Dinked (Large 1.5 inch)",
+        speed: "45 RPM",
+        matrixA: "SH-584-A STERLING",
+        matrixB: "SH-584-B STERLING",
+        mastering: "Greg Calbi at Sterling Sound",
+        pressingPlant: "Sound Makers, New Jersey",
+        mediaGrade: "VG+",
+        mediaGradeNotes: "Very strong copy, clean punchy bass response.",
+        sleeveGrade: "Generic",
+        sleeveGradeNotes: "Original Sugar Hill candy-stripe company sleeve.",
+        coverImage: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=600&q=80",
+        labelAImage: "",
+        labelBImage: "",
+        genres: "Electro, Old School Hip-Hop",
+        producer: "Sylvia Robinson",
+        provenance: "Acquired from NYC radio DJ collection.",
+        transferStatus: "FLAC 24-bit/96kHz",
+        transferNotes: "Ortofon Concorde MKII Club stylus, direct high-res capture.",
+        researchNotes: "7-inch radio edit version of the iconic 12-inch opus. First prominent hip-hop record to deliver socially conscious commentary on inner-city decay.",
+        dateAdded: "2026-10-30T17:15:00Z"
+      }
+    ];
+
+    /* =========================================================
+       APPLICATION STATE
+       ========================================================= */
+    const STORAGE_KEY = 'rpm7_vinyl_catalogue_v1';
+    let records = [];
+    let currentView = 'grid'; // 'grid' | 'list'
+    let html5QrScanner = null;
+
+    // Initialize Application
+    window.addEventListener('DOMContentLoaded', () => {
+      loadRecordsFromStorage();
+      renderStats();
+      renderRecords();
+    });
+
+    function loadRecordsFromStorage() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          records = JSON.parse(stored);
+        } else {
+          records = [...SAMPLE_RECORDS];
+          saveRecordsToStorage();
+        }
+      } catch (e) {
+        console.error("Storage load error:", e);
+        records = [...SAMPLE_RECORDS];
+      }
+    }
+
+    function saveRecordsToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      } catch (e) {
+        showToast("Storage quota exceeded or unavailable", "error");
+      }
+    }
+
+    /* =========================================================
+       STATISTICS & RESEARCH INSIGHTS
+       ========================================================= */
+    function renderStats() {
+      const total = records.length;
+      document.getElementById('statTotalSingles').innerText = total;
+
+      // Center hole ratio
+      const dinkedCount = records.filter(r => r.centerHole && r.centerHole.includes('Dinked')).length;
+      const solidCount = records.filter(r => r.centerHole && r.centerHole.includes('Solid')).length;
+      document.getElementById('statCenterHole').innerText = `${dinkedCount} Dinked / ${solidCount} Solid`;
+
+      // Digitized count
+      const digitizedCount = records.filter(r => r.transferStatus && r.transferStatus !== 'Not Digitized').length;
+      document.getElementById('statTransfers').innerText = digitizedCount;
+
+      // Grade breakdown
+      const gradeRanks = { 'M': 8, 'NM': 7, 'VG+': 6, 'VG': 5, 'G+': 4, 'G': 3, 'F': 2, 'P': 1 };
+      let sumGrades = 0;
+      let gradedCount = 0;
+      records.forEach(r => {
+        if (gradeRanks[r.mediaGrade]) {
+          sumGrades += gradeRanks[r.mediaGrade];
+          gradedCount++;
+        }
+      });
+      const avgScore = gradedCount ? Math.round(sumGrades / gradedCount) : 6;
+      const reverseGrade = Object.keys(gradeRanks).find(k => gradeRanks[k] === avgScore) || 'VG+';
+      document.getElementById('statAvgGrade').innerText = reverseGrade;
+
+      // Decades distribution
+      const decadeMap = {};
+      records.forEach(r => {
+        if (r.year) {
+          const dec = Math.floor(r.year / 10) * 10 + 's';
+          decadeMap[dec] = (decadeMap[dec] || 0) + 1;
+        }
+      });
+
+      const decadeKeys = Object.keys(decadeMap).sort();
+      const decadeSummary = decadeKeys.map(k => `${k} (${decadeMap[k]})`).join(' · ');
+      document.getElementById('statDecadesSummary').innerText = decadeSummary || 'None';
+
+      const decadeBar = document.getElementById('decadeDistributionBar');
+      decadeBar.innerHTML = '';
+      const colors = ['bg-amber-400', 'bg-emerald-400', 'bg-sky-400', 'bg-pink-400', 'bg-purple-400'];
+      decadeKeys.forEach((dec, idx) => {
+        const pct = ((decadeMap[dec] / total) * 100).toFixed(1);
+        const segment = document.createElement('div');
+        segment.className = `h-full ${colors[idx % colors.length]}`;
+        segment.style.width = `${pct}%`;
+        segment.title = `${dec}: ${decadeMap[dec]} records (${pct}%)`;
+        decadeBar.appendChild(segment);
+      });
+    }
+
+    /* =========================================================
+       SEARCH, FILTER & VIEW ENGINE
+       ========================================================= */
+    function getFilteredAndSortedRecords() {
+      const searchTerm = (document.getElementById('globalSearch')?.value || '').toLowerCase().trim();
+      const gradeFilter = document.getElementById('filterGrade')?.value || 'ALL';
+      const holeFilter = document.getElementById('filterHole')?.value || 'ALL';
+      const sortBy = document.getElementById('sortBy')?.value || 'dateAddedDesc';
+
+      let result = records.filter(item => {
+        // Text Match
+        const matchText = (
+          (item.artist || '') + ' ' +
+          (item.title || '') + ' ' +
+          (item.label || '') + ' ' +
+          (item.catNo || '') + ' ' +
+          (item.sideATitle || '') + ' ' +
+          (item.sideBTitle || '') + ' ' +
+          (item.matrixA || '') + ' ' +
+          (item.matrixB || '') + ' ' +
+          (item.genres || '') + ' ' +
+          (item.producer || '') + ' ' +
+          (item.researchNotes || '') + ' ' +
+          (item.mastering || '') + ' ' +
+          (item.pressingPlant || '')
+        ).toLowerCase();
+
+        if (searchTerm && !matchText.includes(searchTerm)) return false;
+
+        // Grade Match
+        if (gradeFilter !== 'ALL' && item.mediaGrade !== gradeFilter) return false;
+
+        // Hole Match
+        if (holeFilter !== 'ALL' && item.centerHole !== holeFilter) return false;
+
+        return true;
+      });
+
+      // Sorting
+      result.sort((a, b) => {
+        if (sortBy === 'dateAddedDesc') return new Date(b.dateAdded || 0) - new Date(a.dateAdded || 0);
+        if (sortBy === 'artistAsc') return (a.artist || '').localeCompare(b.artist || '');
+        if (sortBy === 'titleAsc') return (a.title || '').localeCompare(b.title || '');
+        if (sortBy === 'yearAsc') return (a.year || 0) - (b.year || 0);
+        if (sortBy === 'yearDesc') return (b.year || 0) - (a.year || 0);
+        if (sortBy === 'gradeDesc') {
+          const ranks = { 'M': 8, 'NM': 7, 'VG+': 6, 'VG': 5, 'G+': 4, 'G': 3, 'F': 2, 'P': 1 };
+          return (ranks[b.mediaGrade] || 0) - (ranks[a.mediaGrade] || 0);
+        }
+        return 0;
+      });
+
+      return result;
+    }
+
+    function handleSearchFilterChange() {
+      renderRecords();
+      renderActivePills();
+    }
+
+    function renderActivePills() {
+      const container = document.getElementById('filterPillsContainer');
+      const searchTerm = document.getElementById('globalSearch').value.trim();
+      const gradeFilter = document.getElementById('filterGrade').value;
+      const holeFilter = document.getElementById('filterHole').value;
+
+      let pillsHTML = '';
+
+      if (searchTerm) {
+        pillsHTML += `<span class="bg-vinyl-800 text-slate-200 px-2 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Query: "${searchTerm}" <button onclick="clearSearchInput()" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
+      }
+      if (gradeFilter !== 'ALL') {
+        pillsHTML += `<span class="bg-vinyl-800 text-brass-400 px-2 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Media: ${gradeFilter} <button onclick="document.getElementById('filterGrade').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
+      }
+      if (holeFilter !== 'ALL') {
+        pillsHTML += `<span class="bg-vinyl-800 text-cyan-400 px-2 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Hole: ${holeFilter} <button onclick="document.getElementById('filterHole').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
+      }
+
+      container.innerHTML = pillsHTML;
+    }
+
+    function clearSearchInput() {
+      document.getElementById('globalSearch').value = '';
+      handleSearchFilterChange();
+    }
+
+    function resetFilters() {
+      document.getElementById('globalSearch').value = '';
+      document.getElementById('filterGrade').value = 'ALL';
+      document.getElementById('filterHole').value = 'ALL';
+      document.getElementById('sortBy').value = 'dateAddedDesc';
+      handleSearchFilterChange();
+    }
+
+    function switchView(mode) {
+      currentView = mode;
+      const gridBtn = document.getElementById('viewGridBtn');
+      const listBtn = document.getElementById('viewListBtn');
+
+      if (mode === 'grid') {
+        gridBtn.className = "px-2.5 py-1.5 rounded text-xs bg-vinyl-700 text-brass-400 font-medium transition";
+        listBtn.className = "px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition";
+      } else {
+        listBtn.className = "px-2.5 py-1.5 rounded text-xs bg-vinyl-700 text-brass-400 font-medium transition";
+        gridBtn.className = "px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition";
+      }
+      renderRecords();
+    }
+
+    /* =========================================================
+       RECORD RENDERING (GRID & TABLE ARCHIVAL LIST)
+       ========================================================= */
+    function renderRecords() {
+      const container = document.getElementById('recordsViewContainer');
+      const emptyState = document.getElementById('emptyState');
+      const filtered = getFilteredAndSortedRecords();
+
+      if (filtered.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        emptyState.classList.add('flex');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      emptyState.classList.remove('flex');
+
+      if (currentView === 'grid') {
+        renderGridView(filtered, container);
+      } else {
+        renderListView(filtered, container);
+      }
+    }
+
+    // Helper for Grade Color Badges
+    function getGradeBadge(grade) {
+      const map = {
+        'M': 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+        'NM': 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+        'VG+': 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+        'VG': 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+        'G+': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+        'G': 'bg-red-500/20 text-red-400 border-red-500/30',
+        'F': 'bg-red-900/40 text-red-300 border-red-700',
+        'P': 'bg-rose-950 text-rose-300 border-rose-800'
+      };
+      const cls = map[grade] || 'bg-slate-700 text-slate-300 border-slate-600';
+      return `<span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono border ${cls}">${grade}</span>`;
+    }
+
+    function renderGridView(list, container) {
+      let html = '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">';
+
+      list.forEach(item => {
+        const coverSrc = item.coverImage || 'https://placehold.co/400x400/181b22/d4af37?text=7"+Single';
+        const isDinked = item.centerHole && item.centerHole.includes('Dinked');
+
+        html += `
+          <div class="bg-vinyl-900 rounded-2xl border border-vinyl-800 hover:border-brass-500/50 transition-all duration-200 overflow-hidden shadow-lg hover:shadow-2xl flex flex-col group">
+            
+            <!-- Sleeve Visual Card Header with 7" Record Mockup Peek -->
+            <div class="relative w-full aspect-square bg-vinyl-950 overflow-hidden cursor-pointer" onclick="viewRecordDetail('${item.id}')">
+              <img src="${coverSrc}" alt="${item.title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/400x400/181b22/d4af37?text=45+RPM'">
+              
+              <!-- Center Hole Indicator Badge -->
+              <div class="absolute top-3 left-3 bg-black/75 backdrop-blur px-2.5 py-1 rounded-full border border-white/10 flex items-center gap-1.5 text-[10px] text-slate-200">
+                <div class="${isDinked ? 'w-2.5 h-2.5 rounded-full border-2 border-brass-400' : 'w-1.5 h-1.5 rounded-full bg-brass-400'}"></div>
+                <span>${isDinked ? 'Large Hole' : 'Solid Center'}</span>
+              </div>
+
+              <!-- Media Grade Badge -->
+              <div class="absolute top-3 right-3">
+                ${getGradeBadge(item.mediaGrade)}
+              </div>
+
+              <!-- Speed and Label Pill -->
+              <div class="absolute bottom-3 inset-x-3 flex items-center justify-between text-[11px] text-white/90">
+                <span class="bg-black/80 backdrop-blur px-2.5 py-0.5 rounded-md border border-white/10 font-mono">
+                  ${item.speed || '45 RPM'}
+                </span>
+                <span class="bg-black/80 backdrop-blur px-2.5 py-0.5 rounded-md border border-white/10 truncate max-w-[140px]">
+                  ${item.label || 'Unknown Label'}
+                </span>
+              </div>
+            </div>
+
+            <!-- Content Card Body -->
+            <div class="p-4 flex-1 flex flex-col justify-between">
+              <div>
+                <div class="flex items-baseline justify-between gap-1 mb-1">
+                  <h3 class="text-sm font-bold text-white tracking-tight truncate hover:text-brass-400 cursor-pointer" onclick="viewRecordDetail('${item.id}')">
+                    ${item.artist}
+                  </h3>
+                  <span class="text-xs font-mono text-slate-400">${item.year || '--'}</span>
+                </div>
+                
+                <h4 class="text-xs font-medium text-slate-300 truncate mb-3" title="${item.title}">
+                  ${item.title}
+                </h4>
+
+                <!-- A/B Sides Quick Info -->
+                <div class="bg-vinyl-850 p-2.5 rounded-lg border border-vinyl-800 space-y-1.5 text-[11px]">
+                  <div class="flex items-center gap-1.5 text-slate-300">
+                    <span class="w-4 h-4 rounded-full bg-vinyl-800 text-[9px] font-bold text-brass-400 flex items-center justify-center">A</span>
+                    <span class="truncate flex-1">${item.sideATitle || item.title}</span>
+                    <span class="font-mono text-slate-500 text-[10px]">${item.sideADuration || ''}</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 text-slate-400">
+                    <span class="w-4 h-4 rounded-full bg-vinyl-800 text-[9px] font-bold text-slate-400 flex items-center justify-center">B</span>
+                    <span class="truncate flex-1">${item.sideBTitle || 'B-Side Track'}</span>
+                    <span class="font-mono text-slate-500 text-[10px]">${item.sideBDuration || ''}</span>
+                  </div>
+                </div>
+
+                <!-- Matrix snippet -->
+                ${item.matrixA ? `
+                  <div class="mt-2 text-[10px] text-emerald-400/90 font-mono truncate" title="Matrix A: ${item.matrixA}">
+                    <i class="fa-solid fa-compact-disc mr-1 text-slate-600"></i>${item.matrixA}
+                  </div>
+                ` : ''}
+              </div>
+
+              <!-- Action Bar Footer -->
+              <div class="mt-4 pt-3 border-t border-vinyl-800 flex items-center justify-between text-xs text-slate-400">
+                <button onclick="viewRecordDetail('${item.id}')" class="hover:text-brass-400 transition flex items-center gap-1">
+                  <i class="fa-solid fa-file-lines"></i> Research Dossier
+                </button>
+                <div class="flex items-center gap-2">
+                  <button onclick="editRecord('${item.id}')" class="p-1.5 hover:text-amber-400 transition" title="Edit Metadata">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button onclick="deleteRecordPrompt('${item.id}')" class="p-1.5 hover:text-red-400 transition" title="Delete Entry">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        `;
+      });
+
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    function renderListView(list, container) {
+      let html = `
+        <div class="bg-vinyl-900 rounded-xl border border-vinyl-800 overflow-x-auto shadow-xl">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-vinyl-850 border-b border-vinyl-800 text-[10px] uppercase font-bold tracking-wider text-slate-400 font-mono">
+              <tr>
+                <th class="py-3 px-3">Cat #</th>
+                <th class="py-3 px-3">Artist / Single Title</th>
+                <th class="py-3 px-3">Label</th>
+                <th class="py-3 px-3">Year</th>
+                <th class="py-3 px-3">Center Hole</th>
+                <th class="py-3 px-3">Media</th>
+                <th class="py-3 px-3">Sleeve</th>
+                <th class="py-3 px-3">Matrix Etchings (A-Side)</th>
+                <th class="py-3 px-3">Audio Transfer</th>
+                <th class="py-3 px-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-vinyl-800">
+      `;
+
+      list.forEach(item => {
+        html += `
+          <tr class="hover:bg-vinyl-850/60 transition group">
+            <td class="py-2.5 px-3 font-mono text-brass-400/90 whitespace-nowrap">
+              ${item.catNo || 'S/N'}
+            </td>
+            <td class="py-2.5 px-3">
+              <div class="font-bold text-white hover:text-brass-400 cursor-pointer" onclick="viewRecordDetail('${item.id}')">
+                ${item.artist}
+              </div>
+              <div class="text-slate-400 text-[11px]">${item.title}</div>
+            </td>
+            <td class="py-2.5 px-3 whitespace-nowrap">${item.label || '--'}</td>
+            <td class="py-2.5 px-3 font-mono">${item.year || '--'}</td>
+            <td class="py-2.5 px-3 whitespace-nowrap text-slate-300">
+              <span class="inline-flex items-center gap-1">
+                <i class="fa-solid fa-circle-dot text-[10px] text-brass-500"></i>
+                ${item.centerHole ? item.centerHole.split(' ')[0] : 'Solid'}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 whitespace-nowrap">${getGradeBadge(item.mediaGrade)}</td>
+            <td class="py-2.5 px-3 whitespace-nowrap">${getGradeBadge(item.sleeveGrade)}</td>
+            <td class="py-2.5 px-3 font-mono text-[11px] text-emerald-400/90 max-w-xs truncate" title="${item.matrixA}">
+              ${item.matrixA || '<span class="text-slate-600 font-sans italic">none recorded</span>'}
+            </td>
+            <td class="py-2.5 px-3 whitespace-nowrap">
+              ${item.transferStatus && item.transferStatus !== 'Not Digitized' ? 
+                `<span class="text-cyan-400 text-[10px] font-mono bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/60"><i class="fa-solid fa-wave-square mr-1"></i>${item.transferStatus}</span>` : 
+                `<span class="text-slate-500 text-[10px]">None</span>`
+              }
+            </td>
+            <td class="py-2.5 px-3 text-right whitespace-nowrap">
+              <button onclick="viewRecordDetail('${item.id}')" class="p-1 hover:text-brass-400 transition" title="Inspect">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+              <button onclick="editRecord('${item.id}')" class="p-1 hover:text-amber-400 transition ml-1" title="Edit">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button onclick="deleteRecordPrompt('${item.id}')" class="p-1 hover:text-red-400 transition ml-1" title="Delete">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      html += `
+            </tbody>
+          </table>
+        </div>
+      `;
+      container.innerHTML = html;
+    }
+
+    /* =========================================================
+       DETAIL MODAL (FULL ARCHIVAL DOSSIER)
+       ========================================================= */
+    function viewRecordDetail(id) {
+      const item = records.find(r => r.id === id);
+      if (!item) return;
+
+      const modal = document.getElementById('detailModal');
+      const content = document.getElementById('detailModalContent');
+
+      content.innerHTML = `
+        <div class="flex items-start justify-between border-b border-vinyl-800 pb-4 mb-5">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-xs font-mono px-2 py-0.5 rounded bg-vinyl-800 text-brass-400 border border-vinyl-700">${item.catNo || 'NO CAT#'}</span>
+              <span class="text-xs font-mono text-slate-400">${item.year || 'Unknown Year'}</span>
+              <span class="text-xs text-slate-400">·</span>
+              <span class="text-xs text-slate-300 font-medium">${item.country || 'Global'}</span>
+            </div>
+            <h2 class="text-2xl font-black text-white tracking-tight">${item.artist}</h2>
+            <h3 class="text-lg text-brass-400 font-medium">${item.title}</h3>
+          </div>
+          <button onclick="closeDetailModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 flex items-center justify-center transition">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          <!-- Column 1: Visuals & Center Hole info -->
+          <div class="space-y-4">
+            <div class="aspect-square bg-vinyl-950 rounded-xl overflow-hidden border border-vinyl-800 relative">
+              <img src="${item.coverImage || 'https://placehold.co/400x400/181b22/d4af37?text=7"+Cover'}" alt="Cover" class="w-full h-full object-cover">
+            </div>
+
+            <div class="bg-vinyl-850 p-3 rounded-xl border border-vinyl-800 space-y-2 text-xs">
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">Center Spindle:</span>
+                <span class="font-semibold text-slate-200">${item.centerHole}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">Speed / Format:</span>
+                <span class="font-semibold text-slate-200">${item.speed || '45 RPM'} Single</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">Record Label:</span>
+                <span class="font-semibold text-brass-400">${item.label}</span>
+              </div>
+              ${item.barcode ? `
+              <div class="flex justify-between items-center font-mono">
+                <span class="text-slate-400">Barcode:</span>
+                <span class="text-slate-300">${item.barcode}</span>
+              </div>` : ''}
+            </div>
+
+            <!-- Labels row if uploaded -->
+            <div class="grid grid-cols-2 gap-2">
+              <div class="p-2 bg-vinyl-850 rounded-lg border border-vinyl-800 text-center">
+                <span class="text-[10px] font-bold text-slate-400 block mb-1">A-Side Label</span>
+                ${item.labelAImage ? 
+                  `<img src="${item.labelAImage}" class="w-full h-20 object-cover rounded border border-vinyl-700">` : 
+                  `<div class="h-20 bg-vinyl-900 rounded flex items-center justify-center text-[10px] text-slate-600">Not Photographed</div>`}
+              </div>
+              <div class="p-2 bg-vinyl-850 rounded-lg border border-vinyl-800 text-center">
+                <span class="text-[10px] font-bold text-slate-400 block mb-1">B-Side Label</span>
+                ${item.labelBImage ? 
+                  `<img src="${item.labelBImage}" class="w-full h-20 object-cover rounded border border-vinyl-700">` : 
+                  `<div class="h-20 bg-vinyl-900 rounded flex items-center justify-center text-[10px] text-slate-600">Not Photographed</div>`}
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2 & 3: Detailed Dossier -->
+          <div class="md:col-span-2 space-y-5">
+            
+            <!-- Tracks Block -->
+            <div class="bg-vinyl-850 p-4 rounded-xl border border-vinyl-800">
+              <h4 class="text-xs uppercase font-bold text-slate-400 tracking-wider mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-list-ol text-brass-400"></i> Tracklist Architecture
+              </h4>
+              <div class="space-y-2 text-xs">
+                <div class="flex items-center justify-between p-2 bg-vinyl-900 rounded-lg border border-vinyl-800">
+                  <div class="flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-brass-500/20 text-brass-400 text-center font-bold text-[10px] leading-5">A</span>
+                    <span class="font-medium text-white">${item.sideATitle || item.title}</span>
+                  </div>
+                  <span class="font-mono text-slate-400">${item.sideADuration || '--:--'}</span>
+                </div>
+                <div class="flex items-center justify-between p-2 bg-vinyl-900 rounded-lg border border-vinyl-800">
+                  <div class="flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-300 text-center font-bold text-[10px] leading-5">B</span>
+                    <span class="font-medium text-white">${item.sideBTitle || 'B-Side Track'}</span>
+                  </div>
+                  <span class="font-mono text-slate-400">${item.sideBDuration || '--:--'}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Runout Matrix & Deadwax Block -->
+            <div class="bg-vinyl-850 p-4 rounded-xl border border-vinyl-800 space-y-2">
+              <h4 class="text-xs uppercase font-bold text-slate-400 tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-microscope text-brass-400"></i> Deadwax Runout Matrix Etchings
+              </h4>
+              <div class="space-y-2">
+                <div>
+                  <span class="text-[10px] text-slate-400 uppercase font-mono block">Side A Matrix:</span>
+                  <div class="p-2 bg-vinyl-900 rounded border border-vinyl-800 font-mono text-xs text-emerald-400 select-all">
+                    ${item.matrixA || 'No etchings recorded'}
+                  </div>
+                </div>
+                <div>
+                  <span class="text-[10px] text-slate-400 uppercase font-mono block">Side B Matrix:</span>
+                  <div class="p-2 bg-vinyl-900 rounded border border-vinyl-800 font-mono text-xs text-emerald-400 select-all">
+                    ${item.matrixB || 'No etchings recorded'}
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+                  <div>
+                    <span class="text-slate-400">Mastering Engineer:</span>
+                    <div class="text-slate-200 font-medium">${item.mastering || '--'}</div>
+                  </div>
+                  <div>
+                    <span class="text-slate-400">Pressing Plant:</span>
+                    <div class="text-slate-200 font-medium">${item.pressingPlant || '--'}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Goldmine Grading Breakdown -->
+            <div class="bg-vinyl-850 p-4 rounded-xl border border-vinyl-800">
+              <h4 class="text-xs uppercase font-bold text-slate-400 tracking-wider mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-award text-brass-400"></i> Goldmine Grading & Condition
+              </h4>
+              <div class="grid grid-cols-2 gap-3 text-xs mb-2">
+                <div class="p-2.5 bg-vinyl-900 rounded-lg border border-vinyl-800">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-slate-400">Vinyl Media:</span>
+                    ${getGradeBadge(item.mediaGrade)}
+                  </div>
+                  <p class="text-[11px] text-slate-300 italic">${item.mediaGradeNotes || 'No specific surface notes.'}</p>
+                </div>
+                <div class="p-2.5 bg-vinyl-900 rounded-lg border border-vinyl-800">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-slate-400">Sleeve / Cover:</span>
+                    ${getGradeBadge(item.sleeveGrade)}
+                  </div>
+                  <p class="text-[11px] text-slate-300 italic">${item.sleeveGradeNotes || 'Standard condition.'}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Archival Research Notes & Audio Transfer -->
+            <div class="bg-vinyl-850 p-4 rounded-xl border border-vinyl-800 space-y-3 text-xs">
+              <div>
+                <h4 class="text-xs uppercase font-bold text-slate-400 tracking-wider mb-1 flex items-center gap-2">
+                  <i class="fa-solid fa-book-open text-brass-400"></i> Research & Historical Notes
+                </h4>
+                <p class="text-slate-200 leading-relaxed bg-vinyl-900 p-2.5 rounded-lg border border-vinyl-800">
+                  ${item.researchNotes || 'No research notes logged.'}
+                </p>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <span class="text-slate-400 block mb-0.5">Producer & Studio:</span>
+                  <div class="text-slate-200">${item.producer || '--'}</div>
+                </div>
+                <div>
+                  <span class="text-slate-400 block mb-0.5">Provenance History:</span>
+                  <div class="text-slate-200">${item.provenance || '--'}</div>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="text-xs uppercase font-bold text-slate-400 tracking-wider mb-1 flex items-center gap-2">
+                  <i class="fa-solid fa-wave-square text-cyan-400"></i> Archival Transfer / Needle-Drop
+                </h4>
+                <div class="p-2.5 bg-vinyl-900 rounded-lg border border-vinyl-800 flex flex-col gap-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-cyan-400 font-mono font-medium">${item.transferStatus}</span>
+                  </div>
+                  <p class="text-[11px] text-slate-400">${item.transferNotes || 'No equipment chain notes recorded.'}</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-vinyl-800 flex justify-between items-center">
+          <div class="text-[11px] text-slate-500 font-mono">
+            Record ID: ${item.id}
+          </div>
+          <div class="flex gap-2">
+            <button onclick="editRecord('${item.id}'); closeDetailModal();" class="px-3.5 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 text-xs font-semibold">
+              Edit Metadata
+            </button>
+            <button onclick="closeDetailModal()" class="px-3.5 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 text-xs">
+              Close
+            </button>
+          </div>
+        </div>
+      `;
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detailModal').classList.add('hidden');
+    }
+
+    /* =========================================================
+       ADD / EDIT MODAL & TAB CONTROL
+       ========================================================= */
+    function openAddEditModal() {
+      document.getElementById('modalTitle').innerText = 'Catalogue 7" Single';
+      document.getElementById('recordForm').reset();
+      document.getElementById('recordId').value = '';
+      
+      // Reset image previews
+      clearImagePreviews();
+
+      switchFormTab('tab-general');
+      document.getElementById('recordModal').classList.remove('hidden');
+    }
+
+    function closeAddEditModal() {
+      document.getElementById('recordModal').classList.add('hidden');
+    }
+
+    function switchFormTab(tabId) {
+      document.querySelectorAll('.form-tab-pane').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.form-tab-btn').forEach(btn => {
+        btn.classList.remove('border-brass-500', 'text-brass-400', 'font-semibold');
+        btn.classList.add('border-transparent', 'text-slate-400');
+      });
+
+      const targetPane = document.getElementById(tabId);
+      if (targetPane) targetPane.classList.remove('hidden');
+
+      const btnId = 'tabBtn-' + tabId.replace('tab-', '');
+      const targetBtn = document.getElementById(btnId);
+      if (targetBtn) {
+        targetBtn.classList.remove('border-transparent', 'text-slate-400');
+        targetBtn.classList.add('border-brass-500', 'text-brass-400', 'font-semibold');
+      }
+    }
+
+    function clearImagePreviews() {
+      ['previewCoverImg', 'previewLabelAImg', 'previewLabelBImg'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.src = '';
+          el.classList.add('hidden');
+        }
+      });
+      ['placeholderCover', 'placeholderLabelA', 'placeholderLabelB'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('hidden');
+      });
+    }
+
+    function handleImageUpload(event, imgElementId, placeholderId) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = document.getElementById(imgElementId);
+        const placeholder = document.getElementById(placeholderId);
+        img.src = e.target.result;
+        img.classList.remove('hidden');
+        if (placeholder) placeholder.classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function editRecord(id) {
+      const item = records.find(r => r.id === id);
+      if (!item) return;
+
+      document.getElementById('modalTitle').innerText = 'Edit 7" Single: ' + item.artist;
+      document.getElementById('recordId').value = item.id;
+
+      // Populate inputs
+      document.getElementById('formArtist').value = item.artist || '';
+      document.getElementById('formTitle').value = item.title || '';
+      document.getElementById('formLabel').value = item.label || '';
+      document.getElementById('formCatNo').value = item.catNo || '';
+      document.getElementById('formYear').value = item.year || '';
+      document.getElementById('formSideATitle').value = item.sideATitle || '';
+      document.getElementById('formSideADuration').value = item.sideADuration || '';
+      document.getElementById('formSideBTitle').value = item.sideBTitle || '';
+      document.getElementById('formSideBDuration').value = item.sideBDuration || '';
+      document.getElementById('formBarcode').value = item.barcode || '';
+      document.getElementById('formCountry').value = item.country || '';
+
+      document.getElementById('formCenterHole').value = item.centerHole || 'Solid (Small 0.28 inch)';
+      document.getElementById('formSpeed').value = item.speed || '45 RPM';
+      document.getElementById('formMatrixA').value = item.matrixA || '';
+      document.getElementById('formMatrixB').value = item.matrixB || '';
+      document.getElementById('formMastering').value = item.mastering || '';
+      document.getElementById('formPressingPlant').value = item.pressingPlant || '';
+
+      document.getElementById('formMediaGrade').value = item.mediaGrade || 'VG+';
+      document.getElementById('formMediaGradeNotes').value = item.mediaGradeNotes || '';
+      document.getElementById('formSleeveGrade').value = item.sleeveGrade || 'VG+';
+      document.getElementById('formSleeveGradeNotes').value = item.sleeveGradeNotes || '';
+
+      document.getElementById('formGenres').value = item.genres || '';
+      document.getElementById('formProducer').value = item.producer || '';
+      document.getElementById('formProvenance').value = item.provenance || '';
+      document.getElementById('formTransferStatus').value = item.transferStatus || 'Not Digitized';
+      document.getElementById('formTransferNotes').value = item.transferNotes || '';
+      document.getElementById('formResearchNotes').value = item.researchNotes || '';
+
+      // Image previews
+      clearImagePreviews();
+      if (item.coverImage) {
+        const cImg = document.getElementById('previewCoverImg');
+        cImg.src = item.coverImage;
+        cImg.classList.remove('hidden');
+        document.getElementById('placeholderCover').classList.add('hidden');
+      }
+      if (item.labelAImage) {
+        const laImg = document.getElementById('previewLabelAImg');
+        laImg.src = item.labelAImage;
+        laImg.classList.remove('hidden');
+        document.getElementById('placeholderLabelA').classList.add('hidden');
+      }
+      if (item.labelBImage) {
+        const lbImg = document.getElementById('previewLabelBImg');
+        lbImg.src = item.labelBImage;
+        lbImg.classList.remove('hidden');
+        document.getElementById('placeholderLabelB').classList.add('hidden');
+      }
+
+      switchFormTab('tab-general');
+      document.getElementById('recordModal').classList.remove('hidden');
+    }
+
+    function saveRecordForm(e) {
+      e.preventDefault();
+      const existingId = document.getElementById('recordId').value;
+      const isNew = !existingId;
+      const newId = existingId || ('rec_7_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7));
+
+      const coverSrc = document.getElementById('previewCoverImg').src;
+      const labelASrc = document.getElementById('previewLabelAImg').src;
+      const labelBSrc = document.getElementById('previewLabelBImg').src;
+
+      const recordObj = {
+        id: newId,
+        artist: document.getElementById('formArtist').value.trim(),
+        title: document.getElementById('formTitle').value.trim(),
+        label: document.getElementById('formLabel').value.trim(),
+        catNo: document.getElementById('formCatNo').value.trim(),
+        year: parseInt(document.getElementById('formYear').value) || null,
+        sideATitle: document.getElementById('formSideATitle').value.trim(),
+        sideADuration: document.getElementById('formSideADuration').value.trim(),
+        sideBTitle: document.getElementById('formSideBTitle').value.trim(),
+        sideBDuration: document.getElementById('formSideBDuration').value.trim(),
+        barcode: document.getElementById('formBarcode').value.trim(),
+        country: document.getElementById('formCountry').value.trim(),
+
+        centerHole: document.getElementById('formCenterHole').value,
+        speed: document.getElementById('formSpeed').value,
+        matrixA: document.getElementById('formMatrixA').value.trim(),
+        matrixB: document.getElementById('formMatrixB').value.trim(),
+        mastering: document.getElementById('formMastering').value.trim(),
+        pressingPlant: document.getElementById('formPressingPlant').value.trim(),
+
+        mediaGrade: document.getElementById('formMediaGrade').value,
+        mediaGradeNotes: document.getElementById('formMediaGradeNotes').value.trim(),
+        sleeveGrade: document.getElementById('formSleeveGrade').value,
+        sleeveGradeNotes: document.getElementById('formSleeveGradeNotes').value.trim(),
+
+        coverImage: coverSrc && !coverSrc.endsWith('/#') ? coverSrc : '',
+        labelAImage: labelASrc && !labelASrc.endsWith('/#') ? labelASrc : '',
+        labelBImage: labelBSrc && !labelBSrc.endsWith('/#') ? labelBSrc : '',
+
+        genres: document.getElementById('formGenres').value.trim(),
+        producer: document.getElementById('formProducer').value.trim(),
+        provenance: document.getElementById('formProvenance').value.trim(),
+        transferStatus: document.getElementById('formTransferStatus').value,
+        transferNotes: document.getElementById('formTransferNotes').value.trim(),
+        researchNotes: document.getElementById('formResearchNotes').value.trim(),
+        dateAdded: isNew ? new Date().toISOString() : (records.find(r => r.id === newId)?.dateAdded || new Date().toISOString())
+      };
+
+      if (isNew) {
+        records.unshift(recordObj);
+        showToast(`Catalogued "${recordObj.title}" successfully!`);
+      } else {
+        const index = records.findIndex(r => r.id === newId);
+        if (index !== -1) {
+          records[index] = recordObj;
+          showToast(`Updated "${recordObj.title}"`);
+        }
+      }
+
+      saveRecordsToStorage();
+      renderStats();
+      renderRecords();
+      closeAddEditModal();
+    }
+
+    function deleteRecordPrompt(id) {
+      const record = records.find(r => r.id === id);
+      if (!record) return;
+
+      // Custom inline confirmation toast/box simulation
+      const proceed = window.confirm(`Permanently remove 7" single "${record.title}" by ${record.artist} from your research catalogue?`);
+      if (proceed) {
+        records = records.filter(r => r.id !== id);
+        saveRecordsToStorage();
+        renderStats();
+        renderRecords();
+        showToast(`Record removed from archive.`, "info");
+      }
+    }
+
+    /* =========================================================
+       AUTOFILL PRESETS & SIMULATION
+       ========================================================= */
+    function presetAutofill(type) {
+      if (type === 'reggae') {
+        document.getElementById('formArtist').value = "Augustus Pablo & The Upsetters";
+        document.getElementById('formTitle').value = "Blackboard Jungle Dub / Version";
+        document.getElementById('formLabel').value = "Upsetter Records";
+        document.getElementById('formCatNo').value = "UP-304";
+        document.getElementById('formYear').value = "1973";
+        document.getElementById('formSideATitle').value = "Blackboard Jungle Dub";
+        document.getElementById('formSideBTitle').value = "Kaya Dub";
+        document.getElementById('formCenterHole').value = "Dinked (Large 1.5 inch)";
+        document.getElementById('formSpeed').value = "45 RPM";
+        document.getElementById('formMatrixA').value = "DSR-7821-A KING TUBBY";
+        document.getElementById('formMastering').value = "King Tubby (Osbourne Ruddock)";
+        document.getElementById('formPressingPlant').value = "Dynamic Sounds, Kingston";
+        document.getElementById('formMediaGrade').value = "VG+";
+        document.getElementById('formGenres').value = "Dub, Roots Reggae";
+        document.getElementById('formProducer').value = "Lee 'Scratch' Perry";
+        document.getElementById('formResearchNotes').value = "Rare 7-inch matrix cut from the Black Ark sessions, voiced and mixed down at King Tubby's studio, Dromilly Avenue.";
+      } else if (type === 'motown') {
+        document.getElementById('formArtist').value = "Frank Wilson";
+        document.getElementById('formTitle').value = "Do I Love You (Indeed I Do)";
+        document.getElementById('formLabel').value = "Soul / Motown";
+        document.getElementById('formCatNo').value = "S-35019";
+        document.getElementById('formYear').value = "1965";
+        document.getElementById('formSideATitle').value = "Do I Love You (Indeed I Do)";
+        document.getElementById('formSideBTitle').value = "Sweeter as the Days Go By";
+        document.getElementById('formCenterHole').value = "Solid (Small 0.28 inch)";
+        document.getElementById('formMatrixA').value = "DM-S-35019-1B BELL SOUND";
+        document.getElementById('formMastering').value = "Bell Sound Studios, NY";
+        document.getElementById('formMediaGrade').value = "NM";
+        document.getElementById('formGenres').value = "Northern Soul";
+        document.getElementById('formProducer').value = "Frank Wilson & Hal Davis";
+        document.getElementById('formResearchNotes').value = "Northern Soul holy grail. Only 2 known original Motown demo pressings survived after Berry Gordy ordered the rest destroyed.";
+      } else if (type === 'punk') {
+        document.getElementById('formArtist').value = "Buzzcocks";
+        document.getElementById('formTitle').value = "Spiral Scratch EP";
+        document.getElementById('formLabel').value = "New Hormones";
+        document.getElementById('formCatNo').value = "ORG-1";
+        document.getElementById('formYear').value = "1977";
+        document.getElementById('formSideATitle').value = "Breakdown";
+        document.getElementById('formSideBTitle').value = "Boredom";
+        document.getElementById('formCenterHole').value = "Solid (Small 0.28 inch)";
+        document.getElementById('formMatrixA').value = "ORG-1-A1 TOWNHOUSE";
+        document.getElementById('formMastering').value = "Townhouse";
+        document.getElementById('formMediaGrade').value = "VG+";
+        document.getElementById('formGenres').value = "Punk Rock, DIY";
+        document.getElementById('formProducer').value = "Martin Hannett";
+        document.getElementById('formResearchNotes').value = "Groundbreaking DIY independent release financed with a £500 loan. Recorded at Indigo Studios in Manchester.";
+      }
+      showToast("Autofilled research preset data!");
+    }
+
+    /* =========================================================
+       BARCODE SCANNING & LOOKUP ENGINE
+       ========================================================= */
+    function openScannerModal() {
+      document.getElementById('scannerModal').classList.remove('hidden');
+      document.getElementById('scanFeedback').innerText = "Starting camera...";
+
+      try {
+        if (!html5QrScanner) {
+          html5QrScanner = new Html5Qrcode("qr-reader");
+        }
+
+        const config = { fps: 10, qrbox: { width: 250, height: 160 } };
+
+        html5QrScanner.start(
+          { facingMode: "environment" },
+          config,
+          (decodedText, decodedResult) => {
+            handleBarcodeScanned(decodedText);
+          },
+          (errorMessage) => {
+            // normal frame-by-frame parse tick
+          }
+        ).catch(err => {
+          console.warn("Camera start failed or permission denied:", err);
+          document.getElementById('scanFeedback').innerText = "Camera not available. You can enter barcode below or test with simulation.";
+        });
+      } catch (err) {
+        document.getElementById('scanFeedback').innerText = "Camera scanner unavailable in this browser environment.";
+      }
+    }
+
+    function closeScannerModal() {
+      if (html5QrScanner) {
+        html5QrScanner.stop().then(() => {
+          html5QrScanner.clear();
+        }).catch(err => console.log(err));
+      }
+      document.getElementById('scannerModal').classList.add('hidden');
+    }
+
+    function handleBarcodeScanned(code) {
+      if (html5QrScanner) {
+        html5QrScanner.stop().catch(err => console.log(err));
+      }
+      document.getElementById('scannerModal').classList.add('hidden');
+      executeBarcodeAutofill(code);
+    }
+
+    function handleManualBarcode() {
+      const code = document.getElementById('manualBarcodeInput').value.trim();
+      if (!code) return;
+      closeScannerModal();
+      executeBarcodeAutofill(code);
+    }
+
+    function simulateScanSample() {
+      closeScannerModal();
+      executeBarcodeAutofill("042288021175");
+    }
+
+    function simulateBarcodeLookup() {
+      const currentVal = document.getElementById('formBarcode').value.trim() || "042288021175";
+      executeBarcodeAutofill(currentVal);
+    }
+
+    function executeBarcodeAutofill(code) {
+      showToast(`Searching discography database for Barcode: ${code}...`);
+
+      // Mock database lookup with 7" single specifics
+      setTimeout(() => {
+        openAddEditModal();
+        document.getElementById('formBarcode').value = code;
+
+        if (code === "042288021175") {
+          document.getElementById('formArtist').value = "Grandmaster Flash & The Furious Five";
+          document.getElementById('formTitle').value = "The Message";
+          document.getElementById('formLabel').value = "Sugar Hill Records";
+          document.getElementById('formCatNo').value = "SH-584";
+          document.getElementById('formYear').value = "1982";
+          document.getElementById('formSideATitle').value = "The Message (7\" Edit)";
+          document.getElementById('formSideADuration').value = "3:12";
+          document.getElementById('formSideBTitle').value = "The Message (Instrumental)";
+          document.getElementById('formSideBDuration').value = "3:10";
+          document.getElementById('formCenterHole').value = "Dinked (Large 1.5 inch)";
+          document.getElementById('formSpeed').value = "45 RPM";
+          document.getElementById('formCountry').value = "United States";
+          document.getElementById('formMatrixA').value = "SH-584-A STERLING";
+          document.getElementById('formMastering').value = "Greg Calbi at Sterling Sound";
+          document.getElementById('formGenres').value = "Electro, Hip-Hop";
+          document.getElementById('formResearchNotes').value = "Autofilled via Barcode DB match. 7-inch release variant.";
+          showToast(`Autofilled metadata for "The Message"!`);
+        } else {
+          // Generic heuristic simulation
+          document.getElementById('formArtist').value = "Unknown 7\" Single Artist";
+          document.getElementById('formTitle').value = `Scanned Release (${code})`;
+          document.getElementById('formLabel').value = "Independent 45 Pressing";
+          document.getElementById('formCenterHole').value = "Solid (Small 0.28 inch)";
+          document.getElementById('formSpeed').value = "45 RPM";
+          document.getElementById('formYear').value = "1980";
+          showToast(`Fetched initial draft info for barcode ${code}`);
+        }
+      }, 700);
+    }
+
+    /* =========================================================
+       IMPORT & EXPORT DATA ENGINE
+       ========================================================= */
+    function exportToCSV() {
+      if (records.length === 0) {
+        showToast("No records to export", "error");
+        return;
+      }
+
+      const headers = [
+        "Record ID",
+        "Artist",
+        "Single Title",
+        "A-Side Track",
+        "A-Side Duration",
+        "B-Side Track",
+        "B-Side Duration",
+        "Label",
+        "Catalog Number",
+        "Release Year",
+        "Speed",
+        "Center Hole Type",
+        "A-Side Matrix Etchings",
+        "B-Side Matrix Etchings",
+        "Mastering Engineer",
+        "Pressing Plant",
+        "Media Grade",
+        "Media Grade Notes",
+        "Sleeve Grade",
+        "Sleeve Grade Notes",
+        "Country",
+        "Barcode",
+        "Genre",
+        "Producer",
+        "Provenance",
+        "Transfer Status",
+        "Transfer Notes",
+        "Research Notes",
+        "Date Added"
+      ];
+
+      const escapeCSV = (str) => {
+        if (str === null || str === undefined) return '""';
+        const formatted = String(str).replace(/"/g, '""');
+        return `"${formatted}"`;
+      };
+
+      const rows = records.map(r => [
+        escapeCSV(r.id),
+        escapeCSV(r.artist),
+        escapeCSV(r.title),
+        escapeCSV(r.sideATitle),
+        escapeCSV(r.sideADuration),
+        escapeCSV(r.sideBTitle),
+        escapeCSV(r.sideBDuration),
+        escapeCSV(r.label),
+        escapeCSV(r.catNo),
+        escapeCSV(r.year),
+        escapeCSV(r.speed),
+        escapeCSV(r.centerHole),
+        escapeCSV(r.matrixA),
+        escapeCSV(r.matrixB),
+        escapeCSV(r.mastering),
+        escapeCSV(r.pressingPlant),
+        escapeCSV(r.mediaGrade),
+        escapeCSV(r.mediaGradeNotes),
+        escapeCSV(r.sleeveGrade),
+        escapeCSV(r.sleeveGradeNotes),
+        escapeCSV(r.country),
+        escapeCSV(r.barcode),
+        escapeCSV(r.genres),
+        escapeCSV(r.producer),
+        escapeCSV(r.provenance),
+        escapeCSV(r.transferStatus),
+        escapeCSV(r.transferNotes),
+        escapeCSV(r.researchNotes),
+        escapeCSV(r.dateAdded)
+      ].join(','));
+
+      const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent([headers.join(','), ...rows].join('\n'));
+      const link = document.createElement('a');
+      link.setAttribute('href', csvContent);
+      link.setAttribute('download', `RPM7_Vinyl_Archive_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("Exported archival CSV file!");
+    }
+
+    function exportToJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(records, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `RPM7_Archive_Backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast("JSON archive backup created!");
+    }
+
+    function importFromJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported)) {
+            records = imported;
+            saveRecordsToStorage();
+            renderStats();
+            renderRecords();
+            showToast(`Imported ${imported.length} records!`);
+          } else {
+            showToast("Invalid JSON file format", "error");
+          }
+        } catch (err) {
+          showToast("Failed to parse JSON", "error");
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function loadSampleDataset() {
+      if (confirm("Reset current catalogue back to standard sample 7-inch singles?")) {
+        records = [...SAMPLE_RECORDS];
+        saveRecordsToStorage();
+        renderStats();
+        renderRecords();
+        showToast("Sample dataset reloaded!");
+      }
+    }
+
+    /* =========================================================
+       TOAST FEEDBACK UI (NO ALERTS)
+       ========================================================= */
+    function showToast(message, type = "success") {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      const icon = type === 'error' ? 'fa-circle-exclamation text-red-400' :
+                   type === 'info' ? 'fa-circle-info text-blue-400' : 
+                   'fa-circle-check text-brass-400';
+
+      toast.className = "bg-vinyl-900 border border-vinyl-700 shadow-2xl rounded-xl p-3 text-xs text-slate-100 flex items-center gap-2.5 max-w-sm pointer-events-auto transition-opacity duration-300 transform translate-y-0";
+      toast.innerHTML = `
+        <i class="fa-solid ${icon} text-base"></i>
+        <span class="flex-1 font-medium">${message}</span>
+      `;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', '-translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+  </script>
+</body>
+</html>
