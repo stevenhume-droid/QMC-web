@@ -1488,15 +1488,15 @@
         title: rec.title || '',
         label: rec.label || '',
         cat_no: rec.catNo || '',
-        year: rec.year ? parseInt(rec.year) : null,
-        estimated_value: (rec.estimatedValue !== undefined && rec.estimatedValue !== null && !isNaN(rec.estimatedValue)) ? parseFloat(rec.estimatedValue) : null,
+        year: (rec.year && !isNaN(parseInt(rec.year))) ? parseInt(rec.year) : null,
+        estimated_value: (rec.estimatedValue !== undefined && rec.estimatedValue !== null && !isNaN(parseFloat(rec.estimatedValue))) ? parseFloat(rec.estimatedValue) : null,
         currency: rec.currency || globalCurrency || 'GBP',
         discogs_id: rec.discogsId || '',
         side_a_title: rec.sideATitle || '',
         side_a_duration: rec.sideADuration || '',
         side_b_title: rec.sideBTitle || '',
         side_b_duration: rec.sideBDuration || '',
-        tracks: rec.tracks || null,
+        tracks: Array.isArray(rec.tracks) ? rec.tracks : (rec.tracks ? [rec.tracks] : null),
         barcode: rec.barcode || '',
         country: rec.country || '',
         center_hole: rec.centerHole || '',
@@ -1519,7 +1519,7 @@
         transfer_notes: rec.transferNotes || '',
         research_notes: rec.researchNotes || '',
         is_public: rec.isPublic !== undefined ? rec.isPublic : true,
-        updated_at: new Date().toISOString()
+        date_added: rec.dateAdded || new Date().toISOString()
       };
     }
 
@@ -1564,7 +1564,7 @@
         transferNotes: row.transfer_notes || '',
         researchNotes: row.research_notes || '',
         isPublic: row.is_public !== false,
-        dateAdded: row.created_at || new Date().toISOString()
+        dateAdded: row.date_added || row.created_at || new Date().toISOString()
       };
     }
 
@@ -1609,6 +1609,17 @@
           currentUserProfile = profile || { display_name: currentUser.user_metadata?.display_name || currentUser.email.split('@')[0] };
         } catch (e) {
           currentUserProfile = { display_name: currentUser.user_metadata?.display_name || currentUser.email.split('@')[0] };
+        }
+
+        // Auto-ensure user row exists in public.profiles table to prevent foreign key errors
+        try {
+          await supabaseClient.from('profiles').upsert({
+            id: currentUser.id,
+            display_name: currentUserProfile.display_name || (currentUser.email ? currentUser.email.split('@')[0] : 'Member'),
+            city: currentUserProfile.city || 'South Queensferry'
+          }, { onConflict: 'id' });
+        } catch (e) {
+          console.warn("Notice updating profile on login:", e);
         }
       } else {
         currentUser = null;
@@ -1796,13 +1807,21 @@
     async function fetchRecordsFromCloud(silent = false) {
       if (!supabaseClient) return;
       try {
-        const { data, error } = await supabaseClient
+        let res = await supabaseClient
           .from('records')
           .select('*, profiles(display_name, city)')
-          .order('created_at', { ascending: false });
+          .order('date_added', { ascending: false });
 
-        if (error) throw error;
+        if (res.error) {
+          console.warn("Retrying fetchRecords without ordering:", res.error);
+          res = await supabaseClient
+            .from('records')
+            .select('*, profiles(display_name, city)');
+        }
 
+        if (res.error) throw res.error;
+
+        const data = res.data;
         if (data && data.length > 0) {
           records = data.map(mapDbToRecord);
           saveRecordsToStorage();
@@ -1817,6 +1836,7 @@
         }
       } catch (err) {
         console.warn("Could not sync from cloud, keeping local records:", err);
+        if (!silent) showToast("Cloud fetch error: " + (err.message || err), "error");
       }
     }
 
@@ -1846,19 +1866,44 @@
 
       try {
         showToast(`Syncing ${records.length} records to cloud...`);
+
+        // Ensure user profile exists in public.profiles to satisfy FK constraints
+        const displayName = currentUserProfile?.display_name || 
+                            currentUser.user_metadata?.display_name || 
+                            (currentUser.email ? currentUser.email.split('@')[0] : 'Member');
+        
+        await supabaseClient
+          .from('profiles')
+          .upsert({
+            id: currentUser.id,
+            display_name: displayName,
+            city: currentUserProfile?.city || 'South Queensferry'
+          }, { onConflict: 'id' });
+
         const rows = records.map(r => mapRecordToDb(r, currentUser.id));
 
-        const { error } = await supabaseClient
-          .from('records')
-          .upsert(rows);
+        // Batch upload in chunks to prevent oversized request payloads
+        const CHUNK_SIZE = 25;
+        let uploaded = 0;
+        for (let i = 0; i < rows.length; i += CHUNK_SIZE) {
+          const chunk = rows.slice(i, i + CHUNK_SIZE);
+          const { error } = await supabaseClient
+            .from('records')
+            .upsert(chunk, { onConflict: 'id' });
 
-        if (error) throw error;
+          if (error) {
+            console.error("Supabase upsert chunk error:", error);
+            throw error;
+          }
+          uploaded += chunk.length;
+        }
 
-        showToast(`Successfully uploaded ${rows.length} records to Supabase Cloud!`);
-        await fetchRecordsFromCloud();
+        showToast(`Successfully uploaded ${uploaded} records to Supabase Cloud!`);
+        await fetchRecordsFromCloud(true);
         closeAuthModal();
       } catch (err) {
-        showToast("Sync error: " + err.message, "error");
+        console.error("Cloud sync error:", err);
+        showToast("Sync error: " + (err.message || err), "error");
       }
     }
 
