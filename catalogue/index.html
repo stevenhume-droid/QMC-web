@@ -608,14 +608,16 @@
         </div>
       </div>
 
-      <!-- Quick Online Discography Auto-lookup Bar -->
-      <div class="bg-vinyl-800/60 px-6 py-2.5 border-b border-vinyl-800 flex flex-wrap items-center justify-between gap-2">
-        <div class="flex items-center gap-2 flex-1 min-w-[300px]">
-          <i class="fa-solid fa-wand-magic-sparkles text-brass-400 text-xs"></i>
-          <span class="text-xs text-slate-300 font-medium whitespace-nowrap">Online Lookup:</span>
+      <!-- Quick Online Discography Auto-lookup Bar (Narrow by Artist & Title) -->
+      <div class="bg-vinyl-800/60 px-6 py-2.5 border-b border-vinyl-800 flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+        <div class="flex items-center gap-2 flex-1 flex-wrap">
+          <div class="flex items-center gap-1.5 text-xs text-brass-400 font-semibold whitespace-nowrap">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>Quick Lookup:</span>
+          </div>
           
           <!-- Format Filter Dropdown -->
-          <select id="autofillFormatFilter" class="bg-vinyl-850 border border-vinyl-700 rounded px-2 py-1 text-xs text-brass-400 font-semibold focus:outline-none focus:border-brass-500" title="Filter search by release format">
+          <select id="autofillFormatFilter" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-brass-400 font-semibold focus:outline-none focus:border-brass-500" title="Narrow search by release format">
             <option value="ALL">Any Format</option>
             <option value="12">12" Vinyl / LP</option>
             <option value="7">7" Single (45 RPM)</option>
@@ -623,35 +625,49 @@
             <option value="CD">CD / Other</option>
           </select>
 
-          <!-- Search Input with Clear Button -->
-          <div class="relative flex-1">
+          <!-- Artist Input -->
+          <div class="relative flex-1 min-w-[130px]">
             <input 
               type="text" 
-              id="musicBrainzQueryInput" 
+              id="searchArtistInput" 
               onkeydown="if(event.key === 'Enter'){ event.preventDefault(); lookupMusicBrainzManual(); }"
-              placeholder="Search Artist & Title or Barcode (e.g. Pink Floyd Dark Side)" 
-              class="w-full bg-vinyl-850 border border-vinyl-700 rounded pl-2.5 pr-7 py-1 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brass-500"
+              placeholder="Artist (e.g. The Damned)" 
+              class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brass-500"
             >
-            <button 
-              type="button" 
-              onclick="clearAutofillSearch()" 
-              id="clearSearchQueryBtn" 
-              class="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 p-0.5 text-xs" 
-              title="Clear search text"
-            >
-              <i class="fa-solid fa-xmark"></i>
-            </button>
           </div>
 
-          <button type="button" onclick="lookupMusicBrainzManual()" id="musicBrainzFetchBtn" class="px-3 py-1 text-xs font-semibold rounded bg-brass-500 hover:bg-brass-400 text-vinyl-950 transition flex items-center gap-1.5 shadow">
+          <!-- Title Input -->
+          <div class="relative flex-1 min-w-[150px]">
+            <input 
+              type="text" 
+              id="searchTitleInput" 
+              onkeydown="if(event.key === 'Enter'){ event.preventDefault(); lookupMusicBrainzManual(); }"
+              placeholder="Title / Track (e.g. New Rose)" 
+              class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brass-500"
+            >
+          </div>
+
+          <!-- Clear Search Button -->
+          <button 
+            type="button" 
+            onclick="clearAutofillSearch()" 
+            id="clearSearchQueryBtn" 
+            class="px-2 py-1.5 bg-vinyl-850 hover:bg-vinyl-700 border border-vinyl-700 text-slate-400 hover:text-white rounded-lg text-xs transition" 
+            title="Clear artist and title search boxes"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+
+          <!-- Search Button -->
+          <button type="button" onclick="lookupMusicBrainzManual()" id="musicBrainzFetchBtn" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 transition flex items-center gap-1.5 shadow whitespace-nowrap">
             <i class="fa-solid fa-magnifying-glass"></i>
             <span>Search</span>
           </button>
         </div>
 
         <!-- Form Clear / Reset Option -->
-        <div class="flex items-center gap-2">
-          <button type="button" onclick="confirmClearForm()" class="px-2.5 py-1 text-xs font-medium rounded bg-vinyl-850 hover:bg-red-950/50 hover:text-red-300 text-slate-400 border border-vinyl-700 hover:border-red-800 transition flex items-center gap-1.5" title="Clear all entry fields back to empty">
+        <div class="flex items-center gap-2 self-end md:self-auto">
+          <button type="button" onclick="confirmClearForm()" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-vinyl-850 hover:bg-red-950/50 hover:text-red-300 text-slate-400 border border-vinyl-700 hover:border-red-800 transition flex items-center gap-1.5 whitespace-nowrap" title="Clear all entry fields back to empty">
             <i class="fa-solid fa-eraser text-xs"></i>
             <span>Clear Entry</span>
           </button>
@@ -708,11 +724,18 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1">Artist / Band / Group *</label>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block text-xs font-semibold text-slate-300">Artist / Band / Group *</label>
+              </div>
               <input type="text" id="formArtist" required placeholder="e.g. Pink Floyd or Althea & Donna" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1">Release Title / Album *</label>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block text-xs font-semibold text-slate-300">Release Title / Album *</label>
+                <button type="button" onclick="quickLookupFromForm()" class="text-[10px] text-brass-400 hover:text-brass-300 font-semibold flex items-center gap-1 hover:underline" title="Search online discography using these artist and title fields">
+                  <i class="fa-solid fa-wand-magic-sparkles text-[9px]"></i> Lookup Online
+                </button>
+              </div>
               <input type="text" id="formTitle" required placeholder="e.g. The Dark Side of the Moon" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
             </div>
           </div>
@@ -2771,7 +2794,8 @@
       document.getElementById('modalTitle').innerText = 'Catalogue Record';
       document.getElementById('recordForm').reset();
       document.getElementById('recordId').value = '';
-      document.getElementById('musicBrainzQueryInput').value = '';
+      if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = '';
+      if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = '';
       closeAutofillResults();
       
       document.getElementById('formFormat').value = sessionDefaults.format || '12" LP (Album)';
@@ -2877,6 +2901,9 @@
 
       document.getElementById('modalTitle').innerText = 'Edit Record: ' + item.artist;
       document.getElementById('recordId').value = item.id;
+      if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = item.artist || '';
+      if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = item.title || '';
+      closeAutofillResults();
 
       document.getElementById('formFormat').value = item.format || '12" LP (Album)';
       handleFormatChange();
@@ -3099,7 +3126,8 @@
         document.getElementById('formMatrixB').value = '';
         document.getElementById('formEstimatedValue').value = '';
         document.getElementById('formDiscogsId').value = '';
-        document.getElementById('musicBrainzQueryInput').value = '';
+        if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = '';
+        if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = '';
         closeAutofillResults();
         clearImagePreviews();
         switchFormTab('tab-general');
@@ -3368,20 +3396,12 @@
     }
 
     function clearAutofillSearch() {
-      const input = document.getElementById('musicBrainzQueryInput');
-      if (input) {
-        input.value = '';
-        input.focus();
-      }
+      const a = document.getElementById('searchArtistInput');
+      const t = document.getElementById('searchTitleInput');
+      if (a) a.value = '';
+      if (t) t.value = '';
       closeAutofillResults();
-    }
-
-    function closeAutofillResults() {
-      const container = document.getElementById('autofillResultsContainer');
-      if (container) {
-        container.classList.add('hidden');
-        container.innerHTML = '';
-      }
+      if (a) a.focus();
     }
 
     function confirmClearForm() {
@@ -3418,21 +3438,49 @@
       document.getElementById('formProvenance').value = '';
       document.getElementById('formTransferNotes').value = '';
       document.getElementById('formResearchNotes').value = '';
-      document.getElementById('musicBrainzQueryInput').value = '';
+      if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = '';
+      if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = '';
       closeAutofillResults();
       clearImagePreviews();
       switchFormTab('tab-general');
       setTimeout(() => document.getElementById('formArtist').focus(), 80);
     }
 
-    async function lookupMusicBrainzManual() {
-      const query = document.getElementById('musicBrainzQueryInput').value.trim();
-      if (!query) {
-        showToast("Please enter an Artist, Title, or Barcode", "error");
-        document.getElementById('musicBrainzQueryInput').focus();
+    function quickLookupFromForm() {
+      const artist = document.getElementById('formArtist')?.value.trim() || '';
+      const title = document.getElementById('formTitle')?.value.trim() || '';
+      
+      if (!artist && !title) {
+        showToast("Enter an artist or title first to lookup", "error");
+        document.getElementById('formArtist')?.focus();
         return;
       }
-      await executeMusicBrainzSearch(query);
+
+      if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = artist;
+      if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = title;
+
+      executeMusicBrainzSearch({ artist, title });
+    }
+
+    async function lookupMusicBrainzManual() {
+      let artist = document.getElementById('searchArtistInput')?.value.trim() || '';
+      let title = document.getElementById('searchTitleInput')?.value.trim() || '';
+
+      // If search bar is blank, fallback to form fields
+      if (!artist && !title) {
+        artist = document.getElementById('formArtist')?.value.trim() || '';
+        title = document.getElementById('formTitle')?.value.trim() || '';
+        if (artist && document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = artist;
+        if (title && document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = title;
+      }
+
+      if (!artist && !title) {
+        showToast("Enter an Artist and/or Title to search", "error");
+        document.getElementById('searchArtistInput')?.focus();
+        return;
+      }
+
+      await executeMusicBrainzSearch({ artist, title });
     }
 
     async function lookupMusicBrainzByBarcodeField() {
@@ -3441,30 +3489,58 @@
         showToast("Enter a barcode first", "error");
         return;
       }
-      await executeMusicBrainzSearch(barcode, true);
+      await executeMusicBrainzSearch({ barcode });
     }
 
-    async function executeMusicBrainzSearch(query, isBarcodeOnly = false) {
+    async function executeMusicBrainzSearch(searchParams) {
       const btn = document.getElementById('musicBrainzFetchBtn');
       if (btn) {
         btn.disabled = true;
         btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Searching...</span>`;
       }
-      showToast(`Searching open discography for "${query}"...`);
+
+      const cleanLucene = (s = '') => s.replace(/[\"\[\]\(\)\{\}\^\~\*\?\:\\\/]/g, ' ').replace(/\s+/g, ' ').trim();
+      const artist = typeof searchParams === 'string' ? '' : (searchParams.artist || '');
+      const title = typeof searchParams === 'string' ? searchParams : (searchParams.title || '');
+      const barcode = typeof searchParams === 'string' ? '' : (searchParams.barcode || '');
+
+      let queryDisplay = artist && title ? `${artist} - ${title}` : (title || artist || barcode);
+      showToast(`Searching open discography for "${queryDisplay}"...`);
 
       try {
         let apiUrl = '';
-        if (isBarcodeOnly || /^\d{8,14}$/.test(query)) {
-          apiUrl = `https://musicbrainz.org/ws/2/release/?query=barcode:${encodeURIComponent(query)}&fmt=json&limit=15`;
+        if (barcode || /^\d{8,14}$/.test(title)) {
+          const bc = barcode || title;
+          apiUrl = `https://musicbrainz.org/ws/2/release/?query=barcode:${encodeURIComponent(bc)}&fmt=json&limit=15`;
+        } else if (artist && title) {
+          const cleanA = cleanLucene(artist);
+          const cleanT = cleanLucene(title);
+          // Precision Lucene query targeting artist and release fields specifically!
+          let lucene = `artist:"${cleanA}" AND (release:"${cleanT}" OR releaseaccent:"${cleanT}")`;
+          apiUrl = `https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(lucene)}&fmt=json&limit=15`;
+        } else if (artist) {
+          const cleanA = cleanLucene(artist);
+          apiUrl = `https://musicbrainz.org/ws/2/release/?query=artist:"${encodeURIComponent(cleanA)}"&fmt=json&limit=15`;
         } else {
-          apiUrl = `https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(query)}&fmt=json&limit=15`;
+          const cleanT = cleanLucene(title);
+          apiUrl = `https://musicbrainz.org/ws/2/release/?query=release:"${encodeURIComponent(cleanT)}"&fmt=json&limit=15`;
         }
 
-        const res = await fetch(apiUrl);
+        let res = await fetch(apiUrl);
         if (!res.ok) throw new Error("MusicBrainz service busy");
-        const data = await res.json();
-
+        let data = await res.json();
         let releases = data.releases || [];
+
+        // If targeted search returned 0 (e.g. slight spelling/punctuation variation), fallback to relaxed keyword search
+        if (releases.length === 0 && artist && title) {
+          const fallbackQuery = `${cleanLucene(artist)} ${cleanLucene(title)}`;
+          const fallbackUrl = `https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(fallbackQuery)}&fmt=json&limit=15`;
+          const fallbackRes = await fetch(fallbackUrl);
+          if (fallbackRes.ok) {
+            const fallbackData = await fallbackRes.json();
+            releases = fallbackData.releases || [];
+          }
+        }
 
         // Apply format filter if selected by the user
         const fmtChoice = document.getElementById('autofillFormatFilter')?.value || 'ALL';
@@ -3482,10 +3558,10 @@
           }
         }
 
-        renderAutofillResults(releases, query);
+        renderAutofillResults(releases, queryDisplay);
 
         if (releases.length === 0) {
-          showToast(`No online discography matches for "${query}".`, "info");
+          showToast(`No online discography matches for "${queryDisplay}".`, "info");
         } else {
           showToast(`Found ${releases.length} releases! Choose your pressing below.`);
         }
