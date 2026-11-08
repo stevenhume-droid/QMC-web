@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RPM-7: Archival 7" Vinyl Catalog & Research Station</title>
+  <title>QMC Vinyl & Album Archival Research Station</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <!-- HTML5-QRCode Scanner Library -->
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <!-- SheetJS (xlsx) for Excel (.xlsx, .xls) and CSV parsing/exporting -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
     tailwind.config = {
@@ -79,26 +81,32 @@
       border: 1px solid rgba(255,255,255,0.04);
       pointer-events: none;
     }
+
+    /* Dropzone animation */
+    .dropzone-active {
+      border-color: #d4af37 !important;
+      background-color: rgba(212, 175, 55, 0.08) !important;
+    }
   </style>
 </head>
 <body class="bg-vinyl-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-brass-500 selection:text-black">
 
   <!-- TOP APP BAR -->
-  <header class="border-b border-vinyl-800 bg-vinyl-900/90 backdrop-blur sticky top-0 z-40 px-4 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+  <header class="border-b border-vinyl-800 bg-vinyl-900/95 backdrop-blur sticky top-0 z-40 px-4 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
     <div class="flex items-center gap-3">
-      <!-- 7" Vinyl Logo Badge -->
-      <div class="w-10 h-10 rounded-full vinyl-grooves flex items-center justify-center border border-brass-500/40 shadow-inner">
-        <div class="w-3.5 h-3.5 rounded-full bg-brass-500 border border-black flex items-center justify-center">
+      <!-- Vinyl Logo Badge -->
+      <a href="../index.html" class="w-10 h-10 rounded-full vinyl-grooves flex items-center justify-center border border-brass-500/40 shadow-inner group hover:scale-105 transition" title="Back to QMC Home">
+        <div class="w-3.5 h-3.5 rounded-full bg-brass-500 border border-black flex items-center justify-center group-hover:bg-amber-400">
           <div class="w-1.5 h-1.5 rounded-full bg-black"></div>
         </div>
-      </div>
+      </a>
       <div>
         <div class="flex items-center gap-2">
           <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            RPM-7 <span class="text-xs px-2 py-0.5 rounded-full bg-brass-500/20 text-brass-400 font-mono font-medium border border-brass-500/30">Archival 45s</span>
+            QMC <span class="text-xs px-2 py-0.5 rounded-full bg-brass-500/20 text-brass-400 font-mono font-medium border border-brass-500/30">Vinyl & Album Archive</span>
           </h1>
         </div>
-        <p class="text-xs text-slate-400">7-Inch Singles Archival Research & Discographic Laboratory</p>
+        <p class="text-xs text-slate-400">LPs, Albums, 12" & 7" Singles Archival Research & Discographic Station</p>
       </div>
     </div>
 
@@ -110,10 +118,16 @@
         <span>Scan Barcode</span>
       </button>
 
+      <!-- Batch Import (Excel/CSV) Trigger -->
+      <button onclick="openBatchUploadModal()" class="px-3.5 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 transition flex items-center gap-2 shadow-sm">
+        <i class="fa-solid fa-file-excel text-sm"></i>
+        <span>Batch Upload (Excel/CSV)</span>
+      </button>
+
       <!-- Add New Record Button -->
       <button onclick="openAddEditModal()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-vinyl-950 transition flex items-center gap-2 shadow-lg shadow-brass-500/10">
         <i class="fa-solid fa-plus text-sm"></i>
-        <span>Catalogue 7" Single</span>
+        <span>Catalogue Record</span>
       </button>
 
       <!-- Import / Export Menu Dropdown -->
@@ -121,20 +135,38 @@
         <button class="p-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border border-vinyl-700 transition" title="Archival Export & Options">
           <i class="fa-solid fa-ellipsis-vertical px-1"></i>
         </button>
-        <div class="absolute right-0 mt-1 w-48 bg-vinyl-850 border border-vinyl-700 rounded-lg shadow-2xl py-1 hidden group-hover:block hover:block z-50">
+        <div class="absolute right-0 mt-1 w-56 bg-vinyl-850 border border-vinyl-700 rounded-lg shadow-2xl py-1 hidden group-hover:block hover:block z-50">
+          <div class="px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400 border-b border-vinyl-700">
+            Batch Templates
+          </div>
+          <button onclick="downloadCSVTemplate()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-download text-emerald-400"></i> Download CSV Template
+          </button>
+          <button onclick="downloadExcelTemplate()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-file-excel text-emerald-400"></i> Download Excel Template (.xlsx)
+          </button>
+          
+          <div class="border-t border-vinyl-700 my-1"></div>
+          <div class="px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400 border-b border-vinyl-700">
+            Archival Export
+          </div>
           <button onclick="exportToCSV()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-200 flex items-center gap-2">
             <i class="fa-solid fa-file-csv text-emerald-400"></i> Export Archival CSV
+          </button>
+          <button onclick="exportToExcel()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-file-excel text-green-400"></i> Export Excel Workbook (.xlsx)
           </button>
           <button onclick="exportToJSON()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-200 flex items-center gap-2">
             <i class="fa-solid fa-code text-blue-400"></i> Export JSON Backup
           </button>
+          
+          <div class="border-t border-vinyl-700 my-1"></div>
           <label class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-200 flex items-center gap-2 cursor-pointer">
             <i class="fa-solid fa-file-import text-amber-400"></i> Import JSON Data
             <input type="file" id="jsonFileInput" accept=".json" onchange="importFromJSON(event)" class="hidden">
           </label>
-          <div class="border-t border-vinyl-700 my-1"></div>
           <button onclick="loadSampleDataset()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-400 hover:text-slate-200 flex items-center gap-2">
-            <i class="fa-solid fa-rotate-right text-indigo-400"></i> Reload Sample 45s
+            <i class="fa-solid fa-rotate-right text-indigo-400"></i> Reload Curated Samples
           </button>
         </div>
       </div>
@@ -143,21 +175,29 @@
 
   <!-- RESEARCH STATS & SUMMARY DASHBOARD -->
   <section class="bg-vinyl-900 border-b border-vinyl-800 px-4 lg:px-8 py-3.5">
-    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
       <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex items-center justify-between">
         <div>
-          <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Total 7" Singles</span>
-          <div id="statTotalSingles" class="text-xl font-bold font-mono text-brass-400">0</div>
+          <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Total Archive</span>
+          <div id="statTotalItems" class="text-xl font-bold font-mono text-brass-400">0</div>
         </div>
-        <i class="fa-solid fa-record-vinyl text-vinyl-700 text-2xl"></i>
+        <i class="fa-solid fa-layer-group text-vinyl-700 text-2xl"></i>
       </div>
 
       <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex items-center justify-between">
         <div>
-          <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Center Hole Format</span>
-          <div id="statCenterHole" class="text-xs font-medium text-slate-200 mt-1">0 Dinked / 0 Solid</div>
+          <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">12" LPs / Albums</span>
+          <div id="statTotalLPs" class="text-xl font-bold font-mono text-amber-400">0</div>
         </div>
-        <i class="fa-solid fa-circle-dot text-vinyl-700 text-xl"></i>
+        <i class="fa-solid fa-compact-disc text-vinyl-700 text-2xl"></i>
+      </div>
+
+      <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex items-center justify-between">
+        <div>
+          <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">7" Singles (45s)</span>
+          <div id="statTotalSingles" class="text-xl font-bold font-mono text-cyan-400">0</div>
+        </div>
+        <i class="fa-solid fa-record-vinyl text-vinyl-700 text-2xl"></i>
       </div>
 
       <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex items-center justify-between">
@@ -171,24 +211,23 @@
       <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex items-center justify-between">
         <div>
           <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Digitized / Transfer</span>
-          <div id="statTransfers" class="text-xl font-bold font-mono text-cyan-400">0</div>
+          <div id="statTransfers" class="text-xl font-bold font-mono text-purple-400">0</div>
         </div>
         <i class="fa-solid fa-wave-square text-vinyl-700 text-xl"></i>
       </div>
 
-      <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 col-span-2 flex flex-col justify-center">
+      <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex flex-col justify-center">
         <div class="flex justify-between items-center text-[10px] uppercase tracking-wider font-semibold text-slate-400 mb-1">
-          <span>Primary Pressing Decades</span>
-          <span id="statDecadesSummary" class="text-slate-300 font-normal">--</span>
+          <span>Decades</span>
+          <span id="statDecadesSummary" class="text-slate-300 font-normal truncate max-w-[90px]">--</span>
         </div>
-        <!-- Mini horizontal bar distribution -->
         <div id="decadeDistributionBar" class="w-full bg-vinyl-800 h-2 rounded-full overflow-hidden flex"></div>
       </div>
     </div>
   </section>
 
   <!-- CONTROLS, SEARCH, AND VIEW TOGGLES -->
-  <main class="flex-1 p-4 lg:p-8 max-w-[1600px] w-full mx-auto flex flex-col gap-5">
+  <main class="flex-1 p-4 lg:p-8 max-w-[1600px] w-full mx-auto flex flex-col gap-4">
     
     <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-vinyl-900/60 p-3 rounded-xl border border-vinyl-800">
       
@@ -199,13 +238,24 @@
           type="text" 
           id="globalSearch" 
           oninput="handleSearchFilterChange()"
-          placeholder="Search by Artist, Title, Label, Matrix runout etchings, Catalog #, Producer, or Notes..." 
+          placeholder="Search by Artist, Album / Single Title, Label, Catalog #, Format, Genre, Producer, Matrix..." 
           class="w-full pl-9 pr-4 py-2 bg-vinyl-850 border border-vinyl-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brass-500 focus:ring-1 focus:ring-brass-500"
         >
       </div>
 
       <!-- Filters Row -->
       <div class="flex flex-wrap items-center gap-2">
+        <!-- Format Filter (Album vs Single vs EP) -->
+        <select id="filterFormat" onchange="handleSearchFilterChange()" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-brass-500">
+          <option value="ALL">All Formats</option>
+          <option value="12&quot; LP (Album)">12" LP (Album)</option>
+          <option value="2xLP Gatefold (Album)">2xLP Gatefold (Album)</option>
+          <option value="7&quot; Single (45 RPM)">7" Single (45 RPM)</option>
+          <option value="12&quot; Maxi / Single">12" Maxi / Single</option>
+          <option value="10&quot; Vinyl">10" Vinyl</option>
+          <option value="CD / Other">CD / Other</option>
+        </select>
+
         <!-- Grade Filter -->
         <select id="filterGrade" onchange="handleSearchFilterChange()" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-slate-300 focus:outline-none focus:border-brass-500">
           <option value="ALL">All Grades (Media)</option>
@@ -219,15 +269,6 @@
           <option value="P">Poor (P)</option>
         </select>
 
-        <!-- Center Hole Filter -->
-        <select id="filterHole" onchange="handleSearchFilterChange()" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-slate-300 focus:outline-none focus:border-brass-500">
-          <option value="ALL">All Centers</option>
-          <option value="Dinked (Large 1.5 inch)">Dinked (Large 1.5")</option>
-          <option value="Solid (Small 0.28 inch)">Solid (Small 0.28")</option>
-          <option value="Tri-Center (Knockout)">Tri-Center</option>
-          <option value="Four-Prong (Spider)">Four-Prong Pushout</option>
-        </select>
-
         <!-- Sort By -->
         <select id="sortBy" onchange="handleSearchFilterChange()" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-slate-300 focus:outline-none focus:border-brass-500">
           <option value="dateAddedDesc">Added: Newest First</option>
@@ -236,6 +277,7 @@
           <option value="yearAsc">Year: Oldest First</option>
           <option value="yearDesc">Year: Newest First</option>
           <option value="gradeDesc">Grade: Highest Quality</option>
+          <option value="formatAsc">Format: LPs First</option>
         </select>
 
         <!-- View Switcher -->
@@ -263,7 +305,7 @@
       <div class="w-16 h-16 rounded-full bg-vinyl-900 flex items-center justify-center mb-3 text-slate-600">
         <i class="fa-solid fa-compact-disc text-3xl"></i>
       </div>
-      <h3 class="text-base font-semibold text-slate-300">No 7" singles found</h3>
+      <h3 class="text-base font-semibold text-slate-300">No records found</h3>
       <p class="text-xs text-slate-500 max-w-sm mt-1">No catalog records match your current filter or search criteria.</p>
       <button onclick="resetFilters()" class="mt-4 px-4 py-1.5 text-xs bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 rounded-lg border border-brass-500/20">
         Clear All Filters
@@ -272,37 +314,166 @@
   </main>
 
   <!-- ============================================== -->
-  <!-- MODAL: ADD / EDIT 7" RECORD (Multi-Tabbed Form) -->
+  <!-- MODAL: BATCH EXCEL / CSV UPLOAD ENGINE         -->
+  <!-- ============================================== -->
+  <div id="batchUploadModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto">
+    <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-3xl flex flex-col shadow-2xl overflow-hidden my-auto">
+      
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <i class="fa-solid fa-file-excel"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-white tracking-tight">Batch Upload Catalogue (Excel / CSV)</h2>
+            <p class="text-[11px] text-slate-400">Import collections in bulk with flexible column auto-mapping</p>
+          </div>
+        </div>
+        <button onclick="closeBatchUploadModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-5 overflow-y-auto max-h-[80vh]">
+        <!-- Instructions & Minimum Dataset Info -->
+        <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl text-xs text-slate-300 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-emerald-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-circle-check"></i> Minimum Required Dataset:
+            </span>
+            <div class="flex gap-2">
+              <button onclick="downloadCSVTemplate()" class="text-[11px] text-brass-400 hover:underline">
+                <i class="fa-solid fa-download mr-1"></i>Sample CSV
+              </button>
+              <button onclick="downloadExcelTemplate()" class="text-[11px] text-emerald-400 hover:underline">
+                <i class="fa-solid fa-file-excel mr-1"></i>Sample Excel (.xlsx)
+              </button>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            Your file only needs two columns: <strong>Artist</strong> and <strong>Title / Album</strong>. 
+            Optional headers: <em>Format (LP/7"), Year, Label, Catalog #, Grade, Sleeve Grade, Genre, Barcode, Notes</em>.
+            Any missing values are automatically filled with sensible collector defaults (Format: 12" LP, Grade: VG+).
+          </p>
+        </div>
+
+        <!-- Dropzone -->
+        <div id="uploadDropzone" 
+             ondragover="handleDragOver(event)" 
+             ondragleave="handleDragLeave(event)" 
+             ondrop="handleFileDrop(event)"
+             onclick="document.getElementById('batchFileInput').click()"
+             class="border-2 border-dashed border-vinyl-700 hover:border-emerald-500/70 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer bg-vinyl-850/50 hover:bg-vinyl-850 transition group">
+          <input type="file" id="batchFileInput" accept=".xlsx, .xls, .csv, .tsv" onchange="handleFileSelect(event)" class="hidden">
+          <div class="w-14 h-14 rounded-full bg-vinyl-800 flex items-center justify-center text-emerald-400 mb-3 group-hover:scale-110 transition">
+            <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+          </div>
+          <h4 class="text-sm font-semibold text-slate-200">Drag & drop your Excel (.xlsx / .xls) or CSV file here</h4>
+          <p class="text-xs text-slate-400 mt-1">or click to browse your computer</p>
+          <span class="mt-3 text-[10px] font-mono px-2 py-0.5 rounded bg-vinyl-800 text-slate-400 border border-vinyl-700">
+            Supports: .xlsx, .xls, .csv, .tsv
+          </span>
+        </div>
+
+        <!-- Preview & Validation Box (hidden initially) -->
+        <div id="batchPreviewContainer" class="hidden space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span id="previewCountBadge" class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono text-xs font-bold border border-emerald-500/30">0 Records Parsed</span>
+              <span id="previewFileName" class="text-xs text-slate-400 truncate max-w-xs font-mono"></span>
+            </div>
+            <!-- Import Option -->
+            <div class="flex items-center gap-3 text-xs text-slate-300">
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" name="importMode" value="append" checked class="text-emerald-500 focus:ring-0">
+                <span>Append to Existing</span>
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer text-amber-300">
+                <input type="radio" name="importMode" value="replace" class="text-amber-500 focus:ring-0">
+                <span>Replace Collection</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Parsed Column Mappings -->
+          <div id="columnMappingPills" class="flex flex-wrap gap-1 text-[11px] text-slate-400"></div>
+
+          <!-- Staged Data Table Preview -->
+          <div class="bg-vinyl-850 rounded-xl border border-vinyl-800 overflow-x-auto max-h-56">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-vinyl-900 border-b border-vinyl-800 text-[10px] uppercase font-mono text-slate-400 sticky top-0">
+                <tr>
+                  <th class="py-2 px-2.5">Artist</th>
+                  <th class="py-2 px-2.5">Title / Album</th>
+                  <th class="py-2 px-2.5">Format</th>
+                  <th class="py-2 px-2.5">Label</th>
+                  <th class="py-2 px-2.5">Year</th>
+                  <th class="py-2 px-2.5">Media</th>
+                </tr>
+              </thead>
+              <tbody id="batchPreviewTableBody" class="divide-y divide-vinyl-800 text-[11px]"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer Actions -->
+      <div class="border-t border-vinyl-800 px-6 py-4 flex items-center justify-between bg-vinyl-850">
+        <button type="button" onclick="closeBatchUploadModal()" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-lg transition">
+          Cancel
+        </button>
+        <button id="commitBatchBtn" onclick="commitBatchImport()" disabled class="px-6 py-2 text-xs font-semibold rounded-lg bg-emerald-500 hover:bg-emerald-400 text-vinyl-950 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/20 transition flex items-center gap-2">
+          <i class="fa-solid fa-file-import"></i>
+          <span>Confirm & Import Records</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: ADD / EDIT RECORD (Albums & Singles)    -->
   <!-- ============================================== -->
   <div id="recordModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto">
     <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
       
       <!-- Modal Header -->
-      <div class="px-6 py-4 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850">
+      <div class="px-6 py-3.5 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-full bg-brass-500/10 border border-brass-500/30 flex items-center justify-center text-brass-400">
             <i class="fa-solid fa-record-vinyl"></i>
           </div>
           <div>
-            <h2 id="modalTitle" class="text-base font-bold text-white tracking-tight">Catalogue 7" Single</h2>
-            <p class="text-[11px] text-slate-400">Archival entry for 45 RPM single pressing</p>
+            <h2 id="modalTitle" class="text-base font-bold text-white tracking-tight">Catalogue Record</h2>
+            <p class="text-[11px] text-slate-400">Archival entry for 12" LPs, Albums, and 7" Singles</p>
           </div>
         </div>
-        <button onclick="closeAddEditModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
+        <div class="flex items-center gap-3">
+          <span class="text-[10px] text-slate-400 font-mono hidden sm:inline">Tip: [Ctrl + Enter] to Save & Add Next</span>
+          <button onclick="closeAddEditModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
       </div>
 
-      <!-- Quick Mock Lookup Bar in Modal -->
+      <!-- Quick MusicBrainz / Online Auto-lookup Bar -->
       <div class="bg-vinyl-800/60 px-6 py-2.5 border-b border-vinyl-800 flex flex-wrap items-center justify-between gap-2">
-        <div class="flex items-center gap-2 text-xs text-slate-300">
-          <i class="fa-solid fa-wand-magic-sparkles text-brass-400"></i>
-          <span>Autofill Research Preset:</span>
+        <div class="flex items-center gap-2 flex-1 min-w-[280px]">
+          <i class="fa-solid fa-wand-magic-sparkles text-brass-400 text-xs"></i>
+          <span class="text-xs text-slate-300 font-medium">Quick Autofill:</span>
+          <input type="text" id="musicBrainzQueryInput" placeholder="Enter Artist & Title or Barcode (e.g. Pink Floyd Dark Side)" class="flex-1 bg-vinyl-850 border border-vinyl-700 rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-brass-500">
+          <button type="button" onclick="lookupMusicBrainzManual()" class="px-2.5 py-1 text-xs font-semibold rounded bg-brass-500 hover:bg-brass-400 text-vinyl-950 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span>Fetch Info</span>
+          </button>
         </div>
-        <div class="flex items-center gap-2">
-          <button type="button" onclick="presetAutofill('reggae')" class="text-[11px] px-2.5 py-1 rounded bg-vinyl-700 hover:bg-vinyl-600 text-slate-300">Roots Reggae / Trojan</button>
-          <button type="button" onclick="presetAutofill('motown')" class="text-[11px] px-2.5 py-1 rounded bg-vinyl-700 hover:bg-vinyl-600 text-slate-300">Northern Soul / Motown</button>
-          <button type="button" onclick="presetAutofill('punk')" class="text-[11px] px-2.5 py-1 rounded bg-vinyl-700 hover:bg-vinyl-600 text-slate-300">77 UK Punk / Stiff</button>
+        <!-- Preset Shortcuts -->
+        <div class="flex items-center gap-1.5 text-[11px]">
+          <span class="text-slate-400">Presets:</span>
+          <button type="button" onclick="presetAutofill('lp_rock')" class="px-2 py-0.5 rounded bg-vinyl-700 hover:bg-vinyl-600 text-slate-300">12" LP (Pink Floyd)</button>
+          <button type="button" onclick="presetAutofill('reggae')" class="px-2 py-0.5 rounded bg-vinyl-700 hover:bg-vinyl-600 text-slate-300">7" Single (Reggae)</button>
         </div>
       </div>
 
@@ -326,61 +497,97 @@
       </div>
 
       <!-- Form Body -->
-      <form id="recordForm" onsubmit="saveRecordForm(event)" class="overflow-y-auto flex-1 p-6 space-y-5">
+      <form id="recordForm" onsubmit="saveRecordForm(event, false)" class="overflow-y-auto flex-1 p-6 space-y-4">
         <input type="hidden" id="recordId">
 
         <!-- TAB 1: General Info & Tracks -->
         <div id="tab-general" class="form-tab-pane space-y-4">
+          
+          <!-- Format Selector Row -->
+          <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <label class="text-xs font-bold uppercase text-brass-400 tracking-wider">Release Format *</label>
+              <select id="formFormat" onchange="handleFormatChange()" class="bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-brass-500">
+                <option value="12&quot; LP (Album)">12" LP (Album)</option>
+                <option value="2xLP Gatefold (Album)">2xLP Gatefold (Album)</option>
+                <option value="7&quot; Single (45 RPM)">7" Single (45 RPM)</option>
+                <option value="12&quot; Maxi / Single">12" Maxi / Single</option>
+                <option value="10&quot; Vinyl">10" Vinyl</option>
+                <option value="CD / Other">CD / Other</option>
+              </select>
+            </div>
+            <div class="text-[11px] text-slate-400" id="formatHintText">
+              Standard 12-inch 33⅓ RPM long-playing album.
+            </div>
+          </div>
+
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1">Artist / Group / Sound System *</label>
-              <input type="text" id="formArtist" required placeholder="e.g. Althea & Donna" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Artist / Band / Group *</label>
+              <input type="text" id="formArtist" required placeholder="e.g. Pink Floyd or Althea & Donna" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1">Primary Release Title *</label>
-              <input type="text" id="formTitle" required placeholder="e.g. Uptown Top Ranking" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Release Title / Album *</label>
+              <input type="text" id="formTitle" required placeholder="e.g. The Dark Side of the Moon" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
             </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-300 mb-1">Record Label *</label>
-              <input type="text" id="formLabel" required placeholder="e.g. Lightning Records / Joe Gibbs" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+              <input type="text" id="formLabel" required placeholder="e.g. Harvest / EMI" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-300 mb-1">Catalog Number</label>
-              <input type="text" id="formCatNo" placeholder="e.g. LIG 506" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-brass-500">
+              <input type="text" id="formCatNo" placeholder="e.g. SHVL 804" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-brass-500">
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-300 mb-1">Release Year</label>
-              <input type="number" id="formYear" min="1940" max="2035" placeholder="1977" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-brass-500">
+              <input type="number" id="formYear" min="1930" max="2035" placeholder="1973" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-brass-500">
             </div>
           </div>
 
-          <!-- A-Side & B-Side Details -->
+          <!-- Dynamic Tracks Section (Flexible for Albums and 7" Singles) -->
           <div class="p-4 bg-vinyl-850 rounded-xl border border-vinyl-800 space-y-3">
-            <h3 class="text-xs uppercase font-bold text-brass-400 tracking-wider flex items-center gap-2">
-              <i class="fa-solid fa-compact-disc"></i> 7" Dual Tracks Architecture
-            </h3>
-            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-              <div class="sm:col-span-1 text-center font-bold text-sm bg-vinyl-800 py-1.5 rounded border border-vinyl-700 text-slate-300">A</div>
-              <div class="sm:col-span-8">
-                <input type="text" id="formSideATitle" placeholder="A-Side Track Title (e.g. Uptown Top Ranking)" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-brass-500">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs uppercase font-bold text-brass-400 tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-list-ol"></i> Track Architecture & Listing
+              </h3>
+              <span class="text-[11px] text-slate-400" id="tracksFormatNote">Multi-track album listing</span>
+            </div>
+
+            <!-- Single 7" A/B Side Inputs (shown for 7" singles) -->
+            <div id="tracksSingleContainer" class="space-y-2 hidden">
+              <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                <div class="sm:col-span-1 text-center font-bold text-sm bg-vinyl-800 py-1.5 rounded border border-vinyl-700 text-slate-300">A</div>
+                <div class="sm:col-span-8">
+                  <input type="text" id="formSideATitle" placeholder="A-Side Track Title" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-brass-500">
+                </div>
+                <div class="sm:col-span-3">
+                  <input type="text" id="formSideADuration" placeholder="Duration (e.g. 3:53)" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-brass-500">
+                </div>
               </div>
-              <div class="sm:col-span-3">
-                <input type="text" id="formSideADuration" placeholder="Duration (e.g. 3:53)" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-brass-500">
+
+              <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                <div class="sm:col-span-1 text-center font-bold text-sm bg-vinyl-800 py-1.5 rounded border border-vinyl-700 text-slate-300">B</div>
+                <div class="sm:col-span-8">
+                  <input type="text" id="formSideBTitle" placeholder="B-Side Track Title" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-brass-500">
+                </div>
+                <div class="sm:col-span-3">
+                  <input type="text" id="formSideBDuration" placeholder="Duration (e.g. 3:12)" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-brass-500">
+                </div>
               </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-              <div class="sm:col-span-1 text-center font-bold text-sm bg-vinyl-800 py-1.5 rounded border border-vinyl-700 text-slate-300">B</div>
-              <div class="sm:col-span-8">
-                <input type="text" id="formSideBTitle" placeholder="B-Side Track Title (e.g. Calico Suit)" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-brass-500">
-              </div>
-              <div class="sm:col-span-3">
-                <input type="text" id="formSideBDuration" placeholder="Duration (e.g. 3:12)" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-brass-500">
+            <!-- Album Multi-Track Listing Textarea (shown for LPs / Albums) -->
+            <div id="tracksAlbumContainer" class="space-y-2">
+              <textarea id="formAlbumTracks" rows="4" placeholder="Enter or paste album tracks (one per line, e.g.):&#10;A1. Speak to Me / Breathe (3:58)&#10;A2. On the Run (3:35)&#10;A3. Time (7:05)&#10;B1. Money (6:22)&#10;B2. Us and Them (7:50)" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg p-2.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-brass-500 leading-relaxed"></textarea>
+              <div class="flex justify-between items-center text-[10px] text-slate-500">
+                <span>Accepts track numbering like A1/A2/B1 or 1/2/3 with durations.</span>
+                <button type="button" onclick="formatTracklistText()" class="text-brass-400 hover:underline">Clean Format</button>
               </div>
             </div>
+
           </div>
 
           <!-- Barcode & Country -->
@@ -389,14 +596,14 @@
               <label class="block text-xs font-semibold text-slate-300 mb-1">Barcode / UPC / EAN</label>
               <div class="flex gap-2">
                 <input type="text" id="formBarcode" placeholder="Scan or enter barcode" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-brass-500">
-                <button type="button" onclick="simulateBarcodeLookup()" class="px-3 py-2 bg-vinyl-800 hover:bg-vinyl-700 border border-vinyl-700 rounded-lg text-xs text-brass-400" title="Simulate Discogs DB Auto-Lookup">
+                <button type="button" onclick="lookupMusicBrainzByBarcodeField()" class="px-3 py-2 bg-vinyl-800 hover:bg-vinyl-700 border border-vinyl-700 rounded-lg text-xs text-brass-400" title="Lookup Online via MusicBrainz">
                   <i class="fa-solid fa-magnifying-glass-chart"></i>
                 </button>
               </div>
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-300 mb-1">Country / Region of Origin</label>
-              <input type="text" id="formCountry" placeholder="e.g. Jamaica / UK / US" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+              <input type="text" id="formCountry" placeholder="e.g. UK / US / Japan" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
             </div>
           </div>
         </div>
@@ -406,16 +613,16 @@
           <div class="p-3 bg-brass-500/10 border border-brass-500/20 rounded-lg text-xs text-slate-300 flex items-start gap-2">
             <i class="fa-solid fa-circle-info text-brass-400 mt-0.5"></i>
             <div>
-              <strong>7-Inch Pressing Archival Identification:</strong> Center hole configurations and deadwax / runout matrix etchings (cut numbers, mastering engineer initials like <em>"Porky"</em>, <em>"Sterling"</em>, or plant symbols) are crucial for pinpointing the exact historical pressing.
+              <strong>Pressing & Matrix Archival Identification:</strong> Runout matrix etchings (cut numbers, engineer initials like <em>"Porky"</em>, <em>"Sterling"</em>, stamper codes) pinpoint the exact pressing, plant, and master lacquer.
             </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
+            <div id="centerHoleContainer">
               <label class="block text-xs font-semibold text-slate-300 mb-1">Center Hole Configuration</label>
               <select id="formCenterHole" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+                <option value="Solid (Small 0.28 inch)">Solid Center (Standard LP / 0.28" Spindle)</option>
                 <option value="Dinked (Large 1.5 inch)">Dinked (Large 1.5" Jukebox / US standard)</option>
-                <option value="Solid (Small 0.28 inch)">Solid Center (Small 0.28" standard spindle)</option>
                 <option value="Four-Prong (Spider)">Four-Prong Knockout / Spider</option>
                 <option value="Tri-Center (Knockout)">Tri-Center Knockout</option>
               </select>
@@ -423,8 +630,9 @@
             <div>
               <label class="block text-xs font-semibold text-slate-300 mb-1">Playback Speed (RPM)</label>
               <select id="formSpeed" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
-                <option value="45 RPM">45 RPM (Standard)</option>
-                <option value="33 1/3 RPM">33 1/3 RPM (Extended Play / Maxi)</option>
+                <option value="33 1/3 RPM">33 1/3 RPM (Standard LP / Album)</option>
+                <option value="45 RPM">45 RPM (Standard Single / Audiophile LP)</option>
+                <option value="78 RPM">78 RPM (Shellac / Vintage 10")</option>
               </select>
             </div>
           </div>
@@ -432,24 +640,23 @@
           <!-- Matrix / Deadwax Runouts -->
           <div class="space-y-3">
             <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1">A-Side Matrix / Deadwax Runout Etchings</label>
-              <input type="text" id="formMatrixA" placeholder='e.g. LIG 506 A-1 △ "A PORKY PRIME CUT"' class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-xs font-mono text-emerald-400 focus:outline-none focus:border-brass-500">
-              <span class="text-[10px] text-slate-500">Include stamped letters, handwritten scratchings, engineer marks, and dates.</span>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Side A Matrix / Deadwax Runout Etchings</label>
+              <input type="text" id="formMatrixA" placeholder='e.g. SHVL 804 A-2 (Solid Blue Triangle first press)' class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-xs font-mono text-emerald-400 focus:outline-none focus:border-brass-500">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1">B-Side Matrix / Deadwax Runout Etchings</label>
-              <input type="text" id="formMatrixB" placeholder='e.g. LIG 506 B-1 PECKO' class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-xs font-mono text-emerald-400 focus:outline-none focus:border-brass-500">
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Side B Matrix / Deadwax Runout Etchings</label>
+              <input type="text" id="formMatrixB" placeholder='e.g. SHVL 804 B-2' class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-xs font-mono text-emerald-400 focus:outline-none focus:border-brass-500">
             </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-300 mb-1">Mastering Engineer / Studio Stamp</label>
-              <input type="text" id="formMastering" placeholder="e.g. George Peckham (Porky), Sterling Sound" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+              <input type="text" id="formMastering" placeholder="e.g. Doug Sax, Abbey Road, Sterling Sound" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-300 mb-1">Pressing Plant</label>
-              <input type="text" id="formPressingPlant" placeholder="e.g. Lyntone Recordings, Orlake, Specialty Records" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+              <input type="text" id="formPressingPlant" placeholder="e.g. The Gramophone Co. Ltd. Hayes, Specialty Records" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
             </div>
           </div>
         </div>
@@ -466,31 +673,30 @@
               <label class="block text-xs font-bold uppercase text-slate-300 tracking-wider">Vinyl Media Grade</label>
               <select id="formMediaGrade" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-2 text-sm font-semibold text-brass-400 focus:outline-none focus:border-brass-500">
                 <option value="M">M - Mint (Absolute pristine, unplayed or sealed)</option>
-                <option value="NM" selected>NM - Near Mint (Virtually flawless, no audible surface noise)</option>
+                <option value="NM" selected>NM - Near Mint (Virtually flawless, silent surfaces)</option>
                 <option value="VG+">VG+ - Very Good Plus (Light sleeve scuffs, plays clean)</option>
                 <option value="VG">VG - Very Good (Light surface noise, groove wear visible)</option>
-                <option value="G+">G+ - Good Plus (Significant groove wear, continuous surface noise)</option>
-                <option value="G">G - Good (Plays through without skipping, noticeable clicks)</option>
-                <option value="F">F - Fair (Warped, heavy scratches, may skip)</option>
-                <option value="P">P - Poor (Cracked, severely damaged)</option>
+                <option value="G+">G+ - Good Plus (Continuous light surface noise, skips avoided)</option>
+                <option value="G">G - Good (Significant wear, groove distortion)</option>
+                <option value="F">F - Fair (Heavy scratches, may skip)</option>
+                <option value="P">P - Poor (Severely damaged / collection filler)</option>
               </select>
-              <textarea id="formMediaGradeNotes" rows="2" placeholder="Visual inspection notes (e.g., hairline paper scuffs under bright halogen light, slight dish warp not affecting play)..." class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-brass-500"></textarea>
+              <textarea id="formMediaGradeNotes" rows="2" placeholder="Visual and audio inspection notes (e.g. hair-line paper sleeve scuffs under bright light, plays quiet)..." class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-brass-500"></textarea>
             </div>
 
             <!-- Sleeve Grade -->
             <div class="p-4 bg-vinyl-850 rounded-xl border border-vinyl-800 space-y-2">
-              <label class="block text-xs font-bold uppercase text-slate-300 tracking-wider">Sleeve / Company Cover Grade</label>
+              <label class="block text-xs font-bold uppercase text-slate-300 tracking-wider">Sleeve / Jacket Grade</label>
               <select id="formSleeveGrade" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-2 text-sm font-semibold text-brass-400 focus:outline-none focus:border-brass-500">
-                <option value="M">M - Mint (Perfect new condition, crisp edges)</option>
-                <option value="NM">NM - Near Mint (No creases, minor handling)</option>
-                <option value="VG+" selected>VG+ - Very Good Plus (Slight ring wear, clean seam)</option>
-                <option value="VG">VG - Very Good (Seam split starting, pen marks, tape)</option>
-                <option value="G+">G+ - Good Plus (Torn flap, moderate water damage)</option>
-                <option value="G">G - Good (Heavy split seams, extensive wear)</option>
-                <option value="F">F - Fair (Shredded original paper sleeve)</option>
-                <option value="Generic">Generic / Replacement Paper Sleeve</option>
+                <option value="M">M - Mint (Flawless, crisp sharp spine, sealed)</option>
+                <option value="NM">NM - Near Mint (Minor shelf wear, clean edges)</option>
+                <option value="VG+" selected>VG+ - Very Good Plus (Slight corner ding or light ring wear)</option>
+                <option value="VG">VG - Very Good (Seam split starting, price tag residue)</option>
+                <option value="G+">G+ - Good Plus (Significant seam wear, creases)</option>
+                <option value="G">G - Good (Heavy split seams, tape repairs)</option>
+                <option value="Generic">Generic / Replacement Inner Sleeve</option>
               </select>
-              <textarea id="formSleeveGradeNotes" rows="2" placeholder="Sleeve notes (e.g., Original company paper sleeve with record store stamp from Manchester, no ring wear)..." class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-brass-500"></textarea>
+              <textarea id="formSleeveGradeNotes" rows="2" placeholder="Sleeve notes (e.g. includes original poster, inserts, lyric inner bag, minor corner crease)..." class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-brass-500"></textarea>
             </div>
           </div>
         </div>
@@ -498,13 +704,13 @@
         <!-- TAB 4: Labels & Artwork Visuals -->
         <div id="tab-visuals" class="form-tab-pane hidden space-y-4">
           <div class="text-xs text-slate-400 mb-2">
-            Upload or capture photos for high-resolution visual authentication (center label typography, original picture sleeve):
+            Upload cover art and center label photography for archival verification:
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <!-- Sleeve / Cover Image -->
             <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 flex flex-col items-center">
-              <span class="text-xs font-semibold text-slate-300 mb-2">Picture Sleeve / Cover</span>
+              <span class="text-xs font-semibold text-slate-300 mb-2">Album Cover / Picture Sleeve</span>
               <div id="previewCoverBox" class="w-full h-36 bg-vinyl-900 rounded-lg border border-dashed border-vinyl-700 flex items-center justify-center overflow-hidden mb-2 relative group">
                 <img id="previewCoverImg" src="" alt="Cover Art" class="w-full h-full object-cover hidden">
                 <div id="placeholderCover" class="text-center p-3 text-slate-500">
@@ -518,11 +724,11 @@
               </button>
             </div>
 
-            <!-- A-Side Label Image -->
+            <!-- Side A Label Image -->
             <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 flex flex-col items-center">
-              <span class="text-xs font-semibold text-slate-300 mb-2">A-Side Center Label</span>
+              <span class="text-xs font-semibold text-slate-300 mb-2">Side A Center Label</span>
               <div id="previewLabelABox" class="w-full h-36 bg-vinyl-900 rounded-lg border border-dashed border-vinyl-700 flex items-center justify-center overflow-hidden mb-2 relative">
-                <img id="previewLabelAImg" src="" alt="A-Side Label" class="w-full h-full object-cover hidden">
+                <img id="previewLabelAImg" src="" alt="Side A Label" class="w-full h-full object-cover hidden">
                 <div id="placeholderLabelA" class="text-center p-3 text-slate-500">
                   <i class="fa-solid fa-circle-notch text-2xl mb-1"></i>
                   <p class="text-[10px]">No label photo</p>
@@ -534,11 +740,11 @@
               </button>
             </div>
 
-            <!-- B-Side Label Image -->
+            <!-- Side B Label Image -->
             <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 flex flex-col items-center">
-              <span class="text-xs font-semibold text-slate-300 mb-2">B-Side Center Label</span>
+              <span class="text-xs font-semibold text-slate-300 mb-2">Side B Center Label</span>
               <div id="previewLabelBBox" class="w-full h-36 bg-vinyl-900 rounded-lg border border-dashed border-vinyl-700 flex items-center justify-center overflow-hidden mb-2 relative">
-                <img id="previewLabelBImg" src="" alt="B-Side Label" class="w-full h-full object-cover hidden">
+                <img id="previewLabelBImg" src="" alt="Side B Label" class="w-full h-full object-cover hidden">
                 <div id="placeholderLabelB" class="text-center p-3 text-slate-500">
                   <i class="fa-solid fa-circle-notch text-2xl mb-1"></i>
                   <p class="text-[10px]">No label photo</p>
@@ -557,17 +763,17 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-300 mb-1">Genre & Sub-Styles</label>
-              <input type="text" id="formGenres" placeholder="e.g. Lovers Rock, Roots Dub, Studio One" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+              <input type="text" id="formGenres" placeholder="e.g. Progressive Rock, Art Rock, Psychedelic" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-300 mb-1">Producer / Recording Engineer</label>
-              <input type="text" id="formProducer" placeholder="e.g. Joe Gibbs & Errol Thompson (The Mighty Two)" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+              <input type="text" id="formProducer" placeholder="e.g. Alan Parsons & Pink Floyd" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
             </div>
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Provenance & Acquired History</label>
-            <input type="text" id="formProvenance" placeholder="e.g. Acquired from Kingston sound system selector estate sale, 2018" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+            <input type="text" id="formProvenance" placeholder="e.g. Acquired from private Manchester collection, original 1973 owner" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -576,30 +782,40 @@
               <select id="formTransferStatus" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
                 <option value="Not Digitized">Not Digitized</option>
                 <option value="FLAC 24-bit/96kHz">Archival FLAC (24-bit / 96kHz)</option>
+                <option value="FLAC 24-bit/192kHz">Studio FLAC (24-bit / 192kHz)</option>
                 <option value="WAV 16-bit/44.1kHz">Standard WAV (16-bit / 44.1kHz)</option>
                 <option value="MP3 320kbps">Reference MP3 (320kbps)</option>
               </select>
             </div>
             <div class="sm:col-span-2">
               <label class="block text-xs font-semibold text-slate-300 mb-1">Transfer Rig & Stylus Details</label>
-              <input type="text" id="formTransferNotes" placeholder="e.g. Technics 1200MK2, Shure M44-7 45rpm spherical, Parks Puffin preamp" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+              <input type="text" id="formTransferNotes" placeholder="e.g. Technics 1200MK2, Audio-Technica VM540ML MicroLine, Parks Puffin DSP flat" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
             </div>
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Research Field Notes & Historical Context</label>
-            <textarea id="formResearchNotes" rows="3" placeholder="Enter discographic discoveries, band member interview references, radio play notes, master take variations..." class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-brass-500"></textarea>
+            <textarea id="formResearchNotes" rows="3" placeholder="Enter discographic discoveries, matrix shootouts, mastering variations, historical reception notes..." class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-brass-500"></textarea>
           </div>
         </div>
 
-        <!-- Modal Footer Actions -->
-        <div class="border-t border-vinyl-800 pt-4 flex items-center justify-between">
+        <!-- Modal Footer Actions with Fast Add Next -->
+        <div class="border-t border-vinyl-800 pt-4 flex flex-wrap items-center justify-between gap-2">
           <button type="button" onclick="closeAddEditModal()" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-lg transition">
             Cancel
           </button>
-          <button type="submit" class="px-6 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-vinyl-950 shadow-lg shadow-brass-500/20 transition">
-            Save 7" Record
-          </button>
+          
+          <div class="flex items-center gap-2">
+            <!-- Save and Add Next (High Velocity Entry) -->
+            <button type="button" onclick="saveRecordForm(event, true)" class="px-4 py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 transition flex items-center gap-1.5 shadow" title="Save this record and immediately open blank form for next one [Ctrl+Enter]">
+              <i class="fa-solid fa-plus text-xs"></i>
+              <span>Save & Add Next</span>
+            </button>
+            <!-- Standard Save & Close -->
+            <button type="submit" class="px-6 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-vinyl-950 shadow-lg shadow-brass-500/20 transition">
+              Save & Close
+            </button>
+          </div>
         </div>
       </form>
     </div>
@@ -613,7 +829,7 @@
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-barcode text-brass-400 text-lg"></i>
-          <h3 class="text-sm font-bold text-white uppercase tracking-wider">7" Barcode Optical Scanner</h3>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider">Optical Barcode Scanner</h3>
         </div>
         <button onclick="closeScannerModal()" class="text-slate-400 hover:text-white">
           <i class="fa-solid fa-xmark text-lg"></i>
@@ -621,13 +837,12 @@
       </div>
 
       <div class="relative w-full aspect-square bg-black rounded-xl overflow-hidden border border-vinyl-700 flex items-center justify-center">
-        <!-- Reader video div for Html5Qrcode -->
         <div id="qr-reader" class="w-full h-full"></div>
         <div id="scannerOverlay" class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-4">
           <div class="w-64 h-32 border-2 border-brass-400/80 rounded-lg relative">
             <div class="absolute inset-x-0 top-1/2 h-0.5 bg-red-500/70 animate-pulse"></div>
           </div>
-          <span class="text-[11px] text-slate-300 mt-3 bg-black/70 px-2 py-1 rounded">Position 7" barcode in viewfinder</span>
+          <span class="text-[11px] text-slate-300 mt-3 bg-black/70 px-2 py-1 rounded">Position record barcode in viewfinder</span>
         </div>
       </div>
 
@@ -643,18 +858,18 @@
         </div>
 
         <button onclick="simulateScanSample()" class="w-full mt-2 py-1.5 bg-vinyl-800 hover:bg-vinyl-700 border border-vinyl-700 text-brass-400 rounded-lg text-xs font-mono">
-          ⚡ Test with Sample Barcode (042288021175)
+          ⚡ Test with Sample Barcode (5099902894512)
         </button>
       </div>
     </div>
   </div>
 
   <!-- ============================================== -->
-  <!-- MODAL: RECORD FULL ARCHIVAL DETAIL VIEW -->
+  <!-- MODAL: RECORD FULL ARCHIVAL DETAIL VIEW        -->
   <!-- ============================================== -->
   <div id="detailModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto">
     <div id="detailModalContent" class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 shadow-2xl relative my-auto">
-      <!-- Populated via renderDetailModal() -->
+      <!-- Populated dynamically via viewRecordDetail() -->
     </div>
   </div>
 
@@ -664,11 +879,58 @@
   <!-- APPLICATION JAVASCRIPT LOGIC -->
   <script>
     /* =========================================================
-       DEFAULT INITIAL ARCHIVAL SEED DATA (7" SINGLES)
+       DEFAULT INITIAL ARCHIVAL SEED DATA (ALBUMS & SINGLES)
        ========================================================= */
     const SAMPLE_RECORDS = [
       {
-        id: "rec_7_1977_001",
+        id: "rec_lp_1973_001",
+        format: "12\" LP (Album)",
+        artist: "Pink Floyd",
+        title: "The Dark Side of the Moon",
+        label: "Harvest / EMI",
+        catNo: "SHVL 804",
+        year: 1973,
+        sideATitle: "Speak to Me / Breathe / On the Run / Time",
+        sideADuration: "19:26",
+        sideBTitle: "Money / Us and Them / Brain Damage / Eclipse",
+        sideBDuration: "23:42",
+        tracks: [
+          { pos: "A1", title: "Speak to Me / Breathe", duration: "3:58" },
+          { pos: "A2", title: "On the Run", duration: "3:35" },
+          { pos: "A3", title: "Time", duration: "7:05" },
+          { pos: "A4", title: "The Great Gig in the Sky", duration: "4:44" },
+          { pos: "B1", title: "Money", duration: "6:22" },
+          { pos: "B2", title: "Us and Them", duration: "7:50" },
+          { pos: "B3", title: "Any Colour You Like", duration: "3:26" },
+          { pos: "B4", title: "Brain Damage", duration: "3:47" },
+          { pos: "B5", title: "Eclipse", duration: "2:03" }
+        ],
+        barcode: "5099902894512",
+        country: "United Kingdom",
+        centerHole: "Solid (Small 0.28 inch)",
+        speed: "33 1/3 RPM",
+        matrixA: "SHVL 804 A-2 (Solid Blue Prism)",
+        matrixB: "SHVL 804 B-2",
+        mastering: "Doug Sax / Harry Moss at Abbey Road",
+        pressingPlant: "The Gramophone Co. Ltd., Hayes",
+        mediaGrade: "NM",
+        mediaGradeNotes: "Dead quiet backgrounds, flawless deep vinyl gloss. Pristine audiophile archive playback.",
+        sleeveGrade: "VG+",
+        sleeveGradeNotes: "Original gatefold with blue prism tint. Both original posters and crack-back stickers intact.",
+        coverImage: "https://images.unsplash.com/photo-1539185441755-769473a23570?auto=format&fit=crop&w=600&q=80",
+        labelAImage: "https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80",
+        labelBImage: "",
+        genres: "Progressive Rock, Art Rock",
+        producer: "Pink Floyd & Alan Parsons",
+        provenance: "Acquired from first-press collector estate, London 2012.",
+        transferStatus: "FLAC 24-bit/96kHz",
+        transferNotes: "Technics SL-1200MK2, Audio-Technica VM540ML MicroLine, Parks Puffin DSP direct capture.",
+        researchNotes: "Original UK first pressing identified by the solid blue triangle label design, known for legendary bottom-end headroom cut by Harry Moss.",
+        dateAdded: "2026-10-10T11:00:00Z"
+      },
+      {
+        id: "rec_7_1977_002",
+        format: "7\" Single (45 RPM)",
         artist: "Althea & Donna",
         title: "Uptown Top Ranking",
         label: "Lightning Records",
@@ -678,6 +940,10 @@
         sideADuration: "3:53",
         sideBTitle: "Calico Suit",
         sideBDuration: "3:12",
+        tracks: [
+          { pos: "A", title: "Uptown Top Ranking", duration: "3:53" },
+          { pos: "B", title: "Calico Suit", duration: "3:12" }
+        ],
         barcode: "5012345678901",
         country: "UK / Jamaica",
         centerHole: "Solid (Small 0.28 inch)",
@@ -690,19 +956,62 @@
         mediaGradeNotes: "Clean playback with light paper scuffs visible under direct light. No skips.",
         sleeveGrade: "VG+",
         sleeveGradeNotes: "Original Lightning company die-cut paper sleeve with slight crease.",
-        coverImage: "https://images.unsplash.com/photo-1539185441755-769473a23570?auto=format&fit=crop&w=600&q=80",
-        labelAImage: "https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80",
+        coverImage: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80",
+        labelAImage: "",
         labelBImage: "",
         genres: "Roots Reggae, Dub",
         producer: "Joe Gibbs & Errol Thompson (The Mighty Two)",
         provenance: "Acquired from specialist Kingston importer, Brixton 1982.",
         transferStatus: "FLAC 24-bit/96kHz",
-        transferNotes: "Technics SL-1200MK2, Denon DL-110 high-output MC, Parks Puffin DSP flat transfer.",
+        transferNotes: "Technics SL-1200MK2, Denon DL-110 high-output MC, flat transfer.",
         researchNotes: "Recorded at Joe Gibbs Recording Studio, Kingston, Jamaica. Ride on the rhythm from Alton Ellis's 'I'm Still In Love With You'. Historic UK #1 reggae single in February 1978.",
         dateAdded: "2026-10-15T12:00:00Z"
       },
       {
-        id: "rec_7_1976_002",
+        id: "rec_lp_1959_003",
+        format: "12\" LP (Album)",
+        artist: "Miles Davis",
+        title: "Kind of Blue",
+        label: "Columbia",
+        catNo: "CL 1355",
+        year: 1959,
+        sideATitle: "So What / Freddie Freeloader / Blue in Green",
+        sideADuration: "25:38",
+        sideBTitle: "All Blues / Flamenco Sketches",
+        sideBDuration: "20:06",
+        tracks: [
+          { pos: "A1", title: "So What", duration: "9:22" },
+          { pos: "A2", title: "Freddie Freeloader", duration: "9:46" },
+          { pos: "A3", title: "Blue in Green", duration: "5:37" },
+          { pos: "B1", title: "All Blues", duration: "11:33" },
+          { pos: "B2", title: "Flamenco Sketches", duration: "9:26" }
+        ],
+        barcode: "",
+        country: "United States",
+        centerHole: "Solid (Small 0.28 inch)",
+        speed: "33 1/3 RPM",
+        matrixA: "XLP 47324-1D",
+        matrixB: "XLP 47325-1D",
+        mastering: "Columbia 30th Street Studio",
+        pressingPlant: "Columbia Records Pressing Plant, Bridgeport",
+        mediaGrade: "VG+",
+        mediaGradeNotes: "Deep 6-eye mono pressing. Warm tube sound, occasional soft tick.",
+        sleeveGrade: "VG",
+        sleeveGradeNotes: "Classic paste-on sleeve with light corner wear.",
+        coverImage: "https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=600&q=80",
+        labelAImage: "",
+        labelBImage: "",
+        genres: "Modal Jazz, Hard Bop",
+        producer: "Teo Macero & Irving Townsend",
+        provenance: "Acquired from NYC jazz collector estate, 2015.",
+        transferStatus: "FLAC 24-bit/96kHz",
+        transferNotes: "Dedicated mono cartridge, Ortofon 2M Mono.",
+        researchNotes: "The quintessential jazz masterpiece. Features John Coltrane, Cannonball Adderley, Bill Evans, Paul Chambers, and Jimmy Cobb.",
+        dateAdded: "2026-10-20T14:30:00Z"
+      },
+      {
+        id: "rec_7_1976_004",
+        format: "7\" Single (45 RPM)",
         artist: "The Damned",
         title: "New Rose / Help",
         label: "Stiff Records",
@@ -710,121 +1019,81 @@
         year: 1976,
         sideATitle: "New Rose",
         sideADuration: "2:42",
-        sideBTitle: "Help (Lennon-McCartney cover)",
+        sideBTitle: "Help",
         sideBDuration: "1:43",
+        tracks: [
+          { pos: "A", title: "New Rose", duration: "2:42" },
+          { pos: "B", title: "Help", duration: "1:43" }
+        ],
         barcode: "",
         country: "United Kingdom",
         centerHole: "Solid (Small 0.28 inch)",
         speed: "45 RPM",
-        matrixA: "BUY 6 A-1U STIFF 6 A-1 DELGA",
-        matrixB: "BUY 6 B-1U STIFF 6 B-1",
-        mastering: "Unknown / EMI Abbey Road",
-        pressingPlant: "EMI Records, Hayes, Middlesex",
+        matrixA: "BUY 6 A-1U STIFF 6 DELGA",
+        matrixB: "BUY 6 B-1U",
+        mastering: "EMI Abbey Road",
+        pressingPlant: "EMI Records, Hayes",
         mediaGrade: "NM",
-        mediaGradeNotes: "Glossy lacquer finish, virtually unplayed archival copy.",
-        sleeveGrade: "VG",
-        sleeveGradeNotes: "First pressing Delga sleeve with French flipbacks. Mild ringwear on back.",
-        coverImage: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80",
-        labelAImage: "",
-        labelBImage: "",
-        genres: "Punk Rock, Garage Rock",
-        producer: "Nick Lowe",
-        provenance: "Purchased at Rough Trade Records, London in November 1976.",
-        transferStatus: "FLAC 24-bit/96kHz",
-        transferNotes: "Shure V15 Type IV, JICO SAS stylus, raw direct rip.",
-        researchNotes: "Regarded as the first UK punk single ever released (October 22, 1976), preceding the Sex Pistols' 'Anarchy in the U.K.' by over a month.",
-        dateAdded: "2026-10-18T15:20:00Z"
-      },
-      {
-        id: "rec_7_1965_003",
-        artist: "The Miracles",
-        title: "The Tracks of My Tears",
-        label: "Tamla (Motown)",
-        catNo: "T-54118",
-        year: 1965,
-        sideATitle: "The Tracks of My Tears",
-        sideADuration: "2:55",
-        sideBTitle: "A Fork in the Road",
-        sideBDuration: "3:18",
-        barcode: "",
-        country: "United States",
-        centerHole: "Dinked (Large 1.5 inch)",
-        speed: "45 RPM",
-        matrixA: "45-TM-54118-A 095408 Nashville Matrix",
-        matrixB: "45-TM-54118-B 095409",
-        mastering: "Nashville Matrix",
-        pressingPlant: "RCA Records Pressing Plant, Indianapolis",
-        mediaGrade: "VG",
-        mediaGradeNotes: "Noticeable light surface marks, plays with light vintage warmth crackle.",
-        sleeveGrade: "Generic",
-        sleeveGradeNotes: "Housed in authentic 1965 Tamla / Motown striped 7\" paper company sleeve.",
-        coverImage: "https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=600&q=80",
-        labelAImage: "https://images.unsplash.com/photo-1546707012-c46675f12716?auto=format&fit=crop&w=600&q=80",
-        labelBImage: "",
-        genres: "Northern Soul, Motown, R&B",
-        producer: "Smokey Robinson",
-        provenance: "Detroit estate crate buy, 2004.",
-        transferStatus: "Not Digitized",
-        transferNotes: "",
-        researchNotes: "Features the legendary Funk Brothers instrumentation (Marv Tarplin on opening guitar intro). Inducted into Grammy Hall of Fame.",
-        dateAdded: "2026-10-22T09:45:00Z"
-      },
-      {
-        id: "rec_7_1982_004",
-        artist: "Grandmaster Flash & The Furious Five",
-        title: "The Message",
-        label: "Sugar Hill Records",
-        catNo: "SH-584",
-        year: 1982,
-        sideATitle: "The Message",
-        sideADuration: "3:12",
-        sideBTitle: "The Message (Instrumental)",
-        sideBDuration: "3:10",
-        barcode: "042288021175",
-        country: "United States",
-        centerHole: "Dinked (Large 1.5 inch)",
-        speed: "45 RPM",
-        matrixA: "SH-584-A STERLING",
-        matrixB: "SH-584-B STERLING",
-        mastering: "Greg Calbi at Sterling Sound",
-        pressingPlant: "Sound Makers, New Jersey",
-        mediaGrade: "VG+",
-        mediaGradeNotes: "Very strong copy, clean punchy bass response.",
-        sleeveGrade: "Generic",
-        sleeveGradeNotes: "Original Sugar Hill candy-stripe company sleeve.",
+        mediaGradeNotes: "Pristine archival unplayed copy.",
+        sleeveGrade: "VG+",
+        sleeveGradeNotes: "First press Delga flipback picture sleeve.",
         coverImage: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=600&q=80",
         labelAImage: "",
         labelBImage: "",
-        genres: "Electro, Old School Hip-Hop",
-        producer: "Sylvia Robinson",
-        provenance: "Acquired from NYC radio DJ collection.",
+        genres: "Punk Rock",
+        producer: "Nick Lowe",
+        provenance: "Purchased at Rough Trade Records, London in November 1976.",
         transferStatus: "FLAC 24-bit/96kHz",
-        transferNotes: "Ortofon Concorde MKII Club stylus, direct high-res capture.",
-        researchNotes: "7-inch radio edit version of the iconic 12-inch opus. First prominent hip-hop record to deliver socially conscious commentary on inner-city decay.",
-        dateAdded: "2026-10-30T17:15:00Z"
+        transferNotes: "Shure V15 Type IV, raw direct transfer.",
+        researchNotes: "Acknowledged as the first UK punk single ever commercially issued, beating the Sex Pistols by over a month.",
+        dateAdded: "2026-10-25T16:00:00Z"
       }
     ];
 
     /* =========================================================
        APPLICATION STATE
        ========================================================= */
-    const STORAGE_KEY = 'rpm7_vinyl_catalogue_v1';
+    const STORAGE_KEY = 'qmc_vinyl_catalogue_v2';
     let records = [];
     let currentView = 'grid'; // 'grid' | 'list'
     let html5QrScanner = null;
+    let stagedBatchRecords = [];
+
+    // Sticky Defaults for Fast Workflow
+    let sessionDefaults = {
+      format: '12" LP (Album)',
+      mediaGrade: 'VG+',
+      sleeveGrade: 'VG+',
+      country: 'UK'
+    };
 
     // Initialize Application
     window.addEventListener('DOMContentLoaded', () => {
       loadRecordsFromStorage();
       renderStats();
       renderRecords();
+
+      // Keyboard Shortcut: Ctrl + Enter saves and adds next
+      document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          const modal = document.getElementById('recordModal');
+          if (!modal.classList.contains('hidden')) {
+            e.preventDefault();
+            saveRecordForm(e, true);
+          }
+        }
+      });
     });
 
     function loadRecordsFromStorage() {
       try {
-        const stored = localStorage.getItem(STORAGE_KEY);
+        const stored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('rpm7_vinyl_catalogue_v1');
         if (stored) {
           records = JSON.parse(stored);
+          // Normalize legacy 7" format if missing
+          records.forEach(r => {
+            if (!r.format) r.format = '7" Single (45 RPM)';
+          });
         } else {
           records = [...SAMPLE_RECORDS];
           saveRecordsToStorage();
@@ -844,16 +1113,17 @@
     }
 
     /* =========================================================
-       STATISTICS & RESEARCH INSIGHTS
+       STATISTICS & RESEARCH INSIGHTS (ALBUMS + SINGLES)
        ========================================================= */
     function renderStats() {
       const total = records.length;
-      document.getElementById('statTotalSingles').innerText = total;
+      document.getElementById('statTotalItems').innerText = total;
 
-      // Center hole ratio
-      const dinkedCount = records.filter(r => r.centerHole && r.centerHole.includes('Dinked')).length;
-      const solidCount = records.filter(r => r.centerHole && r.centerHole.includes('Solid')).length;
-      document.getElementById('statCenterHole').innerText = `${dinkedCount} Dinked / ${solidCount} Solid`;
+      // Count LPs vs Singles
+      const lpCount = records.filter(r => r.format && r.format.includes('LP')).length;
+      const singleCount = records.filter(r => r.format && (r.format.includes('7"') || r.format.includes('Single'))).length;
+      document.getElementById('statTotalLPs').innerText = lpCount;
+      document.getElementById('statTotalSingles').innerText = singleCount;
 
       // Digitized count
       const digitizedCount = records.filter(r => r.transferStatus && r.transferStatus !== 'Not Digitized').length;
@@ -890,7 +1160,7 @@
       decadeBar.innerHTML = '';
       const colors = ['bg-amber-400', 'bg-emerald-400', 'bg-sky-400', 'bg-pink-400', 'bg-purple-400'];
       decadeKeys.forEach((dec, idx) => {
-        const pct = ((decadeMap[dec] / total) * 100).toFixed(1);
+        const pct = total ? ((decadeMap[dec] / total) * 100).toFixed(1) : 0;
         const segment = document.createElement('div');
         segment.className = `h-full ${colors[idx % colors.length]}`;
         segment.style.width = `${pct}%`;
@@ -904,19 +1174,22 @@
        ========================================================= */
     function getFilteredAndSortedRecords() {
       const searchTerm = (document.getElementById('globalSearch')?.value || '').toLowerCase().trim();
+      const formatFilter = document.getElementById('filterFormat')?.value || 'ALL';
       const gradeFilter = document.getElementById('filterGrade')?.value || 'ALL';
-      const holeFilter = document.getElementById('filterHole')?.value || 'ALL';
       const sortBy = document.getElementById('sortBy')?.value || 'dateAddedDesc';
 
       let result = records.filter(item => {
         // Text Match
+        const tracksText = (item.tracks || []).map(t => `${t.pos || ''} ${t.title || ''}`).join(' ');
         const matchText = (
           (item.artist || '') + ' ' +
           (item.title || '') + ' ' +
+          (item.format || '') + ' ' +
           (item.label || '') + ' ' +
           (item.catNo || '') + ' ' +
           (item.sideATitle || '') + ' ' +
           (item.sideBTitle || '') + ' ' +
+          tracksText + ' ' +
           (item.matrixA || '') + ' ' +
           (item.matrixB || '') + ' ' +
           (item.genres || '') + ' ' +
@@ -928,11 +1201,11 @@
 
         if (searchTerm && !matchText.includes(searchTerm)) return false;
 
+        // Format Match
+        if (formatFilter !== 'ALL' && item.format !== formatFilter) return false;
+
         // Grade Match
         if (gradeFilter !== 'ALL' && item.mediaGrade !== gradeFilter) return false;
-
-        // Hole Match
-        if (holeFilter !== 'ALL' && item.centerHole !== holeFilter) return false;
 
         return true;
       });
@@ -948,6 +1221,9 @@
           const ranks = { 'M': 8, 'NM': 7, 'VG+': 6, 'VG': 5, 'G+': 4, 'G': 3, 'F': 2, 'P': 1 };
           return (ranks[b.mediaGrade] || 0) - (ranks[a.mediaGrade] || 0);
         }
+        if (sortBy === 'formatAsc') {
+          return (a.format || '').localeCompare(b.format || '');
+        }
         return 0;
       });
 
@@ -962,19 +1238,19 @@
     function renderActivePills() {
       const container = document.getElementById('filterPillsContainer');
       const searchTerm = document.getElementById('globalSearch').value.trim();
+      const formatFilter = document.getElementById('filterFormat').value;
       const gradeFilter = document.getElementById('filterGrade').value;
-      const holeFilter = document.getElementById('filterHole').value;
 
       let pillsHTML = '';
 
       if (searchTerm) {
-        pillsHTML += `<span class="bg-vinyl-800 text-slate-200 px-2 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Query: "${searchTerm}" <button onclick="clearSearchInput()" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
+        pillsHTML += `<span class="bg-vinyl-800 text-slate-200 px-2.5 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Query: "${searchTerm}" <button onclick="clearSearchInput()" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
+      }
+      if (formatFilter !== 'ALL') {
+        pillsHTML += `<span class="bg-vinyl-800 text-amber-400 px-2.5 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Format: ${formatFilter} <button onclick="document.getElementById('filterFormat').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
       }
       if (gradeFilter !== 'ALL') {
-        pillsHTML += `<span class="bg-vinyl-800 text-brass-400 px-2 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Media: ${gradeFilter} <button onclick="document.getElementById('filterGrade').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
-      }
-      if (holeFilter !== 'ALL') {
-        pillsHTML += `<span class="bg-vinyl-800 text-cyan-400 px-2 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Hole: ${holeFilter} <button onclick="document.getElementById('filterHole').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
+        pillsHTML += `<span class="bg-vinyl-800 text-brass-400 px-2.5 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Media: ${gradeFilter} <button onclick="document.getElementById('filterGrade').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
       }
 
       container.innerHTML = pillsHTML;
@@ -987,8 +1263,8 @@
 
     function resetFilters() {
       document.getElementById('globalSearch').value = '';
+      document.getElementById('filterFormat').value = 'ALL';
       document.getElementById('filterGrade').value = 'ALL';
-      document.getElementById('filterHole').value = 'ALL';
       document.getElementById('sortBy').value = 'dateAddedDesc';
       handleSearchFilterChange();
     }
@@ -1006,6 +1282,40 @@
         gridBtn.className = "px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition";
       }
       renderRecords();
+    }
+
+    function getGradeBadge(grade) {
+      const map = {
+        'M': 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+        'NM': 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+        'VG+': 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+        'VG': 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+        'G+': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+        'G': 'bg-red-500/20 text-red-400 border-red-500/30',
+        'F': 'bg-red-900/40 text-red-300 border-red-700',
+        'P': 'bg-rose-950 text-rose-300 border-rose-800'
+      };
+      const cls = map[grade] || 'bg-slate-700 text-slate-300 border-slate-600';
+      return `<span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono border ${cls}">${grade || 'VG+'}</span>`;
+    }
+
+    function getFormatBadge(format) {
+      const fmt = format || '12" LP (Album)';
+      let cls = 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+      let icon = 'fa-compact-disc';
+
+      if (fmt.includes('7"')) {
+        cls = 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
+        icon = 'fa-record-vinyl';
+      } else if (fmt.includes('Maxi') || fmt.includes('12" Single')) {
+        cls = 'bg-purple-500/20 text-purple-300 border-purple-500/30';
+        icon = 'fa-circle-dot';
+      }
+
+      return `<span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono border ${cls} flex items-center gap-1">
+        <i class="fa-solid ${icon} text-[9px]"></i>
+        <span>${fmt.replace(' (Album)', '').replace(' (45 RPM)', '')}</span>
+      </span>`;
     }
 
     /* =========================================================
@@ -1033,40 +1343,23 @@
       }
     }
 
-    // Helper for Grade Color Badges
-    function getGradeBadge(grade) {
-      const map = {
-        'M': 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-        'NM': 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-        'VG+': 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-        'VG': 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-        'G+': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-        'G': 'bg-red-500/20 text-red-400 border-red-500/30',
-        'F': 'bg-red-900/40 text-red-300 border-red-700',
-        'P': 'bg-rose-950 text-rose-300 border-rose-800'
-      };
-      const cls = map[grade] || 'bg-slate-700 text-slate-300 border-slate-600';
-      return `<span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono border ${cls}">${grade}</span>`;
-    }
-
     function renderGridView(list, container) {
       let html = '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">';
 
       list.forEach(item => {
-        const coverSrc = item.coverImage || 'https://placehold.co/400x400/181b22/d4af37?text=7"+Single';
-        const isDinked = item.centerHole && item.centerHole.includes('Dinked');
+        const coverSrc = item.coverImage || `https://placehold.co/400x400/181b22/d4af37?text=${encodeURIComponent(item.format && item.format.includes('7"') ? '7" Single' : '12" LP')}`;
+        const isAlbum = item.format && item.format.includes('LP');
 
         html += `
           <div class="bg-vinyl-900 rounded-2xl border border-vinyl-800 hover:border-brass-500/50 transition-all duration-200 overflow-hidden shadow-lg hover:shadow-2xl flex flex-col group">
             
-            <!-- Sleeve Visual Card Header with 7" Record Mockup Peek -->
+            <!-- Sleeve Visual Card Header -->
             <div class="relative w-full aspect-square bg-vinyl-950 overflow-hidden cursor-pointer" onclick="viewRecordDetail('${item.id}')">
-              <img src="${coverSrc}" alt="${item.title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/400x400/181b22/d4af37?text=45+RPM'">
+              <img src="${coverSrc}" alt="${item.title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/400x400/181b22/d4af37?text=Vinyl+Disc'">
               
-              <!-- Center Hole Indicator Badge -->
-              <div class="absolute top-3 left-3 bg-black/75 backdrop-blur px-2.5 py-1 rounded-full border border-white/10 flex items-center gap-1.5 text-[10px] text-slate-200">
-                <div class="${isDinked ? 'w-2.5 h-2.5 rounded-full border-2 border-brass-400' : 'w-1.5 h-1.5 rounded-full bg-brass-400'}"></div>
-                <span>${isDinked ? 'Large Hole' : 'Solid Center'}</span>
+              <!-- Format Indicator Badge -->
+              <div class="absolute top-3 left-3">
+                ${getFormatBadge(item.format)}
               </div>
 
               <!-- Media Grade Badge -->
@@ -1077,7 +1370,7 @@
               <!-- Speed and Label Pill -->
               <div class="absolute bottom-3 inset-x-3 flex items-center justify-between text-[11px] text-white/90">
                 <span class="bg-black/80 backdrop-blur px-2.5 py-0.5 rounded-md border border-white/10 font-mono">
-                  ${item.speed || '45 RPM'}
+                  ${item.speed || (isAlbum ? '33 1/3 RPM' : '45 RPM')}
                 </span>
                 <span class="bg-black/80 backdrop-blur px-2.5 py-0.5 rounded-md border border-white/10 truncate max-w-[140px]">
                   ${item.label || 'Unknown Label'}
@@ -1099,18 +1392,28 @@
                   ${item.title}
                 </h4>
 
-                <!-- A/B Sides Quick Info -->
-                <div class="bg-vinyl-850 p-2.5 rounded-lg border border-vinyl-800 space-y-1.5 text-[11px]">
-                  <div class="flex items-center gap-1.5 text-slate-300">
-                    <span class="w-4 h-4 rounded-full bg-vinyl-800 text-[9px] font-bold text-brass-400 flex items-center justify-center">A</span>
-                    <span class="truncate flex-1">${item.sideATitle || item.title}</span>
-                    <span class="font-mono text-slate-500 text-[10px]">${item.sideADuration || ''}</span>
-                  </div>
-                  <div class="flex items-center gap-1.5 text-slate-400">
-                    <span class="w-4 h-4 rounded-full bg-vinyl-800 text-[9px] font-bold text-slate-400 flex items-center justify-center">B</span>
-                    <span class="truncate flex-1">${item.sideBTitle || 'B-Side Track'}</span>
-                    <span class="font-mono text-slate-500 text-[10px]">${item.sideBDuration || ''}</span>
-                  </div>
+                <!-- Tracks Summary Quick Info -->
+                <div class="bg-vinyl-850 p-2.5 rounded-lg border border-vinyl-800 space-y-1 text-[11px]">
+                  ${item.tracks && item.tracks.length > 0 ? `
+                    <div class="flex items-center justify-between text-slate-300">
+                      <span class="font-medium text-brass-400 truncate flex-1">
+                        <i class="fa-solid fa-list text-[10px] mr-1"></i> ${item.tracks.length} Tracks Tracklist
+                      </span>
+                      <span class="text-[10px] text-slate-500 font-mono">${item.country || ''}</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 truncate">
+                      ${item.tracks.slice(0, 2).map(t => t.title).join(' · ')}${item.tracks.length > 2 ? '...' : ''}
+                    </div>
+                  ` : `
+                    <div class="flex items-center gap-1.5 text-slate-300 truncate">
+                      <span class="w-3.5 h-3.5 rounded-full bg-vinyl-800 text-[8px] font-bold text-brass-400 flex items-center justify-center">A</span>
+                      <span class="truncate">${item.sideATitle || item.title}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 text-slate-400 truncate">
+                      <span class="w-3.5 h-3.5 rounded-full bg-vinyl-800 text-[8px] font-bold text-slate-400 flex items-center justify-center">B</span>
+                      <span class="truncate">${item.sideBTitle || 'Side B Track'}</span>
+                    </div>
+                  `}
                 </div>
 
                 <!-- Matrix snippet -->
@@ -1124,7 +1427,7 @@
               <!-- Action Bar Footer -->
               <div class="mt-4 pt-3 border-t border-vinyl-800 flex items-center justify-between text-xs text-slate-400">
                 <button onclick="viewRecordDetail('${item.id}')" class="hover:text-brass-400 transition flex items-center gap-1">
-                  <i class="fa-solid fa-file-lines"></i> Research Dossier
+                  <i class="fa-solid fa-file-lines"></i> Dossier
                 </button>
                 <div class="flex items-center gap-2">
                   <button onclick="editRecord('${item.id}')" class="p-1.5 hover:text-amber-400 transition" title="Edit Metadata">
@@ -1151,14 +1454,14 @@
           <table class="w-full text-left text-xs text-slate-300">
             <thead class="bg-vinyl-850 border-b border-vinyl-800 text-[10px] uppercase font-bold tracking-wider text-slate-400 font-mono">
               <tr>
+                <th class="py-3 px-3">Format</th>
                 <th class="py-3 px-3">Cat #</th>
-                <th class="py-3 px-3">Artist / Single Title</th>
+                <th class="py-3 px-3">Artist / Release Title</th>
                 <th class="py-3 px-3">Label</th>
                 <th class="py-3 px-3">Year</th>
-                <th class="py-3 px-3">Center Hole</th>
                 <th class="py-3 px-3">Media</th>
                 <th class="py-3 px-3">Sleeve</th>
-                <th class="py-3 px-3">Matrix Etchings (A-Side)</th>
+                <th class="py-3 px-3">Matrix (Side A)</th>
                 <th class="py-3 px-3">Audio Transfer</th>
                 <th class="py-3 px-3 text-right">Actions</th>
               </tr>
@@ -1169,6 +1472,9 @@
       list.forEach(item => {
         html += `
           <tr class="hover:bg-vinyl-850/60 transition group">
+            <td class="py-2.5 px-3 whitespace-nowrap">
+              ${getFormatBadge(item.format)}
+            </td>
             <td class="py-2.5 px-3 font-mono text-brass-400/90 whitespace-nowrap">
               ${item.catNo || 'S/N'}
             </td>
@@ -1180,12 +1486,6 @@
             </td>
             <td class="py-2.5 px-3 whitespace-nowrap">${item.label || '--'}</td>
             <td class="py-2.5 px-3 font-mono">${item.year || '--'}</td>
-            <td class="py-2.5 px-3 whitespace-nowrap text-slate-300">
-              <span class="inline-flex items-center gap-1">
-                <i class="fa-solid fa-circle-dot text-[10px] text-brass-500"></i>
-                ${item.centerHole ? item.centerHole.split(' ')[0] : 'Solid'}
-              </span>
-            </td>
             <td class="py-2.5 px-3 whitespace-nowrap">${getGradeBadge(item.mediaGrade)}</td>
             <td class="py-2.5 px-3 whitespace-nowrap">${getGradeBadge(item.sleeveGrade)}</td>
             <td class="py-2.5 px-3 font-mono text-[11px] text-emerald-400/90 max-w-xs truncate" title="${item.matrixA}">
@@ -1229,11 +1529,43 @@
 
       const modal = document.getElementById('detailModal');
       const content = document.getElementById('detailModalContent');
+      const isAlbum = item.format && item.format.includes('LP');
+
+      let tracksHTML = '';
+      if (item.tracks && item.tracks.length > 0) {
+        tracksHTML = item.tracks.map(t => `
+          <div class="flex items-center justify-between p-2 bg-vinyl-900 rounded-lg border border-vinyl-800">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-5 rounded bg-vinyl-800 text-brass-400 text-center font-mono font-bold text-[10px] leading-5">${t.pos || '•'}</span>
+              <span class="font-medium text-white">${t.title}</span>
+            </div>
+            <span class="font-mono text-slate-400 text-xs">${t.duration || '--:--'}</span>
+          </div>
+        `).join('');
+      } else {
+        tracksHTML = `
+          <div class="flex items-center justify-between p-2 bg-vinyl-900 rounded-lg border border-vinyl-800">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-brass-500/20 text-brass-400 text-center font-bold text-[10px] leading-5">A</span>
+              <span class="font-medium text-white">${item.sideATitle || item.title}</span>
+            </div>
+            <span class="font-mono text-slate-400">${item.sideADuration || '--:--'}</span>
+          </div>
+          <div class="flex items-center justify-between p-2 bg-vinyl-900 rounded-lg border border-vinyl-800">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-300 text-center font-bold text-[10px] leading-5">B</span>
+              <span class="font-medium text-white">${item.sideBTitle || 'Side B Track'}</span>
+            </div>
+            <span class="font-mono text-slate-400">${item.sideBDuration || '--:--'}</span>
+          </div>
+        `;
+      }
 
       content.innerHTML = `
         <div class="flex items-start justify-between border-b border-vinyl-800 pb-4 mb-5">
           <div>
-            <div class="flex items-center gap-2 mb-1">
+            <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+              ${getFormatBadge(item.format)}
               <span class="text-xs font-mono px-2 py-0.5 rounded bg-vinyl-800 text-brass-400 border border-vinyl-700">${item.catNo || 'NO CAT#'}</span>
               <span class="text-xs font-mono text-slate-400">${item.year || 'Unknown Year'}</span>
               <span class="text-xs text-slate-400">·</span>
@@ -1252,22 +1584,27 @@
           <!-- Column 1: Visuals & Center Hole info -->
           <div class="space-y-4">
             <div class="aspect-square bg-vinyl-950 rounded-xl overflow-hidden border border-vinyl-800 relative">
-              <img src="${item.coverImage || 'https://placehold.co/400x400/181b22/d4af37?text=7"+Cover'}" alt="Cover" class="w-full h-full object-cover">
+              <img src="${item.coverImage || 'https://placehold.co/400x400/181b22/d4af37?text=Vinyl+Cover'}" alt="Cover" class="w-full h-full object-cover">
             </div>
 
             <div class="bg-vinyl-850 p-3 rounded-xl border border-vinyl-800 space-y-2 text-xs">
               <div class="flex justify-between items-center">
-                <span class="text-slate-400">Center Spindle:</span>
-                <span class="font-semibold text-slate-200">${item.centerHole}</span>
+                <span class="text-slate-400">Format:</span>
+                <span class="font-semibold text-slate-200">${item.format || '12" LP'}</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-slate-400">Speed / Format:</span>
-                <span class="font-semibold text-slate-200">${item.speed || '45 RPM'} Single</span>
+                <span class="text-slate-400">Speed:</span>
+                <span class="font-semibold text-slate-200">${item.speed || (isAlbum ? '33 1/3 RPM' : '45 RPM')}</span>
               </div>
               <div class="flex justify-between items-center">
                 <span class="text-slate-400">Record Label:</span>
-                <span class="font-semibold text-brass-400">${item.label}</span>
+                <span class="font-semibold text-brass-400">${item.label || '--'}</span>
               </div>
+              ${item.centerHole ? `
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">Center Hole:</span>
+                <span class="text-slate-300">${item.centerHole}</span>
+              </div>` : ''}
               ${item.barcode ? `
               <div class="flex justify-between items-center font-mono">
                 <span class="text-slate-400">Barcode:</span>
@@ -1278,13 +1615,13 @@
             <!-- Labels row if uploaded -->
             <div class="grid grid-cols-2 gap-2">
               <div class="p-2 bg-vinyl-850 rounded-lg border border-vinyl-800 text-center">
-                <span class="text-[10px] font-bold text-slate-400 block mb-1">A-Side Label</span>
+                <span class="text-[10px] font-bold text-slate-400 block mb-1">Side A Label</span>
                 ${item.labelAImage ? 
                   `<img src="${item.labelAImage}" class="w-full h-20 object-cover rounded border border-vinyl-700">` : 
                   `<div class="h-20 bg-vinyl-900 rounded flex items-center justify-center text-[10px] text-slate-600">Not Photographed</div>`}
               </div>
               <div class="p-2 bg-vinyl-850 rounded-lg border border-vinyl-800 text-center">
-                <span class="text-[10px] font-bold text-slate-400 block mb-1">B-Side Label</span>
+                <span class="text-[10px] font-bold text-slate-400 block mb-1">Side B Label</span>
                 ${item.labelBImage ? 
                   `<img src="${item.labelBImage}" class="w-full h-20 object-cover rounded border border-vinyl-700">` : 
                   `<div class="h-20 bg-vinyl-900 rounded flex items-center justify-center text-[10px] text-slate-600">Not Photographed</div>`}
@@ -1293,28 +1630,15 @@
           </div>
 
           <!-- Column 2 & 3: Detailed Dossier -->
-          <div class="md:col-span-2 space-y-5">
+          <div class="md:col-span-2 space-y-4">
             
             <!-- Tracks Block -->
             <div class="bg-vinyl-850 p-4 rounded-xl border border-vinyl-800">
               <h4 class="text-xs uppercase font-bold text-slate-400 tracking-wider mb-2 flex items-center gap-2">
                 <i class="fa-solid fa-list-ol text-brass-400"></i> Tracklist Architecture
               </h4>
-              <div class="space-y-2 text-xs">
-                <div class="flex items-center justify-between p-2 bg-vinyl-900 rounded-lg border border-vinyl-800">
-                  <div class="flex items-center gap-2">
-                    <span class="w-5 h-5 rounded-full bg-brass-500/20 text-brass-400 text-center font-bold text-[10px] leading-5">A</span>
-                    <span class="font-medium text-white">${item.sideATitle || item.title}</span>
-                  </div>
-                  <span class="font-mono text-slate-400">${item.sideADuration || '--:--'}</span>
-                </div>
-                <div class="flex items-center justify-between p-2 bg-vinyl-900 rounded-lg border border-vinyl-800">
-                  <div class="flex items-center gap-2">
-                    <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-300 text-center font-bold text-[10px] leading-5">B</span>
-                    <span class="font-medium text-white">${item.sideBTitle || 'B-Side Track'}</span>
-                  </div>
-                  <span class="font-mono text-slate-400">${item.sideBDuration || '--:--'}</span>
-                </div>
+              <div class="space-y-1.5 text-xs max-h-56 overflow-y-auto pr-1">
+                ${tracksHTML}
               </div>
             </div>
 
@@ -1354,7 +1678,7 @@
               <h4 class="text-xs uppercase font-bold text-slate-400 tracking-wider mb-2 flex items-center gap-2">
                 <i class="fa-solid fa-award text-brass-400"></i> Goldmine Grading & Condition
               </h4>
-              <div class="grid grid-cols-2 gap-3 text-xs mb-2">
+              <div class="grid grid-cols-2 gap-3 text-xs">
                 <div class="p-2.5 bg-vinyl-900 rounded-lg border border-vinyl-800">
                   <div class="flex items-center justify-between mb-1">
                     <span class="text-slate-400">Vinyl Media:</span>
@@ -1364,7 +1688,7 @@
                 </div>
                 <div class="p-2.5 bg-vinyl-900 rounded-lg border border-vinyl-800">
                   <div class="flex items-center justify-between mb-1">
-                    <span class="text-slate-400">Sleeve / Cover:</span>
+                    <span class="text-slate-400">Sleeve / Jacket:</span>
                     ${getGradeBadge(item.sleeveGrade)}
                   </div>
                   <p class="text-[11px] text-slate-300 italic">${item.sleeveGradeNotes || 'Standard condition.'}</p>
@@ -1400,7 +1724,7 @@
                 </h4>
                 <div class="p-2.5 bg-vinyl-900 rounded-lg border border-vinyl-800 flex flex-col gap-1">
                   <div class="flex items-center gap-2">
-                    <span class="text-cyan-400 font-mono font-medium">${item.transferStatus}</span>
+                    <span class="text-cyan-400 font-mono font-medium">${item.transferStatus || 'Not Digitized'}</span>
                   </div>
                   <p class="text-[11px] text-slate-400">${item.transferNotes || 'No equipment chain notes recorded.'}</p>
                 </div>
@@ -1433,22 +1757,60 @@
     }
 
     /* =========================================================
-       ADD / EDIT MODAL & TAB CONTROL
+       ADD / EDIT MODAL & FORM CONTROL (OPTIMIZED WORKFLOW)
        ========================================================= */
     function openAddEditModal() {
-      document.getElementById('modalTitle').innerText = 'Catalogue 7" Single';
+      document.getElementById('modalTitle').innerText = 'Catalogue Record';
       document.getElementById('recordForm').reset();
       document.getElementById('recordId').value = '';
       
-      // Reset image previews
-      clearImagePreviews();
+      // Apply session sticky defaults for high-speed workflow
+      document.getElementById('formFormat').value = sessionDefaults.format || '12" LP (Album)';
+      document.getElementById('formMediaGrade').value = sessionDefaults.mediaGrade || 'VG+';
+      document.getElementById('formSleeveGrade').value = sessionDefaults.sleeveGrade || 'VG+';
+      document.getElementById('formCountry').value = sessionDefaults.country || '';
 
+      handleFormatChange();
+      clearImagePreviews();
       switchFormTab('tab-general');
       document.getElementById('recordModal').classList.remove('hidden');
+      
+      // Auto-focus artist input for immediate typing
+      setTimeout(() => document.getElementById('formArtist').focus(), 150);
     }
 
     function closeAddEditModal() {
       document.getElementById('recordModal').classList.add('hidden');
+    }
+
+    function handleFormatChange() {
+      const format = document.getElementById('formFormat').value;
+      const isSingle = format.includes('7"');
+      const singleContainer = document.getElementById('tracksSingleContainer');
+      const albumContainer = document.getElementById('tracksAlbumContainer');
+      const speedSelect = document.getElementById('formSpeed');
+      const hintText = document.getElementById('formatHintText');
+
+      if (isSingle) {
+        singleContainer.classList.remove('hidden');
+        albumContainer.classList.add('hidden');
+        speedSelect.value = '45 RPM';
+        document.getElementById('formCenterHole').value = 'Solid (Small 0.28 inch)';
+        hintText.innerText = '7-inch single pressing with dual A/B track architecture.';
+      } else {
+        singleContainer.classList.add('hidden');
+        albumContainer.classList.remove('hidden');
+        speedSelect.value = '33 1/3 RPM';
+        document.getElementById('formCenterHole').value = 'Solid (Small 0.28 inch)';
+        hintText.innerText = '12-inch 33⅓ RPM long-playing album with multi-track layout.';
+      }
+    }
+
+    function formatTracklistText() {
+      const textarea = document.getElementById('formAlbumTracks');
+      const lines = textarea.value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      textarea.value = lines.join('\n');
+      showToast("Formatted tracklist spacing.");
     }
 
     function switchFormTab(tabId) {
@@ -1502,8 +1864,11 @@
       const item = records.find(r => r.id === id);
       if (!item) return;
 
-      document.getElementById('modalTitle').innerText = 'Edit 7" Single: ' + item.artist;
+      document.getElementById('modalTitle').innerText = 'Edit Record: ' + item.artist;
       document.getElementById('recordId').value = item.id;
+
+      document.getElementById('formFormat').value = item.format || '12" LP (Album)';
+      handleFormatChange();
 
       // Populate inputs
       document.getElementById('formArtist').value = item.artist || '';
@@ -1518,8 +1883,15 @@
       document.getElementById('formBarcode').value = item.barcode || '';
       document.getElementById('formCountry').value = item.country || '';
 
+      // Album tracks
+      if (item.tracks && item.tracks.length > 0) {
+        document.getElementById('formAlbumTracks').value = item.tracks.map(t => `${t.pos ? t.pos + '. ' : ''}${t.title}${t.duration ? ' (' + t.duration + ')' : ''}`).join('\n');
+      } else {
+        document.getElementById('formAlbumTracks').value = '';
+      }
+
       document.getElementById('formCenterHole').value = item.centerHole || 'Solid (Small 0.28 inch)';
-      document.getElementById('formSpeed').value = item.speed || '45 RPM';
+      document.getElementById('formSpeed').value = item.speed || '33 1/3 RPM';
       document.getElementById('formMatrixA').value = item.matrixA || '';
       document.getElementById('formMatrixB').value = item.matrixB || '';
       document.getElementById('formMastering').value = item.mastering || '';
@@ -1562,20 +1934,61 @@
       document.getElementById('recordModal').classList.remove('hidden');
     }
 
-    function saveRecordForm(e) {
-      e.preventDefault();
+    function saveRecordForm(e, andAddNext = false) {
+      if (e) e.preventDefault();
+
+      const artist = document.getElementById('formArtist').value.trim();
+      const title = document.getElementById('formTitle').value.trim();
+      if (!artist || !title) {
+        showToast("Please enter both Artist and Release Title", "error");
+        switchFormTab('tab-general');
+        return;
+      }
+
       const existingId = document.getElementById('recordId').value;
       const isNew = !existingId;
-      const newId = existingId || ('rec_7_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7));
+      const newId = existingId || ('rec_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7));
 
       const coverSrc = document.getElementById('previewCoverImg').src;
       const labelASrc = document.getElementById('previewLabelAImg').src;
       const labelBSrc = document.getElementById('previewLabelBImg').src;
 
+      const format = document.getElementById('formFormat').value;
+
+      // Parse tracks from textarea for albums
+      let parsedTracks = [];
+      const albumTracksRaw = document.getElementById('formAlbumTracks').value.trim();
+      if (albumTracksRaw) {
+        const lines = albumTracksRaw.split('\n').map(l => l.trim()).filter(Boolean);
+        parsedTracks = lines.map((line, idx) => {
+          let pos = '';
+          let trackTitle = line;
+          let duration = '';
+
+          // Match patterns like "A1. Title (3:45)" or "1. Title"
+          const matchPos = line.match(/^([A-D]?\d+|[A-B])\.\s*(.+)/);
+          if (matchPos) {
+            pos = matchPos[1];
+            trackTitle = matchPos[2];
+          } else {
+            pos = String(idx + 1);
+          }
+
+          const matchDur = trackTitle.match(/\(([\d:]+)\)$/);
+          if (matchDur) {
+            duration = matchDur[1];
+            trackTitle = trackTitle.replace(/\(([\d:]+)\)$/, '').trim();
+          }
+
+          return { pos, title: trackTitle, duration };
+        });
+      }
+
       const recordObj = {
         id: newId,
-        artist: document.getElementById('formArtist').value.trim(),
-        title: document.getElementById('formTitle').value.trim(),
+        format: format,
+        artist: artist,
+        title: title,
         label: document.getElementById('formLabel').value.trim(),
         catNo: document.getElementById('formCatNo').value.trim(),
         year: parseInt(document.getElementById('formYear').value) || null,
@@ -1583,6 +1996,7 @@
         sideADuration: document.getElementById('formSideADuration').value.trim(),
         sideBTitle: document.getElementById('formSideBTitle').value.trim(),
         sideBDuration: document.getElementById('formSideBDuration').value.trim(),
+        tracks: parsedTracks.length > 0 ? parsedTracks : undefined,
         barcode: document.getElementById('formBarcode').value.trim(),
         country: document.getElementById('formCountry').value.trim(),
 
@@ -1611,6 +2025,12 @@
         dateAdded: isNew ? new Date().toISOString() : (records.find(r => r.id === newId)?.dateAdded || new Date().toISOString())
       };
 
+      // Update sticky session defaults
+      sessionDefaults.format = recordObj.format;
+      sessionDefaults.mediaGrade = recordObj.mediaGrade;
+      sessionDefaults.sleeveGrade = recordObj.sleeveGrade;
+      sessionDefaults.country = recordObj.country;
+
       if (isNew) {
         records.unshift(recordObj);
         showToast(`Catalogued "${recordObj.title}" successfully!`);
@@ -1625,15 +2045,35 @@
       saveRecordsToStorage();
       renderStats();
       renderRecords();
-      closeAddEditModal();
+
+      if (andAddNext) {
+        // Clear specific fields but keep sticky settings for rapid cataloging
+        document.getElementById('recordId').value = '';
+        document.getElementById('formArtist').value = '';
+        document.getElementById('formTitle').value = '';
+        document.getElementById('formSideATitle').value = '';
+        document.getElementById('formSideADuration').value = '';
+        document.getElementById('formSideBTitle').value = '';
+        document.getElementById('formSideBDuration').value = '';
+        document.getElementById('formAlbumTracks').value = '';
+        document.getElementById('formBarcode').value = '';
+        document.getElementById('formMatrixA').value = '';
+        document.getElementById('formMatrixB').value = '';
+        document.getElementById('musicBrainzQueryInput').value = '';
+        clearImagePreviews();
+        switchFormTab('tab-general');
+        showToast("Ready for next record! [Ctrl+Enter]");
+        setTimeout(() => document.getElementById('formArtist').focus(), 100);
+      } else {
+        closeAddEditModal();
+      }
     }
 
     function deleteRecordPrompt(id) {
       const record = records.find(r => r.id === id);
       if (!record) return;
 
-      // Custom inline confirmation toast/box simulation
-      const proceed = window.confirm(`Permanently remove 7" single "${record.title}" by ${record.artist} from your research catalogue?`);
+      const proceed = window.confirm(`Permanently remove "${record.title}" by ${record.artist} from your research catalogue?`);
       if (proceed) {
         records = records.filter(r => r.id !== id);
         saveRecordsToStorage();
@@ -1644,12 +2084,140 @@
     }
 
     /* =========================================================
-       AUTOFILL PRESETS & SIMULATION
+       LIVE MUSICBRAINZ OPEN DISCOGRAPHY API LOOKUP
+       ========================================================= */
+    async function lookupMusicBrainzManual() {
+      const query = document.getElementById('musicBrainzQueryInput').value.trim();
+      if (!query) {
+        showToast("Please enter an Artist & Title or Barcode", "error");
+        return;
+      }
+      await executeMusicBrainzSearch(query);
+    }
+
+    async function lookupMusicBrainzByBarcodeField() {
+      const barcode = document.getElementById('formBarcode').value.trim();
+      if (!barcode) {
+        showToast("Enter a barcode first", "error");
+        return;
+      }
+      await executeMusicBrainzSearch(barcode, true);
+    }
+
+    async function executeMusicBrainzSearch(query, isBarcodeOnly = false) {
+      showToast(`Searching open discography for "${query}"...`);
+
+      try {
+        let apiUrl = '';
+        if (isBarcodeOnly || /^\d{8,14}$/.test(query)) {
+          apiUrl = `https://musicbrainz.org/ws/2/release/?query=barcode:${encodeURIComponent(query)}&fmt=json`;
+        } else {
+          apiUrl = `https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(query)}&fmt=json`;
+        }
+
+        const res = await fetch(apiUrl);
+        if (!res.ok) throw new Error("MusicBrainz service busy");
+        const data = await res.json();
+
+        if (data.releases && data.releases.length > 0) {
+          const match = data.releases[0];
+          
+          // Autofill Artist
+          if (match['artist-credit'] && match['artist-credit'].length > 0) {
+            document.getElementById('formArtist').value = match['artist-credit'][0].name || '';
+          }
+          
+          // Title
+          document.getElementById('formTitle').value = match.title || '';
+
+          // Date / Year
+          if (match.date) {
+            const yr = parseInt(match.date.slice(0, 4));
+            if (!isNaN(yr)) document.getElementById('formYear').value = yr;
+          }
+
+          // Country
+          if (match.country) {
+            document.getElementById('formCountry').value = match.country;
+          }
+
+          // Barcode
+          if (match.barcode) {
+            document.getElementById('formBarcode').value = match.barcode;
+          }
+
+          // Label and Catalog Number
+          if (match['label-info'] && match['label-info'].length > 0) {
+            const lInfo = match['label-info'][0];
+            if (lInfo.label && lInfo.label.name) {
+              document.getElementById('formLabel').value = lInfo.label.name;
+            }
+            if (lInfo['catalog-number']) {
+              document.getElementById('formCatNo').value = lInfo['catalog-number'];
+            }
+          }
+
+          // Media format detection (Vinyl 12" LP vs 7")
+          if (match.media && match.media.length > 0) {
+            const m = match.media[0];
+            const formatName = m.format || '';
+            if (formatName.includes('7"')) {
+              document.getElementById('formFormat').value = '7" Single (45 RPM)';
+            } else if (match.media.length >= 2) {
+              document.getElementById('formFormat').value = '2xLP Gatefold (Album)';
+            } else {
+              document.getElementById('formFormat').value = '12" LP (Album)';
+            }
+            handleFormatChange();
+
+            // Tracklist if included
+            if (m.tracks && m.tracks.length > 0) {
+              const lines = m.tracks.map((t, idx) => {
+                const durSec = t.length ? Math.floor(t.length / 1000) : 0;
+                const mStr = Math.floor(durSec / 60);
+                const sStr = String(durSec % 60).padStart(2, '0');
+                const durFmt = durSec > 0 ? ` (${mStr}:${sStr})` : '';
+                return `${t.number || idx + 1}. ${t.title}${durFmt}`;
+              });
+              document.getElementById('formAlbumTracks').value = lines.join('\n');
+            }
+          }
+
+          showToast(`Autofilled metadata for "${match.title}"!`);
+        } else {
+          showToast(`No exact online match found for "${query}"`, "info");
+        }
+      } catch (err) {
+        console.warn("MusicBrainz query fallback:", err);
+        showToast("Discography API busy or offline. Manual entry active.", "info");
+      }
+    }
+
+    /* =========================================================
+       PRESET AUTOFILLS
        ========================================================= */
     function presetAutofill(type) {
-      if (type === 'reggae') {
+      if (type === 'lp_rock') {
+        document.getElementById('formFormat').value = "12\" LP (Album)";
+        handleFormatChange();
+        document.getElementById('formArtist').value = "Pink Floyd";
+        document.getElementById('formTitle').value = "The Dark Side of the Moon";
+        document.getElementById('formLabel').value = "Harvest / EMI";
+        document.getElementById('formCatNo').value = "SHVL 804";
+        document.getElementById('formYear').value = "1973";
+        document.getElementById('formCountry').value = "United Kingdom";
+        document.getElementById('formAlbumTracks').value = "A1. Speak to Me / Breathe (3:58)\nA2. On the Run (3:35)\nA3. Time (7:05)\nA4. The Great Gig in the Sky (4:44)\nB1. Money (6:22)\nB2. Us and Them (7:50)\nB3. Any Colour You Like (3:26)\nB4. Brain Damage (3:47)\nB5. Eclipse (2:03)";
+        document.getElementById('formMatrixA').value = "SHVL 804 A-2";
+        document.getElementById('formMatrixB').value = "SHVL 804 B-2";
+        document.getElementById('formMastering').value = "Harry Moss / Doug Sax";
+        document.getElementById('formMediaGrade').value = "NM";
+        document.getElementById('formGenres').value = "Progressive Rock";
+        document.getElementById('formResearchNotes').value = "UK first pressing with solid light blue triangle on label and black gatefold jacket.";
+      } else if (type === 'reggae') {
+        document.getElementById('formFormat').value = "7\" Single (45 RPM)";
+        handleFormatChange();
         document.getElementById('formArtist').value = "Augustus Pablo & The Upsetters";
-        document.getElementById('formTitle').value = "Blackboard Jungle Dub / Version";
+        document.getElementById('formTitle').value = "Blackboard Jungle Dub";
         document.getElementById('formLabel').value = "Upsetter Records";
         document.getElementById('formCatNo').value = "UP-304";
         document.getElementById('formYear').value = "1973";
@@ -1658,48 +2226,15 @@
         document.getElementById('formCenterHole').value = "Dinked (Large 1.5 inch)";
         document.getElementById('formSpeed').value = "45 RPM";
         document.getElementById('formMatrixA').value = "DSR-7821-A KING TUBBY";
-        document.getElementById('formMastering').value = "King Tubby (Osbourne Ruddock)";
-        document.getElementById('formPressingPlant').value = "Dynamic Sounds, Kingston";
         document.getElementById('formMediaGrade').value = "VG+";
         document.getElementById('formGenres').value = "Dub, Roots Reggae";
         document.getElementById('formProducer').value = "Lee 'Scratch' Perry";
-        document.getElementById('formResearchNotes').value = "Rare 7-inch matrix cut from the Black Ark sessions, voiced and mixed down at King Tubby's studio, Dromilly Avenue.";
-      } else if (type === 'motown') {
-        document.getElementById('formArtist').value = "Frank Wilson";
-        document.getElementById('formTitle').value = "Do I Love You (Indeed I Do)";
-        document.getElementById('formLabel').value = "Soul / Motown";
-        document.getElementById('formCatNo').value = "S-35019";
-        document.getElementById('formYear').value = "1965";
-        document.getElementById('formSideATitle').value = "Do I Love You (Indeed I Do)";
-        document.getElementById('formSideBTitle').value = "Sweeter as the Days Go By";
-        document.getElementById('formCenterHole').value = "Solid (Small 0.28 inch)";
-        document.getElementById('formMatrixA').value = "DM-S-35019-1B BELL SOUND";
-        document.getElementById('formMastering').value = "Bell Sound Studios, NY";
-        document.getElementById('formMediaGrade').value = "NM";
-        document.getElementById('formGenres').value = "Northern Soul";
-        document.getElementById('formProducer').value = "Frank Wilson & Hal Davis";
-        document.getElementById('formResearchNotes').value = "Northern Soul holy grail. Only 2 known original Motown demo pressings survived after Berry Gordy ordered the rest destroyed.";
-      } else if (type === 'punk') {
-        document.getElementById('formArtist').value = "Buzzcocks";
-        document.getElementById('formTitle').value = "Spiral Scratch EP";
-        document.getElementById('formLabel').value = "New Hormones";
-        document.getElementById('formCatNo').value = "ORG-1";
-        document.getElementById('formYear').value = "1977";
-        document.getElementById('formSideATitle').value = "Breakdown";
-        document.getElementById('formSideBTitle').value = "Boredom";
-        document.getElementById('formCenterHole').value = "Solid (Small 0.28 inch)";
-        document.getElementById('formMatrixA').value = "ORG-1-A1 TOWNHOUSE";
-        document.getElementById('formMastering').value = "Townhouse";
-        document.getElementById('formMediaGrade').value = "VG+";
-        document.getElementById('formGenres').value = "Punk Rock, DIY";
-        document.getElementById('formProducer').value = "Martin Hannett";
-        document.getElementById('formResearchNotes').value = "Groundbreaking DIY independent release financed with a £500 loan. Recorded at Indigo Studios in Manchester.";
       }
-      showToast("Autofilled research preset data!");
+      showToast("Autofilled preset research template!");
     }
 
     /* =========================================================
-       BARCODE SCANNING & LOOKUP ENGINE
+       BARCODE SCANNER & LOOKUP
        ========================================================= */
     function openScannerModal() {
       document.getElementById('scannerModal').classList.remove('hidden');
@@ -1715,97 +2250,350 @@
         html5QrScanner.start(
           { facingMode: "environment" },
           config,
-          (decodedText, decodedResult) => {
+          (decodedText) => {
             handleBarcodeScanned(decodedText);
           },
-          (errorMessage) => {
-            // normal frame-by-frame parse tick
-          }
+          () => {}
         ).catch(err => {
-          console.warn("Camera start failed or permission denied:", err);
-          document.getElementById('scanFeedback').innerText = "Camera not available. You can enter barcode below or test with simulation.";
+          console.warn("Camera failed:", err);
+          document.getElementById('scanFeedback').innerText = "Camera feed not available. You can enter barcode below or test with sample.";
         });
       } catch (err) {
-        document.getElementById('scanFeedback').innerText = "Camera scanner unavailable in this browser environment.";
+        document.getElementById('scanFeedback').innerText = "Scanner unavailable in this browser environment.";
       }
     }
 
     function closeScannerModal() {
       if (html5QrScanner) {
-        html5QrScanner.stop().then(() => {
-          html5QrScanner.clear();
-        }).catch(err => console.log(err));
+        html5QrScanner.stop().then(() => html5QrScanner.clear()).catch(err => console.log(err));
       }
       document.getElementById('scannerModal').classList.add('hidden');
     }
 
     function handleBarcodeScanned(code) {
-      if (html5QrScanner) {
-        html5QrScanner.stop().catch(err => console.log(err));
-      }
-      document.getElementById('scannerModal').classList.add('hidden');
-      executeBarcodeAutofill(code);
+      closeScannerModal();
+      openAddEditModal();
+      document.getElementById('formBarcode').value = code;
+      executeMusicBrainzSearch(code, true);
     }
 
     function handleManualBarcode() {
       const code = document.getElementById('manualBarcodeInput').value.trim();
       if (!code) return;
-      closeScannerModal();
-      executeBarcodeAutofill(code);
+      handleBarcodeScanned(code);
     }
 
     function simulateScanSample() {
-      closeScannerModal();
-      executeBarcodeAutofill("042288021175");
-    }
-
-    function simulateBarcodeLookup() {
-      const currentVal = document.getElementById('formBarcode').value.trim() || "042288021175";
-      executeBarcodeAutofill(currentVal);
-    }
-
-    function executeBarcodeAutofill(code) {
-      showToast(`Searching discography database for Barcode: ${code}...`);
-
-      // Mock database lookup with 7" single specifics
-      setTimeout(() => {
-        openAddEditModal();
-        document.getElementById('formBarcode').value = code;
-
-        if (code === "042288021175") {
-          document.getElementById('formArtist').value = "Grandmaster Flash & The Furious Five";
-          document.getElementById('formTitle').value = "The Message";
-          document.getElementById('formLabel').value = "Sugar Hill Records";
-          document.getElementById('formCatNo').value = "SH-584";
-          document.getElementById('formYear').value = "1982";
-          document.getElementById('formSideATitle').value = "The Message (7\" Edit)";
-          document.getElementById('formSideADuration').value = "3:12";
-          document.getElementById('formSideBTitle').value = "The Message (Instrumental)";
-          document.getElementById('formSideBDuration').value = "3:10";
-          document.getElementById('formCenterHole').value = "Dinked (Large 1.5 inch)";
-          document.getElementById('formSpeed').value = "45 RPM";
-          document.getElementById('formCountry').value = "United States";
-          document.getElementById('formMatrixA').value = "SH-584-A STERLING";
-          document.getElementById('formMastering').value = "Greg Calbi at Sterling Sound";
-          document.getElementById('formGenres').value = "Electro, Hip-Hop";
-          document.getElementById('formResearchNotes').value = "Autofilled via Barcode DB match. 7-inch release variant.";
-          showToast(`Autofilled metadata for "The Message"!`);
-        } else {
-          // Generic heuristic simulation
-          document.getElementById('formArtist').value = "Unknown 7\" Single Artist";
-          document.getElementById('formTitle').value = `Scanned Release (${code})`;
-          document.getElementById('formLabel').value = "Independent 45 Pressing";
-          document.getElementById('formCenterHole').value = "Solid (Small 0.28 inch)";
-          document.getElementById('formSpeed').value = "45 RPM";
-          document.getElementById('formYear').value = "1980";
-          showToast(`Fetched initial draft info for barcode ${code}`);
-        }
-      }, 700);
+      handleBarcodeScanned("5099902894512");
     }
 
     /* =========================================================
-       IMPORT & EXPORT DATA ENGINE
+       BATCH EXCEL (.XLSX) & CSV UPLOAD ENGINE
        ========================================================= */
+    function openBatchUploadModal() {
+      document.getElementById('batchFileInput').value = '';
+      document.getElementById('batchPreviewContainer').classList.add('hidden');
+      document.getElementById('commitBatchBtn').disabled = true;
+      stagedBatchRecords = [];
+      document.getElementById('batchUploadModal').classList.remove('hidden');
+    }
+
+    function closeBatchUploadModal() {
+      document.getElementById('batchUploadModal').classList.add('hidden');
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      document.getElementById('uploadDropzone').classList.add('dropzone-active');
+    }
+
+    function handleDragLeave(e) {
+      e.preventDefault();
+      document.getElementById('uploadDropzone').classList.remove('dropzone-active');
+    }
+
+    function handleFileDrop(e) {
+      e.preventDefault();
+      document.getElementById('uploadDropzone').classList.remove('dropzone-active');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        processUploadedBatchFile(files[0]);
+      }
+    }
+
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (file) {
+        processUploadedBatchFile(file);
+      }
+    }
+
+    function processUploadedBatchFile(file) {
+      const reader = new FileReader();
+      const fileName = file.name;
+      const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
+
+      reader.onload = function(e) {
+        try {
+          let rows = [];
+          
+          if (isExcel && typeof XLSX !== 'undefined') {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            rows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+          } else {
+            // CSV / TSV Parsing (with XLSX or pure fallback)
+            const text = typeof e.target.result === 'string' ? e.target.result : new TextDecoder().decode(e.target.result);
+            if (typeof XLSX !== 'undefined') {
+              const workbook = XLSX.read(text, { type: 'string' });
+              const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+              rows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+            } else {
+              rows = parseCSVTextManually(text);
+            }
+          }
+
+          if (!rows || rows.length === 0) {
+            showToast("No data rows found in uploaded file", "error");
+            return;
+          }
+
+          stageParsedBatchData(rows, fileName);
+        } catch (err) {
+          console.error("Batch parse error:", err);
+          showToast("Failed to parse file. Please verify CSV or Excel format.", "error");
+        }
+      };
+
+      if (isExcel) {
+        reader.readAsArrayBuffer(file);
+      } else {
+        reader.readAsText(file);
+      }
+    }
+
+    // Manual robust CSV parser fallback
+    function parseCSVTextManually(text) {
+      const lines = text.split(/\r\n|\n/).filter(line => line.trim().length > 0);
+      if (lines.length < 2) return [];
+
+      const delimiter = lines[0].includes('\t') ? '\t' : ',';
+      const parseLine = (line) => {
+        const result = [];
+        let cur = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"' || char === "'") {
+            inQuotes = !inQuotes;
+          } else if (char === delimiter && !inQuotes) {
+            result.push(cur.trim().replace(/^["']|["']$/g, ''));
+            cur = '';
+          } else {
+            cur += char;
+          }
+        }
+        result.push(cur.trim().replace(/^["']|["']$/g, ''));
+        return result;
+      };
+
+      const headers = parseLine(lines[0]).map(h => h.trim());
+      const data = [];
+      for (let i = 1; i < lines.length; i++) {
+        const values = parseLine(lines[i]);
+        const obj = {};
+        headers.forEach((h, idx) => {
+          obj[h] = values[idx] || "";
+        });
+        data.push(obj);
+      }
+      return data;
+    }
+
+    // Smart Column Auto-Mapping & Minimum Dataset Staging
+    function stageParsedBatchData(rawRows, fileName) {
+      stagedBatchRecords = [];
+      const mappingDetected = {};
+
+      rawRows.forEach((row, idx) => {
+        // Find fields case-insensitively
+        const keys = Object.keys(row);
+        const getVal = (...aliases) => {
+          for (const alias of aliases) {
+            const foundKey = keys.find(k => k.trim().toLowerCase() === alias.toLowerCase());
+            if (foundKey && row[foundKey] !== undefined && String(row[foundKey]).trim() !== '') {
+              mappingDetected[alias] = foundKey;
+              return String(row[foundKey]).trim();
+            }
+          }
+          return '';
+        };
+
+        const artist = getVal('artist', 'band', 'performer', 'group', 'singer') || 'Unknown Artist';
+        const title = getVal('title', 'album', 'album title', 'release', 'single', 'name') || `Untitled Release ${idx + 1}`;
+        const rawFormat = getVal('format', 'type', 'media');
+        
+        let format = '12" LP (Album)';
+        if (rawFormat.toLowerCase().includes('7') || rawFormat.toLowerCase().includes('single') || rawFormat.toLowerCase().includes('45')) {
+          format = '7" Single (45 RPM)';
+        } else if (rawFormat.toLowerCase().includes('2xlp') || rawFormat.toLowerCase().includes('gatefold')) {
+          format = '2xLP Gatefold (Album)';
+        } else if (rawFormat.toLowerCase().includes('maxi') || rawFormat.toLowerCase().includes('12" single')) {
+          format = '12" Maxi / Single';
+        }
+
+        const yearVal = parseInt(getVal('year', 'release year', 'date', 'released')) || null;
+        const label = getVal('label', 'record label', 'company');
+        const catNo = getVal('catno', 'catalog #', 'cat #', 'catalog', 'cat number');
+        const mediaGrade = getVal('grade', 'media grade', 'condition', 'vinyl grade') || 'VG+';
+        const sleeveGrade = getVal('sleeve', 'sleeve grade', 'cover grade') || 'VG+';
+        const genres = getVal('genre', 'genres', 'category', 'style');
+        const barcode = getVal('barcode', 'upc', 'ean');
+        const notes = getVal('notes', 'comments', 'description', 'research notes');
+
+        stagedBatchRecords.push({
+          id: `rec_batch_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 6)}`,
+          format,
+          artist,
+          title,
+          label,
+          catNo,
+          year: yearVal,
+          mediaGrade,
+          sleeveGrade,
+          genres,
+          barcode,
+          country: getVal('country') || 'UK',
+          speed: format.includes('7"') ? '45 RPM' : '33 1/3 RPM',
+          centerHole: format.includes('7"') ? 'Solid (Small 0.28 inch)' : 'Solid (Small 0.28 inch)',
+          researchNotes: notes,
+          transferStatus: 'Not Digitized',
+          dateAdded: new Date().toISOString()
+        });
+      });
+
+      // Show Preview UI
+      document.getElementById('previewFileName').innerText = fileName;
+      document.getElementById('previewCountBadge').innerText = `${stagedBatchRecords.length} Records Parsed`;
+      
+      const pillsContainer = document.getElementById('columnMappingPills');
+      pillsContainer.innerHTML = Object.keys(mappingDetected).map(k => `
+        <span class="px-2 py-0.5 rounded bg-vinyl-800 border border-vinyl-700 text-emerald-300">
+          ✓ ${k} ➔ <em>${mappingDetected[k]}</em>
+        </span>
+      `).join('');
+
+      const tbody = document.getElementById('batchPreviewTableBody');
+      tbody.innerHTML = stagedBatchRecords.slice(0, 5).map(r => `
+        <tr class="hover:bg-vinyl-800/40">
+          <td class="py-1.5 px-2.5 font-bold text-white truncate max-w-[140px]">${r.artist}</td>
+          <td class="py-1.5 px-2.5 text-slate-200 truncate max-w-[160px]">${r.title}</td>
+          <td class="py-1.5 px-2.5 text-amber-300 font-mono">${r.format.split(' ')[0]}</td>
+          <td class="py-1.5 px-2.5 text-slate-400">${r.label || '--'}</td>
+          <td class="py-1.5 px-2.5 font-mono text-slate-400">${r.year || '--'}</td>
+          <td class="py-1.5 px-2.5 font-bold text-brass-400">${r.mediaGrade}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('batchPreviewContainer').classList.remove('hidden');
+      document.getElementById('commitBatchBtn').disabled = false;
+      showToast(`Successfully analyzed ${stagedBatchRecords.length} rows from ${fileName}!`);
+    }
+
+    function commitBatchImport() {
+      if (stagedBatchRecords.length === 0) return;
+
+      const importMode = document.querySelector('input[name="importMode"]:checked').value;
+
+      if (importMode === 'replace') {
+        if (!confirm(`Warning: This will REPLACE all current ${records.length} records in your catalogue with the ${stagedBatchRecords.length} imported records. Continue?`)) {
+          return;
+        }
+        records = [...stagedBatchRecords];
+      } else {
+        records = [...stagedBatchRecords, ...records];
+      }
+
+      saveRecordsToStorage();
+      renderStats();
+      renderRecords();
+      closeBatchUploadModal();
+      showToast(`Imported ${stagedBatchRecords.length} records successfully!`);
+    }
+
+    /* =========================================================
+       IMPORT & EXPORT ENGINES & TEMPLATE DOWNLOADS
+       ========================================================= */
+    function downloadCSVTemplate() {
+      const headers = "Artist,Title,Format,Year,Label,Catalog Number,Media Grade,Sleeve Grade,Genre,Barcode,Notes\n";
+      const sampleRow1 = '"Pink Floyd","The Dark Side of the Moon","12"" LP (Album)",1973,"Harvest","SHVL 804","NM","VG+","Progressive Rock","5099902894512","Original UK pressing"\n';
+      const sampleRow2 = '"Althea & Donna","Uptown Top Ranking","7"" Single (45 RPM)",1977,"Lightning Records","LIG 506","VG+","VG+","Roots Reggae","5012345678901","Classic reggae 45 single"\n';
+      const sampleRow3 = '"Miles Davis","Kind of Blue","12"" LP (Album)",1959,"Columbia","CL 1355","VG+","VG","Modal Jazz","","Legendary 6-eye mono pressing"\n';
+
+      const blob = new Blob([headers + sampleRow1 + sampleRow2 + sampleRow3], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "QMC_Vinyl_Import_Template.csv";
+      link.click();
+      showToast("Downloaded sample CSV import template!");
+    }
+
+    function downloadExcelTemplate() {
+      if (typeof XLSX === 'undefined') {
+        downloadCSVTemplate();
+        return;
+      }
+
+      const sampleData = [
+        {
+          "Artist": "Pink Floyd",
+          "Title": "The Dark Side of the Moon",
+          "Format": "12\" LP (Album)",
+          "Year": 1973,
+          "Label": "Harvest",
+          "Catalog Number": "SHVL 804",
+          "Media Grade": "NM",
+          "Sleeve Grade": "VG+",
+          "Genre": "Progressive Rock",
+          "Barcode": "5099902894512",
+          "Notes": "UK First press solid blue triangle"
+        },
+        {
+          "Artist": "Althea & Donna",
+          "Title": "Uptown Top Ranking",
+          "Format": "7\" Single (45 RPM)",
+          "Year": 1977,
+          "Label": "Lightning Records",
+          "Catalog Number": "LIG 506",
+          "Media Grade": "VG+",
+          "Sleeve Grade": "VG+",
+          "Genre": "Roots Reggae",
+          "Barcode": "5012345678901",
+          "Notes": "Porky prime cut 45"
+        },
+        {
+          "Artist": "Miles Davis",
+          "Title": "Kind of Blue",
+          "Format": "12\" LP (Album)",
+          "Year": 1959,
+          "Label": "Columbia",
+          "Catalog Number": "CL 1355",
+          "Media Grade": "VG+",
+          "Sleeve Grade": "VG",
+          "Genre": "Modal Jazz",
+          "Barcode": "",
+          "Notes": "Mono 6-eye pressing"
+        }
+      ];
+
+      const ws = XLSX.utils.json_to_sheet(sampleData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Vinyl Catalogue Template");
+      XLSX.writeFile(wb, "QMC_Vinyl_Import_Template.xlsx");
+      showToast("Downloaded sample Excel (.xlsx) template!");
+    }
+
     function exportToCSV() {
       if (records.length === 0) {
         showToast("No records to export", "error");
@@ -1813,56 +2601,31 @@
       }
 
       const headers = [
-        "Record ID",
-        "Artist",
-        "Single Title",
-        "A-Side Track",
-        "A-Side Duration",
-        "B-Side Track",
-        "B-Side Duration",
-        "Label",
-        "Catalog Number",
-        "Release Year",
-        "Speed",
-        "Center Hole Type",
-        "A-Side Matrix Etchings",
-        "B-Side Matrix Etchings",
-        "Mastering Engineer",
-        "Pressing Plant",
-        "Media Grade",
-        "Media Grade Notes",
-        "Sleeve Grade",
-        "Sleeve Grade Notes",
-        "Country",
-        "Barcode",
-        "Genre",
-        "Producer",
-        "Provenance",
-        "Transfer Status",
-        "Transfer Notes",
-        "Research Notes",
-        "Date Added"
+        "Record ID", "Format", "Artist", "Title / Album", "Year", "Label", "Catalog Number",
+        "Speed", "Center Hole", "Side A Track", "Side B Track",
+        "Side A Matrix", "Side B Matrix", "Mastering Engineer", "Pressing Plant",
+        "Media Grade", "Media Notes", "Sleeve Grade", "Sleeve Notes",
+        "Country", "Barcode", "Genre", "Producer", "Provenance",
+        "Transfer Status", "Transfer Notes", "Research Notes", "Date Added"
       ];
 
       const escapeCSV = (str) => {
         if (str === null || str === undefined) return '""';
-        const formatted = String(str).replace(/"/g, '""');
-        return `"${formatted}"`;
+        return `"${String(str).replace(/"/g, '""')}"`;
       };
 
       const rows = records.map(r => [
         escapeCSV(r.id),
+        escapeCSV(r.format),
         escapeCSV(r.artist),
         escapeCSV(r.title),
-        escapeCSV(r.sideATitle),
-        escapeCSV(r.sideADuration),
-        escapeCSV(r.sideBTitle),
-        escapeCSV(r.sideBDuration),
+        escapeCSV(r.year),
         escapeCSV(r.label),
         escapeCSV(r.catNo),
-        escapeCSV(r.year),
         escapeCSV(r.speed),
         escapeCSV(r.centerHole),
+        escapeCSV(r.sideATitle),
+        escapeCSV(r.sideBTitle),
         escapeCSV(r.matrixA),
         escapeCSV(r.matrixB),
         escapeCSV(r.mastering),
@@ -1885,18 +2648,53 @@
       const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent([headers.join(','), ...rows].join('\n'));
       const link = document.createElement('a');
       link.setAttribute('href', csvContent);
-      link.setAttribute('download', `RPM7_Vinyl_Archive_${new Date().toISOString().slice(0,10)}.csv`);
+      link.setAttribute('download', `QMC_Vinyl_Catalogue_${new Date().toISOString().slice(0,10)}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       showToast("Exported archival CSV file!");
     }
 
+    function exportToExcel() {
+      if (typeof XLSX === 'undefined') {
+        exportToCSV();
+        return;
+      }
+
+      const rows = records.map(r => ({
+        "ID": r.id,
+        "Format": r.format,
+        "Artist": r.artist,
+        "Title": r.title,
+        "Year": r.year,
+        "Label": r.label,
+        "Cat No": r.catNo,
+        "Media Grade": r.mediaGrade,
+        "Sleeve Grade": r.sleeveGrade,
+        "Speed": r.speed,
+        "Side A Matrix": r.matrixA,
+        "Side B Matrix": r.matrixB,
+        "Mastering": r.mastering,
+        "Pressing Plant": r.pressingPlant,
+        "Country": r.country,
+        "Barcode": r.barcode,
+        "Genre": r.genres,
+        "Transfer Status": r.transferStatus,
+        "Research Notes": r.researchNotes
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "QMC Collection");
+      XLSX.writeFile(wb, `QMC_Vinyl_Catalogue_${new Date().toISOString().slice(0,10)}.xlsx`);
+      showToast("Exported Excel workbook (.xlsx)!");
+    }
+
     function exportToJSON() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(records, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `RPM7_Archive_Backup_${new Date().toISOString().slice(0,10)}.json`);
+      downloadAnchor.setAttribute("download", `QMC_Vinyl_Archive_Backup_${new Date().toISOString().slice(0,10)}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
@@ -1929,17 +2727,17 @@
     }
 
     function loadSampleDataset() {
-      if (confirm("Reset current catalogue back to standard sample 7-inch singles?")) {
+      if (confirm("Reset current catalogue back to standard sample albums & singles?")) {
         records = [...SAMPLE_RECORDS];
         saveRecordsToStorage();
         renderStats();
         renderRecords();
-        showToast("Sample dataset reloaded!");
+        showToast("Curated sample dataset reloaded!");
       }
     }
 
     /* =========================================================
-       TOAST FEEDBACK UI (NO ALERTS)
+       TOAST FEEDBACK UI
        ========================================================= */
     function showToast(message, type = "success") {
       const container = document.getElementById('toastContainer');
