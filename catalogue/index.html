@@ -966,9 +966,14 @@
                 </div>
               </div>
               <input type="file" id="uploadCoverInput" accept="image/*" onchange="handleImageUpload(event, 'previewCoverImg', 'placeholderCover')" class="hidden">
-              <button type="button" onclick="document.getElementById('uploadCoverInput').click()" class="w-full py-1.5 px-3 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 rounded text-xs flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-camera"></i> Select Photo
-              </button>
+              <div class="flex flex-col gap-1.5 w-full">
+                <button type="button" onclick="document.getElementById('uploadCoverInput').click()" class="w-full py-1.5 px-3 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 rounded text-xs flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-camera"></i> Select Photo
+                </button>
+                <button type="button" onclick="pullCoverArtForCurrentForm()" id="pullCoverBtn" class="w-full py-1.5 px-3 bg-brass-500/10 hover:bg-brass-500/20 text-brass-400 border border-brass-500/30 rounded text-xs flex items-center justify-center gap-1.5 transition" title="Auto-find cover artwork from Cover Art Archive & iTunes">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> Pull Online Artwork
+                </button>
+              </div>
             </div>
 
             <!-- Side A Label Image -->
@@ -1474,6 +1479,145 @@
       if (curr === 'USD') return '$';
       if (curr === 'EUR') return '€';
       return '£';
+    }
+
+    /* =========================================================
+       DEFAULT SLEEVE ARTWORK GENERATOR (OFFLINE-FIRST SVG)
+       ========================================================= */
+    function escapeXml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[c]));
+    }
+
+    function getDefaultCover(format = '', artist = '', title = '', isEncoded = false) {
+      if (isEncoded) {
+        try {
+          format = decodeURIComponent(format);
+          artist = decodeURIComponent(artist);
+          title = decodeURIComponent(title);
+        } catch (e) {}
+      }
+
+      const isSingle = format && format.includes('7"');
+      const formatBadge = isSingle ? '7" SINGLE · 45 RPM' : '12" LP · 33⅓ RPM';
+      const cleanArtist = escapeXml((artist || 'VINYL ARCHIVE').trim());
+      const cleanTitle = escapeXml((title || 'COLLECTIVE PRESSING').trim());
+
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+        <defs>
+          <radialGradient id="discGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#242b38"/>
+            <stop offset="65%" stop-color="#0f131a"/>
+            <stop offset="100%" stop-color="#080a0e"/>
+          </radialGradient>
+          <radialGradient id="centerLabelGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#f5d77f"/>
+            <stop offset="60%" stop-color="#d4af37"/>
+            <stop offset="100%" stop-color="#997b1e"/>
+          </radialGradient>
+          <linearGradient id="jacketGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#1e2430"/>
+            <stop offset="100%" stop-color="#0c0e14"/>
+          </linearGradient>
+        </defs>
+        <rect width="500" height="500" fill="#0d1017"/>
+        <rect x="12" y="12" width="476" height="476" rx="14" fill="url(#jacketGrad)" stroke="#2b3445" stroke-width="2"/>
+        <circle cx="250" cy="225" r="160" fill="url(#discGrad)" stroke="#1a202c" stroke-width="3"/>
+        <circle cx="250" cy="225" r="142" fill="none" stroke="#2a3344" stroke-width="1.2" stroke-dasharray="10 3" opacity="0.6"/>
+        <circle cx="250" cy="225" r="124" fill="none" stroke="#252d3d" stroke-width="1" opacity="0.7"/>
+        <circle cx="250" cy="225" r="106" fill="none" stroke="#2a3344" stroke-width="1.2" opacity="0.5"/>
+        <circle cx="250" cy="225" r="88" fill="none" stroke="#252d3d" stroke-width="1" opacity="0.8"/>
+        <circle cx="250" cy="225" r="58" fill="url(#centerLabelGrad)" stroke="#786016" stroke-width="2"/>
+        <circle cx="250" cy="225" r="52" fill="none" stroke="#8c701a" stroke-width="1" stroke-dasharray="3 2"/>
+        <circle cx="250" cy="225" r="13" fill="#0c0e14" stroke="#524212" stroke-width="2"/>
+        <text x="250" y="202" text-anchor="middle" fill="#2d2203" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="900" letter-spacing="1.5">QUEENSFERRY</text>
+        <text x="250" y="254" text-anchor="middle" fill="#3d2f06" font-family="monospace" font-size="8" font-weight="700" letter-spacing="1">${formatBadge}</text>
+        <rect x="26" y="410" width="448" height="64" rx="10" fill="#141923" stroke="#2b3547" stroke-width="1.5"/>
+        <text x="44" y="435" fill="#f8fafc" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700">${cleanArtist.substring(0, 34)}</text>
+        <text x="44" y="457" fill="#d4af37" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500">${cleanTitle.substring(0, 38)}</text>
+        <text x="456" y="446" text-anchor="end" fill="#94a3b8" font-family="monospace" font-size="10" font-weight="700">${formatBadge}</text>
+      </svg>`;
+
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    /* =========================================================
+       ONLINE ALBUM COVER ARTWORK RESOLVER (CAA + ITUNES + DISCOGS)
+       ========================================================= */
+    async function findOnlineCoverArtwork(artist, title, releaseId = null, releaseGroupId = null) {
+      // Source 1: Cover Art Archive by specific Release MBID
+      if (releaseId) {
+        try {
+          const res = await fetch(`https://coverartarchive.org/release/${releaseId}`);
+          if (res.ok) {
+            const data = await res.json();
+            const front = data.images?.find(i => i.front) || data.images?.[0];
+            if (front) {
+              const url = front.thumbnails?.['500'] || front.thumbnails?.large || front.image;
+              if (url) return url;
+            }
+          }
+        } catch (e) {
+          console.log("Release CAA check notice:", e);
+        }
+      }
+
+      // Source 2: Cover Art Archive by Release-Group MBID
+      if (releaseGroupId) {
+        try {
+          const rgRes = await fetch(`https://coverartarchive.org/release-group/${releaseGroupId}`);
+          if (rgRes.ok) {
+            const rgData = await rgRes.json();
+            const front = rgData.images?.find(i => i.front) || rgData.images?.[0];
+            if (front) {
+              const url = front.thumbnails?.['500'] || front.thumbnails?.large || front.image;
+              if (url) return url;
+            }
+          }
+        } catch (e) {
+          console.log("Release-group CAA check notice:", e);
+        }
+      }
+
+      // Source 3: iTunes Search API (CORS-enabled, free, instant high-res 600x600)
+      if (artist && title) {
+        try {
+          const q = encodeURIComponent(`${artist} ${title}`);
+          const itunesRes = await fetch(`https://itunes.apple.com/search?term=${q}&entity=album&limit=3`);
+          if (itunesRes.ok) {
+            const itunesData = await itunesRes.json();
+            if (itunesData.results && itunesData.results.length > 0) {
+              const item = itunesData.results[0];
+              const art = item.artworkUrl100 || '';
+              if (art) {
+                // Upscale to high-resolution 600x600 artwork
+                return art.replace(/100x100bb\.(jpg|png|webp)/, '600x600bb.$1');
+              }
+            }
+          }
+        } catch (e) {
+          console.log("iTunes artwork check notice:", e);
+        }
+      }
+
+      // Source 4: Discogs (if token configured in Archive)
+      const discogsToken = localStorage.getItem('QMC_DISCOGS_TOKEN');
+      if (discogsToken && artist && title) {
+        try {
+          const dUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(artist + ' ' + title)}&type=release&token=${encodeURIComponent(discogsToken)}`;
+          const dRes = await fetch(dUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } });
+          if (dRes.ok) {
+            const dData = await dRes.json();
+            if (dData.results && dData.results.length > 0 && dData.results[0].cover_image && !dData.results[0].cover_image.includes('spacer.gif')) {
+              return dData.results[0].cover_image;
+            }
+          }
+        } catch (e) {
+          console.log("Discogs artwork check notice:", e);
+        }
+      }
+
+      return null;
     }
 
     /* =========================================================
@@ -2313,7 +2457,7 @@
       const sym = getCurrencySymbol();
 
       list.forEach(item => {
-        const coverSrc = item.coverImage || `https://placehold.co/400x400/181b22/d4af37?text=${encodeURIComponent(item.format && item.format.includes('7"') ? '7" Single' : '12" LP')}`;
+        const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
         const isAlbum = item.format && item.format.includes('LP');
         const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(item.estimatedValue) && item.estimatedValue > 0;
         const isOwner = !item.userId || (currentUser && item.userId === currentUser.id);
@@ -2323,7 +2467,7 @@
             
             <!-- Sleeve Visual Card Header -->
             <div class="relative w-full aspect-square bg-vinyl-950 overflow-hidden cursor-pointer" onclick="viewRecordDetail('${item.id}')">
-              <img src="${coverSrc}" alt="${item.title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/400x400/181b22/d4af37?text=Vinyl+Disc'">
+              <img src="${coverSrc}" alt="${escapeHtml(item.title)}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src=getDefaultCover('${encodeURIComponent(item.format || '')}', '${encodeURIComponent(item.artist || '')}', '${encodeURIComponent(item.title || '')}', true)">
               
               <!-- Format Indicator Badge -->
               <div class="absolute top-3 left-3 flex flex-col gap-1 items-start">
@@ -2471,6 +2615,7 @@
       `;
 
       list.forEach(item => {
+        const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
         const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(item.estimatedValue) && item.estimatedValue > 0;
         const isOwner = !item.userId || (currentUser && item.userId === currentUser.id);
 
@@ -2483,16 +2628,21 @@
               ${item.catNo || 'S/N'}
             </td>
             <td class="py-2.5 px-3">
-              <div class="font-bold text-white hover:text-brass-400 cursor-pointer" onclick="viewRecordDetail('${item.id}')">
-                ${item.artist}
-              </div>
-              <div class="text-slate-400 text-[11px]">${item.title}</div>
-              ${item.ownerName ? `
-                <div class="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5 font-mono">
-                  <i class="fa-solid fa-circle-user text-brass-500/80 text-[9px]"></i>
-                  <span>${item.ownerName}${isOwner && currentUser ? ' (You)' : ''}</span>
+              <div class="flex items-center gap-2.5">
+                <img src="${coverSrc}" alt="" class="w-9 h-9 rounded object-cover border border-vinyl-700 bg-vinyl-950 flex-shrink-0" onerror="this.onerror=null; this.src=getDefaultCover('${encodeURIComponent(item.format || '')}', '${encodeURIComponent(item.artist || '')}', '${encodeURIComponent(item.title || '')}', true)">
+                <div class="min-w-0">
+                  <div class="font-bold text-white hover:text-brass-400 cursor-pointer truncate" onclick="viewRecordDetail('${item.id}')">
+                    ${item.artist}
+                  </div>
+                  <div class="text-slate-400 text-[11px] truncate">${item.title}</div>
+                  ${item.ownerName ? `
+                    <div class="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5 font-mono truncate">
+                      <i class="fa-solid fa-circle-user text-brass-500/80 text-[9px]"></i>
+                      <span>${item.ownerName}${isOwner && currentUser ? ' (You)' : ''}</span>
+                    </div>
+                  ` : ''}
                 </div>
-              ` : ''}
+              </div>
             </td>
             <td class="py-2.5 px-3 whitespace-nowrap">${item.label || '--'}</td>
             <td class="py-2.5 px-3 font-mono">${item.year || '--'}</td>
@@ -2552,6 +2702,7 @@
       const sym = getCurrencySymbol();
       const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(item.estimatedValue) && item.estimatedValue > 0;
       const isOwner = !item.userId || (currentUser && item.userId === currentUser.id);
+      const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
 
       let tracksHTML = '';
       if (item.tracks && item.tracks.length > 0) {
@@ -2605,9 +2756,14 @@
           
           <!-- Column 1: Visuals & Center Hole info -->
           <div class="space-y-4">
-            <div class="aspect-square bg-vinyl-950 rounded-xl overflow-hidden border border-vinyl-800 relative">
-              <img src="${item.coverImage || 'https://placehold.co/400x400/181b22/d4af37?text=Vinyl+Cover'}" alt="Cover" class="w-full h-full object-cover">
+            <div class="aspect-square bg-vinyl-950 rounded-xl overflow-hidden border border-vinyl-800 relative group">
+              <img src="${coverSrc}" alt="Cover" class="w-full h-full object-cover" onerror="this.onerror=null; this.src=getDefaultCover('${encodeURIComponent(item.format || '')}', '${encodeURIComponent(item.artist || '')}', '${encodeURIComponent(item.title || '')}', true)">
             </div>
+
+            <button type="button" onclick="pullCoverArtForRecord('${item.id}')" id="detailPullArtBtn-${item.id}" class="w-full py-2 px-3 bg-vinyl-850 hover:bg-vinyl-800 text-brass-400 border border-brass-500/30 hover:border-brass-400 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 shadow transition" title="Auto-pull album artwork from Cover Art Archive or iTunes">
+              <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
+              <span>${item.coverImage ? 'Refresh / Re-pull Cover Art' : 'Pull Album Cover Artwork'}</span>
+            </button>
 
             <div class="bg-vinyl-850 p-3 rounded-xl border border-vinyl-800 space-y-2 text-xs">
               <div class="flex justify-between items-center">
@@ -3890,9 +4046,104 @@
         notesField.value = `MusicBrainz Release: ${fullRelease.id} (${fullRelease.country || 'Global'}, ${fullRelease.date || 'n/a'}). Status: ${fullRelease.status || 'Official'}.`;
       }
 
+      // Automatically pull cover artwork from Cover Art Archive / iTunes / Discogs
+      const releaseArtist = (fullRelease['artist-credit']?.[0]?.name || document.getElementById('formArtist')?.value || '').trim();
+      const rgId = fullRelease['release-group']?.id;
+      findOnlineCoverArtwork(releaseArtist, fullRelease.title, fullRelease.id, rgId)
+        .then(coverUrl => {
+          if (coverUrl) {
+            const cImg = document.getElementById('previewCoverImg');
+            const placeholder = document.getElementById('placeholderCover');
+            if (cImg) {
+              cImg.src = coverUrl;
+              cImg.classList.remove('hidden');
+            }
+            if (placeholder) placeholder.classList.add('hidden');
+            showToast("Found and loaded album cover artwork!");
+          }
+        })
+        .catch(err => console.warn("Auto cover fetch notice:", err));
+
       closeAutofillResults();
       showToast(`Autofilled "${fullRelease.title}" with ${totalTracksFound} tracks!`);
       switchFormTab('tab-general');
+    }
+
+    async function pullCoverArtForCurrentForm() {
+      const artist = document.getElementById('formArtist')?.value.trim();
+      const title = document.getElementById('formTitle')?.value.trim();
+      if (!artist && !title) {
+        showToast("Please enter an Artist and Title first to search for cover artwork.", "info");
+        switchFormTab('tab-general');
+        return;
+      }
+
+      const btn = document.getElementById('pullCoverBtn');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i> Searching...`;
+      }
+      showToast(`Searching online artwork for "${artist} - ${title}"...`);
+
+      try {
+        const coverUrl = await findOnlineCoverArtwork(artist, title);
+        if (coverUrl) {
+          const cImg = document.getElementById('previewCoverImg');
+          const placeholder = document.getElementById('placeholderCover');
+          if (cImg) {
+            cImg.src = coverUrl;
+            cImg.classList.remove('hidden');
+          }
+          if (placeholder) placeholder.classList.add('hidden');
+          showToast("Album cover artwork loaded!");
+        } else {
+          showToast("No online cover artwork found for this release.", "info");
+        }
+      } catch (err) {
+        showToast("Artwork search error: " + (err.message || err), "error");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Pull Online Artwork`;
+        }
+      }
+    }
+
+    async function pullCoverArtForRecord(recordId) {
+      const item = records.find(r => r.id === recordId);
+      if (!item) return;
+
+      const btn = document.getElementById(`detailPullArtBtn-${recordId}`);
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>Searching Artwork...</span>`;
+      }
+      showToast(`Searching online artwork for "${item.artist} - ${item.title}"...`);
+
+      try {
+        const coverUrl = await findOnlineCoverArtwork(item.artist, item.title, null, null);
+        if (coverUrl) {
+          item.coverImage = coverUrl;
+          saveRecordsToStorage();
+          if (isCloudActive && currentUser && supabaseClient) {
+            const dbRow = mapRecordToDb(item, currentUser.id);
+            supabaseClient.from('records').upsert(dbRow, { onConflict: 'id' }).then(() => {}).catch(e => console.warn(e));
+          }
+          renderStats();
+          renderRecords();
+          viewRecordDetail(recordId);
+          showToast(`Updated album cover for "${item.title}"!`);
+        } else {
+          showToast("No online artwork found for this release.", "info");
+        }
+      } catch (err) {
+        showToast("Artwork search error: " + (err.message || err), "error");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-xs"></i> <span>${item.coverImage ? 'Refresh / Re-pull Cover Art' : 'Pull Album Cover Artwork'}</span>`;
+        }
+      }
     }
 
     /* =========================================================
