@@ -3670,24 +3670,37 @@
       container.classList.remove('hidden');
     }
 
-    function applySelectedRelease(index) {
+    async function applySelectedRelease(index) {
       const match = stagedOnlineReleases[index];
       if (!match) return;
 
-      if (match['artist-credit'] && match['artist-credit'].length > 0) {
-        document.getElementById('formArtist').value = match['artist-credit'][0].name || '';
-      }
-      document.getElementById('formTitle').value = match.title || '';
+      showToast(`Loading full tracklist for "${match.title}"...`, "info");
 
-      if (match.date) {
-        const yr = parseInt(match.date.slice(0, 4));
+      // Fetch full release details with recordings & tracklists from MusicBrainz
+      let fullRelease = match;
+      try {
+        const detailRes = await fetch(`https://musicbrainz.org/ws/2/release/${match.id}?inc=recordings+artist-credits+labels&fmt=json`);
+        if (detailRes.ok) {
+          fullRelease = await detailRes.json();
+        }
+      } catch (err) {
+        console.warn("Could not fetch release recordings detail, using summary:", err);
+      }
+
+      if (fullRelease['artist-credit'] && fullRelease['artist-credit'].length > 0) {
+        document.getElementById('formArtist').value = fullRelease['artist-credit'][0].name || '';
+      }
+      document.getElementById('formTitle').value = fullRelease.title || '';
+
+      if (fullRelease.date) {
+        const yr = parseInt(fullRelease.date.slice(0, 4));
         if (!isNaN(yr)) document.getElementById('formYear').value = yr;
       }
-      if (match.country) document.getElementById('formCountry').value = match.country;
-      if (match.barcode) document.getElementById('formBarcode').value = match.barcode;
+      if (fullRelease.country) document.getElementById('formCountry').value = fullRelease.country;
+      if (fullRelease.barcode) document.getElementById('formBarcode').value = fullRelease.barcode;
 
-      if (match['label-info'] && match['label-info'].length > 0) {
-        const lInfo = match['label-info'][0];
+      if (fullRelease['label-info'] && fullRelease['label-info'].length > 0) {
+        const lInfo = fullRelease['label-info'][0];
         if (lInfo.label && lInfo.label.name) document.getElementById('formLabel').value = lInfo.label.name;
         if (lInfo['catalog-number']) document.getElementById('formCatNo').value = lInfo['catalog-number'];
       }
@@ -3699,17 +3712,17 @@
       if (searchFormatChoice === '7') {
         assignedFormat = '7" Single (45 RPM)';
       } else if (searchFormatChoice === '12') {
-        assignedFormat = (match.media && match.media.length >= 2) ? '2xLP Gatefold (Album)' : '12" LP (Album)';
+        assignedFormat = (fullRelease.media && fullRelease.media.length >= 2) ? '2xLP Gatefold (Album)' : '12" LP (Album)';
       } else if (searchFormatChoice === '10') {
         assignedFormat = '10" Vinyl';
       } else if (searchFormatChoice === 'CD') {
         assignedFormat = 'CD / Other';
-      } else if (match.media && match.media.length > 0) {
-        const m = match.media[0];
+      } else if (fullRelease.media && fullRelease.media.length > 0) {
+        const m = fullRelease.media[0];
         const formatName = m.format || '';
         if (formatName.includes('7"')) {
           assignedFormat = '7" Single (45 RPM)';
-        } else if (match.media.length >= 2) {
+        } else if (fullRelease.media.length >= 2) {
           assignedFormat = '2xLP Gatefold (Album)';
         } else if (formatName.includes('10"')) {
           assignedFormat = '10" Vinyl';
@@ -3723,45 +3736,77 @@
       document.getElementById('formFormat').value = assignedFormat;
       handleFormatChange();
 
-      // Populate tracks
-      if (match.media && match.media.length > 0) {
-        const allTracks = [];
-        match.media.forEach((med, mIdx) => {
-          const mediaDiscPrefix = match.media.length > 1 ? `D${mIdx + 1}-` : '';
-          if (med.tracks && med.tracks.length > 0) {
-            med.tracks.forEach((t, tIdx) => {
-              const durSec = t.length ? Math.floor(t.length / 1000) : 0;
-              const mStr = Math.floor(durSec / 60);
-              const sStr = String(durSec % 60).padStart(2, '0');
-              const durFmt = durSec > 0 ? ` (${mStr}:${sStr})` : '';
-              const pos = t.number || `${mediaDiscPrefix}${tIdx + 1}`;
-              allTracks.push(`${pos}. ${t.title}${durFmt}`);
-            });
-          }
-        });
+      // Pull & format the complete tracklist
+      const isSingle = assignedFormat.includes('7"');
+      const allTrackLines = [];
+      let trackA = '';
+      let trackADur = '';
+      let trackB = '';
+      let trackBDur = '';
+      let totalTracksFound = 0;
 
-        if (allTracks.length > 0) {
-          document.getElementById('formAlbumTracks').value = allTracks.join('\n');
+      if (fullRelease.media && fullRelease.media.length > 0) {
+        fullRelease.media.forEach((med, mIdx) => {
+          const discTracks = med.tracks || [];
+          const discPrefix = fullRelease.media.length > 1 ? `D${mIdx + 1}-` : '';
 
-          // If single, also populate side A and side B fields
-          if (assignedFormat.includes('7"')) {
-            const cleanTitle = (raw) => raw ? raw.replace(/^[A-D\d\.\-\s]+/, '').replace(/\s*\([\d:]+\)$/, '') : '';
-            document.getElementById('formSideATitle').value = cleanTitle(allTracks[0]);
-            if (allTracks.length > 1) {
-              document.getElementById('formSideBTitle').value = cleanTitle(allTracks[1]);
+          discTracks.forEach((t, tIdx) => {
+            totalTracksFound++;
+            const durSec = t.length ? Math.floor(t.length / 1000) : 0;
+            const mStr = Math.floor(durSec / 60);
+            const sStr = String(durSec % 60).padStart(2, '0');
+            const durFormatted = durSec > 0 ? `${mStr}:${sStr}` : '';
+            const durSuffix = durFormatted ? ` (${durFormatted})` : '';
+
+            let pos = t.number;
+            if (!pos) {
+              if (isSingle) {
+                pos = tIdx === 0 ? 'A' : (tIdx === 1 ? 'B' : String(tIdx + 1));
+              } else if (fullRelease.media.length > 1) {
+                pos = `${discPrefix}${tIdx + 1}`;
+              } else {
+                pos = String(tIdx + 1);
+              }
             }
-          }
+
+            const trackTitle = t.title || t.recording?.title || `Track ${tIdx + 1}`;
+            allTrackLines.push(`${pos}. ${trackTitle}${durSuffix}`);
+
+            if (totalTracksFound === 1) {
+              trackA = trackTitle;
+              trackADur = durFormatted;
+            } else if (totalTracksFound === 2) {
+              trackB = trackTitle;
+              trackBDur = durFormatted;
+            }
+          });
+        });
+      }
+
+      if (allTrackLines.length > 0) {
+        document.getElementById('formAlbumTracks').value = allTrackLines.join('\n');
+      }
+
+      // Populate A & B track fields for singles
+      if (isSingle || trackA) {
+        if (trackA) {
+          document.getElementById('formSideATitle').value = trackA;
+          document.getElementById('formSideADuration').value = trackADur;
+        }
+        if (trackB) {
+          document.getElementById('formSideBTitle').value = trackB;
+          document.getElementById('formSideBDuration').value = trackBDur;
         }
       }
 
       // Add research note info if empty
       const notesField = document.getElementById('formResearchNotes');
       if (notesField && !notesField.value) {
-        notesField.value = `MusicBrainz Release: ${match.id} (${match.country || 'Global'}, ${match.date || 'n/a'}). Status: ${match.status || 'Official'}.`;
+        notesField.value = `MusicBrainz Release: ${fullRelease.id} (${fullRelease.country || 'Global'}, ${fullRelease.date || 'n/a'}). Status: ${fullRelease.status || 'Official'}.`;
       }
 
       closeAutofillResults();
-      showToast(`Autofilled metadata for "${match.title}"!`);
+      showToast(`Autofilled "${fullRelease.title}" with ${totalTracksFound} tracks!`);
       switchFormTab('tab-general');
     }
 
