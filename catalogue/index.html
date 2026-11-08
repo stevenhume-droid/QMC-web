@@ -2790,54 +2790,94 @@
     /* =========================================================
        ADD / EDIT MODAL & FORM CONTROL (OPTIMIZED WORKFLOW)
        ========================================================= */
-    function openAddEditModal() {
-      document.getElementById('modalTitle').innerText = 'Catalogue Record';
-      document.getElementById('recordForm').reset();
-      document.getElementById('recordId').value = '';
-      if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = '';
-      if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = '';
-      closeAutofillResults();
-      
-      document.getElementById('formFormat').value = sessionDefaults.format || '12" LP (Album)';
-      document.getElementById('formMediaGrade').value = sessionDefaults.mediaGrade || 'VG+';
-      document.getElementById('formSleeveGrade').value = sessionDefaults.sleeveGrade || 'VG+';
-      document.getElementById('formCountry').value = sessionDefaults.country || '';
-      document.getElementById('formCurrency').value = globalCurrency || 'GBP';
-      document.getElementById('formCurrencySymbol').innerText = getCurrencySymbol(globalCurrency);
+    function closeAutofillResults() {
+      const container = document.getElementById('autofillResultsContainer');
+      if (container) {
+        container.classList.add('hidden');
+        container.innerHTML = '';
+      }
+      stagedOnlineReleases = [];
+    }
 
-      handleFormatChange();
-      clearImagePreviews();
-      switchFormTab('tab-general');
-      document.getElementById('recordModal').classList.remove('hidden');
-      
-      setTimeout(() => document.getElementById('formArtist').focus(), 150);
+    function openAddEditModal() {
+      try {
+        const title = document.getElementById('modalTitle');
+        if (title) title.innerText = 'Catalogue Record';
+        
+        const form = document.getElementById('recordForm');
+        if (form) form.reset();
+        
+        const idField = document.getElementById('recordId');
+        if (idField) idField.value = '';
+        
+        const aInput = document.getElementById('searchArtistInput');
+        if (aInput) aInput.value = '';
+        const tInput = document.getElementById('searchTitleInput');
+        if (tInput) tInput.value = '';
+        
+        closeAutofillResults();
+        
+        const fmt = document.getElementById('formFormat');
+        if (fmt) fmt.value = sessionDefaults.format || '12" LP (Album)';
+        
+        const mg = document.getElementById('formMediaGrade');
+        if (mg) mg.value = sessionDefaults.mediaGrade || 'VG+';
+        
+        const sg = document.getElementById('formSleeveGrade');
+        if (sg) sg.value = sessionDefaults.sleeveGrade || 'VG+';
+        
+        const cntry = document.getElementById('formCountry');
+        if (cntry) cntry.value = sessionDefaults.country || '';
+        
+        const curr = document.getElementById('formCurrency');
+        if (curr) curr.value = globalCurrency || 'GBP';
+        
+        const currSym = document.getElementById('formCurrencySymbol');
+        if (currSym) currSym.innerText = getCurrencySymbol(globalCurrency);
+
+        handleFormatChange();
+        clearImagePreviews();
+        switchFormTab('tab-general');
+      } catch (err) {
+        console.error("openAddEditModal setup notice:", err);
+      } finally {
+        const modal = document.getElementById('recordModal');
+        if (modal) modal.classList.remove('hidden');
+        setTimeout(() => {
+          const artist = document.getElementById('formArtist');
+          if (artist) artist.focus();
+        }, 150);
+      }
     }
 
     function closeAddEditModal() {
       closeAutofillResults();
-      document.getElementById('recordModal').classList.add('hidden');
+      const modal = document.getElementById('recordModal');
+      if (modal) modal.classList.add('hidden');
     }
 
     function handleFormatChange() {
-      const format = document.getElementById('formFormat').value;
+      const fmtEl = document.getElementById('formFormat');
+      const format = fmtEl ? fmtEl.value : '12" LP (Album)';
       const isSingle = format.includes('7"');
       const singleContainer = document.getElementById('tracksSingleContainer');
       const albumContainer = document.getElementById('tracksAlbumContainer');
       const speedSelect = document.getElementById('formSpeed');
       const hintText = document.getElementById('formatHintText');
+      const centerHole = document.getElementById('formCenterHole');
 
       if (isSingle) {
-        singleContainer.classList.remove('hidden');
-        albumContainer.classList.add('hidden');
-        speedSelect.value = '45 RPM';
-        document.getElementById('formCenterHole').value = 'Solid (Small 0.28 inch)';
-        hintText.innerText = '7-inch single pressing with dual A/B track architecture.';
+        if (singleContainer) singleContainer.classList.remove('hidden');
+        if (albumContainer) albumContainer.classList.add('hidden');
+        if (speedSelect) speedSelect.value = '45 RPM';
+        if (centerHole) centerHole.value = 'Solid (Small 0.28 inch)';
+        if (hintText) hintText.innerText = '7-inch single pressing with dual A/B track architecture.';
       } else {
-        singleContainer.classList.add('hidden');
-        albumContainer.classList.remove('hidden');
-        speedSelect.value = '33 1/3 RPM';
-        document.getElementById('formCenterHole').value = 'Solid (Small 0.28 inch)';
-        hintText.innerText = '12-inch 33⅓ RPM long-playing album with multi-track layout.';
+        if (singleContainer) singleContainer.classList.add('hidden');
+        if (albumContainer) albumContainer.classList.remove('hidden');
+        if (speedSelect) speedSelect.value = '33 1/3 RPM';
+        if (centerHole) centerHole.value = 'Solid (Small 0.28 inch)';
+        if (hintText) hintText.innerText = '12-inch 33⅓ RPM long-playing album with multi-track layout.';
       }
     }
 
