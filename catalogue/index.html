@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>QMC Vinyl & Album Archival Research Station</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -106,22 +109,28 @@
             QMC <span class="text-xs px-2 py-0.5 rounded-full bg-brass-500/20 text-brass-400 font-mono font-medium border border-brass-500/30">Vinyl & Album Archive</span>
           </h1>
         </div>
-        <p class="text-xs text-slate-400">LPs, Albums, 12" & 7" Singles Archival Research & Discographic Station</p>
+        <p class="text-xs text-slate-400">LPs, Albums, 12" & 7" Singles Archival Research & Valuation Station</p>
       </div>
     </div>
 
     <!-- Global Actions -->
     <div class="flex items-center flex-wrap gap-2.5">
       <!-- Scan Barcode Quick Trigger -->
-      <button onclick="openScannerModal()" class="px-3.5 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 hover:border-brass-400 transition flex items-center gap-2 shadow-sm">
+      <button onclick="openScannerModal()" class="px-3 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 hover:border-brass-400 transition flex items-center gap-2 shadow-sm">
         <i class="fa-solid fa-barcode text-sm"></i>
         <span>Scan Barcode</span>
       </button>
 
+      <!-- Market Valuation / Discogs API Settings Button -->
+      <button onclick="openValuationModal()" class="px-3 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-amber-400 border border-amber-500/30 hover:border-amber-400 transition flex items-center gap-2 shadow-sm" title="Discogs Market Values & Valuation Intelligence">
+        <i class="fa-solid fa-coins text-sm"></i>
+        <span>Market Values</span>
+      </button>
+
       <!-- Batch Import (Excel/CSV) Trigger -->
-      <button onclick="openBatchUploadModal()" class="px-3.5 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 transition flex items-center gap-2 shadow-sm">
+      <button onclick="openBatchUploadModal()" class="px-3 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 transition flex items-center gap-2 shadow-sm">
         <i class="fa-solid fa-file-excel text-sm"></i>
-        <span>Batch Upload (Excel/CSV)</span>
+        <span>Batch Upload</span>
       </button>
 
       <!-- Add New Record Button -->
@@ -165,17 +174,33 @@
             <i class="fa-solid fa-file-import text-amber-400"></i> Import JSON Data
             <input type="file" id="jsonFileInput" accept=".json" onchange="importFromJSON(event)" class="hidden">
           </label>
+          <div class="border-t border-vinyl-700 my-1"></div>
+          <div class="px-3 py-1 text-[10px] uppercase font-bold tracking-wider text-slate-400 border-b border-vinyl-700">
+            Sample Data & Clear
+          </div>
+          <button onclick="removeSampleDataOnly()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-amber-400 hover:text-amber-300 flex items-center gap-2" title="Remove the built-in sample albums and singles while keeping your records">
+            <i class="fa-solid fa-trash-can"></i> Remove Sample Records
+          </button>
+          <button onclick="clearAllRecordsPrompt()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-rose-400 hover:text-rose-300 flex items-center gap-2" title="Clear entire archive for a fresh blank start">
+            <i class="fa-solid fa-eraser"></i> Clear Entire Archive
+          </button>
           <button onclick="loadSampleDataset()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-400 hover:text-slate-200 flex items-center gap-2">
             <i class="fa-solid fa-rotate-right text-indigo-400"></i> Reload Curated Samples
+          </button>
+          <div class="border-t border-vinyl-700 my-1"></div>
+          <button onclick="forceBustCache()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-sky-400 hover:text-sky-300 flex items-center gap-2" title="Force browser to bypass disk cache with fresh timestamp">
+            <i class="fa-solid fa-arrows-rotate"></i> Hard Reload (Bust Cache)
           </button>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- RESEARCH STATS & SUMMARY DASHBOARD -->
+  <!-- RESEARCH STATS & SUMMARY DASHBOARD (INCLUDING COLLECTION VALUE) -->
   <section class="bg-vinyl-900 border-b border-vinyl-800 px-4 lg:px-8 py-3.5">
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+      
+      <!-- Total Archive -->
       <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex items-center justify-between">
         <div>
           <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Total Archive</span>
@@ -184,6 +209,7 @@
         <i class="fa-solid fa-layer-group text-vinyl-700 text-2xl"></i>
       </div>
 
+      <!-- 12" LPs / Albums -->
       <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex items-center justify-between">
         <div>
           <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">12" LPs / Albums</span>
@@ -192,6 +218,7 @@
         <i class="fa-solid fa-compact-disc text-vinyl-700 text-2xl"></i>
       </div>
 
+      <!-- 7" Singles -->
       <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex items-center justify-between">
         <div>
           <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">7" Singles (45s)</span>
@@ -200,6 +227,20 @@
         <i class="fa-solid fa-record-vinyl text-vinyl-700 text-2xl"></i>
       </div>
 
+      <!-- Total Estimated Value Card -->
+      <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex items-center justify-between">
+        <div>
+          <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400 flex items-center gap-1">
+            <span>Archive Value</span>
+            <i class="fa-solid fa-circle-info text-[9px] text-emerald-400" title="Based on Discogs & eBay market averages"></i>
+          </span>
+          <div id="statTotalValue" class="text-xl font-bold font-mono text-emerald-400">£0.00</div>
+          <div id="statAvgValue" class="text-[9px] text-slate-400 font-mono">Avg: £0.00 / disc</div>
+        </div>
+        <i class="fa-solid fa-coins text-vinyl-700 text-2xl"></i>
+      </div>
+
+      <!-- Avg Media Grade -->
       <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex items-center justify-between">
         <div>
           <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Avg Media Grade</span>
@@ -208,6 +249,7 @@
         <i class="fa-solid fa-award text-vinyl-700 text-xl"></i>
       </div>
 
+      <!-- Digitized Transfers -->
       <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex items-center justify-between">
         <div>
           <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Digitized / Transfer</span>
@@ -216,10 +258,11 @@
         <i class="fa-solid fa-wave-square text-vinyl-700 text-xl"></i>
       </div>
 
+      <!-- Decades Bar -->
       <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex flex-col justify-center">
         <div class="flex justify-between items-center text-[10px] uppercase tracking-wider font-semibold text-slate-400 mb-1">
           <span>Decades</span>
-          <span id="statDecadesSummary" class="text-slate-300 font-normal truncate max-w-[90px]">--</span>
+          <span id="statDecadesSummary" class="text-slate-300 font-normal truncate max-w-[80px]">--</span>
         </div>
         <div id="decadeDistributionBar" class="w-full bg-vinyl-800 h-2 rounded-full overflow-hidden flex"></div>
       </div>
@@ -272,6 +315,7 @@
         <!-- Sort By -->
         <select id="sortBy" onchange="handleSearchFilterChange()" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-slate-300 focus:outline-none focus:border-brass-500">
           <option value="dateAddedDesc">Added: Newest First</option>
+          <option value="valueDesc">Value: Highest First (£/$/€)</option>
           <option value="artistAsc">Artist: A to Z</option>
           <option value="titleAsc">Title: A to Z</option>
           <option value="yearAsc">Year: Oldest First</option>
@@ -305,13 +349,109 @@
       <div class="w-16 h-16 rounded-full bg-vinyl-900 flex items-center justify-center mb-3 text-slate-600">
         <i class="fa-solid fa-compact-disc text-3xl"></i>
       </div>
-      <h3 class="text-base font-semibold text-slate-300">No records found</h3>
-      <p class="text-xs text-slate-500 max-w-sm mt-1">No catalog records match your current filter or search criteria.</p>
-      <button onclick="resetFilters()" class="mt-4 px-4 py-1.5 text-xs bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 rounded-lg border border-brass-500/20">
-        Clear All Filters
-      </button>
+      <h3 id="emptyStateHeading" class="text-base font-semibold text-slate-300">No records found</h3>
+      <p id="emptyStateSubtext" class="text-xs text-slate-500 max-w-sm mt-1">No catalog records match your current filter or search criteria.</p>
+      <div id="emptyStateActions" class="mt-4 flex flex-wrap items-center justify-center gap-2">
+        <button onclick="resetFilters()" class="px-4 py-1.5 text-xs bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 rounded-lg border border-brass-500/20">
+          Clear All Filters
+        </button>
+      </div>
     </div>
   </main>
+
+  <!-- ============================================== -->
+  <!-- MODAL: MARKET VALUATION & DISCOGS API SETTINGS -->
+  <!-- ============================================== -->
+  <div id="valuationModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden overflow-y-auto">
+    <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-xl flex flex-col shadow-2xl overflow-hidden my-auto">
+      
+      <div class="px-6 py-4 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <i class="fa-solid fa-coins"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-white tracking-tight">Market Valuation Intelligence</h2>
+            <p class="text-[11px] text-slate-400">Discogs Marketplace & eBay Completed Sales Averages</p>
+          </div>
+        </div>
+        <button onclick="closeValuationModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs text-slate-300">
+        <!-- How Valuation Works -->
+        <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-2">
+          <div class="font-bold text-brass-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-chart-line"></i> How Vinyl Value is Determined:
+          </div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            1. <strong>Discogs Price Suggestions API:</strong> Queries historical sales data directly mapped to each record's Goldmine condition grade (M, NM, VG+, VG).<br>
+            2. <strong>eBay Sold Listings (LH_Sold=1):</strong> Real-time 90-day auction and 'Buy It Now' transaction prices with direct 1-click links for every record.
+          </p>
+        </div>
+
+        <!-- Discogs Personal Access Token -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="block font-semibold text-slate-200">Discogs Personal Access Token</label>
+            <a href="https://www.discogs.com/settings/developers" target="_blank" rel="noopener" class="text-[11px] text-brass-400 hover:underline flex items-center gap-1">
+              <span>Get Free Token</span> <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+            </a>
+          </div>
+          <div class="flex gap-2">
+            <input type="password" id="discogsTokenInput" placeholder="Paste your Discogs user token here" class="flex-1 bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-brass-500">
+            <button onclick="saveDiscogsToken()" class="px-3.5 py-2 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold rounded-lg transition">
+              Save
+            </button>
+          </div>
+          <p class="text-[10px] text-slate-500">
+            Stored locally in your browser. Generating a token on Discogs is free and takes 10 seconds under <em>Settings > Developers</em>.
+          </p>
+        </div>
+
+        <!-- Preferred Currency -->
+        <div class="grid grid-cols-2 gap-3 pt-2">
+          <div>
+            <label class="block font-semibold text-slate-200 mb-1">Archive Currency</label>
+            <select id="valuationCurrencySelect" onchange="handleCurrencyChange()" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brass-500">
+              <option value="GBP">GBP (£) - British Pound</option>
+              <option value="USD">USD ($) - US Dollar</option>
+              <option value="EUR">EUR (€) - Euro</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-200 mb-1">Total Valuation</label>
+            <div id="modalValuationSummary" class="p-2 bg-vinyl-900 rounded-lg border border-vinyl-800 font-mono text-emerald-400 font-bold text-sm">
+              £0.00
+            </div>
+          </div>
+        </div>
+
+        <!-- Batch Price Fetcher -->
+        <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-2 mt-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-200">Auto-Valuate Archive via Discogs</span>
+            <button id="batchValuateBtn" onclick="runBatchDiscogsValuation()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-amber-400 border border-amber-500/30 font-semibold text-[11px] transition flex items-center gap-1.5">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span>Estimate Missing Values</span>
+            </button>
+          </div>
+          <p class="text-[10px] text-slate-400" id="valuationProgressText">
+            Queries Discogs market price suggestions for all cataloged records matching their condition grade.
+          </p>
+        </div>
+      </div>
+
+      <div class="border-t border-vinyl-800 px-6 py-3.5 flex justify-end bg-vinyl-850">
+        <button onclick="closeValuationModal()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 transition">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- ============================================== -->
   <!-- MODAL: BATCH EXCEL / CSV UPLOAD ENGINE         -->
@@ -336,7 +476,6 @@
       </div>
 
       <div class="p-6 space-y-5 overflow-y-auto max-h-[80vh]">
-        <!-- Instructions & Minimum Dataset Info -->
         <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl text-xs text-slate-300 space-y-1.5">
           <div class="flex items-center justify-between">
             <span class="font-bold text-emerald-400 flex items-center gap-1.5">
@@ -353,8 +492,7 @@
           </div>
           <p class="text-[11px] text-slate-400 leading-relaxed">
             Your file only needs two columns: <strong>Artist</strong> and <strong>Title / Album</strong>. 
-            Optional headers: <em>Format (LP/7"), Year, Label, Catalog #, Grade, Sleeve Grade, Genre, Barcode, Notes</em>.
-            Any missing values are automatically filled with sensible collector defaults (Format: 12" LP, Grade: VG+).
+            Optional headers: <em>Format (LP/7"), Year, Label, Catalog #, Grade, Sleeve Grade, Estimated Value, Genre, Barcode, Notes</em>.
           </p>
         </div>
 
@@ -376,14 +514,13 @@
           </span>
         </div>
 
-        <!-- Preview & Validation Box (hidden initially) -->
+        <!-- Preview & Validation Box -->
         <div id="batchPreviewContainer" class="hidden space-y-3">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <span id="previewCountBadge" class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono text-xs font-bold border border-emerald-500/30">0 Records Parsed</span>
               <span id="previewFileName" class="text-xs text-slate-400 truncate max-w-xs font-mono"></span>
             </div>
-            <!-- Import Option -->
             <div class="flex items-center gap-3 text-xs text-slate-300">
               <label class="flex items-center gap-1.5 cursor-pointer">
                 <input type="radio" name="importMode" value="append" checked class="text-emerald-500 focus:ring-0">
@@ -396,10 +533,8 @@
             </div>
           </div>
 
-          <!-- Parsed Column Mappings -->
           <div id="columnMappingPills" class="flex flex-wrap gap-1 text-[11px] text-slate-400"></div>
 
-          <!-- Staged Data Table Preview -->
           <div class="bg-vinyl-850 rounded-xl border border-vinyl-800 overflow-x-auto max-h-56">
             <table class="w-full text-left text-xs text-slate-300">
               <thead class="bg-vinyl-900 border-b border-vinyl-800 text-[10px] uppercase font-mono text-slate-400 sticky top-0">
@@ -407,9 +542,9 @@
                   <th class="py-2 px-2.5">Artist</th>
                   <th class="py-2 px-2.5">Title / Album</th>
                   <th class="py-2 px-2.5">Format</th>
-                  <th class="py-2 px-2.5">Label</th>
                   <th class="py-2 px-2.5">Year</th>
                   <th class="py-2 px-2.5">Media</th>
+                  <th class="py-2 px-2.5">Est. Value</th>
                 </tr>
               </thead>
               <tbody id="batchPreviewTableBody" class="divide-y divide-vinyl-800 text-[11px]"></tbody>
@@ -419,7 +554,6 @@
 
       </div>
 
-      <!-- Footer Actions -->
       <div class="border-t border-vinyl-800 px-6 py-4 flex items-center justify-between bg-vinyl-850">
         <button type="button" onclick="closeBatchUploadModal()" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-lg transition">
           Cancel
@@ -469,7 +603,6 @@
             <span>Fetch Info</span>
           </button>
         </div>
-        <!-- Preset Shortcuts -->
         <div class="flex items-center gap-1.5 text-[11px]">
           <span class="text-slate-400">Presets:</span>
           <button type="button" onclick="presetAutofill('lp_rock')" class="px-2 py-0.5 rounded bg-vinyl-700 hover:bg-vinyl-600 text-slate-300">12" LP (Pink Floyd)</button>
@@ -486,7 +619,7 @@
           2. Pressing & Runout Matrix
         </button>
         <button type="button" onclick="switchFormTab('tab-grading')" id="tabBtn-grading" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
-          3. Goldmine Grading
+          3. Grading & Market Value
         </button>
         <button type="button" onclick="switchFormTab('tab-visuals')" id="tabBtn-visuals" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
           4. Labels & Artwork
@@ -503,7 +636,6 @@
         <!-- TAB 1: General Info & Tracks -->
         <div id="tab-general" class="form-tab-pane space-y-4">
           
-          <!-- Format Selector Row -->
           <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-2">
               <label class="text-xs font-bold uppercase text-brass-400 tracking-wider">Release Format *</label>
@@ -547,7 +679,7 @@
             </div>
           </div>
 
-          <!-- Dynamic Tracks Section (Flexible for Albums and 7" Singles) -->
+          <!-- Dynamic Tracks Section -->
           <div class="p-4 bg-vinyl-850 rounded-xl border border-vinyl-800 space-y-3">
             <div class="flex items-center justify-between">
               <h3 class="text-xs uppercase font-bold text-brass-400 tracking-wider flex items-center gap-2">
@@ -556,7 +688,7 @@
               <span class="text-[11px] text-slate-400" id="tracksFormatNote">Multi-track album listing</span>
             </div>
 
-            <!-- Single 7" A/B Side Inputs (shown for 7" singles) -->
+            <!-- Single 7" A/B Side Inputs -->
             <div id="tracksSingleContainer" class="space-y-2 hidden">
               <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
                 <div class="sm:col-span-1 text-center font-bold text-sm bg-vinyl-800 py-1.5 rounded border border-vinyl-700 text-slate-300">A</div>
@@ -579,7 +711,7 @@
               </div>
             </div>
 
-            <!-- Album Multi-Track Listing Textarea (shown for LPs / Albums) -->
+            <!-- Album Multi-Track Listing Textarea -->
             <div id="tracksAlbumContainer" class="space-y-2">
               <textarea id="formAlbumTracks" rows="4" placeholder="Enter or paste album tracks (one per line, e.g.):&#10;A1. Speak to Me / Breathe (3:58)&#10;A2. On the Run (3:35)&#10;A3. Time (7:05)&#10;B1. Money (6:22)&#10;B2. Us and Them (7:50)" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg p-2.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-brass-500 leading-relaxed"></textarea>
               <div class="flex justify-between items-center text-[10px] text-slate-500">
@@ -613,7 +745,7 @@
           <div class="p-3 bg-brass-500/10 border border-brass-500/20 rounded-lg text-xs text-slate-300 flex items-start gap-2">
             <i class="fa-solid fa-circle-info text-brass-400 mt-0.5"></i>
             <div>
-              <strong>Pressing & Matrix Archival Identification:</strong> Runout matrix etchings (cut numbers, engineer initials like <em>"Porky"</em>, <em>"Sterling"</em>, stamper codes) pinpoint the exact pressing, plant, and master lacquer.
+              <strong>Pressing & Matrix Archival Identification:</strong> Runout matrix etchings pinpoint the exact pressing, plant, and master lacquer cut.
             </div>
           </div>
 
@@ -661,7 +793,7 @@
           </div>
         </div>
 
-        <!-- TAB 3: Goldmine Grading Standard -->
+        <!-- TAB 3: Goldmine Grading & Valuation Standard -->
         <div id="tab-grading" class="form-tab-pane hidden space-y-4">
           <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-lg text-xs text-slate-300">
             <span class="font-bold text-brass-400">Goldmine Grading Scale:</span> Mint (M) > Near Mint (NM) > Very Good Plus (VG+) > Very Good (VG) > Good Plus (G+) > Good (G) > Fair (F) > Poor (P).
@@ -698,6 +830,45 @@
               </select>
               <textarea id="formSleeveGradeNotes" rows="2" placeholder="Sleeve notes (e.g. includes original poster, inserts, lyric inner bag, minor corner crease)..." class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-brass-500"></textarea>
             </div>
+          </div>
+
+          <!-- Market Valuation & Estimated Price Input Section -->
+          <div class="p-4 bg-vinyl-850 rounded-xl border border-vinyl-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-bold uppercase text-brass-400 tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-tags"></i> Market Valuation & Estimated Price
+              </label>
+              <button type="button" onclick="fetchDiscogsPriceForCurrentForm()" class="text-[11px] px-2.5 py-1 rounded bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-rotate text-xs"></i> <span>Lookup Discogs Market Average</span>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Currency</label>
+                <select id="formCurrency" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brass-500">
+                  <option value="GBP">GBP (£)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Estimated Value</label>
+                <div class="relative">
+                  <span id="formCurrencySymbol" class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-brass-400 font-bold">£</span>
+                  <input type="number" step="0.50" id="formEstimatedValue" placeholder="e.g. 24.50" class="w-full pl-8 pr-3 py-2 bg-vinyl-900 border border-vinyl-700 rounded-lg text-xs font-mono text-emerald-400 font-bold focus:outline-none focus:border-brass-500">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Discogs Release ID (Optional)</label>
+                <input type="text" id="formDiscogsId" placeholder="e.g. 249504" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-300 focus:outline-none focus:border-brass-500">
+              </div>
+            </div>
+            <p class="text-[10px] text-slate-500">
+              Value is mapped directly to condition grade. You can manually enter a figure or auto-fetch it from Discogs market sales history.
+            </p>
           </div>
         </div>
 
@@ -806,12 +977,10 @@
           </button>
           
           <div class="flex items-center gap-2">
-            <!-- Save and Add Next (High Velocity Entry) -->
             <button type="button" onclick="saveRecordForm(event, true)" class="px-4 py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 transition flex items-center gap-1.5 shadow" title="Save this record and immediately open blank form for next one [Ctrl+Enter]">
               <i class="fa-solid fa-plus text-xs"></i>
               <span>Save & Add Next</span>
             </button>
-            <!-- Standard Save & Close -->
             <button type="submit" class="px-6 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-vinyl-950 shadow-lg shadow-brass-500/20 transition">
               Save & Close
             </button>
@@ -849,7 +1018,6 @@
       <div class="mt-4 flex flex-col gap-2">
         <p id="scanFeedback" class="text-xs text-center text-slate-400">Initializing camera feed...</p>
         
-        <!-- Fallback Manual & Simulation Options -->
         <div class="flex gap-2">
           <input type="text" id="manualBarcodeInput" placeholder="Or type Barcode / UPC manually" class="flex-1 bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs text-white">
           <button onclick="handleManualBarcode()" class="px-3 py-1.5 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold rounded-lg text-xs">
@@ -879,7 +1047,7 @@
   <!-- APPLICATION JAVASCRIPT LOGIC -->
   <script>
     /* =========================================================
-       DEFAULT INITIAL ARCHIVAL SEED DATA (ALBUMS & SINGLES)
+       DEFAULT INITIAL ARCHIVAL SEED DATA WITH VALUATIONS
        ========================================================= */
     const SAMPLE_RECORDS = [
       {
@@ -890,6 +1058,9 @@
         label: "Harvest / EMI",
         catNo: "SHVL 804",
         year: 1973,
+        estimatedValue: 280.00,
+        currency: "GBP",
+        discogsId: "249504",
         sideATitle: "Speak to Me / Breathe / On the Run / Time",
         sideADuration: "19:26",
         sideBTitle: "Money / Us and Them / Brain Damage / Eclipse",
@@ -936,6 +1107,9 @@
         label: "Lightning Records",
         catNo: "LIG 506",
         year: 1977,
+        estimatedValue: 12.50,
+        currency: "GBP",
+        discogsId: "79178",
         sideATitle: "Uptown Top Ranking",
         sideADuration: "3:53",
         sideBTitle: "Calico Suit",
@@ -975,6 +1149,9 @@
         label: "Columbia",
         catNo: "CL 1355",
         year: 1959,
+        estimatedValue: 320.00,
+        currency: "GBP",
+        discogsId: "433333",
         sideATitle: "So What / Freddie Freeloader / Blue in Green",
         sideADuration: "25:38",
         sideBTitle: "All Blues / Flamenco Sketches",
@@ -1017,6 +1194,9 @@
         label: "Stiff Records",
         catNo: "BUY 6",
         year: 1976,
+        estimatedValue: 95.00,
+        currency: "GBP",
+        discogsId: "79179",
         sideATitle: "New Rose",
         sideADuration: "2:42",
         sideBTitle: "Help",
@@ -1054,21 +1234,51 @@
        APPLICATION STATE
        ========================================================= */
     const STORAGE_KEY = 'qmc_vinyl_catalogue_v2';
+    const TOKEN_KEY = 'qmc_discogs_user_token';
+    const CURRENCY_KEY = 'qmc_archive_currency';
+
     let records = [];
     let currentView = 'grid'; // 'grid' | 'list'
     let html5QrScanner = null;
     let stagedBatchRecords = [];
+    let globalCurrency = 'GBP';
 
     // Sticky Defaults for Fast Workflow
     let sessionDefaults = {
       format: '12" LP (Album)',
       mediaGrade: 'VG+',
       sleeveGrade: 'VG+',
-      country: 'UK'
+      country: 'UK',
+      currency: 'GBP'
     };
+
+    // Cachebuster Utility
+    function forceBustCache() {
+      const cleanUrl = window.location.origin + window.location.pathname;
+      const buster = `v=${Date.now()}`;
+      window.location.replace(`${cleanUrl}?${buster}`);
+    }
+
+    // Currency Symbol Helper
+    function getCurrencySymbol(curr = globalCurrency) {
+      if (curr === 'USD') return '$';
+      if (curr === 'EUR') return '€';
+      return '£';
+    }
+
+    // Currency Symbol Helper
+    function getCurrencySymbol(curr = globalCurrency) {
+      if (curr === 'USD') return '$';
+      if (curr === 'EUR') return '€';
+      return '£';
+    }
 
     // Initialize Application
     window.addEventListener('DOMContentLoaded', () => {
+      globalCurrency = localStorage.getItem(CURRENCY_KEY) || 'GBP';
+      const curSelect = document.getElementById('valuationCurrencySelect');
+      if (curSelect) curSelect.value = globalCurrency;
+
       loadRecordsFromStorage();
       renderStats();
       renderRecords();
@@ -1087,20 +1297,27 @@
 
     function loadRecordsFromStorage() {
       try {
-        const stored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('rpm7_vinyl_catalogue_v1');
-        if (stored) {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored !== null) {
           records = JSON.parse(stored);
-          // Normalize legacy 7" format if missing
           records.forEach(r => {
             if (!r.format) r.format = '7" Single (45 RPM)';
+            if (r.estimatedValue !== undefined && r.estimatedValue !== null) {
+              r.estimatedValue = parseFloat(r.estimatedValue) || 0;
+            }
           });
         } else {
-          records = [...SAMPLE_RECORDS];
+          const legacy = localStorage.getItem('rpm7_vinyl_catalogue_v1');
+          if (legacy !== null) {
+            records = JSON.parse(legacy);
+          } else {
+            records = [...SAMPLE_RECORDS];
+          }
           saveRecordsToStorage();
         }
       } catch (e) {
         console.error("Storage load error:", e);
-        records = [...SAMPLE_RECORDS];
+        records = [];
       }
     }
 
@@ -1113,17 +1330,37 @@
     }
 
     /* =========================================================
-       STATISTICS & RESEARCH INSIGHTS (ALBUMS + SINGLES)
+       STATISTICS & VALUATION SUMMARY
        ========================================================= */
     function renderStats() {
       const total = records.length;
       document.getElementById('statTotalItems').innerText = total;
 
-      // Count LPs vs Singles
       const lpCount = records.filter(r => r.format && r.format.includes('LP')).length;
       const singleCount = records.filter(r => r.format && (r.format.includes('7"') || r.format.includes('Single'))).length;
       document.getElementById('statTotalLPs').innerText = lpCount;
       document.getElementById('statTotalSingles').innerText = singleCount;
+
+      // Valuation calculations
+      let totalVal = 0;
+      let valuedCount = 0;
+      records.forEach(r => {
+        if (r.estimatedValue && !isNaN(r.estimatedValue)) {
+          totalVal += parseFloat(r.estimatedValue);
+          valuedCount++;
+        }
+      });
+
+      const sym = getCurrencySymbol();
+      document.getElementById('statTotalValue').innerText = `${sym}${totalVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      
+      const avgVal = valuedCount > 0 ? (totalVal / valuedCount).toFixed(2) : '0.00';
+      document.getElementById('statAvgValue').innerText = `Avg: ${sym}${avgVal} / disc (${valuedCount}/${total})`;
+      
+      const modalSum = document.getElementById('modalValuationSummary');
+      if (modalSum) {
+        modalSum.innerText = `${sym}${totalVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      }
 
       // Digitized count
       const digitizedCount = records.filter(r => r.transferStatus && r.transferStatus !== 'Not Digitized').length;
@@ -1179,7 +1416,6 @@
       const sortBy = document.getElementById('sortBy')?.value || 'dateAddedDesc';
 
       let result = records.filter(item => {
-        // Text Match
         const tracksText = (item.tracks || []).map(t => `${t.pos || ''} ${t.title || ''}`).join(' ');
         const matchText = (
           (item.artist || '') + ' ' +
@@ -1200,11 +1436,7 @@
         ).toLowerCase();
 
         if (searchTerm && !matchText.includes(searchTerm)) return false;
-
-        // Format Match
         if (formatFilter !== 'ALL' && item.format !== formatFilter) return false;
-
-        // Grade Match
         if (gradeFilter !== 'ALL' && item.mediaGrade !== gradeFilter) return false;
 
         return true;
@@ -1213,6 +1445,7 @@
       // Sorting
       result.sort((a, b) => {
         if (sortBy === 'dateAddedDesc') return new Date(b.dateAdded || 0) - new Date(a.dateAdded || 0);
+        if (sortBy === 'valueDesc') return (b.estimatedValue || 0) - (a.estimatedValue || 0);
         if (sortBy === 'artistAsc') return (a.artist || '').localeCompare(b.artist || '');
         if (sortBy === 'titleAsc') return (a.title || '').localeCompare(b.title || '');
         if (sortBy === 'yearAsc') return (a.year || 0) - (b.year || 0);
@@ -1221,9 +1454,7 @@
           const ranks = { 'M': 8, 'NM': 7, 'VG+': 6, 'VG': 5, 'G+': 4, 'G': 3, 'F': 2, 'P': 1 };
           return (ranks[b.mediaGrade] || 0) - (ranks[a.mediaGrade] || 0);
         }
-        if (sortBy === 'formatAsc') {
-          return (a.format || '').localeCompare(b.format || '');
-        }
+        if (sortBy === 'formatAsc') return (a.format || '').localeCompare(b.format || '');
         return 0;
       });
 
@@ -1318,6 +1549,17 @@
       </span>`;
     }
 
+    // Direct Market Check Link Generators
+    function getDiscogsSearchUrl(item) {
+      const q = `${item.artist} ${item.catNo || item.title}`.trim();
+      return `https://www.discogs.com/search/?q=${encodeURIComponent(q)}&type=release`;
+    }
+
+    function getEbaySoldUrl(item) {
+      const q = `${item.artist} ${item.catNo || item.title} vinyl`.trim();
+      return `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(q)}&LH_Complete=1&LH_Sold=1`;
+    }
+
     /* =========================================================
        RECORD RENDERING (GRID & TABLE ARCHIVAL LIST)
        ========================================================= */
@@ -1330,6 +1572,38 @@
         container.innerHTML = '';
         emptyState.classList.remove('hidden');
         emptyState.classList.add('flex');
+
+        const heading = document.getElementById('emptyStateHeading');
+        const subtext = document.getElementById('emptyStateSubtext');
+        const actions = document.getElementById('emptyStateActions');
+
+        if (records.length === 0) {
+          if (heading) heading.innerText = 'Your Vinyl Archive is Empty';
+          if (subtext) subtext.innerText = 'You can add your own records, batch upload from Excel/CSV, or reload the sample records anytime.';
+          if (actions) {
+            actions.innerHTML = `
+              <button onclick="openAddEditModal()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 transition flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-plus"></i> Catalogue First Record
+              </button>
+              <button onclick="openBatchUploadModal()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-emerald-500 hover:bg-emerald-400 text-vinyl-950 transition flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-file-excel"></i> Batch Upload (Excel/CSV)
+              </button>
+              <button onclick="loadSampleDataset()" class="px-4 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border border-vinyl-700 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-rotate-right text-indigo-400"></i> Reload Sample Records
+              </button>
+            `;
+          }
+        } else {
+          if (heading) heading.innerText = 'No matching records found';
+          if (subtext) subtext.innerText = 'No catalog records match your current filter or search criteria.';
+          if (actions) {
+            actions.innerHTML = `
+              <button onclick="resetFilters()" class="px-4 py-1.5 text-xs bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 rounded-lg border border-brass-500/20">
+                Clear All Filters
+              </button>
+            `;
+          }
+        }
         return;
       }
 
@@ -1345,10 +1619,12 @@
 
     function renderGridView(list, container) {
       let html = '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">';
+      const sym = getCurrencySymbol();
 
       list.forEach(item => {
         const coverSrc = item.coverImage || `https://placehold.co/400x400/181b22/d4af37?text=${encodeURIComponent(item.format && item.format.includes('7"') ? '7" Single' : '12" LP')}`;
         const isAlbum = item.format && item.format.includes('LP');
+        const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(item.estimatedValue) && item.estimatedValue > 0;
 
         html += `
           <div class="bg-vinyl-900 rounded-2xl border border-vinyl-800 hover:border-brass-500/50 transition-all duration-200 overflow-hidden shadow-lg hover:shadow-2xl flex flex-col group">
@@ -1358,8 +1634,13 @@
               <img src="${coverSrc}" alt="${item.title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/400x400/181b22/d4af37?text=Vinyl+Disc'">
               
               <!-- Format Indicator Badge -->
-              <div class="absolute top-3 left-3">
+              <div class="absolute top-3 left-3 flex flex-col gap-1 items-start">
                 ${getFormatBadge(item.format)}
+                ${hasVal ? `
+                  <span class="bg-emerald-950/90 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded text-[10px] font-mono font-bold shadow backdrop-blur">
+                    ${sym}${parseFloat(item.estimatedValue).toFixed(2)}
+                  </span>
+                ` : ''}
               </div>
 
               <!-- Media Grade Badge -->
@@ -1424,16 +1705,27 @@
                 ` : ''}
               </div>
 
-              <!-- Action Bar Footer -->
+              <!-- Action Bar Footer with 1-Click Market Checks -->
               <div class="mt-4 pt-3 border-t border-vinyl-800 flex items-center justify-between text-xs text-slate-400">
                 <button onclick="viewRecordDetail('${item.id}')" class="hover:text-brass-400 transition flex items-center gap-1">
                   <i class="fa-solid fa-file-lines"></i> Dossier
                 </button>
+
                 <div class="flex items-center gap-2">
-                  <button onclick="editRecord('${item.id}')" class="p-1.5 hover:text-amber-400 transition" title="Edit Metadata">
+                  <!-- 1-Click eBay Sold Link -->
+                  <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener" class="p-1 hover:text-blue-400 transition" title="Check eBay Sold Listings (90 Days)">
+                    <i class="fa-brands fa-ebay text-base"></i>
+                  </a>
+
+                  <!-- 1-Click Discogs Market Link -->
+                  <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener" class="p-1 hover:text-amber-400 transition" title="Check Discogs Marketplace Average">
+                    <i class="fa-solid fa-compact-disc"></i>
+                  </a>
+
+                  <button onclick="editRecord('${item.id}')" class="p-1 hover:text-amber-400 transition" title="Edit Metadata">
                     <i class="fa-solid fa-pen-to-square"></i>
                   </button>
-                  <button onclick="deleteRecordPrompt('${item.id}')" class="p-1.5 hover:text-red-400 transition" title="Delete Entry">
+                  <button onclick="deleteRecordPrompt('${item.id}')" class="p-1 hover:text-red-400 transition" title="Delete Entry">
                     <i class="fa-solid fa-trash-can"></i>
                   </button>
                 </div>
@@ -1449,6 +1741,7 @@
     }
 
     function renderListView(list, container) {
+      const sym = getCurrencySymbol();
       let html = `
         <div class="bg-vinyl-900 rounded-xl border border-vinyl-800 overflow-x-auto shadow-xl">
           <table class="w-full text-left text-xs text-slate-300">
@@ -1460,9 +1753,8 @@
                 <th class="py-3 px-3">Label</th>
                 <th class="py-3 px-3">Year</th>
                 <th class="py-3 px-3">Media</th>
-                <th class="py-3 px-3">Sleeve</th>
-                <th class="py-3 px-3">Matrix (Side A)</th>
-                <th class="py-3 px-3">Audio Transfer</th>
+                <th class="py-3 px-3">Est. Value</th>
+                <th class="py-3 px-3">Market Checks</th>
                 <th class="py-3 px-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -1470,6 +1762,8 @@
       `;
 
       list.forEach(item => {
+        const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(item.estimatedValue) && item.estimatedValue > 0;
+        
         html += `
           <tr class="hover:bg-vinyl-850/60 transition group">
             <td class="py-2.5 px-3 whitespace-nowrap">
@@ -1487,15 +1781,18 @@
             <td class="py-2.5 px-3 whitespace-nowrap">${item.label || '--'}</td>
             <td class="py-2.5 px-3 font-mono">${item.year || '--'}</td>
             <td class="py-2.5 px-3 whitespace-nowrap">${getGradeBadge(item.mediaGrade)}</td>
-            <td class="py-2.5 px-3 whitespace-nowrap">${getGradeBadge(item.sleeveGrade)}</td>
-            <td class="py-2.5 px-3 font-mono text-[11px] text-emerald-400/90 max-w-xs truncate" title="${item.matrixA}">
-              ${item.matrixA || '<span class="text-slate-600 font-sans italic">none recorded</span>'}
+            <td class="py-2.5 px-3 whitespace-nowrap font-mono font-bold text-emerald-400">
+              ${hasVal ? `${sym}${parseFloat(item.estimatedValue).toFixed(2)}` : '<span class="text-slate-600 font-normal">--</span>'}
             </td>
             <td class="py-2.5 px-3 whitespace-nowrap">
-              ${item.transferStatus && item.transferStatus !== 'Not Digitized' ? 
-                `<span class="text-cyan-400 text-[10px] font-mono bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/60"><i class="fa-solid fa-wave-square mr-1"></i>${item.transferStatus}</span>` : 
-                `<span class="text-slate-500 text-[10px]">None</span>`
-              }
+              <div class="flex items-center gap-2">
+                <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener" class="text-slate-400 hover:text-blue-400" title="eBay Sold Listings">
+                  <i class="fa-brands fa-ebay text-sm"></i>
+                </a>
+                <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener" class="text-slate-400 hover:text-amber-400" title="Discogs Marketplace">
+                  <i class="fa-solid fa-compact-disc"></i>
+                </a>
+              </div>
             </td>
             <td class="py-2.5 px-3 text-right whitespace-nowrap">
               <button onclick="viewRecordDetail('${item.id}')" class="p-1 hover:text-brass-400 transition" title="Inspect">
@@ -1521,7 +1818,7 @@
     }
 
     /* =========================================================
-       DETAIL MODAL (FULL ARCHIVAL DOSSIER)
+       DETAIL MODAL (FULL ARCHIVAL DOSSIER WITH MARKET INTELLIGENCE)
        ========================================================= */
     function viewRecordDetail(id) {
       const item = records.find(r => r.id === id);
@@ -1530,6 +1827,8 @@
       const modal = document.getElementById('detailModal');
       const content = document.getElementById('detailModalContent');
       const isAlbum = item.format && item.format.includes('LP');
+      const sym = getCurrencySymbol();
+      const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(item.estimatedValue) && item.estimatedValue > 0;
 
       let tracksHTML = '';
       if (item.tracks && item.tracks.length > 0) {
@@ -1629,15 +1928,59 @@
             </div>
           </div>
 
-          <!-- Column 2 & 3: Detailed Dossier -->
+          <!-- Column 2 & 3: Detailed Dossier & Valuation -->
           <div class="md:col-span-2 space-y-4">
             
+            <!-- MARKET VALUATION & LIVE PRICING CARD -->
+            <div class="bg-gradient-to-r from-vinyl-850 to-vinyl-800 p-4 rounded-xl border border-brass-500/30 space-y-3">
+              <div class="flex items-center justify-between">
+                <h4 class="text-xs uppercase font-bold text-brass-400 tracking-wider flex items-center gap-2">
+                  <i class="fa-solid fa-coins"></i> Market Valuation & Realized Pricing
+                </h4>
+                <div class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-lg border border-emerald-500/30">
+                  ${hasVal ? `${sym}${parseFloat(item.estimatedValue).toFixed(2)}` : 'Valuation Pending'}
+                </div>
+              </div>
+
+              <!-- 1-Click External Market Lookups -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener" class="p-2.5 bg-vinyl-900 hover:bg-vinyl-850 border border-vinyl-700 hover:border-blue-400/50 rounded-lg text-xs flex items-center justify-between transition group">
+                  <div class="flex items-center gap-2 text-slate-200">
+                    <i class="fa-brands fa-ebay text-blue-400 text-lg"></i>
+                    <div>
+                      <div class="font-bold">eBay Sold Listings</div>
+                      <div class="text-[10px] text-slate-400">Recent 90-day transactions</div>
+                    </div>
+                  </div>
+                  <i class="fa-solid fa-arrow-up-right-from-square text-slate-500 group-hover:text-blue-400 text-xs"></i>
+                </a>
+
+                <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener" class="p-2.5 bg-vinyl-900 hover:bg-vinyl-850 border border-vinyl-700 hover:border-amber-400/50 rounded-lg text-xs flex items-center justify-between transition group">
+                  <div class="flex items-center gap-2 text-slate-200">
+                    <i class="fa-solid fa-compact-disc text-amber-400 text-lg"></i>
+                    <div>
+                      <div class="font-bold">Discogs Marketplace</div>
+                      <div class="text-[10px] text-slate-400">Release sales history & medians</div>
+                    </div>
+                  </div>
+                  <i class="fa-solid fa-arrow-up-right-from-square text-slate-500 group-hover:text-amber-400 text-xs"></i>
+                </a>
+              </div>
+
+              <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+                <span>Goldmine Grade Assessed: <strong>${item.mediaGrade || 'VG+'}</strong></span>
+                <button type="button" onclick="fetchDiscogsPriceForRecord('${item.id}')" class="text-brass-400 hover:underline flex items-center gap-1 font-medium">
+                  <i class="fa-solid fa-rotate text-xs"></i> Refresh Discogs Value
+                </button>
+              </div>
+            </div>
+
             <!-- Tracks Block -->
             <div class="bg-vinyl-850 p-4 rounded-xl border border-vinyl-800">
               <h4 class="text-xs uppercase font-bold text-slate-400 tracking-wider mb-2 flex items-center gap-2">
                 <i class="fa-solid fa-list-ol text-brass-400"></i> Tracklist Architecture
               </h4>
-              <div class="space-y-1.5 text-xs max-h-56 overflow-y-auto pr-1">
+              <div class="space-y-1.5 text-xs max-h-52 overflow-y-auto pr-1">
                 ${tracksHTML}
               </div>
             </div>
@@ -1764,18 +2107,18 @@
       document.getElementById('recordForm').reset();
       document.getElementById('recordId').value = '';
       
-      // Apply session sticky defaults for high-speed workflow
       document.getElementById('formFormat').value = sessionDefaults.format || '12" LP (Album)';
       document.getElementById('formMediaGrade').value = sessionDefaults.mediaGrade || 'VG+';
       document.getElementById('formSleeveGrade').value = sessionDefaults.sleeveGrade || 'VG+';
       document.getElementById('formCountry').value = sessionDefaults.country || '';
+      document.getElementById('formCurrency').value = globalCurrency || 'GBP';
+      document.getElementById('formCurrencySymbol').innerText = getCurrencySymbol(globalCurrency);
 
       handleFormatChange();
       clearImagePreviews();
       switchFormTab('tab-general');
       document.getElementById('recordModal').classList.remove('hidden');
       
-      // Auto-focus artist input for immediate typing
       setTimeout(() => document.getElementById('formArtist').focus(), 150);
     }
 
@@ -1883,6 +2226,12 @@
       document.getElementById('formBarcode').value = item.barcode || '';
       document.getElementById('formCountry').value = item.country || '';
 
+      // Valuation
+      document.getElementById('formEstimatedValue').value = (item.estimatedValue !== undefined && item.estimatedValue !== null) ? item.estimatedValue : '';
+      document.getElementById('formCurrency').value = item.currency || globalCurrency || 'GBP';
+      document.getElementById('formCurrencySymbol').innerText = getCurrencySymbol(document.getElementById('formCurrency').value);
+      document.getElementById('formDiscogsId').value = item.discogsId || '';
+
       // Album tracks
       if (item.tracks && item.tracks.length > 0) {
         document.getElementById('formAlbumTracks').value = item.tracks.map(t => `${t.pos ? t.pos + '. ' : ''}${t.title}${t.duration ? ' (' + t.duration + ')' : ''}`).join('\n');
@@ -1909,7 +2258,6 @@
       document.getElementById('formTransferNotes').value = item.transferNotes || '';
       document.getElementById('formResearchNotes').value = item.researchNotes || '';
 
-      // Image previews
       clearImagePreviews();
       if (item.coverImage) {
         const cImg = document.getElementById('previewCoverImg');
@@ -1955,7 +2303,7 @@
 
       const format = document.getElementById('formFormat').value;
 
-      // Parse tracks from textarea for albums
+      // Parse tracks from textarea
       let parsedTracks = [];
       const albumTracksRaw = document.getElementById('formAlbumTracks').value.trim();
       if (albumTracksRaw) {
@@ -1965,7 +2313,6 @@
           let trackTitle = line;
           let duration = '';
 
-          // Match patterns like "A1. Title (3:45)" or "1. Title"
           const matchPos = line.match(/^([A-D]?\d+|[A-B])\.\s*(.+)/);
           if (matchPos) {
             pos = matchPos[1];
@@ -1984,6 +2331,9 @@
         });
       }
 
+      const valRaw = document.getElementById('formEstimatedValue').value;
+      const estValue = valRaw !== '' ? parseFloat(valRaw) : null;
+
       const recordObj = {
         id: newId,
         format: format,
@@ -1992,6 +2342,9 @@
         label: document.getElementById('formLabel').value.trim(),
         catNo: document.getElementById('formCatNo').value.trim(),
         year: parseInt(document.getElementById('formYear').value) || null,
+        estimatedValue: estValue,
+        currency: document.getElementById('formCurrency').value || globalCurrency,
+        discogsId: document.getElementById('formDiscogsId').value.trim(),
         sideATitle: document.getElementById('formSideATitle').value.trim(),
         sideADuration: document.getElementById('formSideADuration').value.trim(),
         sideBTitle: document.getElementById('formSideBTitle').value.trim(),
@@ -2025,7 +2378,6 @@
         dateAdded: isNew ? new Date().toISOString() : (records.find(r => r.id === newId)?.dateAdded || new Date().toISOString())
       };
 
-      // Update sticky session defaults
       sessionDefaults.format = recordObj.format;
       sessionDefaults.mediaGrade = recordObj.mediaGrade;
       sessionDefaults.sleeveGrade = recordObj.sleeveGrade;
@@ -2047,7 +2399,6 @@
       renderRecords();
 
       if (andAddNext) {
-        // Clear specific fields but keep sticky settings for rapid cataloging
         document.getElementById('recordId').value = '';
         document.getElementById('formArtist').value = '';
         document.getElementById('formTitle').value = '';
@@ -2059,6 +2410,8 @@
         document.getElementById('formBarcode').value = '';
         document.getElementById('formMatrixA').value = '';
         document.getElementById('formMatrixB').value = '';
+        document.getElementById('formEstimatedValue').value = '';
+        document.getElementById('formDiscogsId').value = '';
         document.getElementById('musicBrainzQueryInput').value = '';
         clearImagePreviews();
         switchFormTab('tab-general');
@@ -2081,6 +2434,224 @@
         renderRecords();
         showToast(`Record removed from archive.`, "info");
       }
+    }
+
+    /* =========================================================
+       DISCOGS VALUATION & MARKET API ENGINE
+       ========================================================= */
+    function openValuationModal() {
+      const token = localStorage.getItem(TOKEN_KEY) || '';
+      document.getElementById('discogsTokenInput').value = token;
+      document.getElementById('valuationCurrencySelect').value = globalCurrency;
+      renderStats();
+      document.getElementById('valuationModal').classList.remove('hidden');
+    }
+
+    function closeValuationModal() {
+      document.getElementById('valuationModal').classList.add('hidden');
+    }
+
+    function saveDiscogsToken() {
+      const token = document.getElementById('discogsTokenInput').value.trim();
+      localStorage.setItem(TOKEN_KEY, token);
+      showToast("Discogs user token saved!");
+    }
+
+    function handleCurrencyChange() {
+      globalCurrency = document.getElementById('valuationCurrencySelect').value;
+      localStorage.setItem(CURRENCY_KEY, globalCurrency);
+      renderStats();
+      renderRecords();
+      showToast(`Updated archive currency to ${globalCurrency}`);
+    }
+
+    // Map Goldmine grading to Discogs suggestion keys
+    function mapGradeToDiscogsKey(grade) {
+      if (grade === 'M') return 'Mint (M)';
+      if (grade === 'NM') return 'Near Mint (NM or M-)';
+      if (grade === 'VG+') return 'Very Good Plus (VG+)';
+      if (grade === 'VG') return 'Very Good (VG)';
+      if (grade === 'G+') return 'Good Plus (G+)';
+      if (grade === 'G') return 'Good (G)';
+      if (grade === 'F') return 'Fair (F)';
+      if (grade === 'P') return 'Poor (P)';
+      return 'Very Good Plus (VG+)';
+    }
+
+    async function fetchDiscogsPriceForCurrentForm() {
+      const artist = document.getElementById('formArtist').value.trim();
+      const title = document.getElementById('formTitle').value.trim();
+      const catNo = document.getElementById('formCatNo').value.trim();
+      const mediaGrade = document.getElementById('formMediaGrade').value || 'VG+';
+      const existingDiscogsId = document.getElementById('formDiscogsId').value.trim();
+
+      if (!artist || !title) {
+        showToast("Enter Artist and Title first", "error");
+        return;
+      }
+
+      showToast(`Looking up Discogs market sales for ${artist}...`);
+      const token = localStorage.getItem(TOKEN_KEY) || '';
+
+      const priceResult = await queryDiscogsMarketValue(artist, title, catNo, mediaGrade, existingDiscogsId, token);
+      if (priceResult) {
+        document.getElementById('formEstimatedValue').value = priceResult.value.toFixed(2);
+        if (priceResult.currency) {
+          document.getElementById('formCurrency').value = priceResult.currency;
+          document.getElementById('formCurrencySymbol').innerText = getCurrencySymbol(priceResult.currency);
+        }
+        if (priceResult.releaseId) {
+          document.getElementById('formDiscogsId').value = priceResult.releaseId;
+        }
+        showToast(`Matched ${mediaGrade} median value: ${getCurrencySymbol(priceResult.currency)}${priceResult.value.toFixed(2)}`);
+      }
+    }
+
+    async function fetchDiscogsPriceForRecord(recordId) {
+      const record = records.find(r => r.id === recordId);
+      if (!record) return;
+
+      const token = localStorage.getItem(TOKEN_KEY) || '';
+      showToast(`Querying Discogs price for ${record.title}...`);
+
+      const priceResult = await queryDiscogsMarketValue(record.artist, record.title, record.catNo, record.mediaGrade, record.discogsId, token);
+      if (priceResult) {
+        record.estimatedValue = priceResult.value;
+        record.currency = priceResult.currency || record.currency || globalCurrency;
+        if (priceResult.releaseId) record.discogsId = priceResult.releaseId;
+        
+        saveRecordsToStorage();
+        renderStats();
+        renderRecords();
+        viewRecordDetail(recordId);
+        showToast(`Updated value: ${getCurrencySymbol(record.currency)}${record.estimatedValue.toFixed(2)}`);
+      }
+    }
+
+    async function queryDiscogsMarketValue(artist, title, catNo, mediaGrade, discogsId, token) {
+      try {
+        let releaseId = discogsId;
+
+        // Step 1: If no release ID, search Discogs database
+        if (!releaseId) {
+          let searchUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(artist + ' ' + (catNo || title))}&type=release`;
+          if (token) searchUrl += `&token=${encodeURIComponent(token)}`;
+
+          const searchRes = await fetch(searchUrl, {
+            headers: token ? { 'User-Agent': 'QMCVinylArchive/2.0' } : {}
+          });
+
+          if (!searchRes.ok) {
+            // Fallback: If unauthenticated rate limit reached
+            if (searchRes.status === 401 || searchRes.status === 403) {
+              promptForTokenHelp();
+              return null;
+            }
+            throw new Error(`Search failed (${searchRes.status})`);
+          }
+
+          const searchData = await searchRes.json();
+          if (searchData.results && searchData.results.length > 0) {
+            releaseId = searchData.results[0].id;
+          } else {
+            showToast("No matching release found on Discogs", "info");
+            return null;
+          }
+        }
+
+        // Step 2: Fetch price suggestions based on condition
+        let priceUrl = `https://api.discogs.com/marketplace/price_suggestions/${releaseId}`;
+        if (token) priceUrl += `?token=${encodeURIComponent(token)}`;
+
+        const priceRes = await fetch(priceUrl, {
+          headers: token ? { 'User-Agent': 'QMCVinylArchive/2.0' } : {}
+        });
+
+        if (priceRes.ok) {
+          const priceData = await priceRes.json();
+          const targetKey = mapGradeToDiscogsKey(mediaGrade);
+          const suggestion = priceData[targetKey] || priceData['Very Good Plus (VG+)'] || Object.values(priceData)[0];
+
+          if (suggestion && suggestion.value) {
+            return {
+              value: parseFloat(suggestion.value),
+              currency: suggestion.currency || globalCurrency,
+              releaseId: String(releaseId)
+            };
+          }
+        }
+
+        // Step 3: Fallback to basic release stats (lowest_price)
+        let releaseUrl = `https://api.discogs.com/releases/${releaseId}`;
+        if (token) releaseUrl += `?token=${encodeURIComponent(token)}`;
+        const relRes = await fetch(releaseUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } });
+        if (relRes.ok) {
+          const relData = await relRes.json();
+          if (relData.lowest_price) {
+            return {
+              value: parseFloat(relData.lowest_price),
+              currency: 'GBP',
+              releaseId: String(releaseId)
+            };
+          }
+        }
+
+        showToast("No pricing data currently listed for this release", "info");
+        return null;
+      } catch (err) {
+        console.warn("Discogs API error:", err);
+        promptForTokenHelp();
+        return null;
+      }
+    }
+
+    function promptForTokenHelp() {
+      showToast("To fetch live Discogs market averages, add your free token in 'Market Values'", "info");
+      setTimeout(() => openValuationModal(), 1000);
+    }
+
+    async function runBatchDiscogsValuation() {
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (!token) {
+        showToast("Please enter your free Discogs token first!", "error");
+        return;
+      }
+
+      const unvalued = records.filter(r => !r.estimatedValue || r.estimatedValue === 0);
+      if (unvalued.length === 0) {
+        showToast("All records currently have an estimated value!", "info");
+        return;
+      }
+
+      const btn = document.getElementById('batchValuateBtn');
+      const progress = document.getElementById('valuationProgressText');
+      btn.disabled = true;
+      btn.classList.add('opacity-50');
+
+      let updated = 0;
+      for (let i = 0; i < unvalued.length; i++) {
+        const item = unvalued[i];
+        progress.innerText = `Fetching value ${i + 1} of ${unvalued.length}: ${item.title}...`;
+        
+        const price = await queryDiscogsMarketValue(item.artist, item.title, item.catNo, item.mediaGrade, item.discogsId, token);
+        if (price) {
+          item.estimatedValue = price.value;
+          item.currency = price.currency || item.currency || globalCurrency;
+          if (price.releaseId) item.discogsId = price.releaseId;
+          updated++;
+        }
+
+        // Respect Discogs API rate-limits (1 request/sec for authenticated users)
+        await new Promise(r => setTimeout(r, 1100));
+      }
+
+      saveRecordsToStorage();
+      renderStats();
+      renderRecords();
+      btn.disabled = false;
+      btn.classList.remove('opacity-50');
+      progress.innerText = `Done! Updated market value for ${updated} records.`;
+      showToast(`Updated market value for ${updated} records!`);
     }
 
     /* =========================================================
@@ -2122,42 +2693,24 @@
         if (data.releases && data.releases.length > 0) {
           const match = data.releases[0];
           
-          // Autofill Artist
           if (match['artist-credit'] && match['artist-credit'].length > 0) {
             document.getElementById('formArtist').value = match['artist-credit'][0].name || '';
           }
-          
-          // Title
           document.getElementById('formTitle').value = match.title || '';
 
-          // Date / Year
           if (match.date) {
             const yr = parseInt(match.date.slice(0, 4));
             if (!isNaN(yr)) document.getElementById('formYear').value = yr;
           }
+          if (match.country) document.getElementById('formCountry').value = match.country;
+          if (match.barcode) document.getElementById('formBarcode').value = match.barcode;
 
-          // Country
-          if (match.country) {
-            document.getElementById('formCountry').value = match.country;
-          }
-
-          // Barcode
-          if (match.barcode) {
-            document.getElementById('formBarcode').value = match.barcode;
-          }
-
-          // Label and Catalog Number
           if (match['label-info'] && match['label-info'].length > 0) {
             const lInfo = match['label-info'][0];
-            if (lInfo.label && lInfo.label.name) {
-              document.getElementById('formLabel').value = lInfo.label.name;
-            }
-            if (lInfo['catalog-number']) {
-              document.getElementById('formCatNo').value = lInfo['catalog-number'];
-            }
+            if (lInfo.label && lInfo.label.name) document.getElementById('formLabel').value = lInfo.label.name;
+            if (lInfo['catalog-number']) document.getElementById('formCatNo').value = lInfo['catalog-number'];
           }
 
-          // Media format detection (Vinyl 12" LP vs 7")
           if (match.media && match.media.length > 0) {
             const m = match.media[0];
             const formatName = m.format || '';
@@ -2170,7 +2723,6 @@
             }
             handleFormatChange();
 
-            // Tracklist if included
             if (m.tracks && m.tracks.length > 0) {
               const lines = m.tracks.map((t, idx) => {
                 const durSec = t.length ? Math.floor(t.length / 1000) : 0;
@@ -2205,6 +2757,8 @@
         document.getElementById('formLabel').value = "Harvest / EMI";
         document.getElementById('formCatNo').value = "SHVL 804";
         document.getElementById('formYear').value = "1973";
+        document.getElementById('formEstimatedValue').value = "280.00";
+        document.getElementById('formDiscogsId').value = "249504";
         document.getElementById('formCountry').value = "United Kingdom";
         document.getElementById('formAlbumTracks').value = "A1. Speak to Me / Breathe (3:58)\nA2. On the Run (3:35)\nA3. Time (7:05)\nA4. The Great Gig in the Sky (4:44)\nB1. Money (6:22)\nB2. Us and Them (7:50)\nB3. Any Colour You Like (3:26)\nB4. Brain Damage (3:47)\nB5. Eclipse (2:03)";
         document.getElementById('formMatrixA').value = "SHVL 804 A-2";
@@ -2221,6 +2775,7 @@
         document.getElementById('formLabel').value = "Upsetter Records";
         document.getElementById('formCatNo').value = "UP-304";
         document.getElementById('formYear').value = "1973";
+        document.getElementById('formEstimatedValue').value = "45.00";
         document.getElementById('formSideATitle').value = "Blackboard Jungle Dub";
         document.getElementById('formSideBTitle').value = "Kaya Dub";
         document.getElementById('formCenterHole').value = "Dinked (Large 1.5 inch)";
@@ -2343,7 +2898,6 @@
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
             rows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
           } else {
-            // CSV / TSV Parsing (with XLSX or pure fallback)
             const text = typeof e.target.result === 'string' ? e.target.result : new TextDecoder().decode(e.target.result);
             if (typeof XLSX !== 'undefined') {
               const workbook = XLSX.read(text, { type: 'string' });
@@ -2373,7 +2927,6 @@
       }
     }
 
-    // Manual robust CSV parser fallback
     function parseCSVTextManually(text) {
       const lines = text.split(/\r\n|\n/).filter(line => line.trim().length > 0);
       if (lines.length < 2) return [];
@@ -2411,13 +2964,11 @@
       return data;
     }
 
-    // Smart Column Auto-Mapping & Minimum Dataset Staging
     function stageParsedBatchData(rawRows, fileName) {
       stagedBatchRecords = [];
       const mappingDetected = {};
 
       rawRows.forEach((row, idx) => {
-        // Find fields case-insensitively
         const keys = Object.keys(row);
         const getVal = (...aliases) => {
           for (const alias of aliases) {
@@ -2452,6 +3003,14 @@
         const barcode = getVal('barcode', 'upc', 'ean');
         const notes = getVal('notes', 'comments', 'description', 'research notes');
 
+        // Parse valuation
+        const rawValue = getVal('value', 'price', 'estimated value', 'est value', 'est_value');
+        let parsedVal = null;
+        if (rawValue) {
+          const cleanNum = parseFloat(rawValue.replace(/[^0-9.]/g, ''));
+          if (!isNaN(cleanNum)) parsedVal = cleanNum;
+        }
+
         stagedBatchRecords.push({
           id: `rec_batch_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 6)}`,
           format,
@@ -2460,20 +3019,21 @@
           label,
           catNo,
           year: yearVal,
+          estimatedValue: parsedVal,
+          currency: globalCurrency,
           mediaGrade,
           sleeveGrade,
           genres,
           barcode,
           country: getVal('country') || 'UK',
           speed: format.includes('7"') ? '45 RPM' : '33 1/3 RPM',
-          centerHole: format.includes('7"') ? 'Solid (Small 0.28 inch)' : 'Solid (Small 0.28 inch)',
+          centerHole: 'Solid (Small 0.28 inch)',
           researchNotes: notes,
           transferStatus: 'Not Digitized',
           dateAdded: new Date().toISOString()
         });
       });
 
-      // Show Preview UI
       document.getElementById('previewFileName').innerText = fileName;
       document.getElementById('previewCountBadge').innerText = `${stagedBatchRecords.length} Records Parsed`;
       
@@ -2484,15 +3044,16 @@
         </span>
       `).join('');
 
+      const sym = getCurrencySymbol();
       const tbody = document.getElementById('batchPreviewTableBody');
       tbody.innerHTML = stagedBatchRecords.slice(0, 5).map(r => `
         <tr class="hover:bg-vinyl-800/40">
           <td class="py-1.5 px-2.5 font-bold text-white truncate max-w-[140px]">${r.artist}</td>
           <td class="py-1.5 px-2.5 text-slate-200 truncate max-w-[160px]">${r.title}</td>
           <td class="py-1.5 px-2.5 text-amber-300 font-mono">${r.format.split(' ')[0]}</td>
-          <td class="py-1.5 px-2.5 text-slate-400">${r.label || '--'}</td>
           <td class="py-1.5 px-2.5 font-mono text-slate-400">${r.year || '--'}</td>
           <td class="py-1.5 px-2.5 font-bold text-brass-400">${r.mediaGrade}</td>
+          <td class="py-1.5 px-2.5 font-mono text-emerald-400 font-bold">${r.estimatedValue ? `${sym}${r.estimatedValue.toFixed(2)}` : '--'}</td>
         </tr>
       `).join('');
 
@@ -2526,10 +3087,10 @@
        IMPORT & EXPORT ENGINES & TEMPLATE DOWNLOADS
        ========================================================= */
     function downloadCSVTemplate() {
-      const headers = "Artist,Title,Format,Year,Label,Catalog Number,Media Grade,Sleeve Grade,Genre,Barcode,Notes\n";
-      const sampleRow1 = '"Pink Floyd","The Dark Side of the Moon","12"" LP (Album)",1973,"Harvest","SHVL 804","NM","VG+","Progressive Rock","5099902894512","Original UK pressing"\n';
-      const sampleRow2 = '"Althea & Donna","Uptown Top Ranking","7"" Single (45 RPM)",1977,"Lightning Records","LIG 506","VG+","VG+","Roots Reggae","5012345678901","Classic reggae 45 single"\n';
-      const sampleRow3 = '"Miles Davis","Kind of Blue","12"" LP (Album)",1959,"Columbia","CL 1355","VG+","VG","Modal Jazz","","Legendary 6-eye mono pressing"\n';
+      const headers = "Artist,Title,Format,Year,Label,Catalog Number,Media Grade,Sleeve Grade,Estimated Value,Genre,Barcode,Notes\n";
+      const sampleRow1 = '"Pink Floyd","The Dark Side of the Moon","12"" LP (Album)",1973,"Harvest","SHVL 804","NM","VG+",280.00,"Progressive Rock","5099902894512","Original UK pressing"\n';
+      const sampleRow2 = '"Althea & Donna","Uptown Top Ranking","7"" Single (45 RPM)",1977,"Lightning Records","LIG 506","VG+","VG+",12.50,"Roots Reggae","5012345678901","Classic reggae 45 single"\n';
+      const sampleRow3 = '"Miles Davis","Kind of Blue","12"" LP (Album)",1959,"Columbia","CL 1355","VG+","VG",320.00,"Modal Jazz","","Legendary 6-eye mono pressing"\n';
 
       const blob = new Blob([headers + sampleRow1 + sampleRow2 + sampleRow3], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement("a");
@@ -2555,6 +3116,7 @@
           "Catalog Number": "SHVL 804",
           "Media Grade": "NM",
           "Sleeve Grade": "VG+",
+          "Estimated Value": 280.00,
           "Genre": "Progressive Rock",
           "Barcode": "5099902894512",
           "Notes": "UK First press solid blue triangle"
@@ -2568,6 +3130,7 @@
           "Catalog Number": "LIG 506",
           "Media Grade": "VG+",
           "Sleeve Grade": "VG+",
+          "Estimated Value": 12.50,
           "Genre": "Roots Reggae",
           "Barcode": "5012345678901",
           "Notes": "Porky prime cut 45"
@@ -2581,6 +3144,7 @@
           "Catalog Number": "CL 1355",
           "Media Grade": "VG+",
           "Sleeve Grade": "VG",
+          "Estimated Value": 320.00,
           "Genre": "Modal Jazz",
           "Barcode": "",
           "Notes": "Mono 6-eye pressing"
@@ -2602,7 +3166,7 @@
 
       const headers = [
         "Record ID", "Format", "Artist", "Title / Album", "Year", "Label", "Catalog Number",
-        "Speed", "Center Hole", "Side A Track", "Side B Track",
+        "Estimated Value", "Currency", "Speed", "Center Hole", "Side A Track", "Side B Track",
         "Side A Matrix", "Side B Matrix", "Mastering Engineer", "Pressing Plant",
         "Media Grade", "Media Notes", "Sleeve Grade", "Sleeve Notes",
         "Country", "Barcode", "Genre", "Producer", "Provenance",
@@ -2622,6 +3186,8 @@
         escapeCSV(r.year),
         escapeCSV(r.label),
         escapeCSV(r.catNo),
+        escapeCSV(r.estimatedValue),
+        escapeCSV(r.currency || globalCurrency),
         escapeCSV(r.speed),
         escapeCSV(r.centerHole),
         escapeCSV(r.sideATitle),
@@ -2669,6 +3235,8 @@
         "Year": r.year,
         "Label": r.label,
         "Cat No": r.catNo,
+        "Est. Value": r.estimatedValue,
+        "Currency": r.currency || globalCurrency,
         "Media Grade": r.mediaGrade,
         "Sleeve Grade": r.sleeveGrade,
         "Speed": r.speed,
@@ -2724,6 +3292,39 @@
       };
       reader.readAsText(file);
       event.target.value = '';
+    }
+
+    function removeSampleDataOnly() {
+      const sampleIds = new Set(SAMPLE_RECORDS.map(s => s.id));
+      const countBefore = records.length;
+      records = records.filter(r => !sampleIds.has(r.id));
+      const removedCount = countBefore - records.length;
+
+      if (removedCount === 0) {
+        showToast("No sample records found in your archive.", "info");
+        return;
+      }
+
+      saveRecordsToStorage();
+      renderStats();
+      renderRecords();
+      showToast(`Removed ${removedCount} sample records. Custom records preserved!`);
+    }
+
+    function clearAllRecordsPrompt() {
+      if (records.length === 0) {
+        showToast("Archive is already empty.", "info");
+        return;
+      }
+
+      const proceed = window.confirm(`Are you sure you want to completely CLEAR all ${records.length} records from your archive? This cannot be undone unless you have exported a backup.`);
+      if (proceed) {
+        records = [];
+        saveRecordsToStorage();
+        renderStats();
+        renderRecords();
+        showToast("Archive cleared. You now have a blank catalogue.", "info");
+      }
     }
 
     function loadSampleDataset() {
