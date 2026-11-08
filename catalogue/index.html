@@ -1625,14 +1625,27 @@
       const btn = document.getElementById('magicSubmitBtn');
       if (!email) return;
 
+      // Check if running from local file system (file://)
+      if (window.location.protocol === 'file:') {
+        showToast("Magic links require an HTTP/HTTPS web address. Please use the 'Email & Password' tab for local file testing.", "error");
+        switchAuthTab('password');
+        return;
+      }
+
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Sending link...</span>`;
+
+      // Determine redirect URL (current live page or collective domain)
+      let redirectUrl = window.location.origin + window.location.pathname;
+      if (!redirectUrl.startsWith('http')) {
+        redirectUrl = 'https://www.queensferrymusiccollective.co.uk/catalogue/';
+      }
 
       try {
         const { error } = await supabaseClient.auth.signInWithOtp({
           email: email,
           options: {
-            emailRedirectTo: window.location.origin + window.location.pathname
+            emailRedirectTo: redirectUrl
           }
         });
 
