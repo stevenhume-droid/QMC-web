@@ -15,6 +15,8 @@
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <!-- SheetJS (xlsx) for Excel (.xlsx, .xls) and CSV parsing/exporting -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Supabase JS Client for Multi-User Cloud Sync & Auth -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
     tailwind.config = {
@@ -115,6 +117,14 @@
 
     <!-- Global Actions -->
     <div class="flex items-center flex-wrap gap-2.5">
+      <!-- Member Sign-In / User Profile Button -->
+      <div id="memberAuthContainer">
+        <button onclick="openAuthModal()" id="authNavBtn" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 hover:border-brass-400 transition flex items-center gap-2 shadow-sm">
+          <i class="fa-solid fa-circle-user text-sm text-brass-400"></i>
+          <span id="authNavText">Member Sign In</span>
+        </button>
+      </div>
+
       <!-- Scan Barcode Quick Trigger -->
       <button onclick="openScannerModal()" class="px-3 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 hover:border-brass-400 transition flex items-center gap-2 shadow-sm">
         <i class="fa-solid fa-barcode text-sm"></i>
@@ -288,6 +298,12 @@
 
       <!-- Filters Row -->
       <div class="flex flex-wrap items-center gap-2">
+        <!-- Member Crate Filter (All QMC Collective vs My Crate) -->
+        <select id="filterMember" onchange="handleSearchFilterChange()" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-brass-400 font-semibold focus:outline-none focus:border-brass-500">
+          <option value="ALL">All QMC Collective (Shared Pool)</option>
+          <option value="MY_CRATE">My Personal Crate Only</option>
+        </select>
+
         <!-- Format Filter (Album vs Single vs EP) -->
         <select id="filterFormat" onchange="handleSearchFilterChange()" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-brass-500">
           <option value="ALL">All Formats</option>
@@ -1033,6 +1049,122 @@
   </div>
 
   <!-- ============================================== -->
+  <!-- MODAL: MEMBER AUTH & MULTI-USER CLOUD SYNC     -->
+  <!-- ============================================== -->
+  <div id="authModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden overflow-y-auto">
+    <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-md flex flex-col shadow-2xl overflow-hidden my-auto">
+      
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-brass-500/10 border border-brass-500/30 flex items-center justify-center text-brass-400">
+            <i class="fa-solid fa-users"></i>
+          </div>
+          <div>
+            <h2 id="authModalTitle" class="text-base font-bold text-white tracking-tight">QMC Member Portal</h2>
+            <p class="text-[11px] text-slate-400">Multi-User Vinyl Archive & Cloud Crates</p>
+          </div>
+        </div>
+        <button onclick="closeAuthModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Content (Logged out vs Logged in) -->
+      <div class="p-6 space-y-4">
+        
+        <!-- Logged In State Box -->
+        <div id="authLoggedInState" class="hidden space-y-4 text-xs text-slate-300">
+          <div class="p-4 bg-vinyl-850 rounded-xl border border-vinyl-800 flex items-center gap-3">
+            <div id="authProfileAvatar" class="w-12 h-12 rounded-full bg-brass-500 text-vinyl-950 font-black text-lg flex items-center justify-center">
+              ?
+            </div>
+            <div class="flex-1">
+              <div id="authProfileName" class="font-bold text-white text-sm">Member</div>
+              <div id="authProfileEmail" class="text-slate-400 font-mono text-[11px]">user@example.com</div>
+              <span class="inline-block mt-1 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px] border border-emerald-500/30">
+                Connected to Supabase Cloud
+              </span>
+            </div>
+          </div>
+
+          <!-- Cloud Sync Options -->
+          <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-2">
+            <div class="font-bold text-slate-200 flex items-center gap-1.5">
+              <i class="fa-solid fa-cloud-arrow-up text-amber-400"></i> Local Crate Sync
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed">
+              If you cataloged records in this browser before logging in, push them into your personal cloud crate.
+            </p>
+            <button type="button" onclick="syncLocalRecordsToCloud()" class="w-full py-2 px-3 bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 rounded-lg font-semibold flex items-center justify-center gap-2 border border-brass-500/30 transition">
+              <i class="fa-solid fa-upload"></i> Upload Browser Records to Cloud
+            </button>
+          </div>
+
+          <button type="button" onclick="signOutMember()" class="w-full py-2 px-3 bg-red-950/60 hover:bg-red-900/60 border border-red-800 text-red-300 rounded-lg font-semibold transition">
+            Sign Out of QMC
+          </button>
+        </div>
+
+        <!-- Logged Out State (Auth Form) -->
+        <div id="authLoggedOutState" class="space-y-4">
+          <!-- Auth Mode Tabs -->
+          <div class="flex border-b border-vinyl-800 pb-2 text-xs font-semibold">
+            <button type="button" onclick="switchAuthTab('magic')" id="authTabMagic" class="flex-1 py-1.5 text-center border-b-2 border-brass-500 text-brass-400">
+              Magic Link (No Password)
+            </button>
+            <button type="button" onclick="switchAuthTab('password')" id="authTabPass" class="flex-1 py-1.5 text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200">
+              Email & Password
+            </button>
+          </div>
+
+          <!-- Magic Link Form -->
+          <form id="magicLinkForm" onsubmit="handleMagicLinkLogin(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Email Address</label>
+              <input type="email" id="magicEmailInput" required placeholder="name@example.com" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+            </div>
+            <button type="submit" id="magicSubmitBtn" class="w-full py-2.5 px-4 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold rounded-lg text-xs transition shadow-lg shadow-brass-500/20 flex items-center justify-center gap-2">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span>Send 1-Click Login Link</span>
+            </button>
+            <p class="text-[11px] text-slate-500 text-center">
+              We'll send an instant login link to your inbox. One click logs you straight in!
+            </p>
+          </form>
+
+          <!-- Password Form -->
+          <form id="passwordAuthForm" onsubmit="handlePasswordAuth(event)" class="space-y-3 hidden">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Display Name (Your club member name)</label>
+              <input type="text" id="passDisplayName" placeholder="e.g. Steve" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Email Address</label>
+              <input type="email" id="passEmailInput" required placeholder="name@example.com" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
+              <input type="password" id="passPasswordInput" required placeholder="••••••••" minlength="6" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <button type="button" onclick="submitPasswordAuth('signin')" class="py-2 px-3 bg-vinyl-800 hover:bg-vinyl-700 border border-vinyl-700 text-slate-200 font-bold rounded-lg text-xs transition">
+                Sign In
+              </button>
+              <button type="button" onclick="submitPasswordAuth('signup')" class="py-2 px-3 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold rounded-lg text-xs transition shadow">
+                Create Account
+              </button>
+            </div>
+          </form>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================== -->
   <!-- MODAL: RECORD FULL ARCHIVAL DETAIL VIEW        -->
   <!-- ============================================== -->
   <div id="detailModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto">
@@ -1231,6 +1363,18 @@
     ];
 
     /* =========================================================
+       SUPABASE MULTI-USER CLOUD CONFIGURATION & STATE
+       ========================================================= */
+    const SUPABASE_URL = 'https://idaqiqjzlonzfgcsheyj.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_rlyeoeLz_DLe1JBJYHqydQ_TwW6m2wF';
+
+    let supabaseClient = null;
+    let currentUser = null;
+    let currentUserProfile = null;
+    let isCloudActive = false;
+    let realtimeChannel = null;
+
+    /* =========================================================
        APPLICATION STATE
        ========================================================= */
     const STORAGE_KEY = 'qmc_vinyl_catalogue_v2';
@@ -1266,11 +1410,411 @@
       return '£';
     }
 
-    // Currency Symbol Helper
-    function getCurrencySymbol(curr = globalCurrency) {
-      if (curr === 'USD') return '$';
-      if (curr === 'EUR') return '€';
-      return '£';
+    /* =========================================================
+       SUPABASE DATABASE MAPPERS (SNAKE_CASE <-> CAMELCASE)
+       ========================================================= */
+    function mapRecordToDb(rec, userId) {
+      return {
+        id: rec.id,
+        user_id: userId,
+        format: rec.format || '12" LP (Album)',
+        artist: rec.artist || '',
+        title: rec.title || '',
+        label: rec.label || '',
+        cat_no: rec.catNo || '',
+        year: rec.year ? parseInt(rec.year) : null,
+        estimated_value: (rec.estimatedValue !== undefined && rec.estimatedValue !== null && !isNaN(rec.estimatedValue)) ? parseFloat(rec.estimatedValue) : null,
+        currency: rec.currency || globalCurrency || 'GBP',
+        discogs_id: rec.discogsId || '',
+        side_a_title: rec.sideATitle || '',
+        side_a_duration: rec.sideADuration || '',
+        side_b_title: rec.sideBTitle || '',
+        side_b_duration: rec.sideBDuration || '',
+        tracks: rec.tracks || null,
+        barcode: rec.barcode || '',
+        country: rec.country || '',
+        center_hole: rec.centerHole || '',
+        speed: rec.speed || '',
+        matrix_a: rec.matrixA || '',
+        matrix_b: rec.matrixB || '',
+        mastering: rec.mastering || '',
+        pressing_plant: rec.pressingPlant || '',
+        media_grade: rec.mediaGrade || 'VG+',
+        media_grade_notes: rec.mediaGradeNotes || '',
+        sleeve_grade: rec.sleeveGrade || 'VG+',
+        sleeve_grade_notes: rec.sleeveGradeNotes || '',
+        cover_image: rec.coverImage || '',
+        label_a_image: rec.labelAImage || '',
+        label_b_image: rec.labelBImage || '',
+        genres: rec.genres || '',
+        producer: rec.producer || '',
+        provenance: rec.provenance || '',
+        transfer_status: rec.transferStatus || 'Not Digitized',
+        transfer_notes: rec.transferNotes || '',
+        research_notes: rec.researchNotes || '',
+        is_public: rec.isPublic !== undefined ? rec.isPublic : true,
+        updated_at: new Date().toISOString()
+      };
+    }
+
+    function mapDbToRecord(row) {
+      return {
+        id: row.id,
+        userId: row.user_id,
+        ownerName: row.profiles?.display_name || (row.profiles?.city ? `Member (${row.profiles.city})` : 'Collective Member'),
+        format: row.format || '12" LP (Album)',
+        artist: row.artist || 'Unknown Artist',
+        title: row.title || 'Untitled',
+        label: row.label || '',
+        catNo: row.cat_no || '',
+        year: row.year,
+        estimatedValue: (row.estimated_value !== null && row.estimated_value !== undefined) ? parseFloat(row.estimated_value) : null,
+        currency: row.currency || 'GBP',
+        discogsId: row.discogs_id || '',
+        sideATitle: row.side_a_title || '',
+        sideADuration: row.side_a_duration || '',
+        sideBTitle: row.side_b_title || '',
+        sideBDuration: row.side_b_duration || '',
+        tracks: Array.isArray(row.tracks) ? row.tracks : undefined,
+        barcode: row.barcode || '',
+        country: row.country || '',
+        centerHole: row.center_hole || '',
+        speed: row.speed || '',
+        matrixA: row.matrix_a || '',
+        matrixB: row.matrix_b || '',
+        mastering: row.mastering || '',
+        pressingPlant: row.pressing_plant || '',
+        mediaGrade: row.media_grade || 'VG+',
+        mediaGradeNotes: row.media_grade_notes || '',
+        sleeveGrade: row.sleeve_grade || 'VG+',
+        sleeveGradeNotes: row.sleeve_grade_notes || '',
+        coverImage: row.cover_image || '',
+        labelAImage: row.label_a_image || '',
+        labelBImage: row.label_b_image || '',
+        genres: row.genres || '',
+        producer: row.producer || '',
+        provenance: row.provenance || '',
+        transferStatus: row.transfer_status || 'Not Digitized',
+        transferNotes: row.transfer_notes || '',
+        researchNotes: row.research_notes || '',
+        isPublic: row.is_public !== false,
+        dateAdded: row.created_at || new Date().toISOString()
+      };
+    }
+
+    /* =========================================================
+       SUPABASE MULTI-USER AUTH & CLOUD INITIALISATION
+       ========================================================= */
+    async function initSupabase() {
+      if (typeof window.supabase === 'undefined') {
+        console.warn("Supabase library not loaded yet.");
+        return;
+      }
+      try {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Listen for auth state changes
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+          await handleAuthSession(session);
+        });
+
+        // Check active session on initial page load
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        await handleAuthSession(session);
+
+        // Fetch shared collective records live from Supabase
+        await fetchRecordsFromCloud(true);
+        setupRealtimeSubscription();
+      } catch (err) {
+        console.warn("Supabase init error (using local cache):", err);
+      }
+    }
+
+    async function handleAuthSession(session) {
+      if (session && session.user) {
+        currentUser = session.user;
+        isCloudActive = true;
+        try {
+          const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('id', currentUser.id)
+            .single();
+          currentUserProfile = profile || { display_name: currentUser.user_metadata?.display_name || currentUser.email.split('@')[0] };
+        } catch (e) {
+          currentUserProfile = { display_name: currentUser.user_metadata?.display_name || currentUser.email.split('@')[0] };
+        }
+      } else {
+        currentUser = null;
+        currentUserProfile = null;
+        isCloudActive = false;
+      }
+      updateAuthUI();
+      populateMemberFilter(records);
+      renderStats();
+      renderRecords();
+    }
+
+    function updateAuthUI() {
+      const navBtn = document.getElementById('authNavBtn');
+      const navText = document.getElementById('authNavText');
+      if (!navBtn || !navText) return;
+
+      if (currentUser) {
+        const name = currentUserProfile?.display_name || currentUser.user_metadata?.display_name || currentUser.email.split('@')[0];
+        navText.innerHTML = `<span class="text-white font-bold">${name}</span> <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse ml-0.5" title="Connected to Supabase Cloud"></span>`;
+        navBtn.classList.remove('text-slate-200');
+        navBtn.classList.add('border-emerald-500/40', 'bg-vinyl-850');
+      } else {
+        navText.innerHTML = `Member Sign In`;
+        navBtn.classList.remove('border-emerald-500/40', 'bg-vinyl-850');
+        navBtn.classList.add('text-slate-200');
+      }
+    }
+
+    function openAuthModal() {
+      const modal = document.getElementById('authModal');
+      const loggedInBox = document.getElementById('authLoggedInState');
+      const loggedOutBox = document.getElementById('authLoggedOutState');
+
+      if (currentUser) {
+        loggedInBox.classList.remove('hidden');
+        loggedOutBox.classList.add('hidden');
+
+        const name = currentUserProfile?.display_name || currentUser.user_metadata?.display_name || currentUser.email.split('@')[0];
+        document.getElementById('authProfileName').innerText = name;
+        document.getElementById('authProfileEmail').innerText = currentUser.email;
+        document.getElementById('authProfileAvatar').innerText = (name.charAt(0) || 'M').toUpperCase();
+      } else {
+        loggedInBox.classList.add('hidden');
+        loggedOutBox.classList.remove('hidden');
+        switchAuthTab('magic');
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeAuthModal() {
+      document.getElementById('authModal').classList.add('hidden');
+    }
+
+    function switchAuthTab(tab) {
+      const tabMagic = document.getElementById('authTabMagic');
+      const tabPass = document.getElementById('authTabPass');
+      const magicForm = document.getElementById('magicLinkForm');
+      const passForm = document.getElementById('passwordAuthForm');
+
+      if (tab === 'magic') {
+        tabMagic.className = 'flex-1 py-1.5 text-center border-b-2 border-brass-500 text-brass-400';
+        tabPass.className = 'flex-1 py-1.5 text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200';
+        magicForm.classList.remove('hidden');
+        passForm.classList.add('hidden');
+      } else {
+        tabPass.className = 'flex-1 py-1.5 text-center border-b-2 border-brass-500 text-brass-400';
+        tabMagic.className = 'flex-1 py-1.5 text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200';
+        passForm.classList.remove('hidden');
+        magicForm.classList.add('hidden');
+      }
+    }
+
+    async function handleMagicLinkLogin(e) {
+      if (e) e.preventDefault();
+      if (!supabaseClient) return;
+
+      const email = document.getElementById('magicEmailInput').value.trim();
+      const btn = document.getElementById('magicSubmitBtn');
+      if (!email) return;
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Sending link...</span>`;
+
+      try {
+        const { error } = await supabaseClient.auth.signInWithOtp({
+          email: email,
+          options: {
+            emailRedirectTo: window.location.origin + window.location.pathname
+          }
+        });
+
+        if (error) throw error;
+        showToast("Magic login link sent! Check your email inbox.", "info");
+        btn.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> <span>Link Sent to Inbox!</span>`;
+      } catch (err) {
+        showToast(err.message || "Failed to send magic link", "error");
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> <span>Send 1-Click Login Link</span>`;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function handlePasswordAuth(e) {
+      if (e) e.preventDefault();
+      await submitPasswordAuth('signin');
+    }
+
+    async function submitPasswordAuth(mode) {
+      if (!supabaseClient) return;
+      const email = document.getElementById('passEmailInput').value.trim();
+      const password = document.getElementById('passPasswordInput').value;
+      const displayName = document.getElementById('passDisplayName').value.trim();
+
+      if (!email || !password) {
+        showToast("Please provide both email and password.", "error");
+        return;
+      }
+
+      try {
+        if (mode === 'signup') {
+          const { data, error } = await supabaseClient.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                display_name: displayName || email.split('@')[0]
+              }
+            }
+          });
+          if (error) throw error;
+
+          if (data.session) {
+            showToast(`Welcome to QMC, ${displayName || email}!`);
+            closeAuthModal();
+          } else {
+            showToast("Account created! Please check your email inbox to verify your address.", "info");
+          }
+        } else {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+          });
+          if (error) throw error;
+          showToast(`Signed in successfully!`);
+          closeAuthModal();
+        }
+      } catch (err) {
+        showToast(err.message || "Authentication error", "error");
+      }
+    }
+
+    async function signOutMember() {
+      if (!supabaseClient) return;
+      try {
+        await supabaseClient.auth.signOut();
+        currentUser = null;
+        currentUserProfile = null;
+        isCloudActive = false;
+        loadRecordsFromStorage();
+        renderStats();
+        renderRecords();
+        updateAuthUI();
+        closeAuthModal();
+        showToast("Signed out. Switched to local browser archive.");
+      } catch (err) {
+        showToast(err.message || "Sign out failed", "error");
+      }
+    }
+
+    async function fetchRecordsFromCloud(silent = false) {
+      if (!supabaseClient) return;
+      try {
+        const { data, error } = await supabaseClient
+          .from('records')
+          .select('*, profiles(display_name, city)')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          records = data.map(mapDbToRecord);
+          saveRecordsToStorage();
+          populateMemberFilter(records);
+          renderStats();
+          renderRecords();
+          if (!silent) showToast(`Synced ${records.length} collective records from cloud!`);
+        } else if (records.length === 0) {
+          populateMemberFilter([]);
+          renderStats();
+          renderRecords();
+        }
+      } catch (err) {
+        console.warn("Could not sync from cloud, keeping local records:", err);
+      }
+    }
+
+    function setupRealtimeSubscription() {
+      if (!supabaseClient || realtimeChannel) return;
+      realtimeChannel = supabaseClient
+        .channel('public:records')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'records' }, () => {
+          fetchRecordsFromCloud(true);
+        })
+        .subscribe();
+    }
+
+    async function syncLocalRecordsToCloud() {
+      if (!supabaseClient || !currentUser) {
+        showToast("Please sign in first to upload records.", "error");
+        return;
+      }
+
+      if (records.length === 0) {
+        showToast("No records found in this browser to upload.", "info");
+        return;
+      }
+
+      const proceed = confirm(`Push ${records.length} records from this browser to your personal QMC cloud crate?`);
+      if (!proceed) return;
+
+      try {
+        showToast(`Syncing ${records.length} records to cloud...`);
+        const rows = records.map(r => mapRecordToDb(r, currentUser.id));
+
+        const { error } = await supabaseClient
+          .from('records')
+          .upsert(rows);
+
+        if (error) throw error;
+
+        showToast(`Successfully uploaded ${rows.length} records to Supabase Cloud!`);
+        await fetchRecordsFromCloud();
+        closeAuthModal();
+      } catch (err) {
+        showToast("Sync error: " + err.message, "error");
+      }
+    }
+
+    function populateMemberFilter(recordList) {
+      const select = document.getElementById('filterMember');
+      if (!select) return;
+      const currentVal = select.value;
+
+      const memberMap = new Map();
+      recordList.forEach(r => {
+        if (r.userId) {
+          const name = r.ownerName || 'Club Member';
+          if (!memberMap.has(r.userId)) {
+            memberMap.set(r.userId, name);
+          }
+        }
+      });
+
+      let optionsHTML = `
+        <option value="ALL">All QMC Collective (${recordList.length} Discs)</option>
+        <option value="MY_CRATE">My Personal Crate Only</option>
+      `;
+
+      memberMap.forEach((name, uid) => {
+        const isMe = currentUser && currentUser.id === uid;
+        const label = isMe ? `${name}'s Crate (You)` : `${name}'s Crate`;
+        optionsHTML += `<option value="${uid}">${label}</option>`;
+      });
+
+      select.innerHTML = optionsHTML;
+      if ([...select.options].some(o => o.value === currentVal)) {
+        select.value = currentVal;
+      } else {
+        select.value = 'ALL';
+      }
     }
 
     // Initialize Application
@@ -1280,8 +1824,10 @@
       if (curSelect) curSelect.value = globalCurrency;
 
       loadRecordsFromStorage();
+      populateMemberFilter(records);
       renderStats();
       renderRecords();
+      initSupabase();
 
       // Keyboard Shortcut: Ctrl + Enter saves and adds next
       document.addEventListener('keydown', (e) => {
@@ -1411,11 +1957,24 @@
        ========================================================= */
     function getFilteredAndSortedRecords() {
       const searchTerm = (document.getElementById('globalSearch')?.value || '').toLowerCase().trim();
+      const memberFilter = document.getElementById('filterMember')?.value || 'ALL';
       const formatFilter = document.getElementById('filterFormat')?.value || 'ALL';
       const gradeFilter = document.getElementById('filterGrade')?.value || 'ALL';
       const sortBy = document.getElementById('sortBy')?.value || 'dateAddedDesc';
 
       let result = records.filter(item => {
+        // Multi-user crate filtering
+        if (memberFilter === 'MY_CRATE') {
+          if (currentUser) {
+            if (item.userId !== currentUser.id) return false;
+          } else {
+            // Display local / unassigned records
+            if (item.userId) return false;
+          }
+        } else if (memberFilter !== 'ALL') {
+          if (item.userId !== memberFilter) return false;
+        }
+
         const tracksText = (item.tracks || []).map(t => `${t.pos || ''} ${t.title || ''}`).join(' ');
         const matchText = (
           (item.artist || '') + ' ' +
@@ -1423,6 +1982,7 @@
           (item.format || '') + ' ' +
           (item.label || '') + ' ' +
           (item.catNo || '') + ' ' +
+          (item.ownerName || '') + ' ' +
           (item.sideATitle || '') + ' ' +
           (item.sideBTitle || '') + ' ' +
           tracksText + ' ' +
@@ -1469,6 +2029,7 @@
     function renderActivePills() {
       const container = document.getElementById('filterPillsContainer');
       const searchTerm = document.getElementById('globalSearch').value.trim();
+      const memberFilter = document.getElementById('filterMember')?.value || 'ALL';
       const formatFilter = document.getElementById('filterFormat').value;
       const gradeFilter = document.getElementById('filterGrade').value;
 
@@ -1477,11 +2038,16 @@
       if (searchTerm) {
         pillsHTML += `<span class="bg-vinyl-800 text-slate-200 px-2.5 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Query: "${searchTerm}" <button onclick="clearSearchInput()" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
       }
+      if (memberFilter !== 'ALL') {
+        const sel = document.getElementById('filterMember');
+        const label = sel ? sel.options[sel.selectedIndex]?.text : memberFilter;
+        pillsHTML += `<span class="bg-vinyl-800 text-brass-400 px-2.5 py-0.5 rounded-full border border-brass-500/30 flex items-center gap-1.5"><i class="fa-solid fa-user text-[10px]"></i> ${label} <button onclick="document.getElementById('filterMember').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
+      }
       if (formatFilter !== 'ALL') {
         pillsHTML += `<span class="bg-vinyl-800 text-amber-400 px-2.5 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Format: ${formatFilter} <button onclick="document.getElementById('filterFormat').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
       }
       if (gradeFilter !== 'ALL') {
-        pillsHTML += `<span class="bg-vinyl-800 text-brass-400 px-2.5 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Media: ${gradeFilter} <button onclick="document.getElementById('filterGrade').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
+        pillsHTML += `<span class="bg-vinyl-800 text-emerald-400 px-2.5 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Media: ${gradeFilter} <button onclick="document.getElementById('filterGrade').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
       }
 
       container.innerHTML = pillsHTML;
@@ -1494,6 +2060,7 @@
 
     function resetFilters() {
       document.getElementById('globalSearch').value = '';
+      if (document.getElementById('filterMember')) document.getElementById('filterMember').value = 'ALL';
       document.getElementById('filterFormat').value = 'ALL';
       document.getElementById('filterGrade').value = 'ALL';
       document.getElementById('sortBy').value = 'dateAddedDesc';
@@ -1625,6 +2192,7 @@
         const coverSrc = item.coverImage || `https://placehold.co/400x400/181b22/d4af37?text=${encodeURIComponent(item.format && item.format.includes('7"') ? '7" Single' : '12" LP')}`;
         const isAlbum = item.format && item.format.includes('LP');
         const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(item.estimatedValue) && item.estimatedValue > 0;
+        const isOwner = !item.userId || (currentUser && item.userId === currentUser.id);
 
         html += `
           <div class="bg-vinyl-900 rounded-2xl border border-vinyl-800 hover:border-brass-500/50 transition-all duration-200 overflow-hidden shadow-lg hover:shadow-2xl flex flex-col group">
@@ -1669,9 +2237,20 @@
                   <span class="text-xs font-mono text-slate-400">${item.year || '--'}</span>
                 </div>
                 
-                <h4 class="text-xs font-medium text-slate-300 truncate mb-3" title="${item.title}">
+                <h4 class="text-xs font-medium text-slate-300 truncate mb-2" title="${item.title}">
                   ${item.title}
                 </h4>
+
+                <!-- Member Crate Attribution -->
+                ${item.ownerName ? `
+                  <div class="flex items-center justify-between text-[10px] text-slate-400 mb-2">
+                    <span class="flex items-center gap-1.5 truncate max-w-[160px]" title="Catalogued by ${item.ownerName}">
+                      <i class="fa-solid fa-circle-user text-brass-400 text-[11px]"></i>
+                      <span class="truncate">${item.ownerName}</span>
+                    </span>
+                    ${isOwner && currentUser ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-brass-500/10 text-brass-400 border border-brass-500/20 font-mono">Your Crate</span>' : ''}
+                  </div>
+                ` : ''}
 
                 <!-- Tracks Summary Quick Info -->
                 <div class="bg-vinyl-850 p-2.5 rounded-lg border border-vinyl-800 space-y-1 text-[11px]">
@@ -1722,12 +2301,18 @@
                     <i class="fa-solid fa-compact-disc"></i>
                   </a>
 
-                  <button onclick="editRecord('${item.id}')" class="p-1 hover:text-amber-400 transition" title="Edit Metadata">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                  </button>
-                  <button onclick="deleteRecordPrompt('${item.id}')" class="p-1 hover:text-red-400 transition" title="Delete Entry">
-                    <i class="fa-solid fa-trash-can"></i>
-                  </button>
+                  ${isOwner ? `
+                    <button onclick="editRecord('${item.id}')" class="p-1 hover:text-amber-400 transition" title="Edit Metadata">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button onclick="deleteRecordPrompt('${item.id}')" class="p-1 hover:text-red-400 transition" title="Delete Entry">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  ` : `
+                    <span class="p-1 text-slate-600 cursor-default" title="Contributed by ${item.ownerName || 'another member'}">
+                      <i class="fa-solid fa-shield-halved text-xs"></i>
+                    </span>
+                  `}
                 </div>
               </div>
 
@@ -1763,7 +2348,8 @@
 
       list.forEach(item => {
         const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(item.estimatedValue) && item.estimatedValue > 0;
-        
+        const isOwner = !item.userId || (currentUser && item.userId === currentUser.id);
+
         html += `
           <tr class="hover:bg-vinyl-850/60 transition group">
             <td class="py-2.5 px-3 whitespace-nowrap">
@@ -1777,6 +2363,12 @@
                 ${item.artist}
               </div>
               <div class="text-slate-400 text-[11px]">${item.title}</div>
+              ${item.ownerName ? `
+                <div class="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5 font-mono">
+                  <i class="fa-solid fa-circle-user text-brass-500/80 text-[9px]"></i>
+                  <span>${item.ownerName}${isOwner && currentUser ? ' (You)' : ''}</span>
+                </div>
+              ` : ''}
             </td>
             <td class="py-2.5 px-3 whitespace-nowrap">${item.label || '--'}</td>
             <td class="py-2.5 px-3 font-mono">${item.year || '--'}</td>
@@ -1798,12 +2390,18 @@
               <button onclick="viewRecordDetail('${item.id}')" class="p-1 hover:text-brass-400 transition" title="Inspect">
                 <i class="fa-solid fa-eye"></i>
               </button>
-              <button onclick="editRecord('${item.id}')" class="p-1 hover:text-amber-400 transition ml-1" title="Edit">
-                <i class="fa-solid fa-pen"></i>
-              </button>
-              <button onclick="deleteRecordPrompt('${item.id}')" class="p-1 hover:text-red-400 transition ml-1" title="Delete">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
+              ${isOwner ? `
+                <button onclick="editRecord('${item.id}')" class="p-1 hover:text-amber-400 transition ml-1" title="Edit">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button onclick="deleteRecordPrompt('${item.id}')" class="p-1 hover:text-red-400 transition ml-1" title="Delete">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              ` : `
+                <span class="p-1 text-slate-600 ml-1 inline-block" title="Contributed by ${item.ownerName || 'another member'}">
+                  <i class="fa-solid fa-shield-halved"></i>
+                </span>
+              `}
             </td>
           </tr>
         `;
@@ -1829,6 +2427,7 @@
       const isAlbum = item.format && item.format.includes('LP');
       const sym = getCurrencySymbol();
       const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(item.estimatedValue) && item.estimatedValue > 0;
+      const isOwner = !item.userId || (currentUser && item.userId === currentUser.id);
 
       let tracksHTML = '';
       if (item.tracks && item.tracks.length > 0) {
@@ -1899,6 +2498,14 @@
                 <span class="text-slate-400">Record Label:</span>
                 <span class="font-semibold text-brass-400">${item.label || '--'}</span>
               </div>
+              ${item.ownerName ? `
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">Contributed By:</span>
+                <span class="font-semibold text-brass-400 flex items-center gap-1">
+                  <i class="fa-solid fa-circle-user text-xs"></i>
+                  ${item.ownerName}
+                </span>
+              </div>` : ''}
               ${item.centerHole ? `
               <div class="flex justify-between items-center">
                 <span class="text-slate-400">Center Hole:</span>
@@ -2082,9 +2689,11 @@
             Record ID: ${item.id}
           </div>
           <div class="flex gap-2">
-            <button onclick="editRecord('${item.id}'); closeDetailModal();" class="px-3.5 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 text-xs font-semibold">
-              Edit Metadata
-            </button>
+            ${isOwner ? `
+              <button onclick="editRecord('${item.id}'); closeDetailModal();" class="px-3.5 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 text-xs font-semibold">
+                Edit Metadata
+              </button>
+            ` : ''}
             <button onclick="closeDetailModal()" class="px-3.5 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 text-xs">
               Close
             </button>
@@ -2383,6 +2992,24 @@
       sessionDefaults.sleeveGrade = recordObj.sleeveGrade;
       sessionDefaults.country = recordObj.country;
 
+      if (currentUser) {
+        recordObj.userId = currentUser.id;
+        recordObj.ownerName = currentUserProfile?.display_name || currentUser.user_metadata?.display_name || currentUser.email.split('@')[0];
+        
+        // Push to Supabase Cloud
+        if (supabaseClient) {
+          const dbRow = mapRecordToDb(recordObj, currentUser.id);
+          supabaseClient.from('records').upsert(dbRow).then(({ error }) => {
+            if (error) {
+              console.warn("Cloud save error:", error);
+              showToast("Saved locally, but cloud sync warning: " + error.message, "error");
+            } else {
+              populateMemberFilter(records);
+            }
+          });
+        }
+      }
+
       if (isNew) {
         records.unshift(recordObj);
         showToast(`Catalogued "${recordObj.title}" successfully!`);
@@ -2395,6 +3022,7 @@
       }
 
       saveRecordsToStorage();
+      populateMemberFilter(records);
       renderStats();
       renderRecords();
 
@@ -2422,14 +3050,29 @@
       }
     }
 
-    function deleteRecordPrompt(id) {
+    async function deleteRecordPrompt(id) {
       const record = records.find(r => r.id === id);
       if (!record) return;
 
+      if (currentUser && record.userId && record.userId !== currentUser.id) {
+        showToast("You can only delete records from your own crate.", "error");
+        return;
+      }
+
       const proceed = window.confirm(`Permanently remove "${record.title}" by ${record.artist} from your research catalogue?`);
       if (proceed) {
+        if (supabaseClient && record.userId && currentUser) {
+          try {
+            const { error } = await supabaseClient.from('records').delete().eq('id', id);
+            if (error) throw error;
+          } catch (err) {
+            showToast("Cloud delete error: " + err.message, "error");
+            return;
+          }
+        }
         records = records.filter(r => r.id !== id);
         saveRecordsToStorage();
+        populateMemberFilter(records);
         renderStats();
         renderRecords();
         showToast(`Record removed from archive.`, "info");
@@ -3067,6 +3710,13 @@
 
       const importMode = document.querySelector('input[name="importMode"]:checked').value;
 
+      if (currentUser) {
+        stagedBatchRecords.forEach(r => {
+          r.userId = currentUser.id;
+          r.ownerName = currentUserProfile?.display_name || currentUser.user_metadata?.display_name || currentUser.email.split('@')[0];
+        });
+      }
+
       if (importMode === 'replace') {
         if (!confirm(`Warning: This will REPLACE all current ${records.length} records in your catalogue with the ${stagedBatchRecords.length} imported records. Continue?`)) {
           return;
@@ -3077,10 +3727,25 @@
       }
 
       saveRecordsToStorage();
+      populateMemberFilter(records);
       renderStats();
       renderRecords();
       closeBatchUploadModal();
       showToast(`Imported ${stagedBatchRecords.length} records successfully!`);
+
+      // Sync batch to cloud if signed in
+      if (isCloudActive && currentUser && supabaseClient) {
+        const dbRows = stagedBatchRecords.map(r => mapRecordToDb(r, currentUser.id));
+        supabaseClient.from('records').upsert(dbRows).then(({ error }) => {
+          if (error) {
+            console.warn("Cloud batch upload error:", error);
+            showToast("Saved locally, but cloud sync warning: " + error.message, "error");
+          } else {
+            showToast(`Synced ${dbRows.length} imported records to your cloud crate!`);
+            fetchRecordsFromCloud(true);
+          }
+        });
+      }
     }
 
     /* =========================================================
@@ -3306,6 +3971,7 @@
       }
 
       saveRecordsToStorage();
+      populateMemberFilter(records);
       renderStats();
       renderRecords();
       showToast(`Removed ${removedCount} sample records. Custom records preserved!`);
@@ -3321,6 +3987,7 @@
       if (proceed) {
         records = [];
         saveRecordsToStorage();
+        populateMemberFilter(records);
         renderStats();
         renderRecords();
         showToast("Archive cleared. You now have a blank catalogue.", "info");
@@ -3331,6 +3998,7 @@
       if (confirm("Reset current catalogue back to standard sample albums & singles?")) {
         records = [...SAMPLE_RECORDS];
         saveRecordsToStorage();
+        populateMemberFilter(records);
         renderStats();
         renderRecords();
         showToast("Curated sample dataset reloaded!");
