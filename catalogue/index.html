@@ -608,22 +608,59 @@
         </div>
       </div>
 
-      <!-- Quick MusicBrainz / Online Auto-lookup Bar -->
+      <!-- Quick Online Discography Auto-lookup Bar -->
       <div class="bg-vinyl-800/60 px-6 py-2.5 border-b border-vinyl-800 flex flex-wrap items-center justify-between gap-2">
-        <div class="flex items-center gap-2 flex-1 min-w-[280px]">
+        <div class="flex items-center gap-2 flex-1 min-w-[300px]">
           <i class="fa-solid fa-wand-magic-sparkles text-brass-400 text-xs"></i>
-          <span class="text-xs text-slate-300 font-medium">Quick Autofill:</span>
-          <input type="text" id="musicBrainzQueryInput" placeholder="Enter Artist & Title or Barcode (e.g. Pink Floyd Dark Side)" class="flex-1 bg-vinyl-850 border border-vinyl-700 rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-brass-500">
-          <button type="button" onclick="lookupMusicBrainzManual()" class="px-2.5 py-1 text-xs font-semibold rounded bg-brass-500 hover:bg-brass-400 text-vinyl-950 transition flex items-center gap-1.5">
+          <span class="text-xs text-slate-300 font-medium whitespace-nowrap">Online Lookup:</span>
+          
+          <!-- Format Filter Dropdown -->
+          <select id="autofillFormatFilter" class="bg-vinyl-850 border border-vinyl-700 rounded px-2 py-1 text-xs text-brass-400 font-semibold focus:outline-none focus:border-brass-500" title="Filter search by release format">
+            <option value="ALL">Any Format</option>
+            <option value="12">12" Vinyl / LP</option>
+            <option value="7">7" Single (45 RPM)</option>
+            <option value="10">10" Vinyl</option>
+            <option value="CD">CD / Other</option>
+          </select>
+
+          <!-- Search Input with Clear Button -->
+          <div class="relative flex-1">
+            <input 
+              type="text" 
+              id="musicBrainzQueryInput" 
+              onkeydown="if(event.key === 'Enter'){ event.preventDefault(); lookupMusicBrainzManual(); }"
+              placeholder="Search Artist & Title or Barcode (e.g. Pink Floyd Dark Side)" 
+              class="w-full bg-vinyl-850 border border-vinyl-700 rounded pl-2.5 pr-7 py-1 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brass-500"
+            >
+            <button 
+              type="button" 
+              onclick="clearAutofillSearch()" 
+              id="clearSearchQueryBtn" 
+              class="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 p-0.5 text-xs" 
+              title="Clear search text"
+            >
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <button type="button" onclick="lookupMusicBrainzManual()" id="musicBrainzFetchBtn" class="px-3 py-1 text-xs font-semibold rounded bg-brass-500 hover:bg-brass-400 text-vinyl-950 transition flex items-center gap-1.5 shadow">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <span>Fetch Info</span>
+            <span>Search</span>
           </button>
         </div>
-        <div class="flex items-center gap-1.5 text-[11px]">
-          <span class="text-slate-400">Presets:</span>
-          <button type="button" onclick="presetAutofill('lp_rock')" class="px-2 py-0.5 rounded bg-vinyl-700 hover:bg-vinyl-600 text-slate-300">12" LP (Pink Floyd)</button>
-          <button type="button" onclick="presetAutofill('reggae')" class="px-2 py-0.5 rounded bg-vinyl-700 hover:bg-vinyl-600 text-slate-300">7" Single (Reggae)</button>
+
+        <!-- Form Clear / Reset Option -->
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="confirmClearForm()" class="px-2.5 py-1 text-xs font-medium rounded bg-vinyl-850 hover:bg-red-950/50 hover:text-red-300 text-slate-400 border border-vinyl-700 hover:border-red-800 transition flex items-center gap-1.5" title="Clear all entry fields back to empty">
+            <i class="fa-solid fa-eraser text-xs"></i>
+            <span>Clear Entry</span>
+          </button>
         </div>
+      </div>
+
+      <!-- Multiple Releases Match Selector Drawer -->
+      <div id="autofillResultsContainer" class="hidden bg-vinyl-900 border-b border-vinyl-800 p-4 max-h-80 overflow-y-auto space-y-2.5">
+        <!-- Populated dynamically via renderAutofillResults() -->
       </div>
 
       <!-- Navigation Tabs -->
@@ -988,9 +1025,15 @@
 
         <!-- Modal Footer Actions with Fast Add Next -->
         <div class="border-t border-vinyl-800 pt-4 flex flex-wrap items-center justify-between gap-2">
-          <button type="button" onclick="closeAddEditModal()" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-lg transition">
-            Cancel
-          </button>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="closeAddEditModal()" class="px-3.5 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-lg transition">
+              Cancel
+            </button>
+            <button type="button" onclick="confirmClearForm()" class="px-3 py-2 text-xs font-medium text-slate-400 hover:text-red-300 rounded-lg bg-vinyl-850 hover:bg-red-950/40 border border-vinyl-700 hover:border-red-800 transition flex items-center gap-1.5" title="Clear all entry fields">
+              <i class="fa-solid fa-eraser text-xs"></i>
+              <span>Clear Entry</span>
+            </button>
+          </div>
           
           <div class="flex items-center gap-2">
             <button type="button" onclick="saveRecordForm(event, true)" class="px-4 py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 transition flex items-center gap-1.5 shadow" title="Save this record and immediately open blank form for next one [Ctrl+Enter]">
@@ -2728,6 +2771,8 @@
       document.getElementById('modalTitle').innerText = 'Catalogue Record';
       document.getElementById('recordForm').reset();
       document.getElementById('recordId').value = '';
+      document.getElementById('musicBrainzQueryInput').value = '';
+      closeAutofillResults();
       
       document.getElementById('formFormat').value = sessionDefaults.format || '12" LP (Album)';
       document.getElementById('formMediaGrade').value = sessionDefaults.mediaGrade || 'VG+';
@@ -2745,6 +2790,7 @@
     }
 
     function closeAddEditModal() {
+      closeAutofillResults();
       document.getElementById('recordModal').classList.add('hidden');
     }
 
@@ -3054,6 +3100,7 @@
         document.getElementById('formEstimatedValue').value = '';
         document.getElementById('formDiscogsId').value = '';
         document.getElementById('musicBrainzQueryInput').value = '';
+        closeAutofillResults();
         clearImagePreviews();
         switchFormTab('tab-general');
         showToast("Ready for next record! [Ctrl+Enter]");
@@ -3311,12 +3358,78 @@
     }
 
     /* =========================================================
-       LIVE MUSICBRAINZ OPEN DISCOGRAPHY API LOOKUP
+       LIVE MUSICBRAINZ OPEN DISCOGRAPHY API & MULTI-MATCH SELECTOR
        ========================================================= */
+    let stagedOnlineReleases = [];
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function clearAutofillSearch() {
+      const input = document.getElementById('musicBrainzQueryInput');
+      if (input) {
+        input.value = '';
+        input.focus();
+      }
+      closeAutofillResults();
+    }
+
+    function closeAutofillResults() {
+      const container = document.getElementById('autofillResultsContainer');
+      if (container) {
+        container.classList.add('hidden');
+        container.innerHTML = '';
+      }
+    }
+
+    function confirmClearForm() {
+      if (confirm("Clear all entry fields back to blank?")) {
+        clearRecordFormFields();
+        showToast("Form cleared.");
+      }
+    }
+
+    function clearRecordFormFields() {
+      document.getElementById('recordId').value = '';
+      document.getElementById('formArtist').value = '';
+      document.getElementById('formTitle').value = '';
+      document.getElementById('formLabel').value = '';
+      document.getElementById('formCatNo').value = '';
+      document.getElementById('formYear').value = '';
+      document.getElementById('formSideATitle').value = '';
+      document.getElementById('formSideADuration').value = '';
+      document.getElementById('formSideBTitle').value = '';
+      document.getElementById('formSideBDuration').value = '';
+      document.getElementById('formAlbumTracks').value = '';
+      document.getElementById('formBarcode').value = '';
+      document.getElementById('formCountry').value = '';
+      document.getElementById('formEstimatedValue').value = '';
+      document.getElementById('formDiscogsId').value = '';
+      document.getElementById('formMatrixA').value = '';
+      document.getElementById('formMatrixB').value = '';
+      document.getElementById('formMastering').value = '';
+      document.getElementById('formPressingPlant').value = '';
+      document.getElementById('formMediaGradeNotes').value = '';
+      document.getElementById('formSleeveGradeNotes').value = '';
+      document.getElementById('formGenres').value = '';
+      document.getElementById('formProducer').value = '';
+      document.getElementById('formProvenance').value = '';
+      document.getElementById('formTransferNotes').value = '';
+      document.getElementById('formResearchNotes').value = '';
+      document.getElementById('musicBrainzQueryInput').value = '';
+      closeAutofillResults();
+      clearImagePreviews();
+      switchFormTab('tab-general');
+      setTimeout(() => document.getElementById('formArtist').focus(), 80);
+    }
+
     async function lookupMusicBrainzManual() {
       const query = document.getElementById('musicBrainzQueryInput').value.trim();
       if (!query) {
-        showToast("Please enter an Artist & Title or Barcode", "error");
+        showToast("Please enter an Artist, Title, or Barcode", "error");
+        document.getElementById('musicBrainzQueryInput').focus();
         return;
       }
       await executeMusicBrainzSearch(query);
@@ -3332,116 +3445,248 @@
     }
 
     async function executeMusicBrainzSearch(query, isBarcodeOnly = false) {
+      const btn = document.getElementById('musicBrainzFetchBtn');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Searching...</span>`;
+      }
       showToast(`Searching open discography for "${query}"...`);
 
       try {
         let apiUrl = '';
         if (isBarcodeOnly || /^\d{8,14}$/.test(query)) {
-          apiUrl = `https://musicbrainz.org/ws/2/release/?query=barcode:${encodeURIComponent(query)}&fmt=json`;
+          apiUrl = `https://musicbrainz.org/ws/2/release/?query=barcode:${encodeURIComponent(query)}&fmt=json&limit=15`;
         } else {
-          apiUrl = `https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(query)}&fmt=json`;
+          apiUrl = `https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(query)}&fmt=json&limit=15`;
         }
 
         const res = await fetch(apiUrl);
         if (!res.ok) throw new Error("MusicBrainz service busy");
         const data = await res.json();
 
-        if (data.releases && data.releases.length > 0) {
-          const match = data.releases[0];
-          
-          if (match['artist-credit'] && match['artist-credit'].length > 0) {
-            document.getElementById('formArtist').value = match['artist-credit'][0].name || '';
+        let releases = data.releases || [];
+
+        // Apply format filter if selected by the user
+        const fmtChoice = document.getElementById('autofillFormatFilter')?.value || 'ALL';
+        if (fmtChoice !== 'ALL' && releases.length > 0) {
+          const filtered = releases.filter(r => {
+            const mediaStr = (r.media || []).map(m => m.format || '').join(' ').toLowerCase();
+            if (fmtChoice === '7') return mediaStr.includes('7"') || mediaStr.includes('single') || mediaStr.includes('vinyl');
+            if (fmtChoice === '12') return mediaStr.includes('12"') || mediaStr.includes('lp') || mediaStr.includes('vinyl');
+            if (fmtChoice === '10') return mediaStr.includes('10"');
+            if (fmtChoice === 'CD') return mediaStr.includes('cd');
+            return true;
+          });
+          if (filtered.length > 0) {
+            releases = filtered;
           }
-          document.getElementById('formTitle').value = match.title || '';
+        }
 
-          if (match.date) {
-            const yr = parseInt(match.date.slice(0, 4));
-            if (!isNaN(yr)) document.getElementById('formYear').value = yr;
-          }
-          if (match.country) document.getElementById('formCountry').value = match.country;
-          if (match.barcode) document.getElementById('formBarcode').value = match.barcode;
+        renderAutofillResults(releases, query);
 
-          if (match['label-info'] && match['label-info'].length > 0) {
-            const lInfo = match['label-info'][0];
-            if (lInfo.label && lInfo.label.name) document.getElementById('formLabel').value = lInfo.label.name;
-            if (lInfo['catalog-number']) document.getElementById('formCatNo').value = lInfo['catalog-number'];
-          }
-
-          if (match.media && match.media.length > 0) {
-            const m = match.media[0];
-            const formatName = m.format || '';
-            if (formatName.includes('7"')) {
-              document.getElementById('formFormat').value = '7" Single (45 RPM)';
-            } else if (match.media.length >= 2) {
-              document.getElementById('formFormat').value = '2xLP Gatefold (Album)';
-            } else {
-              document.getElementById('formFormat').value = '12" LP (Album)';
-            }
-            handleFormatChange();
-
-            if (m.tracks && m.tracks.length > 0) {
-              const lines = m.tracks.map((t, idx) => {
-                const durSec = t.length ? Math.floor(t.length / 1000) : 0;
-                const mStr = Math.floor(durSec / 60);
-                const sStr = String(durSec % 60).padStart(2, '0');
-                const durFmt = durSec > 0 ? ` (${mStr}:${sStr})` : '';
-                return `${t.number || idx + 1}. ${t.title}${durFmt}`;
-              });
-              document.getElementById('formAlbumTracks').value = lines.join('\n');
-            }
-          }
-
-          showToast(`Autofilled metadata for "${match.title}"!`);
+        if (releases.length === 0) {
+          showToast(`No online discography matches for "${query}".`, "info");
         } else {
-          showToast(`No exact online match found for "${query}"`, "info");
+          showToast(`Found ${releases.length} releases! Choose your pressing below.`);
         }
       } catch (err) {
         console.warn("MusicBrainz query fallback:", err);
         showToast("Discography API busy or offline. Manual entry active.", "info");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i> <span>Search</span>`;
+        }
       }
     }
 
-    /* =========================================================
-       PRESET AUTOFILLS
-       ========================================================= */
-    function presetAutofill(type) {
-      if (type === 'lp_rock') {
-        document.getElementById('formFormat').value = "12\" LP (Album)";
-        handleFormatChange();
-        document.getElementById('formArtist').value = "Pink Floyd";
-        document.getElementById('formTitle').value = "The Dark Side of the Moon";
-        document.getElementById('formLabel').value = "Harvest / EMI";
-        document.getElementById('formCatNo').value = "SHVL 804";
-        document.getElementById('formYear').value = "1973";
-        document.getElementById('formEstimatedValue').value = "280.00";
-        document.getElementById('formDiscogsId').value = "249504";
-        document.getElementById('formCountry').value = "United Kingdom";
-        document.getElementById('formAlbumTracks').value = "A1. Speak to Me / Breathe (3:58)\nA2. On the Run (3:35)\nA3. Time (7:05)\nA4. The Great Gig in the Sky (4:44)\nB1. Money (6:22)\nB2. Us and Them (7:50)\nB3. Any Colour You Like (3:26)\nB4. Brain Damage (3:47)\nB5. Eclipse (2:03)";
-        document.getElementById('formMatrixA').value = "SHVL 804 A-2";
-        document.getElementById('formMatrixB').value = "SHVL 804 B-2";
-        document.getElementById('formMastering').value = "Harry Moss / Doug Sax";
-        document.getElementById('formMediaGrade').value = "NM";
-        document.getElementById('formGenres').value = "Progressive Rock";
-        document.getElementById('formResearchNotes').value = "UK first pressing with solid light blue triangle on label and black gatefold jacket.";
-      } else if (type === 'reggae') {
-        document.getElementById('formFormat').value = "7\" Single (45 RPM)";
-        handleFormatChange();
-        document.getElementById('formArtist').value = "Augustus Pablo & The Upsetters";
-        document.getElementById('formTitle').value = "Blackboard Jungle Dub";
-        document.getElementById('formLabel').value = "Upsetter Records";
-        document.getElementById('formCatNo').value = "UP-304";
-        document.getElementById('formYear').value = "1973";
-        document.getElementById('formEstimatedValue').value = "45.00";
-        document.getElementById('formSideATitle').value = "Blackboard Jungle Dub";
-        document.getElementById('formSideBTitle').value = "Kaya Dub";
-        document.getElementById('formCenterHole').value = "Dinked (Large 1.5 inch)";
-        document.getElementById('formSpeed').value = "45 RPM";
-        document.getElementById('formMatrixA').value = "DSR-7821-A KING TUBBY";
-        document.getElementById('formMediaGrade').value = "VG+";
-        document.getElementById('formGenres').value = "Dub, Roots Reggae";
-        document.getElementById('formProducer').value = "Lee 'Scratch' Perry";
+    function renderAutofillResults(releases, query) {
+      const container = document.getElementById('autofillResultsContainer');
+      if (!container) return;
+
+      if (!releases || releases.length === 0) {
+        container.classList.remove('hidden');
+        container.innerHTML = `
+          <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 text-center text-xs text-slate-400">
+            <i class="fa-solid fa-circle-question text-slate-500 text-base mb-1 block"></i>
+            No discography releases found matching <strong class="text-white">"${escapeHtml(query)}"</strong>.
+            <div class="mt-1 text-[11px] text-slate-500">Try searching with just "Artist Title" or check the barcode.</div>
+          </div>
+        `;
+        return;
       }
-      showToast("Autofilled preset research template!");
+
+      stagedOnlineReleases = releases;
+
+      let html = `
+        <div class="p-3 bg-vinyl-850 rounded-xl border border-brass-500/40 space-y-2.5 shadow-xl">
+          <div class="flex items-center justify-between border-b border-vinyl-800 pb-2">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-list-check text-brass-400 text-xs"></i>
+              <span class="text-xs font-bold text-white tracking-tight">Found ${releases.length} Release Matches</span>
+              <span class="text-[11px] text-slate-400 hidden sm:inline">— Select your pressing:</span>
+            </div>
+            <button type="button" onclick="closeAutofillResults()" class="text-xs text-slate-400 hover:text-white px-2 py-0.5 rounded bg-vinyl-800 hover:bg-vinyl-700 transition">
+              <i class="fa-solid fa-xmark mr-1"></i> Dismiss
+            </button>
+          </div>
+
+          <div class="space-y-1.5 max-h-60 overflow-y-auto pr-1">
+      `;
+
+      releases.forEach((rel, idx) => {
+        const artist = rel['artist-credit']?.[0]?.name || 'Unknown Artist';
+        const title = rel.title || 'Untitled';
+        const date = rel.date || 'Year Unknown';
+        const country = rel.country || 'Global';
+        const labelInfo = rel['label-info']?.[0];
+        const label = labelInfo?.label?.name || 'Label Unlisted';
+        const catNo = labelInfo?.['catalog-number'] || 'No Cat #';
+        const media = rel.media?.[0];
+        const mediaFmt = media?.format || (media?.['track-count'] ? `${media['track-count']} Tracks` : 'Vinyl');
+        const trackCount = media?.['track-count'] || (media?.tracks?.length || 0);
+
+        let badgeClass = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+        let badgeIcon = 'fa-compact-disc';
+        if (mediaFmt.includes('7"')) {
+          badgeClass = 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
+          badgeIcon = 'fa-record-vinyl';
+        } else if (mediaFmt.includes('CD')) {
+          badgeClass = 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+          badgeIcon = 'fa-circle-dot';
+        }
+
+        html += `
+          <div class="p-2.5 bg-vinyl-900 hover:bg-vinyl-800/90 rounded-lg border border-vinyl-800 hover:border-brass-500/50 transition flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 group">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap mb-1">
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${badgeClass} flex items-center gap-1">
+                  <i class="fa-solid ${badgeIcon} text-[9px]"></i>
+                  <span>${escapeHtml(mediaFmt)}</span>
+                </span>
+                <span class="text-xs font-bold text-white group-hover:text-brass-400 transition truncate">${escapeHtml(artist)}</span>
+                <span class="text-xs text-slate-300 font-medium truncate">— ${escapeHtml(title)}</span>
+              </div>
+              <div class="text-[11px] text-slate-400 flex items-center gap-2 flex-wrap font-mono">
+                <span class="text-brass-400/90">${escapeHtml(label)} (${escapeHtml(catNo)})</span>
+                <span>•</span>
+                <span>${escapeHtml(country)}</span>
+                <span>•</span>
+                <span>${escapeHtml(date)}</span>
+                ${trackCount ? `<span>•</span><span>${trackCount} tracks</span>` : ''}
+                ${rel.barcode ? `<span>•</span><span>UPC: ${escapeHtml(rel.barcode)}</span>` : ''}
+              </div>
+            </div>
+            <button type="button" onclick="applySelectedRelease(${idx})" class="px-3 py-1.5 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold rounded-lg text-xs transition flex items-center justify-center gap-1.5 shadow whitespace-nowrap self-start sm:self-auto">
+              <i class="fa-solid fa-check text-xs"></i>
+              <span>Use This Pressing</span>
+            </button>
+          </div>
+        `;
+      });
+
+      html += `
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+      container.classList.remove('hidden');
+    }
+
+    function applySelectedRelease(index) {
+      const match = stagedOnlineReleases[index];
+      if (!match) return;
+
+      if (match['artist-credit'] && match['artist-credit'].length > 0) {
+        document.getElementById('formArtist').value = match['artist-credit'][0].name || '';
+      }
+      document.getElementById('formTitle').value = match.title || '';
+
+      if (match.date) {
+        const yr = parseInt(match.date.slice(0, 4));
+        if (!isNaN(yr)) document.getElementById('formYear').value = yr;
+      }
+      if (match.country) document.getElementById('formCountry').value = match.country;
+      if (match.barcode) document.getElementById('formBarcode').value = match.barcode;
+
+      if (match['label-info'] && match['label-info'].length > 0) {
+        const lInfo = match['label-info'][0];
+        if (lInfo.label && lInfo.label.name) document.getElementById('formLabel').value = lInfo.label.name;
+        if (lInfo['catalog-number']) document.getElementById('formCatNo').value = lInfo['catalog-number'];
+      }
+
+      // Format determination
+      const searchFormatChoice = document.getElementById('autofillFormatFilter')?.value || 'ALL';
+      let assignedFormat = '12" LP (Album)';
+
+      if (searchFormatChoice === '7') {
+        assignedFormat = '7" Single (45 RPM)';
+      } else if (searchFormatChoice === '12') {
+        assignedFormat = (match.media && match.media.length >= 2) ? '2xLP Gatefold (Album)' : '12" LP (Album)';
+      } else if (searchFormatChoice === '10') {
+        assignedFormat = '10" Vinyl';
+      } else if (searchFormatChoice === 'CD') {
+        assignedFormat = 'CD / Other';
+      } else if (match.media && match.media.length > 0) {
+        const m = match.media[0];
+        const formatName = m.format || '';
+        if (formatName.includes('7"')) {
+          assignedFormat = '7" Single (45 RPM)';
+        } else if (match.media.length >= 2) {
+          assignedFormat = '2xLP Gatefold (Album)';
+        } else if (formatName.includes('10"')) {
+          assignedFormat = '10" Vinyl';
+        } else if (formatName.includes('CD')) {
+          assignedFormat = 'CD / Other';
+        } else {
+          assignedFormat = '12" LP (Album)';
+        }
+      }
+
+      document.getElementById('formFormat').value = assignedFormat;
+      handleFormatChange();
+
+      // Populate tracks
+      if (match.media && match.media.length > 0) {
+        const allTracks = [];
+        match.media.forEach((med, mIdx) => {
+          const mediaDiscPrefix = match.media.length > 1 ? `D${mIdx + 1}-` : '';
+          if (med.tracks && med.tracks.length > 0) {
+            med.tracks.forEach((t, tIdx) => {
+              const durSec = t.length ? Math.floor(t.length / 1000) : 0;
+              const mStr = Math.floor(durSec / 60);
+              const sStr = String(durSec % 60).padStart(2, '0');
+              const durFmt = durSec > 0 ? ` (${mStr}:${sStr})` : '';
+              const pos = t.number || `${mediaDiscPrefix}${tIdx + 1}`;
+              allTracks.push(`${pos}. ${t.title}${durFmt}`);
+            });
+          }
+        });
+
+        if (allTracks.length > 0) {
+          document.getElementById('formAlbumTracks').value = allTracks.join('\n');
+
+          // If single, also populate side A and side B fields
+          if (assignedFormat.includes('7"')) {
+            const cleanTitle = (raw) => raw ? raw.replace(/^[A-D\d\.\-\s]+/, '').replace(/\s*\([\d:]+\)$/, '') : '';
+            document.getElementById('formSideATitle').value = cleanTitle(allTracks[0]);
+            if (allTracks.length > 1) {
+              document.getElementById('formSideBTitle').value = cleanTitle(allTracks[1]);
+            }
+          }
+        }
+      }
+
+      // Add research note info if empty
+      const notesField = document.getElementById('formResearchNotes');
+      if (notesField && !notesField.value) {
+        notesField.value = `MusicBrainz Release: ${match.id} (${match.country || 'Global'}, ${match.date || 'n/a'}). Status: ${match.status || 'Official'}.`;
+      }
+
+      closeAutofillResults();
+      showToast(`Autofilled metadata for "${match.title}"!`);
+      switchFormTab('tab-general');
     }
 
     /* =========================================================
