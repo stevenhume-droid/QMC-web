@@ -1938,6 +1938,11 @@
     <div class="absolute inset-0 bg-black/70" onclick="closeMobileMore()"></div>
     <div id="mobileMoreCard" class="absolute bottom-0 inset-x-0 bg-vinyl-900 border-t border-vinyl-700 rounded-t-2xl p-4 max-h-[85dvh] overflow-y-auto">
       <div class="w-10 h-1 bg-vinyl-700 rounded-full mx-auto mb-3"></div>
+      <!-- Featured Mobile Action: Add to Home Screen + Barcode Scan -->
+      <div class="grid grid-cols-2 gap-2 mb-2 text-xs font-semibold">
+        <button onclick="closeMobileMore();openAddToHomeScreenModal()" class="p-2.5 rounded-xl bg-gradient-to-r from-brass-500/20 to-amber-500/10 border border-brass-500/40 text-brass-400 flex items-center justify-center gap-2 shadow"><i class="fa-solid fa-mobile-screen-button text-sm"></i><span>Add to Home Screen</span></button>
+        <button onclick="closeMobileMore();openScannerModal()" class="p-2.5 rounded-xl bg-vinyl-850 border border-brass-500/30 text-slate-200 flex items-center justify-center gap-2 shadow"><i class="fa-solid fa-barcode text-sm text-brass-400"></i><span>Scan Barcode</span></button>
+      </div>
       <div class="grid grid-cols-3 gap-2 text-center text-[11px] font-medium">
         <button onclick="closeMobileMore();openAuthModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-circle-user text-lg text-brass-400"></i>Account</button>
         <button onclick="closeMobileMore();openShareModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-share-nodes text-lg text-sky-400"></i>Share Link</button>
@@ -1952,6 +1957,64 @@
         <button onclick="closeMobileMore();forceBustCache()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-arrows-rotate text-lg text-sky-400"></i>Hard Reload</button>
         <button onclick="closeMobileMore();clearAllRecordsPrompt()" class="p-3 rounded-xl bg-vinyl-850 border border-rose-900/50 text-rose-300 flex flex-col items-center gap-1.5"><i class="fa-solid fa-eraser text-lg"></i>Clear Archive</button>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD TO HOME SCREEN (iOS & Android Guide + Native Install) -->
+  <div id="addToHomeScreenModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[95] flex items-center justify-center p-4 hidden">
+    <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-md p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-vinyl-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-brass-500/20 border border-brass-500/40 flex items-center justify-center text-brass-400">
+            <i class="fa-solid fa-mobile-screen-button text-base"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white">Add Archive to Home Screen</h3>
+            <p class="text-[11px] text-slate-400">Launch full-screen like a native mobile app</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeAddToHomeScreenModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-vinyl-800">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Native Install Button (shown automatically if browser supports beforeinstallprompt) -->
+      <div id="nativeInstallPromptBox" class="hidden">
+        <button type="button" onclick="triggerNativeHomeScreenInstall()" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-vinyl-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg">
+          <i class="fa-solid fa-download"></i>
+          <span>Install QMC Archive App Now</span>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 space-y-1.5">
+          <div class="font-bold text-white flex items-center gap-2">
+            <i class="fa-brands fa-apple text-slate-200 text-sm"></i>
+            <span>iPhone &amp; iPad (Safari)</span>
+          </div>
+          <ol class="list-decimal list-inside space-y-1 text-slate-300 text-[11px]">
+            <li>Tap the <strong class="text-sky-400"><i class="fa-solid fa-arrow-up-from-bracket"></i> Share</strong> button in Safari's toolbar.</li>
+            <li>Scroll down and tap <strong class="text-white"><i class="fa-regular fa-square-plus text-brass-400"></i> Add to Home Screen</strong>.</li>
+            <li>Tap <strong class="text-emerald-400">Add</strong> in the top-right corner.</li>
+          </ol>
+        </div>
+
+        <div class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 space-y-1.5">
+          <div class="font-bold text-white flex items-center gap-2">
+            <i class="fa-brands fa-android text-emerald-400 text-sm"></i>
+            <span>Android (Chrome / Edge)</span>
+          </div>
+          <ol class="list-decimal list-inside space-y-1 text-slate-300 text-[11px]">
+            <li>Tap the <strong class="text-white"><i class="fa-solid fa-ellipsis-vertical"></i> Menu</strong> icon in the top-right corner of Chrome.</li>
+            <li>Tap <strong class="text-brass-400">Add to Home screen</strong> or <strong class="text-brass-400">Install app</strong>.</li>
+            <li>Confirm by tapping <strong class="text-emerald-400">Install / Add</strong>.</li>
+          </ol>
+        </div>
+      </div>
+
+      <button type="button" onclick="closeAddToHomeScreenModal()" class="w-full py-2 rounded-xl bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 font-semibold text-xs border border-vinyl-700 transition">
+        Done
+      </button>
     </div>
   </div>
 
@@ -4136,9 +4199,10 @@
       }
 
       const decadeBar = document.getElementById('decadeDistributionBar');
+      const colors = ['bg-amber-400', 'bg-emerald-400', 'bg-sky-400', 'bg-pink-400', 'bg-purple-400', 'bg-teal-400', 'bg-indigo-400'];
+      const chipBorders = ['border-amber-500/40 text-amber-300', 'border-emerald-500/40 text-emerald-300', 'border-sky-500/40 text-sky-300', 'border-pink-500/40 text-pink-300', 'border-purple-500/40 text-purple-300', 'border-teal-500/40 text-teal-300', 'border-indigo-500/40 text-indigo-300'];
       if (decadeBar) {
         decadeBar.innerHTML = '';
-        const colors = ['bg-amber-400', 'bg-emerald-400', 'bg-sky-400', 'bg-pink-400', 'bg-purple-400', 'bg-teal-400', 'bg-indigo-400'];
         decadeKeys.forEach((dec, idx) => {
           const pct = total ? ((decadeMap[dec] / total) * 100).toFixed(1) : 0;
           const segment = document.createElement('div');
@@ -4148,6 +4212,23 @@
           segment.onclick = (e) => { e.stopPropagation(); filterByDecade(dec); };
           decadeBar.appendChild(segment);
         });
+      }
+
+      const decadeChips = document.getElementById('decadeQuickChips');
+      if (decadeChips) {
+        const curDec = typeof activeDecadeFilter !== 'undefined' ? activeDecadeFilter : 'ALL';
+        let chipsHtml = `<button type="button" onclick="clearDecadeFilter()" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border whitespace-nowrap transition ${curDec === 'ALL' ? 'bg-brass-500 text-vinyl-950 border-brass-400 shadow' : 'bg-vinyl-900/90 text-slate-400 border-vinyl-700 hover:text-white'}">All</button>`;
+        decadeKeys.forEach((dec, idx) => {
+          const isAct = (curDec === dec);
+          const colCls = chipBorders[idx % chipBorders.length];
+          const dotCls = colors[idx % colors.length];
+          chipsHtml += `<button type="button" onclick="filterByDecade('${dec}')" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold border whitespace-nowrap flex items-center gap-1 transition ${isAct ? 'bg-brass-500 text-vinyl-950 border-brass-400 font-bold shadow' : `bg-vinyl-900/90 ${colCls} hover:bg-vinyl-800`}">
+            <span class="w-1.5 h-1.5 rounded-full ${isAct ? 'bg-vinyl-950' : dotCls}"></span>
+            <span>${dec}</span>
+            <span class="${isAct ? 'text-vinyl-900' : 'text-slate-500'}">(${decadeMap[dec]})</span>
+          </button>`;
+        });
+        decadeChips.innerHTML = chipsHtml;
       }
     }
 
@@ -4159,6 +4240,7 @@
     function clearDecadeFilter() {
       activeDecadeFilter = 'ALL';
       handleSearchFilterChange();
+      renderStats();
     }
 
     function getFilteredAndSortedRecords() {
@@ -4307,6 +4389,7 @@
       document.getElementById('filterGrade').value = 'ALL';
       document.getElementById('sortBy').value = 'dateAddedDesc';
       handleSearchFilterChange();
+      renderStats();
     }
 
     function switchView(mode) {
@@ -4350,6 +4433,40 @@
     function closeMobileMore() {
       const sheet = document.getElementById('mobileMoreSheet');
       if (sheet) sheet.classList.remove('open');
+    }
+
+    /* =========================================================
+       ADD TO HOME SCREEN (PWA INSTALL PROMPT & MOBILE GUIDE)
+       ========================================================= */
+    let deferredInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      const box = document.getElementById('nativeInstallPromptBox');
+      if (box) box.classList.remove('hidden');
+    });
+
+    function openAddToHomeScreenModal() {
+      const box = document.getElementById('nativeInstallPromptBox');
+      if (box) box.classList.toggle('hidden', !deferredInstallPrompt);
+      const modal = document.getElementById('addToHomeScreenModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeAddToHomeScreenModal() {
+      const modal = document.getElementById('addToHomeScreenModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    async function triggerNativeHomeScreenInstall() {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      const { outcome } = await deferredInstallPrompt.userChoice;
+      if (outcome === 'accepted') {
+        deferredInstallPrompt = null;
+        closeAddToHomeScreenModal();
+        showToast('QMC Archive added to your Home Screen!');
+      }
     }
 
     function mobileNav(target) {
@@ -4813,11 +4930,18 @@
        ========================================================= */
     function filterByDecade(decadeStr) {
       if (!decadeStr) return;
+      if (activeDecadeFilter === decadeStr && currentView !== 'analytics') {
+        clearDecadeFilter();
+        return;
+      }
       activeDecadeFilter = decadeStr;
       const searchInput = document.getElementById('globalSearch');
       if (searchInput) searchInput.value = '';
       handleSearchFilterChange();
-      switchView('grid');
+      renderStats();
+      if (currentView === 'analytics') {
+        switchView('grid');
+      }
       showToast(`Filtered catalogue for ${decadeStr === 'Unknown' ? 'Unknown Year' : decadeStr} releases`, 'info');
     }
 
