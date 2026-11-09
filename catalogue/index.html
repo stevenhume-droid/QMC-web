@@ -107,6 +107,7 @@
     .mnav-btn { min-height: 56px; }
     .mnav-btn.active { color: #f6d365; }
     #mobileMoreSheet.open { display: block; }
+    #moreActionsDropdown.menu-open > #moreActionsPanel { display: block; }
     #mobileMoreSheet.open #mobileMoreCard { transform: translateY(0); }
     #mobileMoreCard { transform: translateY(100%); transition: transform .22s ease-out; padding-bottom: calc(1rem + env(safe-area-inset-bottom)); }
 
@@ -231,10 +232,10 @@
 
       <!-- Import / Export Menu Dropdown -->
       <div class="relative group hidden md:block" id="moreActionsDropdown">
-        <button class="p-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border border-vinyl-700 transition" title="Archival Export & Options">
+        <button type="button" onclick="toggleMoreMenu(event)" class="p-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border border-vinyl-700 transition" title="Archival Export & Options">
           <i class="fa-solid fa-ellipsis-vertical px-1"></i>
         </button>
-        <div class="absolute right-0 mt-1 w-56 bg-vinyl-850 border border-vinyl-700 rounded-lg shadow-2xl py-1 hidden group-hover:block hover:block z-50">
+        <div id="moreActionsPanel" class="absolute right-0 mt-1 w-56 bg-vinyl-850 border border-vinyl-700 rounded-lg shadow-2xl py-1 hidden group-hover:block hover:block z-50 overflow-y-auto overscroll-contain" style="max-height: calc(100dvh - 80px);">
           <div class="px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400 border-b border-vinyl-700">
             Batch Templates
           </div>
@@ -4200,6 +4201,17 @@
       if (stats) stats.classList.toggle('active', mode === 'analytics');
     }
 
+    function toggleMoreMenu(ev) {
+      if (ev) ev.stopPropagation();
+      const dd = document.getElementById('moreActionsDropdown');
+      if (dd) dd.classList.toggle('menu-open');
+    }
+    document.addEventListener('click', (e) => {
+      const dd = document.getElementById('moreActionsDropdown');
+      if (dd && dd.classList.contains('menu-open') && !dd.contains(e.target)) dd.classList.remove('menu-open');
+      else if (dd && dd.classList.contains('menu-open') && e.target.closest('#moreActionsPanel button, #moreActionsPanel label')) dd.classList.remove('menu-open');
+    });
+
     function closeMobileMore() {
       const sheet = document.getElementById('mobileMoreSheet');
       if (sheet) sheet.classList.remove('open');
@@ -4542,9 +4554,9 @@
           <table class="w-full text-left text-xs text-slate-300">
             <thead class="bg-vinyl-850 border-b border-vinyl-800 text-[10px] uppercase font-bold tracking-wider text-slate-400 font-mono">
               <tr>
+                <th class="py-3 px-3">Artist / Release Title</th>
                 <th class="py-3 px-3">Format</th>
                 <th class="py-3 px-3">Cat #</th>
-                <th class="py-3 px-3">Artist / Release Title</th>
                 <th class="py-3 px-3">Label</th>
                 <th class="py-3 px-3">Year</th>
                 <th class="py-3 px-3">Media</th>
@@ -4563,12 +4575,6 @@
 
         html += `
           <tr class="hover:bg-vinyl-850/60 transition group">
-            <td class="py-2.5 px-3 whitespace-nowrap">
-              ${getFormatBadge(item.format)}
-            </td>
-            <td class="py-2.5 px-3 font-mono text-brass-400/90 whitespace-nowrap">
-              ${item.catNo || 'S/N'}
-            </td>
             <td class="py-2.5 px-3">
               <div class="flex items-center gap-2.5">
                 <div class="relative group/thumb cursor-pointer flex-shrink-0" onclick="${isOwner ? `openArtworkChooserModal('record', '${item.id}')` : `viewRecordDetail('${item.id}')`}" title="${isOwner ? 'Click to choose cover sleeve' : 'View dossier'}">
@@ -4592,6 +4598,12 @@
                   ` : ''}
                 </div>
               </div>
+            </td>
+            <td class="py-2.5 px-3 whitespace-nowrap">
+              ${getFormatBadge(item.format)}
+            </td>
+            <td class="py-2.5 px-3 font-mono text-brass-400/90 whitespace-nowrap">
+              ${item.catNo || 'S/N'}
             </td>
             <td class="py-2.5 px-3 whitespace-nowrap">${item.label || '--'}</td>
             <td class="py-2.5 px-3 font-mono">${item.year || '--'}</td>
