@@ -193,6 +193,14 @@
           
           <div class="border-t border-vinyl-700 my-1"></div>
           <div class="px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400 border-b border-vinyl-700">
+            Enrichment &amp; Metadata
+          </div>
+          <button onclick="openBatchGenreEnrichModal()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-sky-300 flex items-center gap-2 font-medium">
+            <i class="fa-solid fa-wand-magic-sparkles text-sky-400"></i> Auto-Enrich Missing Genres
+          </button>
+          
+          <div class="border-t border-vinyl-700 my-1"></div>
+          <div class="px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400 border-b border-vinyl-700">
             Archival Export
           </div>
           <button onclick="exportToCSV()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-200 flex items-center gap-2">
@@ -1300,7 +1308,13 @@
         <div id="tab-research" class="form-tab-pane hidden space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1">Genre & Sub-Styles</label>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block text-xs font-semibold text-slate-300">Genre & Sub-Styles</label>
+                <button type="button" onclick="autoFetchGenreForCurrentForm()" class="text-[11px] px-2 py-0.5 rounded bg-vinyl-800 hover:bg-vinyl-700 text-sky-400 border border-sky-500/30 transition flex items-center gap-1 shadow-sm" title="Auto-detect genres from Discogs & iTunes">
+                  <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>
+                  <span>Auto-Fetch</span>
+                </button>
+              </div>
               <input type="text" id="formGenres" placeholder="e.g. Progressive Rock, Art Rock, Psychedelic" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
             </div>
             <div>
@@ -1679,6 +1693,116 @@
 
         </div>
 
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: BATCH GENRE AUTO-ENRICHMENT             -->
+  <!-- ============================================== -->
+  <div id="batchGenreModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto">
+    <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-2xl flex flex-col shadow-2xl overflow-hidden my-auto">
+      
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400">
+            <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-white tracking-tight flex items-center gap-2">
+              <span>Auto-Enrich Missing Genres</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">Multi-Source</span>
+            </h2>
+            <p class="text-[11px] text-slate-400">Scan and auto-populate genres &amp; styles from Discogs, iTunes, and MusicBrainz</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeBatchGenreEnrichModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
+        <!-- Summary Stats Card -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 text-center">
+            <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Total Records</div>
+            <div id="batchGenreTotalRecords" class="text-xl font-bold font-mono text-white mt-0.5">0</div>
+          </div>
+          <div class="p-3 bg-vinyl-850 rounded-xl border border-amber-500/30 text-center">
+            <div class="text-[10px] text-amber-400 uppercase tracking-wider font-semibold">Missing Genres</div>
+            <div id="batchGenreMissingCount" class="text-xl font-bold font-mono text-amber-300 mt-0.5">0</div>
+          </div>
+          <div class="p-3 bg-vinyl-850 rounded-xl border border-emerald-500/30 text-center">
+            <div class="text-[10px] text-emerald-400 uppercase tracking-wider font-semibold">Already Tagged</div>
+            <div id="batchGenreTaggedCount" class="text-xl font-bold font-mono text-emerald-300 mt-0.5">0</div>
+          </div>
+        </div>
+
+        <!-- Information Notice -->
+        <div class="p-3.5 bg-sky-950/30 border border-sky-500/30 rounded-xl text-xs text-slate-300 space-y-2">
+          <div class="flex items-center gap-2 font-bold text-sky-300">
+            <i class="fa-solid fa-circle-info"></i> How Auto-Enrichment Works:
+          </div>
+          <p class="text-[11px] text-slate-300 leading-relaxed">
+            Standard Discogs collection exports omit genres. This engine scans your crate and uses a cascade of online archives:
+          </p>
+          <ul class="text-[11px] text-slate-300 list-disc list-inside space-y-1 pl-1">
+            <li><strong>Discogs API:</strong> Looks up precise releases and sub-styles using existing Discogs IDs or artist/title search.</li>
+            <li><strong>Apple iTunes Search:</strong> Fast, open CORS catalog match for broad musical categories (Rock, Electronic, Jazz, etc.).</li>
+            <li><strong>MusicBrainz:</strong> Deep metadata tags and classifications.</li>
+          </ul>
+        </div>
+
+        <!-- Mode Selection -->
+        <div class="space-y-2">
+          <label class="block text-xs font-semibold text-slate-300">Enrichment Scope</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <label class="flex items-start gap-2.5 p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 hover:border-vinyl-700 cursor-pointer transition">
+              <input type="radio" name="batchGenreMode" value="missing" checked class="mt-0.5 text-brass-500 focus:ring-0">
+              <div>
+                <span class="font-bold text-white block">Only Missing Records</span>
+                <span class="text-[11px] text-slate-400">Only fetch genres for items with empty genre tags (Fastest)</span>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 hover:border-vinyl-700 cursor-pointer transition">
+              <input type="radio" name="batchGenreMode" value="all" class="mt-0.5 text-brass-500 focus:ring-0">
+              <div>
+                <span class="font-bold text-white block">Re-Scan All Records</span>
+                <span class="text-[11px] text-slate-400">Refresh &amp; expand genres for every record in your collection</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Progress Indicator (Hidden Until Running) -->
+        <div id="batchGenreProgressCard" class="hidden p-4 rounded-xl bg-vinyl-950 border border-sky-500/40 space-y-3">
+          <div class="flex items-center justify-between text-xs font-semibold">
+            <span id="batchGenreProgressStatus" class="text-sky-300 flex items-center gap-2">
+              <i class="fa-solid fa-spinner fa-spin"></i> Processing records...
+            </span>
+            <span id="batchGenreProgressPercent" class="font-mono text-white">0%</span>
+          </div>
+          <div class="w-full bg-vinyl-800 rounded-full h-2 overflow-hidden">
+            <div id="batchGenreProgressBar" class="bg-gradient-to-r from-sky-500 to-emerald-400 h-2 rounded-full transition-all duration-200" style="width: 0%;"></div>
+          </div>
+          <div id="batchGenreProgressLog" class="text-[11px] font-mono text-slate-400 truncate">
+            Initializing archival queries...
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="p-4 bg-vinyl-850 border-t border-vinyl-800 flex items-center justify-between">
+        <button type="button" onclick="closeBatchGenreEnrichModal()" class="px-4 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 text-xs font-semibold transition">
+          Close
+        </button>
+        <button type="button" id="startBatchGenreBtn" onclick="runBatchGenreEnrich()" class="px-5 py-2 rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 text-xs font-bold flex items-center gap-2 shadow-lg transition">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span>Start Auto-Enrichment</span>
+        </button>
       </div>
 
     </div>
@@ -4938,6 +5062,10 @@
                     </h3>
                     <p class="text-xs text-slate-400 mt-0.5">Musical styles and pressing houses</p>
                   </div>
+                  <button type="button" onclick="openBatchGenreEnrichModal()" class="px-2.5 py-1 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-sky-400 hover:text-sky-300 border border-sky-500/30 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+                    <i class="fa-solid fa-wand-magic-sparkles text-[11px]"></i>
+                    <span>Auto-Enrich Missing</span>
+                  </button>
                 </div>
 
                 <!-- Two side-by-side sub-sections -->
@@ -4954,7 +5082,7 @@
                           <span class="text-slate-300 group-hover:text-brass-300 font-medium truncate">${genre}</span>
                           <span class="font-mono text-[11px] text-slate-400 bg-vinyl-800 px-1.5 py-0.5 rounded">${count}</span>
                         </div>
-                      `).join('') : '<div class="text-xs text-slate-500 italic p-3">No genre tags recorded yet.</div>'}
+                      `).join('') : '<div class="text-xs text-slate-500 italic p-3">No genre tags recorded yet. <button type="button" onclick="openBatchGenreEnrichModal()" class="text-sky-400 hover:underline font-semibold ml-1">Auto-enrich now</button></div>'}
                     </div>
                   </div>
 
@@ -5166,6 +5294,15 @@
                 <span class="text-slate-400">Record Label:</span>
                 <span class="font-semibold text-brass-400">${item.label || '--'}</span>
               </div>
+              <div class="flex justify-between items-start gap-2">
+                <span class="text-slate-400">Genre / Style:</span>
+                <div class="text-right">
+                  <span class="font-semibold text-sky-300 block">${item.genres || '<span class="text-slate-500 italic">Unassigned</span>'}</span>
+                  <button type="button" onclick="autoEnrichRecordGenre('${item.id}')" class="text-[10px] text-sky-400 hover:text-sky-300 hover:underline mt-0.5 inline-flex items-center gap-1 font-medium">
+                    <i class="fa-solid fa-wand-magic-sparkles text-[9px]"></i> ${item.genres ? 'Refresh Genre' : 'Auto-Fetch Genre'}
+                  </button>
+                </div>
+              </div>
               ${item.ownerName ? `
               <div class="flex justify-between items-center">
                 <span class="text-slate-400">Contributed By:</span>
@@ -5287,8 +5424,12 @@
               </div>
 
               <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 flex-wrap gap-2 border-t border-vinyl-800">
-                <span class="text-[10px]">Refresh valuation from live data:</span>
+                <span class="text-[10px]">Refresh valuation &amp; genres:</span>
                 <div class="flex items-center gap-2.5">
+                  <button type="button" onclick="autoEnrichRecordGenre('${item.id}')" class="text-sky-400 hover:underline flex items-center gap-1 font-medium" title="Auto-detect genres from Discogs &amp; iTunes">
+                    <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> Genre
+                  </button>
+                  <span class="text-slate-600">•</span>
                   <button type="button" onclick="fetchDiscogsPriceForRecord('${item.id}')" class="text-amber-400 hover:underline flex items-center gap-1 font-medium" title="Estimate value via Discogs Price Suggestions">
                     <i class="fa-solid fa-compact-disc text-xs"></i> Discogs Value
                   </button>
@@ -6004,6 +6145,12 @@
         if (priceResult.releaseId) {
           document.getElementById('formDiscogsId').value = priceResult.releaseId;
         }
+        if (priceResult.genres) {
+          const formGenresEl = document.getElementById('formGenres');
+          if (formGenresEl && !formGenresEl.value) {
+            formGenresEl.value = priceResult.genres;
+          }
+        }
         const pLowEl = document.getElementById('formPriceLow');
         const pMedEl = document.getElementById('formPriceMedian');
         const pHighEl = document.getElementById('formPriceHigh');
@@ -6034,6 +6181,9 @@
         record.priceSource = priceResult.source || 'Discogs Marketplace';
         record.currency = priceResult.currency || record.currency || globalCurrency;
         if (priceResult.releaseId) record.discogsId = priceResult.releaseId;
+        if (priceResult.genres && !record.genres) {
+          record.genres = priceResult.genres;
+        }
         
         saveRecordsToStorage();
         renderStats();
@@ -6131,11 +6281,15 @@
               bestMatch = searchData.results[0];
             }
             releaseId = bestMatch.id;
+            if (Array.isArray(bestMatch.genre)) discogsGenres.push(...bestMatch.genre);
+            if (Array.isArray(bestMatch.style)) discogsGenres.push(...bestMatch.style);
           } else {
             showToast("No matching release found on Discogs", "info");
             return null;
           }
         }
+
+        let discogsGenres = [];
 
         // Step 2: Fetch price suggestions based on condition
         let priceUrl = `https://api.discogs.com/marketplace/price_suggestions/${releaseId}`;
@@ -6163,7 +6317,8 @@
               high: Math.round(highVal * 100) / 100,
               source: 'Discogs Marketplace',
               currency: suggestion.currency || globalCurrency,
-              releaseId: String(releaseId)
+              releaseId: String(releaseId),
+              genres: discogsGenres.length > 0 ? [...new Set(discogsGenres.map(g => g.trim()))].join(', ') : null
             };
           }
         }
@@ -6174,6 +6329,8 @@
         const relRes = await fetch(releaseUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } });
         if (relRes.ok) {
           const relData = await relRes.json();
+          if (Array.isArray(relData.genres)) discogsGenres.push(...relData.genres);
+          if (Array.isArray(relData.styles)) discogsGenres.push(...relData.styles);
           if (relData.lowest_price) {
             const base = parseFloat(relData.lowest_price);
             return {
@@ -6183,7 +6340,8 @@
               high: Math.round(base * 1.6 * 100) / 100,
               source: 'Discogs Lowest Price',
               currency: 'GBP',
-              releaseId: String(releaseId)
+              releaseId: String(releaseId),
+              genres: discogsGenres.length > 0 ? [...new Set(discogsGenres.map(g => g.trim()))].join(', ') : null
             };
           }
         }
@@ -6510,6 +6668,281 @@
     }
 
     /* =========================================================
+       ONLINE GENRE DETECTION & BATCH ENRICHMENT ENGINE
+       ========================================================= */
+    async function fetchGenreFromOnlineSources(artist, title, discogsId = null) {
+      const cleanArtist = (artist || '').trim();
+      const cleanTitle = (title || '').trim();
+      if (!cleanArtist && !cleanTitle && !discogsId) return null;
+
+      const foundGenres = new Set();
+      const token = localStorage.getItem(TOKEN_KEY) || '';
+
+      // 1. Discogs by Release ID if available
+      if (discogsId) {
+        try {
+          let url = `https://api.discogs.com/releases/${encodeURIComponent(discogsId)}`;
+          if (token) url += `?token=${encodeURIComponent(token)}`;
+          const res = await fetch(url, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } });
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data.genres)) data.genres.forEach(g => g && foundGenres.add(g.trim()));
+            if (Array.isArray(data.styles)) data.styles.forEach(s => s && foundGenres.add(s.trim()));
+          }
+        } catch (e) {
+          console.warn("Discogs ID genre fetch notice:", e);
+        }
+      }
+
+      // 2. Discogs Database Search by Artist + Title if no genres found yet
+      if (foundGenres.size === 0 && (cleanArtist || cleanTitle)) {
+        try {
+          const terms = typeof getCleanSearchTerms === 'function' ? getCleanSearchTerms(cleanArtist, cleanTitle) : { artist: cleanArtist, title: cleanTitle };
+          const q = [terms.artist, terms.title].filter(Boolean).join(' ');
+          let url = `https://api.discogs.com/database/search?q=${encodeURIComponent(q)}&type=release`;
+          if (token) url += `&token=${encodeURIComponent(token)}`;
+          const res = await fetch(url, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.results && data.results.length > 0) {
+              const first = data.results[0];
+              if (Array.isArray(first.genre)) first.genre.forEach(g => g && foundGenres.add(g.trim()));
+              if (Array.isArray(first.style)) first.style.forEach(s => s && foundGenres.add(s.trim()));
+            }
+          }
+        } catch (e) {
+          console.warn("Discogs Search genre fetch notice:", e);
+        }
+      }
+
+      // 3. Apple iTunes Search API (Universal CORS, no auth key, immediate primaryGenreName)
+      if (cleanArtist || cleanTitle) {
+        try {
+          const q = [cleanArtist, cleanTitle].filter(Boolean).join(' ');
+          const itunesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=album&limit=1`;
+          const res = await fetch(itunesUrl);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.results && data.results.length > 0 && data.results[0].primaryGenreName) {
+              foundGenres.add(data.results[0].primaryGenreName.trim());
+            }
+          }
+        } catch (e) {
+          console.warn("iTunes genre fetch notice:", e);
+        }
+      }
+
+      // 4. MusicBrainz Open Discography fallback
+      if (foundGenres.size === 0 && (cleanArtist || cleanTitle)) {
+        try {
+          const q = `artist:"${cleanArtist}" AND release:"${cleanTitle}"`;
+          const mbUrl = `https://musicbrainz.org/ws/2/release?query=${encodeURIComponent(q)}&fmt=json&limit=1`;
+          const res = await fetch(mbUrl);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.releases && data.releases.length > 0) {
+              const rel = data.releases[0];
+              if (Array.isArray(rel.tags)) {
+                rel.tags.slice(0, 3).forEach(t => t && t.name && foundGenres.add(t.name.trim()));
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("MusicBrainz genre fetch notice:", e);
+        }
+      }
+
+      if (foundGenres.size === 0) return null;
+
+      // Deduplicate case-insensitively and assemble clean string
+      const resultList = [];
+      const seen = new Set();
+      for (const g of foundGenres) {
+        const lower = g.toLowerCase();
+        if (!seen.has(lower)) {
+          seen.add(lower);
+          resultList.push(g);
+        }
+      }
+      return resultList.join(', ');
+    }
+
+    async function autoFetchGenreForCurrentForm() {
+      const artist = document.getElementById('formArtist')?.value.trim() || '';
+      const title = document.getElementById('formTitle')?.value.trim() || '';
+      const discogsId = document.getElementById('formDiscogsId')?.value.trim() || '';
+
+      if (!artist && !title && !discogsId) {
+        showToast("Please enter an Artist or Title first", "warning");
+        return;
+      }
+
+      showToast(`Searching online archives for genres for "${artist} - ${title}"...`, "info");
+      const genres = await fetchGenreFromOnlineSources(artist, title, discogsId);
+      if (genres) {
+        const input = document.getElementById('formGenres');
+        if (input) {
+          input.value = genres;
+          showToast(`Detected genres: ${genres}`, "success");
+        }
+      } else {
+        showToast("No genre tags found online for this release", "info");
+      }
+    }
+
+    async function autoEnrichRecordGenre(recordId) {
+      const item = records.find(r => r.id === recordId);
+      if (!item) {
+        showToast("Record not found", "error");
+        return;
+      }
+
+      showToast(`Looking up genres for "${item.artist} - ${item.title}"...`, "info");
+      const genres = await fetchGenreFromOnlineSources(item.artist, item.title, item.discogsId);
+      if (genres) {
+        item.genres = genres;
+        saveRecordsToStorage();
+        renderStats();
+        renderRecords();
+        viewRecordDetail(item.id);
+        
+        // Push update to Supabase Cloud if signed in
+        if (isCloudActive && currentUser && supabaseClient) {
+          const dbRow = mapRecordToDb(item, currentUser.id);
+          supabaseClient.from('records').upsert(dbRow).catch(e => console.warn("Cloud sync genre notice:", e));
+        }
+        
+        showToast(`Updated genres: ${genres}`, "success");
+      } else {
+        showToast("No online genre tags found for this release", "info");
+      }
+    }
+
+    function openBatchGenreEnrichModal() {
+      const total = records.length;
+      const missing = records.filter(r => !r.genres || !r.genres.trim()).length;
+      const tagged = total - missing;
+
+      const totalEl = document.getElementById('batchGenreTotalRecords');
+      const missingEl = document.getElementById('batchGenreMissingCount');
+      const taggedEl = document.getElementById('batchGenreTaggedCount');
+      if (totalEl) totalEl.innerText = total;
+      if (missingEl) missingEl.innerText = missing;
+      if (taggedEl) taggedEl.innerText = tagged;
+
+      const pCard = document.getElementById('batchGenreProgressCard');
+      if (pCard) pCard.classList.add('hidden');
+
+      const modal = document.getElementById('batchGenreModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeBatchGenreEnrichModal() {
+      const modal = document.getElementById('batchGenreModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    let isBatchGenreEnrichRunning = false;
+
+    async function runBatchGenreEnrich() {
+      if (isBatchGenreEnrichRunning) return;
+
+      const modeRadio = document.querySelector('input[name="batchGenreMode"]:checked');
+      const mode = modeRadio ? modeRadio.value : 'missing';
+
+      const targetList = mode === 'missing'
+        ? records.filter(r => !r.genres || !r.genres.trim())
+        : [...records];
+
+      if (targetList.length === 0) {
+        showToast(mode === 'missing' ? "All records in your crate already have genres assigned!" : "No records to enrich.", "info");
+        return;
+      }
+
+      const pCard = document.getElementById('batchGenreProgressCard');
+      const pStatus = document.getElementById('batchGenreProgressStatus');
+      const pPercent = document.getElementById('batchGenreProgressPercent');
+      const pBar = document.getElementById('batchGenreProgressBar');
+      const pLog = document.getElementById('batchGenreProgressLog');
+      const btn = document.getElementById('startBatchGenreBtn');
+
+      if (pCard) pCard.classList.remove('hidden');
+      if (btn) {
+        btn.disabled = true;
+        btn.classList.add('opacity-50');
+      }
+
+      isBatchGenreEnrichRunning = true;
+      let enrichedCount = 0;
+      let skippedCount = 0;
+      const updatedRecords = [];
+
+      for (let i = 0; i < targetList.length; i++) {
+        const rec = targetList[i];
+        const pct = Math.round(((i + 1) / targetList.length) * 100);
+
+        if (pPercent) pPercent.innerText = `${pct}%`;
+        if (pBar) pBar.style.width = `${pct}%`;
+        if (pLog) pLog.innerText = `[${i + 1}/${targetList.length}] Checking: ${rec.artist} - ${rec.title}...`;
+
+        try {
+          const found = await fetchGenreFromOnlineSources(rec.artist, rec.title, rec.discogsId);
+          if (found) {
+            rec.genres = found;
+            enrichedCount++;
+            updatedRecords.push(rec);
+            if (pLog) pLog.innerText = `[${i + 1}/${targetList.length}] Found: ${rec.artist} - ${rec.title} -> ${found}`;
+          } else {
+            skippedCount++;
+          }
+        } catch (err) {
+          console.warn("Batch genre fetch error for item:", rec.id, err);
+          skippedCount++;
+        }
+
+        // Small pacing delay to avoid hitting external rate limits
+        await new Promise(r => setTimeout(r, 200));
+      }
+
+      saveRecordsToStorage();
+      renderStats();
+      renderRecords();
+      if (typeof renderArchiveStation === 'function') renderArchiveStation();
+
+      // Batch sync updated records to cloud
+      if (isCloudActive && currentUser && supabaseClient && updatedRecords.length > 0) {
+        const dbRows = updatedRecords.map(r => mapRecordToDb(r, currentUser.id));
+        supabaseClient.from('records').upsert(dbRows).catch(e => console.warn("Cloud sync batch genre error:", e));
+      }
+
+      // Update summary numbers in modal
+      const total = records.length;
+      const missing = records.filter(r => !r.genres || !r.genres.trim()).length;
+      const tagged = total - missing;
+      const totalEl = document.getElementById('batchGenreTotalRecords');
+      const missingEl = document.getElementById('batchGenreMissingCount');
+      const taggedEl = document.getElementById('batchGenreTaggedCount');
+      if (totalEl) totalEl.innerText = total;
+      if (missingEl) missingEl.innerText = missing;
+      if (taggedEl) taggedEl.innerText = tagged;
+
+      if (pStatus) {
+        pStatus.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span class="text-emerald-300">Enrichment Complete!</span>`;
+      }
+      if (pLog) {
+        pLog.innerText = `Finished! Successfully enriched ${enrichedCount} records (${skippedCount} not found / unchanged).`;
+      }
+
+      if (btn) {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50');
+      }
+      isBatchGenreEnrichRunning = false;
+
+      showToast(`Enriched ${enrichedCount} records with online genres!`, "success");
+    }
+
+    /* =========================================================
        LIVE MUSICBRAINZ OPEN DISCOGRAPHY API & MULTI-MATCH SELECTOR
        ========================================================= */
     let stagedOnlineReleases = [];
@@ -6804,7 +7237,7 @@
       // Fetch full release details with recordings & tracklists from MusicBrainz
       let fullRelease = match;
       try {
-        const detailRes = await fetch(`https://musicbrainz.org/ws/2/release/${match.id}?inc=recordings+artist-credits+labels&fmt=json`);
+        const detailRes = await fetch(`https://musicbrainz.org/ws/2/release/${match.id}?inc=recordings+artist-credits+labels+genres+tags&fmt=json`);
         if (detailRes.ok) {
           fullRelease = await detailRes.json();
         }
@@ -6933,6 +7366,28 @@
       const notesField = document.getElementById('formResearchNotes');
       if (notesField && !notesField.value) {
         notesField.value = `MusicBrainz Release: ${fullRelease.id} (${fullRelease.country || 'Global'}, ${fullRelease.date || 'n/a'}). Status: ${fullRelease.status || 'Official'}.`;
+      }
+
+      // Populate genres if currently empty
+      const genresField = document.getElementById('formGenres');
+      if (genresField && !genresField.value) {
+        const mbGenres = [];
+        if (Array.isArray(fullRelease.genres)) {
+          fullRelease.genres.forEach(g => g && g.name && mbGenres.push(g.name));
+        }
+        if (Array.isArray(fullRelease.tags)) {
+          fullRelease.tags.slice(0, 4).forEach(t => t && t.name && mbGenres.push(t.name));
+        }
+        if (mbGenres.length > 0) {
+          genresField.value = mbGenres.join(', ');
+        } else {
+          const releaseArtist = (fullRelease['artist-credit']?.[0]?.name || document.getElementById('formArtist')?.value || '').trim();
+          fetchGenreFromOnlineSources(releaseArtist, fullRelease.title).then(g => {
+            if (g && genresField && !genresField.value) {
+              genresField.value = g;
+            }
+          }).catch(() => {});
+        }
       }
 
       // Only pull online album cover for 12" LPs / albums. For 7" singles, use generic sleeve per policy!
