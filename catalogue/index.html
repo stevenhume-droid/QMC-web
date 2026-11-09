@@ -143,6 +143,12 @@
         <span>Batch Upload</span>
       </button>
 
+      <!-- Import from Discogs Option -->
+      <button onclick="openDiscogsImportModal()" class="px-3 py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-sky-400 border border-sky-500/30 hover:border-sky-400 transition flex items-center gap-2 shadow-sm" title="Import collection exported from Discogs (.csv)">
+        <i class="fa-solid fa-record-vinyl text-sky-400 text-sm"></i>
+        <span>Import Discogs</span>
+      </button>
+
       <!-- Add New Record Button -->
       <button onclick="openAddEditModal()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-vinyl-950 transition flex items-center gap-2 shadow-lg shadow-brass-500/10">
         <i class="fa-solid fa-plus text-sm"></i>
@@ -163,6 +169,20 @@
           </button>
           <button onclick="downloadExcelTemplate()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-200 flex items-center gap-2">
             <i class="fa-solid fa-file-excel text-emerald-400"></i> Download Excel Template (.xlsx)
+          </button>
+          <button onclick="downloadDiscogsCSVTemplate()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-sky-300 flex items-center gap-2">
+            <i class="fa-solid fa-record-vinyl text-sky-400"></i> Discogs Export Template (.csv)
+          </button>
+          
+          <div class="border-t border-vinyl-700 my-1"></div>
+          <div class="px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400 border-b border-vinyl-700">
+            Import Services
+          </div>
+          <button onclick="openDiscogsImportModal()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-sky-300 flex items-center gap-2 font-medium">
+            <i class="fa-solid fa-record-vinyl text-sky-400"></i> Import Discogs CSV Export
+          </button>
+          <button onclick="openBatchUploadModal()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-emerald-300 flex items-center gap-2 font-medium">
+            <i class="fa-solid fa-file-excel text-emerald-400"></i> Standard Batch Upload
           </button>
           
           <div class="border-t border-vinyl-700 my-1"></div>
@@ -505,12 +525,27 @@
               <button onclick="downloadExcelTemplate()" class="text-[11px] text-emerald-400 hover:underline">
                 <i class="fa-solid fa-file-excel mr-1"></i>Sample Excel (.xlsx)
               </button>
+              <button onclick="downloadDiscogsCSVTemplate()" class="text-[11px] text-sky-400 hover:underline">
+                <i class="fa-solid fa-record-vinyl mr-1"></i>Discogs CSV
+              </button>
             </div>
           </div>
           <p class="text-[11px] text-slate-400 leading-relaxed">
             Your file only needs two columns: <strong>Artist</strong> and <strong>Title / Album</strong>. 
             Optional headers: <em>Format (LP/7"), Year, Label, Catalog #, Grade, Sleeve Grade, Estimated Value, Genre, Barcode, Notes</em>.
           </p>
+        </div>
+
+        <!-- Discogs Direct Switch Banner -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-sky-950/30 border border-sky-500/30 rounded-xl text-xs text-sky-200">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-record-vinyl text-sky-400 text-base flex-shrink-0"></i>
+            <span>Exported from <strong>Discogs</strong>? Discogs CSV files work directly here, or switch to dedicated Discogs mode.</span>
+          </div>
+          <button onclick="closeBatchUploadModal(); openDiscogsImportModal();" class="px-3 py-1 bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+            <span>Open Discogs Importer</span>
+            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </button>
         </div>
 
         <!-- Dropzone -->
@@ -578,6 +613,129 @@
         <button id="commitBatchBtn" onclick="commitBatchImport()" disabled class="px-6 py-2 text-xs font-semibold rounded-lg bg-emerald-500 hover:bg-emerald-400 text-vinyl-950 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/20 transition flex items-center gap-2">
           <i class="fa-solid fa-file-import"></i>
           <span>Confirm & Import Records</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: IMPORT FROM DISCOGS (CSV EXPORT)        -->
+  <!-- ============================================== -->
+  <div id="discogsImportModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto">
+    <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-3xl flex flex-col shadow-2xl overflow-hidden my-auto">
+      
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400">
+            <i class="fa-solid fa-record-vinyl text-base"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-white tracking-tight flex items-center gap-2">
+              <span>Import Discogs Collection</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">.CSV Export</span>
+            </h2>
+            <p class="text-[11px] text-slate-400">Directly ingest your Discogs collection with Release IDs, grading & formats</p>
+          </div>
+        </div>
+        <button onclick="closeDiscogsImportModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
+        <!-- Instructions / How-To Banner -->
+        <div class="p-3.5 bg-sky-950/30 border border-sky-500/30 rounded-xl text-xs text-slate-300 space-y-2">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <span class="font-bold text-sky-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-circle-info"></i> How to export from Discogs:
+            </span>
+            <div class="flex items-center gap-2">
+              <button onclick="simulateSampleDiscogsImport()" class="text-[11px] font-semibold text-brass-400 hover:underline flex items-center gap-1">
+                <i class="fa-solid fa-bolt text-amber-400"></i> Load Sample Discogs CSV
+              </button>
+              <button onclick="downloadDiscogsCSVTemplate()" class="text-[11px] text-sky-400 hover:underline flex items-center gap-1">
+                <i class="fa-solid fa-download"></i> Template CSV
+              </button>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-300 leading-relaxed">
+            1. Go to <a href="https://www.discogs.com/my/collection" target="_blank" class="text-sky-400 hover:underline font-semibold">Discogs.com &gt; My Collection</a>.<br>
+            2. In the top right, click <strong>Export Collection</strong>, select <strong>CSV</strong>, and click <strong>Request Export</strong>.<br>
+            3. Download your exported <code>.csv</code> and drop it below. Release IDs, Goldmine condition grades, and multi-disc formats are automatically mapped!
+          </p>
+        </div>
+
+        <!-- Discogs Dropzone -->
+        <div id="discogsDropzone" 
+             ondragover="handleDiscogsDragOver(event)" 
+             ondragleave="handleDiscogsDragLeave(event)" 
+             ondrop="handleDiscogsFileDrop(event)"
+             onclick="document.getElementById('discogsFileInput').click()"
+             class="border-2 border-dashed border-vinyl-700 hover:border-sky-500/70 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer bg-vinyl-850/50 hover:bg-vinyl-850 transition group">
+          <input type="file" id="discogsFileInput" accept=".csv, .txt, .tsv" onchange="handleDiscogsFileSelect(event)" class="hidden">
+          <div class="w-14 h-14 rounded-full bg-vinyl-800 flex items-center justify-center text-sky-400 mb-3 group-hover:scale-110 transition shadow-inner">
+            <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+          </div>
+          <h4 class="text-sm font-semibold text-slate-200">Drag & drop your Discogs CSV file here</h4>
+          <p class="text-xs text-slate-400 mt-1">or click to browse your computer</p>
+          <span class="mt-3 text-[10px] font-mono px-2.5 py-0.5 rounded bg-vinyl-800 text-sky-300 border border-sky-500/30">
+            Accepts official Discogs Collection Export (.csv)
+          </span>
+        </div>
+
+        <!-- Discogs Parsed Preview Box -->
+        <div id="discogsPreviewContainer" class="hidden space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <span id="discogsPreviewCountBadge" class="px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-mono text-xs font-bold border border-sky-500/30">0 Releases Parsed</span>
+              <span id="discogsPreviewFileName" class="text-xs text-slate-400 truncate max-w-xs font-mono"></span>
+            </div>
+            <div class="flex items-center gap-3 text-xs text-slate-300">
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" name="discogsImportMode" value="append" checked class="text-sky-500 focus:ring-0">
+                <span>Append to Existing Archive</span>
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer text-amber-300">
+                <input type="radio" name="discogsImportMode" value="replace" class="text-amber-500 focus:ring-0">
+                <span>Replace Entire Collection</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Format Breakdown Badges -->
+          <div id="discogsFormatBreakdown" class="flex flex-wrap gap-1.5 text-[11px]"></div>
+
+          <!-- Preview Table -->
+          <div class="bg-vinyl-850 rounded-xl border border-vinyl-800 overflow-x-auto max-h-60">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-vinyl-900 border-b border-vinyl-800 text-[10px] uppercase font-mono text-slate-400 sticky top-0">
+                <tr>
+                  <th class="py-2 px-2.5">Release ID</th>
+                  <th class="py-2 px-2.5">Artist</th>
+                  <th class="py-2 px-2.5">Title</th>
+                  <th class="py-2 px-2.5">Format</th>
+                  <th class="py-2 px-2.5">Label &amp; Cat#</th>
+                  <th class="py-2 px-2.5">Year</th>
+                  <th class="py-2 px-2.5">Media / Sleeve</th>
+                </tr>
+              </thead>
+              <tbody id="discogsPreviewTableBody" class="divide-y divide-vinyl-800 text-[11px]"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="border-t border-vinyl-800 px-6 py-4 flex items-center justify-between bg-vinyl-850">
+        <button type="button" onclick="closeDiscogsImportModal()" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-lg transition">
+          Cancel
+        </button>
+        <button id="commitDiscogsBatchBtn" onclick="commitDiscogsBatchImport()" disabled class="px-6 py-2 text-xs font-semibold rounded-lg bg-sky-500 hover:bg-sky-400 text-vinyl-950 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-sky-500/20 transition flex items-center gap-2">
+          <i class="fa-solid fa-file-import"></i>
+          <span>Confirm &amp; Import Discogs Collection</span>
         </button>
       </div>
 
@@ -1646,6 +1804,7 @@
     let currentView = 'grid'; // 'grid' | 'list'
     let html5QrScanner = null;
     let stagedBatchRecords = [];
+    let stagedDiscogsRecords = [];
     let globalCurrency = 'GBP';
 
     // Sticky Defaults for Fast Workflow
@@ -3097,6 +3256,9 @@
             actions.innerHTML = `
               <button onclick="openAddEditModal()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 transition flex items-center gap-1.5 shadow">
                 <i class="fa-solid fa-plus"></i> Catalogue First Record
+              </button>
+              <button onclick="openDiscogsImportModal()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-sky-500 hover:bg-sky-400 text-vinyl-950 transition flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-record-vinyl"></i> Import from Discogs (.csv)
               </button>
               <button onclick="openBatchUploadModal()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-emerald-500 hover:bg-emerald-400 text-vinyl-950 transition flex items-center gap-1.5 shadow">
                 <i class="fa-solid fa-file-excel"></i> Batch Upload (Excel/CSV)
@@ -5133,41 +5295,135 @@
       }
     }
 
-    function parseCSVTextManually(text) {
-      const lines = text.split(/\r\n|\n/).filter(line => line.trim().length > 0);
-      if (lines.length < 2) return [];
+    // RFC-4180 compliant CSV parser supporting escaped double-quotes ("") inside quoted fields
+    function parseRFC4180CSV(text) {
+      const rows = [];
+      let currentRow = [];
+      let currentField = '';
+      let insideQuotes = false;
 
-      const delimiter = lines[0].includes('\t') ? '\t' : ',';
-      const parseLine = (line) => {
-        const result = [];
-        let cur = '';
-        let inQuotes = false;
-        for (let i = 0; i < line.length; i++) {
-          const char = line[i];
-          if (char === '"' || char === "'") {
-            inQuotes = !inQuotes;
-          } else if (char === delimiter && !inQuotes) {
-            result.push(cur.trim().replace(/^["']|["']$/g, ''));
-            cur = '';
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const nextChar = text[i + 1];
+
+        if (char === '"') {
+          if (insideQuotes && nextChar === '"') {
+            currentField += '"';
+            i++;
           } else {
-            cur += char;
+            insideQuotes = !insideQuotes;
           }
+        } else if (char === ',' && !insideQuotes) {
+          currentRow.push(currentField.trim());
+          currentField = '';
+        } else if ((char === '\r' || char === '\n') && !insideQuotes) {
+          if (char === '\r' && nextChar === '\n') {
+            i++;
+          }
+          currentRow.push(currentField.trim());
+          currentField = '';
+          if (currentRow.length > 0 && currentRow.some(field => field.length > 0)) {
+            rows.push(currentRow);
+          }
+          currentRow = [];
+        } else {
+          currentField += char;
         }
-        result.push(cur.trim().replace(/^["']|["']$/g, ''));
-        return result;
-      };
+      }
 
-      const headers = parseLine(lines[0]).map(h => h.trim());
+      if (currentField.length > 0 || currentRow.length > 0) {
+        currentRow.push(currentField.trim());
+        if (currentRow.some(field => field.length > 0)) {
+          rows.push(currentRow);
+        }
+      }
+
+      if (rows.length < 2) return [];
+      const headers = rows[0].map(h => h.trim());
       const data = [];
-      for (let i = 1; i < lines.length; i++) {
-        const values = parseLine(lines[i]);
+      for (let r = 1; r < rows.length; r++) {
         const obj = {};
         headers.forEach((h, idx) => {
-          obj[h] = values[idx] || "";
+          obj[h] = rows[r][idx] || '';
         });
         data.push(obj);
       }
       return data;
+    }
+
+    function parseCSVTextManually(text) {
+      return parseRFC4180CSV(text);
+    }
+
+    // Parse Discogs-specific format strings (e.g. 'LP, Album, RE', '2xLP, Comp, TP', '3xLP, Comp, Dlx', '7", Single', '10", EP', '12", Single', 'CD, Album')
+    function parseDiscogsFormat(rawFmt) {
+      if (!rawFmt) return '12" LP (Album)';
+      const f = rawFmt.toLowerCase();
+
+      // Box set indicators
+      if (f.includes('3xlp') || f.includes('4xlp') || f.includes('5xlp') || f.includes('6xlp') || f.includes('box set') || f.includes('box') || (f.match(/\blp\b/g) || []).length >= 3) {
+        return 'Box Set (Vinyl / Multi-Disc)';
+      }
+      // 2xLP / Gatefold indicators
+      if (f.includes('2xlp') || f.includes('gatefold') || f.includes('gat') || (f.match(/\blp\b/g) || []).length === 2 || f.includes('+ lp')) {
+        return '2xLP Gatefold (Album)';
+      }
+      // 7" single
+      if (f.includes('7"') || f.includes("7'") || f.includes('7 inch') || (f.includes('single') && !f.includes('12"'))) {
+        return '7" Single (45 RPM)';
+      }
+      // 10" vinyl
+      if (f.includes('10"') || f.includes("10'")) {
+        return '10" Vinyl';
+      }
+      // 12" maxi / single
+      if (f.includes('12"') && (f.includes('single') || f.includes('maxi') || f.includes('ep'))) {
+        return '12" Maxi / Single';
+      }
+      // CD / Other
+      if (f.includes('cd') || f.includes('cassette') || f.includes('file') || f.includes('sacd') || f.includes('dvd')) {
+        return 'CD / Other';
+      }
+      // Standard 12" LP
+      if (f.includes('lp') || f.includes('album') || f.includes('vinyl') || f.includes('12"')) {
+        return '12" LP (Album)';
+      }
+      return '12" LP (Album)';
+    }
+
+    // Convert Discogs condition descriptions to standard Goldmine acronyms
+    function parseDiscogsGrade(rawGrade) {
+      if (!rawGrade) return 'VG+';
+      const g = rawGrade.toLowerCase();
+      if (g.includes('mint') && !g.includes('near')) return 'M';
+      if (g.includes('near mint') || g.includes('nm') || g.includes('m-')) return 'NM';
+      if (g.includes('very good plus') || g.includes('vg+')) return 'VG+';
+      if (g.includes('very good') || g.includes('vg')) return 'VG';
+      if (g.includes('good plus') || g.includes('g+')) return 'G+';
+      if (g.includes('good') || g.includes('g')) return 'G';
+      if (g.includes('fair') || g.includes('f')) return 'F';
+      if (g.includes('poor') || g.includes('p')) return 'P';
+      return 'VG+';
+    }
+
+    function parseDiscogsSleeveGrade(rawGrade) {
+      if (!rawGrade) return 'VG+';
+      const g = rawGrade.toLowerCase();
+      if (g.includes('generic') || g.includes('no cover')) return 'Generic';
+      return parseDiscogsGrade(rawGrade);
+    }
+
+    function cleanDiscogsLabel(rawLabel) {
+      if (!rawLabel) return '';
+      // Strip Discogs disambiguation numbers like "Ardent Records (2)" -> "Ardent Records"
+      const cleaned = rawLabel.split(',').map(s => s.replace(/\s*\(\d+\)$/, '').trim()).filter(Boolean);
+      // Deduplicate repeated labels: "Blue Note, UMe, Blue Note, UMe" -> "Blue Note, UMe"
+      return Array.from(new Set(cleaned)).join(', ');
+    }
+
+    function cleanDiscogsCatNo(rawCatNo) {
+      if (!rawCatNo) return '';
+      return rawCatNo.split(',').map(s => s.trim()).filter(Boolean).join(', ');
     }
 
     function stageParsedBatchData(rawRows, fileName) {
@@ -5187,29 +5443,40 @@
           return '';
         };
 
-        const artist = getVal('artist', 'band', 'performer', 'group', 'singer') || 'Unknown Artist';
-        const title = getVal('title', 'album', 'album title', 'release', 'single', 'name') || `Untitled Release ${idx + 1}`;
+        const artist = getVal('artist', 'artist name', 'band', 'performer', 'group', 'singer') || 'Unknown Artist';
+        const title = getVal('title', 'release title', 'album', 'album title', 'release', 'single', 'name') || `Untitled Release ${idx + 1}`;
         const rawFormat = getVal('format', 'type', 'media');
-        
-        let format = '12" LP (Album)';
-        if (rawFormat.toLowerCase().includes('box')) {
-          format = 'Box Set (Vinyl / Multi-Disc)';
-        } else if (rawFormat.toLowerCase().includes('7') || rawFormat.toLowerCase().includes('single') || rawFormat.toLowerCase().includes('45')) {
-          format = '7" Single (45 RPM)';
-        } else if (rawFormat.toLowerCase().includes('2xlp') || rawFormat.toLowerCase().includes('gatefold')) {
-          format = '2xLP Gatefold (Album)';
-        } else if (rawFormat.toLowerCase().includes('maxi') || rawFormat.toLowerCase().includes('12" single')) {
-          format = '12" Maxi / Single';
-        }
+        const format = parseDiscogsFormat(rawFormat);
 
-        const yearVal = parseInt(getVal('year', 'release year', 'date', 'released')) || null;
-        const label = getVal('label', 'record label', 'company');
-        const catNo = getVal('catno', 'catalog #', 'cat #', 'catalog', 'cat number');
-        const mediaGrade = getVal('grade', 'media grade', 'condition', 'vinyl grade') || 'VG+';
-        const sleeveGrade = getVal('sleeve', 'sleeve grade', 'cover grade') || 'VG+';
-        const genres = getVal('genre', 'genres', 'category', 'style');
+        const yearRaw = getVal('released', 'year', 'release year', 'date');
+        const yearVal = (yearRaw && yearRaw !== '0' && !isNaN(parseInt(yearRaw))) ? parseInt(yearRaw) : null;
+
+        const rawLabel = getVal('label', 'record label', 'company');
+        const label = cleanDiscogsLabel(rawLabel);
+
+        const rawCatNo = getVal('catalog#', 'catno', 'catalog #', 'cat #', 'catalog', 'cat number');
+        const catNo = cleanDiscogsCatNo(rawCatNo);
+
+        const rawMediaGrade = getVal('collection media condition', 'grade', 'media grade', 'condition', 'vinyl grade');
+        const mediaGrade = parseDiscogsGrade(rawMediaGrade);
+
+        const rawSleeveGrade = getVal('collection sleeve condition', 'sleeve', 'sleeve grade', 'cover grade');
+        const sleeveGrade = parseDiscogsSleeveGrade(rawSleeveGrade);
+
+        const discogsId = getVal('release_id', 'release id', 'discogs_id', 'discogs id');
+        const folder = getVal('collectionfolder', 'folder');
+        const genres = getVal('genre', 'genres', 'category', 'style') || (folder && folder !== 'Uncategorized' ? folder : '');
         const barcode = getVal('barcode', 'upc', 'ean');
-        const notes = getVal('notes', 'comments', 'description', 'research notes');
+        const notes = getVal('collection notes', 'notes', 'comments', 'description', 'research notes');
+
+        const rawDateAdded = getVal('date added', 'date_added');
+        let dateAdded = new Date().toISOString();
+        if (rawDateAdded) {
+          const parsedD = new Date(rawDateAdded.replace(' ', 'T') + 'Z');
+          if (!isNaN(parsedD.getTime())) {
+            dateAdded = parsedD.toISOString();
+          }
+        }
 
         // Parse valuation
         const rawValue = getVal('value', 'price', 'estimated value', 'est value', 'est_value');
@@ -5220,13 +5487,14 @@
         }
 
         stagedBatchRecords.push({
-          id: `rec_batch_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 6)}`,
+          id: `rec_batch_${discogsId || Date.now()}_${idx}_${Math.random().toString(36).substring(2, 6)}`,
           format,
           artist,
           title,
           label,
           catNo,
           year: yearVal,
+          discogsId: discogsId || '',
           estimatedValue: parsedVal,
           currency: globalCurrency,
           mediaGrade,
@@ -5236,9 +5504,10 @@
           country: getVal('country') || 'UK',
           speed: format.includes('7"') ? '45 RPM' : '33 1/3 RPM',
           centerHole: 'Solid (Small 0.28 inch)',
-          researchNotes: notes,
+          researchNotes: notes ? (notes.startsWith('Discogs') ? notes : `Notes: ${notes}`) : '',
+          provenance: discogsId ? `Imported via Discogs (Release #${discogsId})` : 'Batch Upload File',
           transferStatus: 'Not Digitized',
-          dateAdded: new Date().toISOString()
+          dateAdded
         });
       });
 
@@ -5311,6 +5580,291 @@
           }
         });
       }
+    }
+
+    /* =========================================================
+       DISCOGS COLLECTION IMPORT ENGINE
+       ========================================================= */
+    function openDiscogsImportModal() {
+      stagedDiscogsRecords = [];
+      const fileInput = document.getElementById('discogsFileInput');
+      if (fileInput) fileInput.value = '';
+      const previewBox = document.getElementById('discogsPreviewContainer');
+      if (previewBox) previewBox.classList.add('hidden');
+      const commitBtn = document.getElementById('commitDiscogsBatchBtn');
+      if (commitBtn) commitBtn.disabled = true;
+      const modal = document.getElementById('discogsImportModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeDiscogsImportModal() {
+      const modal = document.getElementById('discogsImportModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function handleDiscogsDragOver(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const dropzone = document.getElementById('discogsDropzone');
+      if (dropzone) dropzone.classList.add('border-sky-400', 'bg-sky-950/20');
+    }
+
+    function handleDiscogsDragLeave(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const dropzone = document.getElementById('discogsDropzone');
+      if (dropzone) dropzone.classList.remove('border-sky-400', 'bg-sky-950/20');
+    }
+
+    function handleDiscogsFileDrop(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const dropzone = document.getElementById('discogsDropzone');
+      if (dropzone) dropzone.classList.remove('border-sky-400', 'bg-sky-950/20');
+      const files = e.dataTransfer?.files;
+      if (files && files.length > 0) {
+        processDiscogsExportFile(files[0]);
+      }
+    }
+
+    function handleDiscogsFileSelect(e) {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        processDiscogsExportFile(files[0]);
+      }
+    }
+
+    function processDiscogsExportFile(file) {
+      if (!file) return;
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (ext !== 'csv' && ext !== 'txt' && ext !== 'tsv') {
+        showToast("Please upload an official Discogs .csv export file.", "error");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const text = evt.target.result;
+          const rows = parseRFC4180CSV(text);
+          if (!rows || rows.length === 0) {
+            showToast("Could not parse CSV content. Check file format.", "error");
+            return;
+          }
+          processDiscogsExportData(rows, file.name);
+        } catch (err) {
+          console.error("Discogs import parsing error:", err);
+          showToast("Error parsing Discogs file: " + err.message, "error");
+        }
+      };
+      reader.onerror = function() {
+        showToast("Error reading file from disk.", "error");
+      };
+      reader.readAsText(file);
+    }
+
+    function processDiscogsExportData(rawRows, fileName) {
+      stagedDiscogsRecords = [];
+      const formatCounts = {};
+
+      rawRows.forEach((row, idx) => {
+        const keys = Object.keys(row);
+        const getVal = (...aliases) => {
+          for (const alias of aliases) {
+            const foundKey = keys.find(k => k.trim().toLowerCase() === alias.toLowerCase());
+            if (foundKey && row[foundKey] !== undefined && String(row[foundKey]).trim() !== '') {
+              return String(row[foundKey]).trim();
+            }
+          }
+          return '';
+        };
+
+        const artist = getVal('artist', 'artist name', 'band', 'performer') || 'Unknown Artist';
+        const title = getVal('title', 'release title', 'album') || `Untitled Release ${idx + 1}`;
+        const rawFormat = getVal('format', 'media', 'type');
+        const format = parseDiscogsFormat(rawFormat);
+
+        formatCounts[format] = (formatCounts[format] || 0) + 1;
+
+        const yearRaw = getVal('released', 'year', 'date');
+        const yearVal = (yearRaw && yearRaw !== '0' && !isNaN(parseInt(yearRaw))) ? parseInt(yearRaw) : null;
+
+        const rawLabel = getVal('label', 'record label');
+        const label = cleanDiscogsLabel(rawLabel);
+
+        const rawCatNo = getVal('catalog#', 'catno', 'catalog #', 'cat #', 'catalog');
+        const catNo = cleanDiscogsCatNo(rawCatNo);
+
+        const rawMediaGrade = getVal('collection media condition', 'grade', 'media grade', 'condition');
+        const mediaGrade = parseDiscogsGrade(rawMediaGrade);
+
+        const rawSleeveGrade = getVal('collection sleeve condition', 'sleeve', 'sleeve grade');
+        const sleeveGrade = parseDiscogsSleeveGrade(rawSleeveGrade);
+
+        const discogsId = getVal('release_id', 'release id', 'discogs_id');
+        const folder = getVal('collectionfolder', 'folder');
+        const genres = (folder && folder !== 'Uncategorized') ? folder : '';
+        const notes = getVal('collection notes', 'notes', 'comments');
+
+        const rawDateAdded = getVal('date added', 'date_added');
+        let dateAdded = new Date().toISOString();
+        if (rawDateAdded) {
+          const parsedD = new Date(rawDateAdded.replace(' ', 'T') + 'Z');
+          if (!isNaN(parsedD.getTime())) {
+            dateAdded = parsedD.toISOString();
+          }
+        }
+
+        let speed = '33 1/3 RPM';
+        if (format.includes('7"')) speed = '45 RPM';
+        else if (format.includes('12" Maxi / Single')) speed = '45 RPM';
+
+        stagedDiscogsRecords.push({
+          id: `rec_discogs_${discogsId || Date.now()}_${idx}_${Math.random().toString(36).substring(2, 6)}`,
+          format,
+          artist,
+          title,
+          label,
+          catNo,
+          year: yearVal,
+          discogsId: discogsId || '',
+          estimatedValue: null,
+          currency: globalCurrency,
+          mediaGrade,
+          sleeveGrade,
+          genres,
+          barcode: '',
+          country: 'UK',
+          speed,
+          centerHole: 'Solid (Small 0.28 inch)',
+          researchNotes: notes ? (notes.startsWith('Discogs') ? notes : `Discogs Notes: ${notes}`) : '',
+          provenance: discogsId ? `Imported from Discogs Collection (Release #${discogsId})` : 'Discogs CSV Export',
+          transferStatus: 'Not Digitized',
+          dateAdded
+        });
+      });
+
+      // Update Preview UI
+      const countBadge = document.getElementById('discogsPreviewCountBadge');
+      if (countBadge) countBadge.innerText = `${stagedDiscogsRecords.length} Releases Ready`;
+
+      const nameBadge = document.getElementById('discogsPreviewFileName');
+      if (nameBadge) nameBadge.innerText = fileName;
+
+      // Render Format Breakdown Badges
+      const breakdownEl = document.getElementById('discogsFormatBreakdown');
+      if (breakdownEl) {
+        breakdownEl.innerHTML = Object.entries(formatCounts).map(([fmt, cnt]) => `
+          <span class="px-2 py-0.5 rounded-full bg-vinyl-800 border border-vinyl-700 text-sky-300 font-mono flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+            <strong>${cnt}</strong> ${fmt}
+          </span>
+        `).join('');
+      }
+
+      // Render Preview Table Rows
+      const tbody = document.getElementById('discogsPreviewTableBody');
+      if (tbody) {
+        tbody.innerHTML = stagedDiscogsRecords.slice(0, 10).map(r => `
+          <tr class="hover:bg-vinyl-800/40">
+            <td class="py-1.5 px-2.5 font-mono text-sky-400">${r.discogsId ? `<a href="https://www.discogs.com/release/${r.discogsId}" target="_blank" class="hover:underline flex items-center gap-1">#${r.discogsId} <i class="fa-solid fa-arrow-up-right-from-square text-[9px] opacity-70"></i></a>` : '--'}</td>
+            <td class="py-1.5 px-2.5 font-bold text-white truncate max-w-[140px]">${r.artist}</td>
+            <td class="py-1.5 px-2.5 text-slate-200 truncate max-w-[160px]">${r.title}</td>
+            <td class="py-1.5 px-2.5 text-amber-300 font-mono text-[10px]">${r.format}</td>
+            <td class="py-1.5 px-2.5 text-slate-300 truncate max-w-[130px]">${r.label || '--'} ${r.catNo ? `<span class="text-slate-500 font-mono">(${r.catNo})</span>` : ''}</td>
+            <td class="py-1.5 px-2.5 font-mono text-slate-400">${r.year || '--'}</td>
+            <td class="py-1.5 px-2.5"><span class="font-bold text-brass-400">${r.mediaGrade}</span> / <span class="text-slate-400">${r.sleeveGrade}</span></td>
+          </tr>
+        `).join('');
+      }
+
+      const previewBox = document.getElementById('discogsPreviewContainer');
+      if (previewBox) previewBox.classList.remove('hidden');
+
+      const commitBtn = document.getElementById('commitDiscogsBatchBtn');
+      if (commitBtn) commitBtn.disabled = false;
+
+      showToast(`Successfully analyzed ${stagedDiscogsRecords.length} records from Discogs export!`);
+    }
+
+    function commitDiscogsBatchImport() {
+      if (stagedDiscogsRecords.length === 0) return;
+
+      const modeRadio = document.querySelector('input[name="discogsImportMode"]:checked');
+      const importMode = modeRadio ? modeRadio.value : 'append';
+
+      if (currentUser) {
+        stagedDiscogsRecords.forEach(r => {
+          r.userId = currentUser.id;
+          r.ownerName = currentUserProfile?.display_name || currentUser.user_metadata?.display_name || currentUser.email.split('@')[0];
+        });
+      }
+
+      if (importMode === 'replace') {
+        if (!confirm(`Warning: This will REPLACE all current ${records.length} records in your catalogue with the ${stagedDiscogsRecords.length} imported Discogs records. Continue?`)) {
+          return;
+        }
+        records = [...stagedDiscogsRecords];
+      } else {
+        records = [...stagedDiscogsRecords, ...records];
+      }
+
+      saveRecordsToStorage();
+      populateMemberFilter(records);
+      renderStats();
+      renderRecords();
+      closeDiscogsImportModal();
+      showToast(`Imported ${stagedDiscogsRecords.length} records from Discogs successfully!`);
+
+      // Sync batch to cloud if signed in
+      if (isCloudActive && currentUser && supabaseClient) {
+        const dbRows = stagedDiscogsRecords.map(r => mapRecordToDb(r, currentUser.id));
+        supabaseClient.from('records').upsert(dbRows).then(({ error }) => {
+          if (error) {
+            console.warn("Cloud Discogs batch upload error:", error);
+            showToast("Saved locally, but cloud sync warning: " + error.message, "error");
+          } else {
+            showToast(`Synced ${dbRows.length} imported Discogs records to your cloud crate!`);
+            fetchRecordsFromCloud(true);
+          }
+        });
+      }
+    }
+
+    function simulateSampleDiscogsImport() {
+      const sampleDiscogsCSV = [
+        'Catalog#,Artist,Title,Label,Format,Rating,Released,release_id,CollectionFolder,Date Added,Collection Media Condition,Collection Sleeve Condition,Collection Notes',
+        'CAD 113,Matt Johnson,Burning Blue Soul,4AD,"LP, Album, RE",,1984,1077495,Uncategorized,2024-10-09 00:58:21,,,',
+        'CHIP001,Doves,Cedar EP,Casino,"10"", EP",,1998,746346,Uncategorized,2025-02-02 05:44:58,,,',
+        '"5507705, 00602455077059, 1501, BLP 1501 ",Miles Davis,Volume 1,"Blue Note, UMe, Blue Note, UMe, Blue Note, Blue Note","LP, Comp, Mono, RE, RM, 180",,2023,27128130,Uncategorized,2025-04-23 11:29:50,Near Mint (NM or M-),Near Mint (NM or M-),',
+        'zen 22,Various,Ninja Cuts: Flexistentialism,Ninja Tune,"3xLP, Comp",,1996,1013,Uncategorized,2026-08-22 11:56:52,Near Mint (NM or M-),Very Good Plus (VG+),',
+        '1A 006-1655327,Queen,Radio Ga Ga,EMI,"7"", Single",,1984,348654,Uncategorized,2026-04-11 06:48:50,Very Good Plus (VG+),Very Good Plus (VG+),',
+        '"JF 1(T), 249980-0, JF1 T",Wah!,The Story Of The Blues,"Eternal (6), Eternal (6), Eternal (6)","12"", Single",,1982,474119,Uncategorized,2020-06-13 19:39:09,Very Good Plus (VG+),Very Good (VG),',
+        '601014,Bar-Kays,Soul Finger,Stax,"7"", Single, 4 p",5,1967,16972509,Uncategorized,2026-07-19 01:04:50,Near Mint (NM or M-),Generic,'
+      ].join('\n');
+
+      const rows = parseRFC4180CSV(sampleDiscogsCSV);
+      processDiscogsExportData(rows, "Sample_Discogs_Collection.csv");
+    }
+
+    function downloadDiscogsCSVTemplate() {
+      const sampleDiscogsCSV = [
+        'Catalog#,Artist,Title,Label,Format,Rating,Released,release_id,CollectionFolder,Date Added,Collection Media Condition,Collection Sleeve Condition,Collection Notes',
+        'CAD 113,Matt Johnson,Burning Blue Soul,4AD,"LP, Album, RE",,1984,1077495,Uncategorized,2024-10-09 00:58:21,,,',
+        'CHIP001,Doves,Cedar EP,Casino,"10"", EP",,1998,746346,Uncategorized,2025-02-02 05:44:58,,,',
+        '"5507705, 00602455077059, 1501, BLP 1501 ",Miles Davis,Volume 1,"Blue Note, UMe, Blue Note, UMe, Blue Note, Blue Note","LP, Comp, Mono, RE, RM, 180",,2023,27128130,Uncategorized,2025-04-23 11:29:50,Near Mint (NM or M-),Near Mint (NM or M-),',
+        'zen 22,Various,Ninja Cuts: Flexistentialism,Ninja Tune,"3xLP, Comp",,1996,1013,Uncategorized,2026-08-22 11:56:52,Near Mint (NM or M-),Very Good Plus (VG+),',
+        '1A 006-1655327,Queen,Radio Ga Ga,EMI,"7"", Single",,1984,348654,Uncategorized,2026-04-11 06:48:50,Very Good Plus (VG+),Very Good Plus (VG+),',
+        '"JF 1(T), 249980-0, JF1 T",Wah!,The Story Of The Blues,"Eternal (6), Eternal (6), Eternal (6)","12"", Single",,1982,474119,Uncategorized,2020-06-13 19:39:09,Very Good Plus (VG+),Very Good (VG),',
+        '601014,Bar-Kays,Soul Finger,Stax,"7"", Single, 4 p",5,1967,16972509,Uncategorized,2026-07-19 01:04:50,Near Mint (NM or M-),Generic,'
+      ].join('\n');
+
+      const blob = new Blob([sampleDiscogsCSV], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "Discogs_Collection_Export_Template.csv";
+      link.click();
+      showToast("Downloaded official Discogs export CSV template!");
     }
 
     /* =========================================================
