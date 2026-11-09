@@ -2266,11 +2266,16 @@
       currency: 'GBP'
     };
 
-    // Cachebuster Utility
+    // Cachebuster Utility (preserves share & query params)
     function forceBustCache() {
-      const cleanUrl = window.location.origin + window.location.pathname;
-      const buster = `v=${Date.now()}`;
-      window.location.replace(`${cleanUrl}?${buster}`);
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('v', Date.now());
+        window.location.replace(url.toString());
+      } catch (e) {
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.location.replace(`${cleanUrl}?v=${Date.now()}`);
+      }
     }
 
     // Currency Symbol Helper
@@ -3291,8 +3296,11 @@
           <i class="fa-solid fa-lock text-sky-400"></i>
           <span>Viewing <strong>${escapeHtml(ownerName)}'s Vinyl Archive</strong> <span class="bg-sky-500/20 text-sky-300 border border-sky-500/40 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ml-1">Read-Only</span></span>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 sm:gap-3">
           <span class="text-slate-400 text-[11px] font-mono hidden sm:inline"><i class="fa-solid fa-record-vinyl mr-1"></i>${records.length} records in archive</span>
+          <button type="button" onclick="forceBustCache()" class="px-2.5 py-1 rounded bg-vinyl-800 hover:bg-vinyl-700 text-sky-300 font-medium border border-vinyl-700 text-[11px] transition shadow-sm" title="Hard reload latest archive code">
+            <i class="fa-solid fa-arrows-rotate text-[10px] mr-1"></i> Reload
+          </button>
           <a href="index.html" class="px-2.5 py-1 rounded bg-vinyl-800 hover:bg-vinyl-700 text-white font-medium border border-vinyl-700 text-[11px] transition shadow-sm">
             <i class="fa-solid fa-arrow-left text-[10px] mr-1"></i> Exit Shared View
           </a>
@@ -4062,6 +4070,13 @@
     /* =========================================================
        SEARCH, FILTER & VIEW ENGINE
        ========================================================= */
+    let activeDecadeFilter = 'ALL';
+
+    function clearDecadeFilter() {
+      activeDecadeFilter = 'ALL';
+      handleSearchFilterChange();
+    }
+
     function getFilteredAndSortedRecords() {
       const searchTerm = (document.getElementById('globalSearch')?.value || '').toLowerCase().trim();
       const formatFilter = document.getElementById('filterFormat')?.value || 'ALL';
@@ -4079,6 +4094,16 @@
         const yNum = parseInt(item.year);
         const itemDecade = (!isNaN(yNum) && yNum > 1900 && yNum < 2100) ? (Math.floor(yNum / 10) * 10 + 's') : '';
 
+        // 1. Dedicated Decade Filter (from clicking Analytics / Top Bar decade)
+        if (activeDecadeFilter !== 'ALL') {
+          if (activeDecadeFilter === 'Unknown') {
+            if (itemDecade !== '') return false;
+          } else {
+            if (itemDecade !== activeDecadeFilter) return false;
+          }
+        }
+
+        // 2. Search Bar Filter
         if (targetDecade) {
           if (itemDecade !== targetDecade) return false;
         } else if (isUnknownYearSearch) {
@@ -4152,6 +4177,11 @@
 
       let pillsHTML = '';
 
+      if (activeDecadeFilter !== 'ALL') {
+        const decStart = parseInt(activeDecadeFilter);
+        const decLabel = !isNaN(decStart) ? `${activeDecadeFilter} (${decStart}–${decStart + 9})` : 'Unknown Year';
+        pillsHTML += `<span class="bg-vinyl-800 text-sky-300 px-2.5 py-0.5 rounded-full border border-sky-500/40 flex items-center gap-1.5">Decade: ${decLabel} <button onclick="clearDecadeFilter()" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
+      }
       if (searchTerm) {
         pillsHTML += `<span class="bg-vinyl-800 text-slate-200 px-2.5 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Query: "${searchTerm}" <button onclick="clearSearchInput()" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
       }
@@ -4171,6 +4201,7 @@
     }
 
     function resetFilters() {
+      activeDecadeFilter = 'ALL';
       document.getElementById('globalSearch').value = '';
       document.getElementById('filterFormat').value = 'ALL';
       document.getElementById('filterGrade').value = 'ALL';
@@ -4662,9 +4693,9 @@
        ========================================================= */
     function filterByDecade(decadeStr) {
       if (!decadeStr) return;
-      const queryVal = (decadeStr === 'Unknown') ? 'Unknown Year' : decadeStr;
+      activeDecadeFilter = decadeStr;
       const searchInput = document.getElementById('globalSearch');
-      if (searchInput) searchInput.value = queryVal;
+      if (searchInput) searchInput.value = '';
       handleSearchFilterChange();
       switchView('grid');
       showToast(`Filtered catalogue for ${decadeStr === 'Unknown' ? 'Unknown Year' : decadeStr} releases`, 'info');
