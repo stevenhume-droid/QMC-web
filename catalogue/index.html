@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0c0d10">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -92,12 +93,79 @@
       border-color: #d4af37 !important;
       background-color: rgba(212, 175, 55, 0.08) !important;
     }
+
+    /* ===== MOBILE / PHONE OPTIMISATION ===== */
+    html { -webkit-text-size-adjust: 100%; }
+    body { overflow-x: hidden; }
+    .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+
+    /* Bottom navigation + More sheet (phones only) */
+    #mobileBottomNav {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .mnav-btn { min-height: 56px; }
+    .mnav-btn.active { color: #f6d365; }
+    #mobileMoreSheet.open { display: block; }
+    #mobileMoreSheet.open #mobileMoreCard { transform: translateY(0); }
+    #mobileMoreCard { transform: translateY(100%); transition: transform .22s ease-out; padding-bottom: calc(1rem + env(safe-area-inset-bottom)); }
+
+    @media (max-width: 639px) {
+      /* Prevent iOS focus-zoom and give comfortable tap targets */
+      input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+      select, textarea { font-size: 16px !important; min-height: 44px; }
+      textarea { min-height: 72px; }
+      button, [role="button"], select, label.cursor-pointer { min-height: 40px; }
+      .form-tab-btn { min-height: 44px; font-size: 13px; }
+
+      /* Leave room for the bottom nav */
+      body { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
+
+      /* Toasts sit above the bottom nav, full width */
+      #toastContainer { left: 12px; right: 12px; bottom: calc(76px + env(safe-area-inset-bottom)) !important; align-items: stretch; }
+
+      /* All modals become full-screen sheets on phones */
+      div[id$="Modal"].fixed { padding: 0 !important; align-items: stretch !important; overflow: hidden !important; }
+      div[id$="Modal"].fixed > div {
+        width: 100% !important; max-width: 100% !important;
+        height: 100dvh !important; max-height: 100dvh !important;
+        border-radius: 0 !important; margin: 0 !important;
+        overflow-y: auto !important;
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      /* Modals whose content is the card itself need to scroll */
+      #detailModalContent { overflow-y: auto !important; padding: 1rem !important; }
+      div[id$="Modal"].fixed .max-h-\[80vh\] { max-height: none !important; }
+
+      /* Sticky save bar inside the Add/Edit form */
+      #recordForm .rec-footer {
+        position: sticky; bottom: -1px; z-index: 5;
+        background: #14171d; margin: 0 -1rem; padding: .75rem 1rem calc(.75rem + env(safe-area-inset-bottom));
+        border-top: 1px solid #232936;
+      }
+      #recordForm .rec-footer > div { width: 100%; }
+      #recordForm .rec-footer button { flex: 1 1 auto; justify-content: center; }
+
+      /* Header: compact */
+      #appHeader { gap: .5rem; padding-top: .5rem; padding-bottom: .5rem; position: static; }
+
+      /* Dashboard stats become a horizontal swipe strip */
+      #statsStrip { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: .5rem; padding-bottom: .25rem; }
+      #statsStrip > div { flex: 0 0 auto; min-width: 150px; scroll-snap-align: start; }
+
+      /* Filters collapse behind a toggle */
+      #filtersRow:not(.filters-open) .mf { display: none !important; }
+      #filtersRow .mf { width: 100%; }
+
+      /* 3-tier price spreads: prevent number overflow */
+      .grid.grid-cols-3 .font-mono { font-size: 12px; word-break: break-word; }
+    }
   </style>
 </head>
 <body class="bg-vinyl-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-brass-500 selection:text-black">
 
   <!-- TOP APP BAR -->
-  <header class="border-b border-vinyl-800 bg-vinyl-900/95 backdrop-blur sticky top-0 z-40 px-4 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+  <header id="appHeader" class="border-b border-vinyl-800 bg-vinyl-900/95 backdrop-blur sticky top-0 z-40 px-4 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
     <div class="flex items-center gap-3">
       <!-- Vinyl Logo Badge -->
       <a href="../index.html" class="w-10 h-10 rounded-full vinyl-grooves flex items-center justify-center border border-brass-500/40 shadow-inner group hover:scale-105 transition" title="Back to QMC Home">
@@ -111,7 +179,7 @@
             QMC <span class="text-xs px-2 py-0.5 rounded-full bg-brass-500/20 text-brass-400 font-mono font-medium border border-brass-500/30">Vinyl & Album Archive</span>
           </h1>
         </div>
-        <p class="text-xs text-slate-400">LPs, Albums, 12" & 7" Singles Archival Research & Valuation Station</p>
+        <p class="hidden sm:block text-xs text-slate-400">LPs, Albums, 12" & 7" Singles Archival Research & Valuation Station</p>
       </div>
     </div>
 
@@ -126,43 +194,43 @@
       </div>
 
       <!-- Share Read-Only Link Quick Trigger -->
-      <button onclick="openShareModal()" id="headerShareBtn" class="px-3 py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-sky-400 border border-sky-500/30 hover:border-sky-400 transition flex items-center gap-2 shadow-sm" title="Share private read-only link with others">
+      <button onclick="openShareModal()" id="headerShareBtn" class="hidden md:flex px-3 py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-sky-400 border border-sky-500/30 hover:border-sky-400 transition flex items-center gap-2 shadow-sm" title="Share private read-only link with others">
         <i class="fa-solid fa-share-nodes text-sm"></i>
         <span>Share Link</span>
       </button>
 
       <!-- Scan Barcode Quick Trigger -->
-      <button onclick="openScannerModal()" id="quickScanBtn" class="px-3 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 hover:border-brass-400 transition flex items-center gap-2 shadow-sm">
+      <button onclick="openScannerModal()" id="quickScanBtn" class="hidden md:flex px-3 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 hover:border-brass-400 transition flex items-center gap-2 shadow-sm">
         <i class="fa-solid fa-barcode text-sm"></i>
         <span>Scan Barcode</span>
       </button>
 
       <!-- Market Valuation / Discogs API Settings Button -->
-      <button onclick="openValuationModal()" id="quickValuateBtn" class="px-3 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-amber-400 border border-amber-500/30 hover:border-amber-400 transition flex items-center gap-2 shadow-sm" title="Discogs Market Values & Valuation Intelligence">
+      <button onclick="openValuationModal()" id="quickValuateBtn" class="hidden md:flex px-3 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-amber-400 border border-amber-500/30 hover:border-amber-400 transition flex items-center gap-2 shadow-sm" title="Discogs Market Values & Valuation Intelligence">
         <i class="fa-solid fa-coins text-sm"></i>
         <span>Market Values</span>
       </button>
 
       <!-- Batch Import (Excel/CSV) Trigger -->
-      <button onclick="openBatchUploadModal()" id="quickBatchBtn" class="px-3 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 transition flex items-center gap-2 shadow-sm">
+      <button onclick="openBatchUploadModal()" id="quickBatchBtn" class="hidden md:flex px-3 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 transition flex items-center gap-2 shadow-sm">
         <i class="fa-solid fa-file-excel text-sm"></i>
         <span>Batch Upload</span>
       </button>
 
       <!-- Import from Discogs Option -->
-      <button onclick="openDiscogsImportModal()" id="quickDiscogsBtn" class="px-3 py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-sky-400 border border-sky-500/30 hover:border-sky-400 transition flex items-center gap-2 shadow-sm" title="Import collection exported from Discogs (.csv)">
+      <button onclick="openDiscogsImportModal()" id="quickDiscogsBtn" class="hidden md:flex px-3 py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-sky-400 border border-sky-500/30 hover:border-sky-400 transition flex items-center gap-2 shadow-sm" title="Import collection exported from Discogs (.csv)">
         <i class="fa-solid fa-record-vinyl text-sky-400 text-sm"></i>
         <span>Import Discogs</span>
       </button>
 
       <!-- Add New Record Button -->
-      <button onclick="openAddEditModal()" id="openAddEditBtn" class="px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-vinyl-950 transition flex items-center gap-2 shadow-lg shadow-brass-500/10">
+      <button onclick="openAddEditModal()" id="openAddEditBtn" class="hidden md:flex px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-vinyl-950 transition flex items-center gap-2 shadow-lg shadow-brass-500/10">
         <i class="fa-solid fa-plus text-sm"></i>
         <span>Catalogue Record</span>
       </button>
 
       <!-- Import / Export Menu Dropdown -->
-      <div class="relative group" id="moreActionsDropdown">
+      <div class="relative group hidden md:block" id="moreActionsDropdown">
         <button class="p-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border border-vinyl-700 transition" title="Archival Export & Options">
           <i class="fa-solid fa-ellipsis-vertical px-1"></i>
         </button>
@@ -242,7 +310,7 @@
 
   <!-- RESEARCH STATS & SUMMARY DASHBOARD (INCLUDING COLLECTION VALUE) -->
   <section class="bg-vinyl-900 border-b border-vinyl-800 px-4 lg:px-8 py-3.5">
-    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+    <div id="statsStrip" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       
       <!-- Total Archive -->
       <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex items-center justify-between">
@@ -333,15 +401,19 @@
       </div>
 
       <!-- Filters Row -->
-      <div class="flex flex-wrap items-center gap-2">
+      <div id="filtersRow" class="flex flex-wrap items-center gap-2">
+        <!-- Mobile-only filters toggle -->
+        <button type="button" onclick="document.getElementById('filtersRow').classList.toggle('filters-open')" class="sm:hidden bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-xs text-slate-200 font-semibold flex items-center gap-1.5">
+          <i class="fa-solid fa-sliders text-xs text-brass-400"></i><span>Filters &amp; Sort</span>
+        </button>
         <!-- Share Link Trigger in Filters -->
-        <button type="button" onclick="openShareModal()" id="filterShareBtn" class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-sky-500/50 rounded-lg px-2.5 py-2 text-xs text-sky-400 font-semibold transition flex items-center gap-1.5 shadow-sm" title="Share private read-only link with others">
+        <button type="button" onclick="openShareModal()" id="filterShareBtn" class="mf bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-sky-500/50 rounded-lg px-2.5 py-2 text-xs text-sky-400 font-semibold transition flex items-center gap-1.5 shadow-sm" title="Share private read-only link with others">
           <i class="fa-solid fa-share-nodes text-xs"></i>
           <span>Share</span>
         </button>
 
         <!-- Format Filter (Album vs Single vs EP vs Box Set) -->
-        <select id="filterFormat" onchange="handleSearchFilterChange()" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-brass-500">
+        <select id="filterFormat" onchange="handleSearchFilterChange()" class="mf bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-brass-500">
           <option value="ALL">All Formats</option>
           <option value="12&quot; LP (Album)">12" LP (Album)</option>
           <option value="2xLP Gatefold (Album)">2xLP Gatefold (Album)</option>
@@ -353,7 +425,7 @@
         </select>
 
         <!-- Grade Filter -->
-        <select id="filterGrade" onchange="handleSearchFilterChange()" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-slate-300 focus:outline-none focus:border-brass-500">
+        <select id="filterGrade" onchange="handleSearchFilterChange()" class="mf bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-slate-300 focus:outline-none focus:border-brass-500">
           <option value="ALL">All Grades (Media)</option>
           <option value="M">Mint (M)</option>
           <option value="NM">Near Mint (NM)</option>
@@ -366,7 +438,7 @@
         </select>
 
         <!-- Sort By -->
-        <select id="sortBy" onchange="handleSearchFilterChange()" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-slate-300 focus:outline-none focus:border-brass-500">
+        <select id="sortBy" onchange="handleSearchFilterChange()" class="mf bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-slate-300 focus:outline-none focus:border-brass-500">
           <option value="dateAddedDesc">Added: Newest First</option>
           <option value="valueDesc">Value: Highest First (£/$/€)</option>
           <option value="artistAsc">Artist: A to Z</option>
@@ -828,7 +900,7 @@
     <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
       
       <!-- Modal Header -->
-      <div class="px-6 py-3.5 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850">
+      <div class="px-4 sm:px-6 py-3.5 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-full bg-brass-500/10 border border-brass-500/30 flex items-center justify-center text-brass-400">
             <i class="fa-solid fa-record-vinyl"></i>
@@ -847,7 +919,7 @@
       </div>
 
       <!-- Quick Online Discography Auto-lookup Bar (Narrow by Artist & Title) -->
-      <div class="bg-vinyl-800/60 px-6 py-2.5 border-b border-vinyl-800 flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+      <div class="bg-vinyl-800/60 px-4 sm:px-6 py-2.5 border-b border-vinyl-800 flex flex-col md:flex-row md:items-center justify-between gap-2.5">
         <div class="flex items-center gap-2 flex-1 flex-wrap">
           <div class="flex items-center gap-1.5 text-xs text-brass-400 font-semibold whitespace-nowrap">
             <i class="fa-solid fa-wand-magic-sparkles"></i>
@@ -919,7 +991,7 @@
       </div>
 
       <!-- Navigation Tabs -->
-      <div class="flex items-center justify-between border-b border-vinyl-800 px-6 bg-vinyl-900 overflow-x-auto text-xs font-medium">
+      <div class="flex items-center justify-between border-b border-vinyl-800 px-2 sm:px-6 bg-vinyl-900 overflow-x-auto no-scrollbar text-xs font-medium">
         <div class="flex">
           <button type="button" onclick="switchFormTab('tab-general')" id="tabBtn-general" class="form-tab-btn py-3 px-3 border-b-2 border-brass-500 text-brass-400 font-semibold whitespace-nowrap">
             1. General & Tracks
@@ -943,7 +1015,7 @@
       </div>
 
       <!-- Form Body -->
-      <form id="recordForm" onsubmit="saveRecordForm(event, false)" class="overflow-y-auto flex-1 p-6 space-y-4">
+      <form id="recordForm" onsubmit="saveRecordForm(event, false)" class="overflow-y-auto flex-1 p-4 sm:p-6 space-y-4">
         <input type="hidden" id="recordId">
 
         <!-- TAB 1: General Info & Tracks -->
@@ -1352,9 +1424,9 @@
         </div>
 
         <!-- Modal Footer Actions with Fast Add Next -->
-        <div class="border-t border-vinyl-800 pt-4 flex flex-wrap items-center justify-between gap-2">
+        <div class="rec-footer border-t border-vinyl-800 pt-4 flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center gap-2">
-            <button type="button" onclick="closeAddEditModal()" class="px-3.5 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-lg transition">
+            <button type="button" onclick="closeAddEditModal()"  class="px-3.5 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-lg transition">
               Cancel
             </button>
             <button type="button" onclick="confirmClearForm()" class="px-3 py-2 text-xs font-medium text-slate-400 hover:text-red-300 rounded-lg bg-vinyl-850 hover:bg-red-950/40 border border-vinyl-700 hover:border-red-800 transition flex items-center gap-1.5" title="Clear all entry fields">
@@ -1883,6 +1955,39 @@
       <!-- Populated dynamically via viewRecordDetail() -->
     </div>
   </div>
+
+  <!-- MOBILE BOTTOM NAVIGATION + MORE SHEET (phones only) -->
+  <div id="mobileMoreSheet" class="fixed inset-0 z-[90] hidden sm:!hidden" style="z-index:90;">
+    <div class="absolute inset-0 bg-black/70" onclick="closeMobileMore()"></div>
+    <div id="mobileMoreCard" class="absolute bottom-0 inset-x-0 bg-vinyl-900 border-t border-vinyl-700 rounded-t-2xl p-4 max-h-[85dvh] overflow-y-auto">
+      <div class="w-10 h-1 bg-vinyl-700 rounded-full mx-auto mb-3"></div>
+      <div class="grid grid-cols-3 gap-2 text-center text-[11px] font-medium">
+        <button onclick="closeMobileMore();openAuthModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-circle-user text-lg text-brass-400"></i>Account</button>
+        <button onclick="closeMobileMore();openShareModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-share-nodes text-lg text-sky-400"></i>Share Link</button>
+        <button onclick="closeMobileMore();openValuationModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-coins text-lg text-amber-400"></i>Market Values</button>
+        <button onclick="closeMobileMore();openBatchGenreEnrichModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-wand-magic-sparkles text-lg text-sky-400"></i>Enrich Genres</button>
+        <button onclick="closeMobileMore();openDiscogsImportModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-record-vinyl text-lg text-sky-400"></i>Import Discogs</button>
+        <button onclick="closeMobileMore();openBatchUploadModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-file-excel text-lg text-emerald-400"></i>Batch Upload</button>
+        <button onclick="closeMobileMore();exportToExcel()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-file-export text-lg text-green-400"></i>Export Excel</button>
+        <button onclick="closeMobileMore();exportToCSV()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-file-csv text-lg text-emerald-400"></i>Export CSV</button>
+        <button onclick="closeMobileMore();exportToJSON()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-code text-lg text-blue-400"></i>JSON Backup</button>
+        <label class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5 cursor-pointer"><i class="fa-solid fa-file-import text-lg text-amber-400"></i>Import JSON<input type="file" accept=".json" onchange="closeMobileMore();importFromJSON(event)" class="hidden"></label>
+        <button onclick="closeMobileMore();forceBustCache()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-arrows-rotate text-lg text-sky-400"></i>Hard Reload</button>
+        <button onclick="closeMobileMore();clearAllRecordsPrompt()" class="p-3 rounded-xl bg-vinyl-850 border border-rose-900/50 text-rose-300 flex flex-col items-center gap-1.5"><i class="fa-solid fa-eraser text-lg"></i>Clear Archive</button>
+      </div>
+    </div>
+  </div>
+
+  <nav id="mobileBottomNav" class="sm:hidden fixed bottom-0 inset-x-0 z-[45] bg-vinyl-900/95 backdrop-blur border-t border-vinyl-800 grid grid-cols-5 items-end text-[10px] font-semibold text-slate-400" style="z-index:45;">
+    <button type="button" id="mnav-crate" onclick="mobileNav('crate')" class="mnav-btn active flex flex-col items-center justify-center gap-0.5"><i class="fa-solid fa-grip text-lg"></i>Crate</button>
+    <button type="button" id="mnav-search" onclick="mobileNav('search')" class="mnav-btn flex flex-col items-center justify-center gap-0.5"><i class="fa-solid fa-magnifying-glass text-lg"></i>Search</button>
+    <button type="button" onclick="mobileNav('add')" class="mnav-btn flex flex-col items-center justify-center gap-0.5 text-vinyl-950" aria-label="Add record">
+      <span class="w-12 h-12 -mt-5 rounded-full bg-gradient-to-r from-brass-500 to-amber-500 flex items-center justify-center shadow-lg shadow-brass-500/30 border-4 border-vinyl-900"><i class="fa-solid fa-plus text-lg"></i></span>
+      <span class="text-slate-400">Add</span>
+    </button>
+    <button type="button" id="mnav-stats" onclick="mobileNav('stats')" class="mnav-btn flex flex-col items-center justify-center gap-0.5"><i class="fa-solid fa-chart-pie text-lg"></i>Stats</button>
+    <button type="button" onclick="mobileNav('more')" class="mnav-btn flex flex-col items-center justify-center gap-0.5"><i class="fa-solid fa-ellipsis text-lg"></i>More</button>
+  </nav>
 
   <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toastContainer" class="fixed bottom-5 right-5 z-[100] flex flex-col gap-2 pointer-events-none" style="z-index: 100;"></div>
@@ -4081,7 +4186,46 @@
       if (listBtn) listBtn.className = (mode === 'list') ? activeClasses : inactiveClasses;
       if (analyticsBtn) analyticsBtn.className = (mode === 'analytics') ? activeClasses : inactiveClasses;
 
+      if (typeof updateMobileNavActive === 'function') updateMobileNavActive(mode);
       renderRecords();
+    }
+
+    /* =========================================================
+       MOBILE BOTTOM NAVIGATION
+       ========================================================= */
+    function updateMobileNavActive(mode) {
+      const crate = document.getElementById('mnav-crate');
+      const stats = document.getElementById('mnav-stats');
+      if (crate) crate.classList.toggle('active', mode !== 'analytics');
+      if (stats) stats.classList.toggle('active', mode === 'analytics');
+    }
+
+    function closeMobileMore() {
+      const sheet = document.getElementById('mobileMoreSheet');
+      if (sheet) sheet.classList.remove('open');
+    }
+
+    function mobileNav(target) {
+      closeMobileMore();
+      if (target === 'crate') {
+        switchView(currentView === 'analytics' ? 'grid' : currentView);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (target === 'search') {
+        if (currentView === 'analytics') switchView('grid');
+        const s = document.getElementById('globalSearch');
+        if (s) {
+          s.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => s.focus(), 250);
+        }
+      } else if (target === 'add') {
+        openAddEditModal();
+      } else if (target === 'stats') {
+        switchView('analytics');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (target === 'more') {
+        const sheet = document.getElementById('mobileMoreSheet');
+        if (sheet) sheet.classList.add('open');
+      }
     }
 
     function getGradeBadge(grade) {
