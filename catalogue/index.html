@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0c0d10">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="QMC Archive">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -181,14 +185,31 @@
     </div>
 
     <!-- Global Actions -->
-    <div class="flex items-center flex-wrap gap-2.5">
+    <div class="flex items-center flex-wrap gap-2 sm:gap-2.5">
       <!-- Member Sign-In / User Profile Button -->
       <div id="memberAuthContainer">
-        <button onclick="openAuthModal()" id="authNavBtn" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 hover:border-brass-400 transition flex items-center gap-2 shadow-sm">
+        <button onclick="openAuthModal()" id="authNavBtn" class="px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 hover:border-brass-400 transition flex items-center gap-1.5 sm:gap-2 shadow-sm">
           <i class="fa-solid fa-circle-user text-sm text-brass-400"></i>
           <span id="authNavText">Member Sign In</span>
         </button>
       </div>
+
+      <!-- Estimated Archive Value Pill (Positioned right next to username) -->
+      <div onclick="switchView('analytics')" class="px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg bg-vinyl-850 hover:bg-vinyl-800 border border-emerald-500/30 hover:border-emerald-400/60 cursor-pointer transition flex items-center gap-1.5 sm:gap-2 shadow-sm" title="Estimated Archive Value — Click to view Valuation Analytics">
+        <i class="fa-solid fa-coins text-xs text-emerald-400"></i>
+        <div class="leading-tight">
+          <div class="flex items-baseline gap-1.5">
+            <span class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold hidden lg:inline">Est. Value</span>
+            <span id="statTotalValue" class="text-xs sm:text-sm font-bold font-mono text-emerald-400">£0.00</span>
+          </div>
+          <div id="statAvgValue" class="hidden">Avg: £0.00 / disc</div>
+        </div>
+      </div>
+
+      <!-- Mobile Add to Home Screen Quick Icon -->
+      <button type="button" onclick="openAddToHomeScreenModal()" class="md:hidden p-2 text-xs rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 transition flex items-center justify-center shadow-sm" title="Add to Home Screen">
+        <i class="fa-solid fa-mobile-screen-button text-sm"></i>
+      </button>
 
       <!-- Share Read-Only Link Quick Trigger -->
       <button onclick="openShareModal()" id="headerShareBtn" class="hidden md:flex px-3 py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-sky-400 border border-sky-500/30 hover:border-sky-400 transition flex items-center gap-2 shadow-sm" title="Share private read-only link with others">
@@ -305,9 +326,9 @@
     </div>
   </header>
 
-  <!-- COMPACT COLLECTION SUMMARY STRIP -->
+  <!-- COMPACT COLLECTION SUMMARY STRIP (Collection + Interactive Decades Filter) -->
   <section class="bg-vinyl-900 border-b border-vinyl-800 px-3 sm:px-4 lg:px-8 py-2.5">
-    <div id="statsStrip" class="grid grid-cols-3 gap-2 sm:gap-3">
+    <div id="statsStrip" class="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3">
       
       <!-- 1. Total Collection & Format Breakdown -->
       <div class="bg-vinyl-850/80 px-3 py-2 rounded-lg border border-vinyl-800 flex items-center justify-between min-w-0">
@@ -323,29 +344,18 @@
         <i class="fa-solid fa-layer-group text-vinyl-700 text-lg sm:text-xl hidden sm:block"></i>
       </div>
 
-      <!-- 2. Estimated Value -->
-      <div class="bg-vinyl-850/80 px-3 py-2 rounded-lg border border-vinyl-800 flex items-center justify-between min-w-0">
-        <div class="min-w-0">
-          <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400 flex items-center gap-1 truncate">
-            <span>Est. Value</span>
-            <i class="fa-solid fa-circle-info text-[9px] text-emerald-400 hidden sm:inline" title="Based on Discogs & eBay market averages"></i>
-          </span>
-          <div id="statTotalValue" class="text-lg sm:text-xl font-bold font-mono text-emerald-400 truncate">£0.00</div>
-          <div id="statAvgValue" class="text-[9px] text-slate-400 font-mono truncate hidden sm:block">Avg: £0.00 / disc</div>
-        </div>
-        <i class="fa-solid fa-coins text-vinyl-700 text-lg sm:text-xl hidden sm:block"></i>
-      </div>
-
-      <!-- 3. Condition & Decades (Clickable to open Analytics) -->
-      <div onclick="switchView('analytics')" class="bg-vinyl-850/80 px-3 py-2 rounded-lg border border-vinyl-800 hover:border-brass-500/50 flex flex-col justify-center cursor-pointer transition group min-w-0" title="Click to open Collection Analytics">
-        <div class="flex justify-between items-center text-[10px] uppercase tracking-wider font-semibold text-slate-400 mb-1 gap-1">
-          <span class="flex items-center gap-1 group-hover:text-brass-400 transition truncate">
-            <span>Grade:</span>
+      <!-- 2. Expanded Condition & Tappable Decades Filter (Spans 2 columns on desktop, full width on mobile) -->
+      <div class="md:col-span-2 bg-vinyl-850/80 px-3 py-2 rounded-lg border border-vinyl-800 flex flex-col justify-center min-w-0 gap-1.5">
+        <div class="flex justify-between items-center text-[10px] uppercase tracking-wider font-semibold text-slate-400 gap-2">
+          <span class="flex items-center gap-1.5 truncate">
+            <span>Avg Grade:</span>
             <span id="statAvgGrade" class="font-bold font-mono text-emerald-400">VG+</span>
           </span>
-          <span id="statDecadesSummary" class="text-brass-400 font-mono text-[10px] font-semibold truncate">--</span>
+          <button type="button" onclick="switchView('analytics')" id="statDecadesSummary" class="text-brass-400 hover:text-brass-300 font-mono text-[10px] font-semibold truncate flex items-center gap-1 transition" title="Open Full Collection Analytics">--</button>
         </div>
         <div id="decadeDistributionBar" class="w-full bg-vinyl-800 h-2 rounded-full overflow-hidden flex shadow-inner"></div>
+        <!-- Mobile & Desktop Tappable Decade Filter Pills -->
+        <div id="decadeQuickChips" class="flex items-center gap-1.5 overflow-x-auto pt-0.5 pb-0.5" style="scrollbar-width: none;"></div>
         <span id="statTransfers" class="hidden">0</span>
       </div>
 
