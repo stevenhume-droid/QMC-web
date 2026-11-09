@@ -4894,11 +4894,19 @@
        SEARCH, FILTER & VIEW ENGINE
        ========================================================= */
     let activeDecadeFilter = 'ALL';
+    let activeArtistFilter = null;
 
     function clearDecadeFilter() {
       activeDecadeFilter = 'ALL';
       handleSearchFilterChange();
       renderStats();
+    }
+
+    function clearArtistFilter() {
+      activeArtistFilter = null;
+      handleSearchFilterChange();
+      renderStats();
+      showToast('Cleared artist filter', 'info');
     }
 
     function getFilteredAndSortedRecords() {
@@ -4915,6 +4923,13 @@
       const isUnknownYearSearch = (searchTerm === 'unknown year' || searchTerm === 'unknown decade');
 
       let result = records.filter(item => {
+        // Dedicated Artist Filter
+        if (activeArtistFilter) {
+          const normTarget = activeArtistFilter.toLowerCase().trim();
+          const normArtist = (item.artist || '').toLowerCase().trim();
+          if (normArtist !== normTarget && !normArtist.includes(normTarget)) return false;
+        }
+
         const yNum = parseInt(item.year);
         const itemDecade = (!isNaN(yNum) && yNum > 1900 && yNum < 2100) ? (Math.floor(yNum / 10) * 10 + 's') : '';
 
@@ -5007,6 +5022,9 @@
     }
 
     function handleSearchFilterChange() {
+      if (document.activeElement && document.activeElement.id === 'globalSearch' && activeArtistFilter) {
+        activeArtistFilter = null;
+      }
       renderRecords();
       renderActivePills();
       renderStats();
@@ -5020,6 +5038,9 @@
 
       let pillsHTML = '';
 
+      if (activeArtistFilter) {
+        pillsHTML += `<span class="bg-brass-500/20 text-brass-300 px-2.5 py-0.5 rounded-full border border-brass-500/50 flex items-center gap-1.5 font-medium"><i class="fa-solid fa-user text-[10px]"></i> Artist: "${escapeHtml(activeArtistFilter)}" <button onclick="clearArtistFilter()" class="hover:text-red-400 ml-1"><i class="fa-solid fa-xmark"></i></button></span>`;
+      }
       if (activeDecadeFilter !== 'ALL') {
         const decStart = parseInt(activeDecadeFilter);
         const decLabel = !isNaN(decStart) ? `${activeDecadeFilter} (${decStart}–${decStart + 9})` : 'Unknown Year';
@@ -5045,6 +5066,7 @@
 
     function resetFilters() {
       activeDecadeFilter = 'ALL';
+      activeArtistFilter = null;
       document.getElementById('globalSearch').value = '';
       document.getElementById('filterFormat').value = 'ALL';
       document.getElementById('filterGrade').value = 'ALL';
@@ -5518,13 +5540,13 @@
             <div class="p-4 flex-1 flex flex-col justify-between">
               <div>
                 <div class="flex items-baseline justify-between gap-1 mb-1">
-                  <h3 class="text-sm font-bold text-white tracking-tight truncate hover:text-brass-400 cursor-pointer" onclick="viewRecordDetail('${item.id}')">
+                  <h3 class="text-sm font-bold text-white tracking-tight truncate hover:text-brass-400 cursor-pointer transition" onclick="filterByArtist('${escapeJsString(item.artist)}')" title="Filter archive for all by ${escapeHtml(item.artist)}">
                     ${item.artist}
                   </h3>
                   <span class="text-xs font-mono text-slate-400">${item.year || '--'}</span>
                 </div>
                 
-                <h4 class="text-xs font-medium text-slate-300 truncate mb-2" title="${item.title}">
+                <h4 class="text-xs font-semibold text-slate-200 hover:text-brass-400 truncate mb-2 cursor-pointer transition" onclick="viewRecordDetail('${item.id}')" title="View dossier for ${escapeHtml(item.title)}">
                   ${item.title}
                 </h4>
 
@@ -5655,10 +5677,12 @@
                   ` : ''}
                 </div>
                 <div class="min-w-0">
-                  <div class="font-bold text-white hover:text-brass-400 cursor-pointer truncate" onclick="viewRecordDetail('${item.id}')">
+                  <div class="font-bold text-white hover:text-brass-400 cursor-pointer truncate transition" onclick="filterByArtist('${escapeJsString(item.artist)}')" title="Filter archive for all by ${escapeHtml(item.artist)}">
                     ${item.artist}
                   </div>
-                  <div class="text-slate-400 text-[11px] truncate">${item.title}</div>
+                  <div class="text-slate-300 hover:text-brass-400 text-[11px] font-medium truncate cursor-pointer transition" onclick="viewRecordDetail('${item.id}')" title="View dossier for ${escapeHtml(item.title)}">
+                    ${item.title}
+                  </div>
                   ${item.ownerName ? `
                     <div class="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5 font-mono truncate">
                       <i class="fa-solid fa-circle-user text-brass-500/80 text-[9px]"></i>
@@ -5735,6 +5759,42 @@
     /* =========================================================
        COLLECTION ANALYTICS & INTELLIGENCE DASHBOARD
        ========================================================= */
+    function filterByArtist(artistName) {
+      if (!artistName) return;
+      const cleanName = String(artistName).trim();
+
+      // If already filtered by this artist, clicking again toggles it off
+      if (activeArtistFilter && activeArtistFilter.toLowerCase() === cleanName.toLowerCase() && currentView !== 'analytics') {
+        clearArtistFilter();
+        return;
+      }
+
+      activeArtistFilter = cleanName;
+      activeDecadeFilter = 'ALL';
+      const selFormat = document.getElementById('filterFormat');
+      if (selFormat) selFormat.value = 'ALL';
+      const selGrade = document.getElementById('filterGrade');
+      if (selGrade) selGrade.value = 'ALL';
+      const searchInput = document.getElementById('globalSearch');
+      if (searchInput) searchInput.value = '';
+
+      handleSearchFilterChange();
+      renderStats();
+
+      if (currentView === 'analytics') {
+        switchView('table');
+      }
+
+      closeDetailModal();
+
+      const recordsTarget = document.getElementById('recordsContainer') || document.getElementById('globalSearch');
+      if (recordsTarget) {
+        recordsTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      showToast(`Showing all releases by "${cleanName}" in the archive`, 'info');
+    }
+
     function filterByDecade(decadeStr) {
       if (!decadeStr) return;
       if (activeDecadeFilter === decadeStr && currentView !== 'analytics') {
@@ -6417,10 +6477,10 @@
 
                       <!-- Title & Artist -->
                       <div class="flex-1">
-                        <div class="font-bold text-white text-xs truncate group-hover:text-brass-300 transition" title="${escapeHtml(gem.title)}">
+                        <div class="font-bold text-white text-xs truncate group-hover:text-brass-300 transition" title="View dossier for ${escapeHtml(gem.title)}">
                           ${gem.title}
                         </div>
-                        <div class="text-slate-400 text-[11px] truncate" title="${escapeHtml(gem.artist)}">
+                        <div class="text-slate-400 hover:text-brass-400 text-[11px] truncate cursor-pointer transition" onclick="event.stopPropagation(); filterByArtist('${escapeJsString(gem.artist)}')" title="Filter archive for all by ${escapeHtml(gem.artist)}">
                           ${gem.artist}
                         </div>
                       </div>
@@ -6557,7 +6617,12 @@
               <span class="text-xs text-slate-400">·</span>
               <span class="text-xs text-slate-300 font-medium">${item.country || 'Global'}</span>
             </div>
-            <h2 class="text-2xl font-black text-white tracking-tight">${item.artist}</h2>
+            <h2 class="text-2xl font-black text-white tracking-tight hover:text-brass-400 cursor-pointer transition inline-flex items-center gap-2 group" onclick="closeDetailModal(); filterByArtist('${escapeJsString(item.artist)}')" title="Filter archive for all by ${escapeHtml(item.artist)}">
+              <span>${item.artist}</span>
+              <span class="text-[11px] px-2 py-0.5 rounded bg-vinyl-800 text-brass-400 border border-vinyl-700 opacity-80 group-hover:opacity-100 font-mono font-normal flex items-center gap-1">
+                <i class="fa-solid fa-filter text-[9px]"></i>All by Artist
+              </span>
+            </h2>
             <h3 class="text-lg text-brass-400 font-medium">${item.title}</h3>
           </div>
           <button type="button" onclick="closeDetailModal()" class="hidden sm:flex px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm flex-shrink-0">
