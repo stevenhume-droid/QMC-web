@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1260,6 +1260,56 @@
             <div>
               <label class="block text-xs font-semibold text-slate-300 mb-1">Country / Region of Origin</label>
               <input type="text" id="formCountry" placeholder="e.g. UK / US / Japan" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
+            </div>
+          </div>
+
+          <!-- Vinyl Physical Specifications: Colour & Weight -->
+          <div id="vinylSpecsContainer" class="p-3.5 bg-vinyl-850 rounded-xl border border-vinyl-800 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase text-brass-400 tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-palette text-brass-400"></i> Vinyl Edition (Colour &amp; Weight)
+              </span>
+              <span class="text-[10px] text-slate-400 font-mono">Collector Specs</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-300 mb-1">Vinyl Colour / Variant</label>
+                <div class="flex gap-2">
+                  <select id="formVinylColorPreset" onchange="applyVinylColorPreset(this.value)" class="bg-vinyl-900 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-brass-500">
+                    <option value="">Preset...</option>
+                    <option value="Black">Black (Standard)</option>
+                    <option value="Clear">Clear / Transparent</option>
+                    <option value="White">White</option>
+                    <option value="Red">Red</option>
+                    <option value="Blue">Blue</option>
+                    <option value="Green">Green</option>
+                    <option value="Yellow">Yellow / Orange</option>
+                    <option value="Purple">Purple / Violet</option>
+                    <option value="Pink">Pink</option>
+                    <option value="Gold">Gold</option>
+                    <option value="Silver">Silver</option>
+                    <option value="Splatter">Splatter / Multi-Colour</option>
+                    <option value="Marbled">Marbled / Swirl</option>
+                    <option value="Picture Disc">Picture Disc</option>
+                    <option value="Etched">Etched Vinyl</option>
+                  </select>
+                  <input type="text" id="formVinylColor" placeholder="e.g. Black, Red Splatter, Clear" class="flex-1 bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brass-500">
+                </div>
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-300 mb-1">Vinyl Weight</label>
+                <div class="flex gap-2">
+                  <select id="formVinylWeightPreset" onchange="applyVinylWeightPreset(this.value)" class="bg-vinyl-900 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-brass-500">
+                    <option value="">Preset...</option>
+                    <option value="Standard">Standard (120g - 140g)</option>
+                    <option value="180g">180g Audiophile Heavyweight</option>
+                    <option value="200g">200g Super Heavyweight</option>
+                    <option value="150g">150g - 160g</option>
+                    <option value="Dynaflex">Lightweight / Dynaflex (&lt; 120g)</option>
+                  </select>
+                  <input type="text" id="formVinylWeight" placeholder="e.g. 180g, Standard, 200g" class="flex-1 bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brass-500">
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -3671,7 +3721,27 @@
     /* =========================================================
        SUPABASE DATABASE MAPPERS (SNAKE_CASE <-> CAMELCASE)
        ========================================================= */
+    function applyVinylColorPreset(val) {
+      if (!val) return;
+      const input = document.getElementById('formVinylColor');
+      if (input) input.value = val;
+    }
+
+    function applyVinylWeightPreset(val) {
+      if (!val) return;
+      const input = document.getElementById('formVinylWeight');
+      if (input) input.value = val;
+    }
+
     function mapRecordToDb(rec, userId) {
+      let rNotes = rec.researchNotes || '';
+      // Pack extra vinyl specs into metadata comment inside research_notes for lossless cloud sync
+      if (rec.vinylColor || rec.vinylWeight) {
+        rNotes = rNotes.replace(/<!--qmc_vspec:.*?-->/g, '').trim();
+        const vSpec = JSON.stringify({ color: rec.vinylColor || '', weight: rec.vinylWeight || '' });
+        rNotes = (rNotes ? (rNotes + '\n') : '') + `<!--qmc_vspec:${vSpec}-->`;
+      }
+
       return {
         id: rec.id,
         user_id: userId,
@@ -3709,13 +3779,26 @@
         provenance: rec.provenance || '',
         transfer_status: rec.transferStatus || 'Not Digitized',
         transfer_notes: rec.transferNotes || '',
-        research_notes: rec.researchNotes || '',
+        research_notes: rNotes,
         is_public: rec.isPublic !== undefined ? rec.isPublic : true,
         date_added: rec.dateAdded || new Date().toISOString()
       };
     }
 
     function mapDbToRecord(row) {
+      let vinylColor = row.vinyl_color || row.vinylColor || '';
+      let vinylWeight = row.vinyl_weight || row.vinylWeight || '';
+      let cleanNotes = row.research_notes || '';
+      const vSpecMatch = cleanNotes.match(/<!--qmc_vspec:(.*?)-->/);
+      if (vSpecMatch) {
+        try {
+          const parsed = JSON.parse(vSpecMatch[1]);
+          if (!vinylColor && parsed.color) vinylColor = parsed.color;
+          if (!vinylWeight && parsed.weight) vinylWeight = parsed.weight;
+          cleanNotes = cleanNotes.replace(/<!--qmc_vspec:.*?-->/g, '').trim();
+        } catch (e) {}
+      }
+
       return {
         id: row.id,
         userId: row.user_id,
@@ -3738,6 +3821,8 @@
         country: row.country || '',
         centerHole: row.center_hole || '',
         speed: row.speed || '',
+        vinylColor: vinylColor,
+        vinylWeight: vinylWeight,
         matrixA: row.matrix_a || '',
         matrixB: row.matrix_b || '',
         mastering: row.mastering || '',
@@ -3754,7 +3839,7 @@
         provenance: row.provenance || '',
         transferStatus: row.transfer_status || 'Not Digitized',
         transferNotes: row.transfer_notes || '',
-        researchNotes: row.research_notes || '',
+        researchNotes: cleanNotes,
         isPublic: row.is_public !== false,
         dateAdded: row.date_added || row.created_at || new Date().toISOString()
       };
@@ -4855,6 +4940,8 @@
             (item.matrixA || '') + ' ' +
             (item.matrixB || '') + ' ' +
             (item.genres || '') + ' ' +
+            (item.vinylColor || '') + ' ' +
+            (item.vinylWeight || '') + ' ' +
             (item.producer || '') + ' ' +
             (item.researchNotes || '') + ' ' +
             (item.mastering || '') + ' ' +
@@ -5395,12 +5482,24 @@
               <!-- Subtle Bottom Dark Vignette to keep overlays readable -->
               <div class="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none"></div>
 
-              <!-- Speed and Label Pill -->
-              <div class="absolute bottom-2.5 inset-x-2.5 flex items-center justify-between text-[10px] text-white/90">
-                <span class="bg-black/85 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/15 font-mono shadow-sm">
-                  ${item.speed || (isAlbum ? '33 1/3 RPM' : '45 RPM')}
-                </span>
-                <span class="bg-black/85 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/15 truncate max-w-[130px] font-medium text-brass-400 shadow-sm" title="${escapeHtml(item.label || 'Unknown Label')}">
+              <!-- Speed, Vinyl Weight, Colour and Label Pill -->
+              <div class="absolute bottom-2.5 inset-x-2.5 flex items-center justify-between text-[10px] text-white/90 gap-1.5">
+                <div class="flex items-center gap-1 min-w-0 flex-wrap">
+                  <span class="bg-black/85 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/15 font-mono shadow-sm">
+                    ${item.speed || (isAlbum ? '33 1/3 RPM' : '45 RPM')}
+                  </span>
+                  ${item.vinylWeight ? `
+                    <span class="bg-black/85 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-emerald-500/30 font-mono text-[9px] text-emerald-400 font-bold shadow-sm whitespace-nowrap" title="Vinyl Weight: ${escapeHtml(item.vinylWeight)}">
+                      ${escapeHtml(item.vinylWeight.match(/\d+g/i)?.[0] || item.vinylWeight)}
+                    </span>
+                  ` : ''}
+                  ${(item.vinylColor && !item.vinylColor.toLowerCase().includes('black')) ? `
+                    <span class="bg-black/85 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-pink-500/40 text-[9px] text-pink-300 font-semibold shadow-sm truncate max-w-[85px]" title="Vinyl Colour: ${escapeHtml(item.vinylColor)}">
+                      <i class="fa-solid fa-palette text-[8px] mr-0.5"></i>${escapeHtml(item.vinylColor)}
+                    </span>
+                  ` : ''}
+                </div>
+                <span class="bg-black/85 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/15 truncate max-w-[120px] font-medium text-brass-400 shadow-sm" title="${escapeHtml(item.label || 'Unknown Label')}">
                   ${item.label || 'Unknown Label'}
                 </span>
               </div>
@@ -5561,7 +5660,11 @@
               </div>
             </td>
             <td class="py-2.5 px-3 whitespace-nowrap">
-              ${getFormatBadge(item.format)}
+              <div class="flex flex-col gap-0.5 items-start">
+                ${getFormatBadge(item.format)}
+                ${item.vinylWeight ? `<span class="text-[10px] font-mono text-emerald-400 font-bold" title="Vinyl Weight: ${escapeHtml(item.vinylWeight)}">⚖️ ${escapeHtml(item.vinylWeight.match(/\d+g/i)?.[0] || item.vinylWeight)}</span>` : ''}
+                ${(item.vinylColor && !item.vinylColor.toLowerCase().includes('black')) ? `<span class="text-[10px] text-pink-300 font-semibold truncate max-w-[120px]" title="Vinyl Colour: ${escapeHtml(item.vinylColor)}">🎨 ${escapeHtml(item.vinylColor)}</span>` : ''}
+              </div>
             </td>
             <td class="py-2.5 px-3 font-mono">${item.year || '--'}</td>
             <td class="py-2.5 px-3 whitespace-nowrap">${getGradeBadge(item.mediaGrade)}</td>
@@ -6511,6 +6614,22 @@
                   ${item.ownerName}
                 </span>
               </div>` : ''}
+              ${item.vinylColor ? `
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">Vinyl Colour:</span>
+                <span class="font-semibold text-pink-300 flex items-center gap-1.5">
+                  <i class="fa-solid fa-palette text-pink-400 text-xs"></i>
+                  ${escapeHtml(item.vinylColor)}
+                </span>
+              </div>` : ''}
+              ${item.vinylWeight ? `
+              <div class="flex justify-between items-center font-mono">
+                <span class="text-slate-400">Vinyl Weight:</span>
+                <span class="font-bold text-emerald-400 flex items-center gap-1.5">
+                  <i class="fa-solid fa-weight-hanging text-emerald-400 text-xs"></i>
+                  ${escapeHtml(item.vinylWeight)}
+                </span>
+              </div>` : ''}
               ${item.centerHole ? `
               <div class="flex justify-between items-center">
                 <span class="text-slate-400">Center Hole:</span>
@@ -6876,6 +6995,10 @@
         if (document.getElementById('formPriceMedian')) document.getElementById('formPriceMedian').value = '';
         if (document.getElementById('formPriceHigh')) document.getElementById('formPriceHigh').value = '';
         if (document.getElementById('formPriceSource')) document.getElementById('formPriceSource').value = '';
+        if (document.getElementById('formVinylColor')) document.getElementById('formVinylColor').value = '';
+        if (document.getElementById('formVinylWeight')) document.getElementById('formVinylWeight').value = '';
+        if (document.getElementById('formVinylColorPreset')) document.getElementById('formVinylColorPreset').value = '';
+        if (document.getElementById('formVinylWeightPreset')) document.getElementById('formVinylWeightPreset').value = '';
         const rangeBadges = document.getElementById('formPriceRangeBadges');
         if (rangeBadges) rangeBadges.classList.add('hidden');
 
@@ -6958,6 +7081,14 @@
         if (centerHole) centerHole.value = 'Solid (Small 0.28 inch)';
         if (hintText) hintText.innerText = '12-inch 33⅓ RPM long-playing album with multi-track layout.';
       }
+
+      const vinylSpecs = document.getElementById('vinylSpecsContainer');
+      const isVinyl = !isCassette && !isMiniDisc && !format.toLowerCase().includes('cd');
+      if (vinylSpecs) {
+        if (isVinyl) vinylSpecs.classList.remove('hidden');
+        else vinylSpecs.classList.add('hidden');
+      }
+
       if (typeof refreshDefaultLabelPlaceholders === 'function') {
         refreshDefaultLabelPlaceholders();
       }
@@ -7073,6 +7204,10 @@
       document.getElementById('formSideBDuration').value = item.sideBDuration || '';
       document.getElementById('formBarcode').value = item.barcode || '';
       document.getElementById('formCountry').value = item.country || '';
+      document.getElementById('formVinylColor').value = item.vinylColor || '';
+      document.getElementById('formVinylWeight').value = item.vinylWeight || '';
+      if (document.getElementById('formVinylColorPreset')) document.getElementById('formVinylColorPreset').value = '';
+      if (document.getElementById('formVinylWeightPreset')) document.getElementById('formVinylWeightPreset').value = '';
 
       // Valuation
       document.getElementById('formEstimatedValue').value = (item.estimatedValue !== undefined && item.estimatedValue !== null) ? item.estimatedValue : '';
@@ -7212,6 +7347,8 @@
         tracks: parsedTracks.length > 0 ? parsedTracks : undefined,
         barcode: document.getElementById('formBarcode').value.trim(),
         country: document.getElementById('formCountry').value.trim(),
+        vinylColor: document.getElementById('formVinylColor')?.value.trim() || '',
+        vinylWeight: document.getElementById('formVinylWeight')?.value.trim() || '',
 
         centerHole: document.getElementById('formCenterHole').value,
         speed: document.getElementById('formSpeed').value,
@@ -7295,6 +7432,10 @@
         if (document.getElementById('formPriceMedian')) document.getElementById('formPriceMedian').value = '';
         if (document.getElementById('formPriceHigh')) document.getElementById('formPriceHigh').value = '';
         if (document.getElementById('formPriceSource')) document.getElementById('formPriceSource').value = '';
+        if (document.getElementById('formVinylColor')) document.getElementById('formVinylColor').value = '';
+        if (document.getElementById('formVinylWeight')) document.getElementById('formVinylWeight').value = '';
+        if (document.getElementById('formVinylColorPreset')) document.getElementById('formVinylColorPreset').value = '';
+        if (document.getElementById('formVinylWeightPreset')) document.getElementById('formVinylWeightPreset').value = '';
         const rangeBadges = document.getElementById('formPriceRangeBadges');
         if (rangeBadges) rangeBadges.classList.add('hidden');
         if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = '';
@@ -9016,6 +9157,24 @@
             // Determine format using our comprehensive parser
             assignedFormat = parseDiscogsFormat(dData.formats || match.rawDiscogsFormat || []);
 
+            // Auto-detect Vinyl Weight and Colour from Discogs format descriptions
+            const descList = [];
+            (dData.formats || []).forEach(f => {
+              if (Array.isArray(f.descriptions)) descList.push(...f.descriptions);
+              if (f.text) descList.push(f.text);
+            });
+            const weightMatch = descList.find(d => /\b(180\s*g?|200\s*g?|140\s*g?|150\s*g?)\b/i.test(d));
+            if (weightMatch) {
+              const cleanedW = weightMatch.match(/\b\d+\s*g?\b/i)?.[0] || weightMatch;
+              const wVal = cleanedW.toLowerCase().endsWith('g') ? cleanedW : (cleanedW + 'g');
+              document.getElementById('formVinylWeight').value = wVal;
+            }
+            const colorKeywords = ['clear', 'white', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'gold', 'silver', 'splatter', 'marbled', 'swirl', 'picture disc', 'etched', 'coloured', 'colored'];
+            const colorMatch = descList.find(d => colorKeywords.some(k => d.toLowerCase().includes(k)));
+            if (colorMatch) {
+              document.getElementById('formVinylColor').value = colorMatch;
+            }
+
             // Tracklist parsing
             if (Array.isArray(dData.tracklist)) {
               dData.tracklist.forEach((t, tIdx) => {
@@ -10277,6 +10436,7 @@
 
       const headers = [
         "Record ID", "Format", "Artist", "Title / Album", "Year", "Label", "Catalog Number",
+        "Vinyl Colour", "Vinyl Weight",
         "Estimated Value", "Currency", "Speed", "Center Hole", "Side A Track", "Side B Track",
         "Side A Matrix", "Side B Matrix", "Mastering Engineer", "Pressing Plant",
         "Media Grade", "Media Notes", "Sleeve Grade", "Sleeve Notes",
@@ -10297,6 +10457,8 @@
         escapeCSV(r.year),
         escapeCSV(r.label),
         escapeCSV(r.catNo),
+        escapeCSV(r.vinylColor),
+        escapeCSV(r.vinylWeight),
         escapeCSV(r.estimatedValue),
         escapeCSV(r.currency || globalCurrency),
         escapeCSV(r.speed),
@@ -10341,6 +10503,8 @@
       const rows = records.map(r => ({
         "ID": r.id,
         "Format": r.format,
+        "Vinyl Colour": r.vinylColor || '',
+        "Vinyl Weight": r.vinylWeight || '',
         "Artist": r.artist,
         "Title": r.title,
         "Year": r.year,
