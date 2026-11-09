@@ -125,38 +125,44 @@
         </button>
       </div>
 
+      <!-- Share Read-Only Link Quick Trigger -->
+      <button onclick="openShareModal()" id="headerShareBtn" class="px-3 py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-sky-400 border border-sky-500/30 hover:border-sky-400 transition flex items-center gap-2 shadow-sm" title="Share private read-only link with others">
+        <i class="fa-solid fa-share-nodes text-sm"></i>
+        <span>Share Link</span>
+      </button>
+
       <!-- Scan Barcode Quick Trigger -->
-      <button onclick="openScannerModal()" class="px-3 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 hover:border-brass-400 transition flex items-center gap-2 shadow-sm">
+      <button onclick="openScannerModal()" id="quickScanBtn" class="px-3 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 hover:border-brass-400 transition flex items-center gap-2 shadow-sm">
         <i class="fa-solid fa-barcode text-sm"></i>
         <span>Scan Barcode</span>
       </button>
 
       <!-- Market Valuation / Discogs API Settings Button -->
-      <button onclick="openValuationModal()" class="px-3 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-amber-400 border border-amber-500/30 hover:border-amber-400 transition flex items-center gap-2 shadow-sm" title="Discogs Market Values & Valuation Intelligence">
+      <button onclick="openValuationModal()" id="quickValuateBtn" class="px-3 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-amber-400 border border-amber-500/30 hover:border-amber-400 transition flex items-center gap-2 shadow-sm" title="Discogs Market Values & Valuation Intelligence">
         <i class="fa-solid fa-coins text-sm"></i>
         <span>Market Values</span>
       </button>
 
       <!-- Batch Import (Excel/CSV) Trigger -->
-      <button onclick="openBatchUploadModal()" class="px-3 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 transition flex items-center gap-2 shadow-sm">
+      <button onclick="openBatchUploadModal()" id="quickBatchBtn" class="px-3 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 transition flex items-center gap-2 shadow-sm">
         <i class="fa-solid fa-file-excel text-sm"></i>
         <span>Batch Upload</span>
       </button>
 
       <!-- Import from Discogs Option -->
-      <button onclick="openDiscogsImportModal()" class="px-3 py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-sky-400 border border-sky-500/30 hover:border-sky-400 transition flex items-center gap-2 shadow-sm" title="Import collection exported from Discogs (.csv)">
+      <button onclick="openDiscogsImportModal()" id="quickDiscogsBtn" class="px-3 py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-sky-400 border border-sky-500/30 hover:border-sky-400 transition flex items-center gap-2 shadow-sm" title="Import collection exported from Discogs (.csv)">
         <i class="fa-solid fa-record-vinyl text-sky-400 text-sm"></i>
         <span>Import Discogs</span>
       </button>
 
       <!-- Add New Record Button -->
-      <button onclick="openAddEditModal()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-vinyl-950 transition flex items-center gap-2 shadow-lg shadow-brass-500/10">
+      <button onclick="openAddEditModal()" id="openAddEditBtn" class="px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-vinyl-950 transition flex items-center gap-2 shadow-lg shadow-brass-500/10">
         <i class="fa-solid fa-plus text-sm"></i>
         <span>Catalogue Record</span>
       </button>
 
       <!-- Import / Export Menu Dropdown -->
-      <div class="relative group">
+      <div class="relative group" id="moreActionsDropdown">
         <button class="p-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border border-vinyl-700 transition" title="Archival Export & Options">
           <i class="fa-solid fa-ellipsis-vertical px-1"></i>
         </button>
@@ -320,11 +326,11 @@
 
       <!-- Filters Row -->
       <div class="flex flex-wrap items-center gap-2">
-        <!-- Member Crate Filter (All QMC Collective vs My Crate) -->
-        <select id="filterMember" onchange="handleSearchFilterChange()" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-brass-400 font-semibold focus:outline-none focus:border-brass-500">
-          <option value="ALL">All QMC Collective (Shared Pool)</option>
-          <option value="MY_CRATE">My Personal Crate Only</option>
-        </select>
+        <!-- Share Link Trigger in Filters -->
+        <button type="button" onclick="openShareModal()" id="filterShareBtn" class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-sky-500/50 rounded-lg px-2.5 py-2 text-xs text-sky-400 font-semibold transition flex items-center gap-1.5 shadow-sm" title="Share private read-only link with others">
+          <i class="fa-solid fa-share-nodes text-xs"></i>
+          <span>Share</span>
+        </button>
 
         <!-- Format Filter (Album vs Single vs EP vs Box Set) -->
         <select id="filterFormat" onchange="handleSearchFilterChange()" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-brass-500">
@@ -1588,6 +1594,97 @@
   </div>
 
   <!-- ============================================== -->
+  <!-- MODAL: SHARE READ-ONLY ARCHIVE LINK             -->
+  <!-- ============================================== -->
+  <div id="shareModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden overflow-y-auto">
+    <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-lg flex flex-col shadow-2xl overflow-hidden my-auto animate-fadeIn">
+      
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400">
+            <i class="fa-solid fa-share-nodes text-sm"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-white tracking-tight">Share Your Vinyl Archive</h2>
+            <p class="text-[11px] text-slate-400">Private Read-Only Link (No Editing / Deleting)</p>
+          </div>
+        </div>
+        <button onclick="closeShareModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Body Content -->
+      <div class="p-6 space-y-4">
+        
+        <!-- Not Logged In Notice -->
+        <div id="shareNotLoggedInBox" class="hidden text-center py-4 space-y-3">
+          <i class="fa-solid fa-lock text-3xl text-amber-400 mb-1 block"></i>
+          <h3 class="text-sm font-bold text-white">Member Sign-In Required</h3>
+          <p class="text-xs text-slate-400 max-w-sm mx-auto">
+            Please sign in to your QMC member account to generate and manage private read-only share links for your cloud archive.
+          </p>
+          <button onclick="closeShareModal(); openAuthModal();" class="px-4 py-2 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold text-xs rounded-lg transition shadow">
+            Member Sign In
+          </button>
+        </div>
+
+        <!-- Logged In Share Manager -->
+        <div id="shareLoggedInBox" class="space-y-4">
+          
+          <!-- Status Banner -->
+          <div id="shareStatusCard" class="p-4 rounded-xl border transition flex items-start gap-3">
+            <!-- Dynamically populated by updateShareModalUI() -->
+          </div>
+
+          <!-- Share Link Display (when enabled) -->
+          <div id="shareLinkContainer" class="space-y-2 hidden">
+            <label class="block text-xs font-semibold text-slate-300">Your Private Read-Only Link</label>
+            <div class="flex gap-2">
+              <input type="text" id="shareUrlInput" readonly class="flex-1 bg-vinyl-950 border border-vinyl-700 rounded-lg px-3 py-2 text-xs font-mono text-sky-300 select-all focus:outline-none focus:border-sky-500">
+              <button onclick="copyShareLink()" class="px-3.5 py-2 bg-sky-500 hover:bg-sky-400 text-vinyl-950 font-bold text-xs rounded-lg transition flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-copy"></i>
+                <span id="copyShareBtnText">Copy</span>
+              </button>
+            </div>
+            <p class="text-[11px] text-slate-500 leading-relaxed">
+              Anyone with this link can view your sleeves, tracklists, research notes, and collection analytics. They <strong>cannot</strong> make any changes.
+            </p>
+          </div>
+
+          <!-- Sharing Action Buttons -->
+          <div class="space-y-2 pt-2">
+            <button id="btnToggleShare" onclick="toggleArchiveSharing()" class="w-full py-2.5 px-4 font-bold text-xs rounded-lg transition flex items-center justify-center gap-2 shadow">
+              <!-- Dynamically populated: Enable vs Revoke -->
+            </button>
+            
+            <button id="btnTestShareLink" onclick="testShareLink()" class="w-full py-2 px-4 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 text-xs font-medium rounded-lg border border-vinyl-700 transition flex items-center justify-center gap-2 hidden">
+              <i class="fa-solid fa-arrow-up-right-from-square text-sky-400 text-[11px]"></i>
+              <span>Test Shared View (Open in New Tab)</span>
+            </button>
+          </div>
+
+          <!-- Feature Breakdown / Privacy Guarantee -->
+          <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 space-y-2 text-[11px] text-slate-400">
+            <div class="font-bold text-slate-200 flex items-center gap-1.5">
+              <i class="fa-solid fa-shield-halved text-emerald-400"></i> Privacy & Access Guarantees
+            </div>
+            <ul class="space-y-1 list-disc list-inside text-slate-400">
+              <li><strong>Zero Collective Pool:</strong> Other members cannot see your collection unless given this specific link.</li>
+              <li><strong>Instant Rescind:</strong> Clicking <em>Revoke Sharing</em> immediately breaks the link for everyone.</li>
+              <li><strong>Strict Read-Only:</strong> Recipients have no ability to edit, delete, or modify any records.</li>
+            </ul>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================== -->
   <!-- MODAL: COVER ARTWORK CHOOSER / SLEEVE SELECTOR -->
   <!-- ============================================== -->
   <div id="artworkChooserModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[80] flex items-center justify-center p-3 sm:p-6 hidden overflow-y-auto" style="z-index: 80;">
@@ -1944,6 +2041,11 @@
     let currentUserProfile = null;
     let isCloudActive = false;
     let realtimeChannel = null;
+
+    // Read-Only Sharing State
+    let isReadOnlyShareView = false;
+    let shareOwnerId = null;
+    let shareOwnerName = '';
 
     /* =========================================================
        APPLICATION STATE
@@ -2924,6 +3026,298 @@
     }
 
     /* =========================================================
+       READ-ONLY SHARE LINK & PRIVATE CRATE SYSTEM
+       ========================================================= */
+    async function checkShareUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      const share = params.get('share');
+      if (share) {
+        shareOwnerId = share.trim();
+        isReadOnlyShareView = true;
+      }
+    }
+
+    async function fetchSharedArchive(ownerId) {
+      if (!supabaseClient || !ownerId) return;
+      try {
+        let res = await supabaseClient
+          .from('records')
+          .select('*, profiles(display_name, city)')
+          .eq('user_id', ownerId)
+          .eq('is_public', true)
+          .order('date_added', { ascending: false });
+
+        if (res.error) {
+          console.warn("Retrying fetchSharedArchive without order:", res.error);
+          res = await supabaseClient
+            .from('records')
+            .select('*, profiles(display_name, city)')
+            .eq('user_id', ownerId)
+            .eq('is_public', true);
+        }
+
+        if (res.error) throw res.error;
+
+        const data = res.data;
+        if (data && data.length > 0) {
+          records = data.map(mapDbToRecord);
+          const ownerProfileName = data[0].ownerName || data[0].profiles?.display_name || 'Collector';
+          shareOwnerName = ownerProfileName;
+          applyReadOnlyMode(ownerProfileName);
+          renderStats();
+          renderRecords();
+          showToast(`Viewing ${ownerProfileName}'s shared vinyl archive`, "info");
+        } else {
+          records = [];
+          applyReadOnlyRevokedState();
+        }
+      } catch (err) {
+        console.warn("Shared archive fetch error:", err);
+        records = [];
+        applyReadOnlyRevokedState();
+      }
+    }
+
+    function applyReadOnlyMode(ownerName = 'Collector') {
+      isReadOnlyShareView = true;
+
+      // 1. Insert or reveal Read-Only Top Banner
+      let banner = document.getElementById('readOnlyShareBanner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'readOnlyShareBanner';
+        banner.className = "bg-gradient-to-r from-sky-950 via-vinyl-900 to-sky-950 border-b border-sky-500/40 px-4 lg:px-8 py-2.5 text-xs text-sky-200 flex flex-wrap items-center justify-between gap-3 shadow-lg sticky top-0 z-50";
+        document.body.prepend(banner);
+      }
+      banner.innerHTML = `
+        <div class="flex items-center gap-2.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <i class="fa-solid fa-lock text-sky-400"></i>
+          <span>Viewing <strong>${escapeHtml(ownerName)}'s Vinyl Archive</strong> <span class="bg-sky-500/20 text-sky-300 border border-sky-500/40 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ml-1">Read-Only</span></span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-slate-400 text-[11px] font-mono hidden sm:inline"><i class="fa-solid fa-record-vinyl mr-1"></i>${records.length} records in archive</span>
+          <a href="index.html" class="px-2.5 py-1 rounded bg-vinyl-800 hover:bg-vinyl-700 text-white font-medium border border-vinyl-700 text-[11px] transition shadow-sm">
+            <i class="fa-solid fa-arrow-left text-[10px] mr-1"></i> Exit Shared View
+          </a>
+        </div>
+      `;
+
+      // 2. Hide / disable management buttons
+      const buttonsToHide = [
+        'authNavBtn',
+        'headerShareBtn',
+        'filterShareBtn',
+        'openAddEditBtn',
+        'quickScanBtn',
+        'quickValuateBtn',
+        'quickBatchBtn',
+        'quickDiscogsBtn',
+        'moreActionsDropdown'
+      ];
+      buttonsToHide.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+      });
+    }
+
+    function applyReadOnlyRevokedState() {
+      applyReadOnlyMode('Collector');
+      const container = document.getElementById('recordsViewContainer');
+      const emptyState = document.getElementById('emptyState');
+      if (emptyState) emptyState.classList.add('hidden');
+      if (container) {
+        container.innerHTML = `
+          <div class="p-12 text-center bg-vinyl-900 rounded-2xl border border-vinyl-800 max-w-lg mx-auto my-12 shadow-2xl">
+            <div class="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto mb-4">
+              <i class="fa-solid fa-lock text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Archive Is Private</h3>
+            <p class="text-xs text-slate-400 mb-6 leading-relaxed">
+              This vinyl collection is currently private or access has been rescinded by the owner.
+            </p>
+            <a href="index.html" class="px-5 py-2.5 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold text-xs rounded-lg transition inline-flex items-center gap-2 shadow">
+              <i class="fa-solid fa-house"></i> Return to QMC Archive
+            </a>
+          </div>
+        `;
+      }
+    }
+
+    function openShareModal() {
+      const modal = document.getElementById('shareModal');
+      if (modal) {
+        updateShareModalUI();
+        modal.classList.remove('hidden');
+      }
+    }
+
+    function closeShareModal() {
+      const modal = document.getElementById('shareModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function updateShareModalUI() {
+      const notLoggedInBox = document.getElementById('shareNotLoggedInBox');
+      const loggedInBox = document.getElementById('shareLoggedInBox');
+      const statusCard = document.getElementById('shareStatusCard');
+      const linkContainer = document.getElementById('shareLinkContainer');
+      const urlInput = document.getElementById('shareUrlInput');
+      const btnToggle = document.getElementById('btnToggleShare');
+      const btnTest = document.getElementById('btnTestShareLink');
+
+      if (!currentUser) {
+        if (notLoggedInBox) notLoggedInBox.classList.remove('hidden');
+        if (loggedInBox) loggedInBox.classList.add('hidden');
+        return;
+      }
+
+      if (notLoggedInBox) notLoggedInBox.classList.add('hidden');
+      if (loggedInBox) loggedInBox.classList.remove('hidden');
+
+      const isEnabled = (localStorage.getItem('qmc_share_enabled_' + currentUser.id) === 'true') || (currentUser.user_metadata?.share_enabled === true);
+      const shareKey = localStorage.getItem('qmc_share_key_' + currentUser.id) || currentUser.user_metadata?.share_key || ('sh_' + currentUser.id.substring(0, 8));
+
+      let baseUrl = window.location.origin + window.location.pathname;
+      if (!baseUrl.startsWith('http')) {
+        baseUrl = 'https://www.queensferrymusiccollective.co.uk/catalogue/';
+      }
+      const fullShareUrl = `${baseUrl}?share=${currentUser.id}&key=${shareKey}`;
+
+      if (isEnabled) {
+        statusCard.className = "p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 flex items-start gap-3";
+        statusCard.innerHTML = `
+          <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+            <i class="fa-solid fa-link text-sm"></i>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <strong class="text-white text-xs">Read-Only Sharing is ACTIVE</strong>
+            </div>
+            <p class="text-[11px] text-slate-300 mt-1">
+              Anyone with your private link below can view your archive in read-only mode.
+            </p>
+          </div>
+        `;
+        linkContainer.classList.remove('hidden');
+        urlInput.value = fullShareUrl;
+
+        btnToggle.className = "w-full py-2.5 px-4 bg-red-950/70 hover:bg-red-900 border border-red-800 text-red-300 font-bold text-xs rounded-lg transition flex items-center justify-center gap-2 shadow";
+        btnToggle.innerHTML = `<i class="fa-solid fa-ban"></i> <span>Revoke Sharing (Make Strictly Private)</span>`;
+
+        btnTest.classList.remove('hidden');
+      } else {
+        statusCard.className = "p-4 rounded-xl border border-vinyl-800 bg-vinyl-850 flex items-start gap-3";
+        statusCard.innerHTML = `
+          <div class="w-8 h-8 rounded-full bg-vinyl-800 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+            <i class="fa-solid fa-lock text-sm"></i>
+          </div>
+          <div class="flex-1">
+            <strong class="text-white text-xs">Archive is Strictly Private</strong>
+            <p class="text-[11px] text-slate-400 mt-1">
+              Your collection is private to your account. No shared link is active.
+            </p>
+          </div>
+        `;
+        linkContainer.classList.add('hidden');
+
+        btnToggle.className = "w-full py-2.5 px-4 bg-sky-500 hover:bg-sky-400 text-vinyl-950 font-bold text-xs rounded-lg transition flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20";
+        btnToggle.innerHTML = `<i class="fa-solid fa-share-nodes"></i> <span>Enable Read-Only Share Link</span>`;
+
+        btnTest.classList.add('hidden');
+      }
+    }
+
+    async function toggleArchiveSharing() {
+      if (!currentUser || !supabaseClient) return;
+
+      const btn = document.getElementById('btnToggleShare');
+      btn.disabled = true;
+
+      const currentEnabled = (localStorage.getItem('qmc_share_enabled_' + currentUser.id) === 'true') || (currentUser.user_metadata?.share_enabled === true);
+      const newEnabled = !currentEnabled;
+
+      if (newEnabled) {
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Enabling share link...</span>`;
+        let key = localStorage.getItem('qmc_share_key_' + currentUser.id);
+        if (!key) {
+          key = 'sh_' + Math.random().toString(36).substring(2, 10);
+          localStorage.setItem('qmc_share_key_' + currentUser.id, key);
+        }
+        localStorage.setItem('qmc_share_enabled_' + currentUser.id, 'true');
+
+        try {
+          await supabaseClient
+            .from('records')
+            .update({ is_public: true })
+            .eq('user_id', currentUser.id);
+
+          await supabaseClient.auth.updateUser({
+            data: { share_enabled: true, share_key: key }
+          });
+
+          records.forEach(r => { if (r.userId === currentUser.id) r.isPublic = true; });
+          showToast("Read-only share link activated!", "success");
+        } catch (e) {
+          console.warn("Notice updating cloud share state:", e);
+        }
+      } else {
+        const proceed = confirm("Revoke read-only sharing? Anyone with your existing link will immediately lose access.");
+        if (!proceed) {
+          btn.disabled = false;
+          return;
+        }
+
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Revoking sharing...</span>`;
+        localStorage.setItem('qmc_share_enabled_' + currentUser.id, 'false');
+
+        try {
+          await supabaseClient
+            .from('records')
+            .update({ is_public: false })
+            .eq('user_id', currentUser.id);
+
+          await supabaseClient.auth.updateUser({
+            data: { share_enabled: false }
+          });
+
+          records.forEach(r => { if (r.userId === currentUser.id) r.isPublic = false; });
+          showToast("Share link revoked. Your archive is now strictly private.", "info");
+        } catch (e) {
+          console.warn("Notice updating cloud share state:", e);
+        }
+      }
+
+      btn.disabled = false;
+      updateShareModalUI();
+    }
+
+    function copyShareLink() {
+      const input = document.getElementById('shareUrlInput');
+      if (!input || !input.value) return;
+      navigator.clipboard.writeText(input.value).then(() => {
+        const btnText = document.getElementById('copyShareBtnText');
+        if (btnText) {
+          btnText.innerText = 'Copied!';
+          setTimeout(() => { btnText.innerText = 'Copy'; }, 2000);
+        }
+        showToast("Read-only share link copied to clipboard!", "success");
+      }).catch(() => {
+        input.select();
+        document.execCommand('copy');
+        showToast("Link copied to clipboard!", "success");
+      });
+    }
+
+    function testShareLink() {
+      const input = document.getElementById('shareUrlInput');
+      if (input && input.value) {
+        window.open(input.value, '_blank');
+      }
+    }
+
+    /* =========================================================
        SUPABASE MULTI-USER AUTH & CLOUD INITIALISATION
        ========================================================= */
     async function initSupabase() {
@@ -2934,18 +3328,20 @@
       try {
         supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
-        // Listen for auth state changes
-        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        await checkShareUrlParams();
+
+        if (shareOwnerId) {
+          // Read-only shared view mode: load only this owner's shared records
+          await fetchSharedArchive(shareOwnerId);
+        } else {
+          // Standard personal archive mode
+          supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            await handleAuthSession(session);
+          });
+
+          const { data: { session } } = await supabaseClient.auth.getSession();
           await handleAuthSession(session);
-        });
-
-        // Check active session on initial page load
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        await handleAuthSession(session);
-
-        // Fetch shared collective records live from Supabase
-        await fetchRecordsFromCloud(true);
-        setupRealtimeSubscription();
+        }
       } catch (err) {
         console.warn("Supabase init error (using local cache):", err);
       }
@@ -2976,13 +3372,22 @@
         } catch (e) {
           console.warn("Notice updating profile on login:", e);
         }
+
+        // Fetch user's own cloud records (never anyone else's)
+        if (!shareOwnerId) {
+          await fetchRecordsFromCloud(true);
+          setupRealtimeSubscription();
+        }
       } else {
         currentUser = null;
         currentUserProfile = null;
         isCloudActive = false;
+        if (realtimeChannel && supabaseClient) {
+          supabaseClient.removeChannel(realtimeChannel);
+          realtimeChannel = null;
+        }
       }
       updateAuthUI();
-      populateMemberFilter(records);
       renderStats();
       renderRecords();
     }
@@ -3148,6 +3553,10 @@
         currentUser = null;
         currentUserProfile = null;
         isCloudActive = false;
+        if (realtimeChannel) {
+          supabaseClient.removeChannel(realtimeChannel);
+          realtimeChannel = null;
+        }
         loadRecordsFromStorage();
         renderStats();
         renderRecords();
@@ -3161,17 +3570,26 @@
 
     async function fetchRecordsFromCloud(silent = false) {
       if (!supabaseClient) return;
+      if (shareOwnerId) return; // Do not overwrite when in read-only share view
+
+      if (!currentUser) {
+        // Not authenticated: keep local records, don't download any cloud records
+        return;
+      }
+
       try {
         let res = await supabaseClient
           .from('records')
           .select('*, profiles(display_name, city)')
+          .eq('user_id', currentUser.id)
           .order('date_added', { ascending: false });
 
         if (res.error) {
           console.warn("Retrying fetchRecords without ordering:", res.error);
           res = await supabaseClient
             .from('records')
-            .select('*, profiles(display_name, city)');
+            .select('*, profiles(display_name, city)')
+            .eq('user_id', currentUser.id);
         }
 
         if (res.error) throw res.error;
@@ -3180,12 +3598,10 @@
         if (data && data.length > 0) {
           records = data.map(mapDbToRecord);
           saveRecordsToStorage();
-          populateMemberFilter(records);
           renderStats();
           renderRecords();
-          if (!silent) showToast(`Synced ${records.length} collective records from cloud!`);
+          if (!silent) showToast(`Synced ${records.length} records from your private cloud archive!`);
         } else if (records.length === 0) {
-          populateMemberFilter([]);
           renderStats();
           renderRecords();
         }
@@ -3196,10 +3612,15 @@
     }
 
     function setupRealtimeSubscription() {
-      if (!supabaseClient || realtimeChannel) return;
+      if (!supabaseClient || realtimeChannel || !currentUser) return;
       realtimeChannel = supabaseClient
-        .channel('public:records')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'records' }, () => {
+        .channel(`user:records:${currentUser.id}`)
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'records',
+          filter: `user_id=eq.${currentUser.id}`
+        }, () => {
           fetchRecordsFromCloud(true);
         })
         .subscribe();
@@ -3263,37 +3684,7 @@
     }
 
     function populateMemberFilter(recordList) {
-      const select = document.getElementById('filterMember');
-      if (!select) return;
-      const currentVal = select.value;
-
-      const memberMap = new Map();
-      recordList.forEach(r => {
-        if (r.userId) {
-          const name = r.ownerName || 'Club Member';
-          if (!memberMap.has(r.userId)) {
-            memberMap.set(r.userId, name);
-          }
-        }
-      });
-
-      let optionsHTML = `
-        <option value="ALL">All QMC Collective (${recordList.length} Discs)</option>
-        <option value="MY_CRATE">My Personal Crate Only</option>
-      `;
-
-      memberMap.forEach((name, uid) => {
-        const isMe = currentUser && currentUser.id === uid;
-        const label = isMe ? `${name}'s Crate (You)` : `${name}'s Crate`;
-        optionsHTML += `<option value="${uid}">${label}</option>`;
-      });
-
-      select.innerHTML = optionsHTML;
-      if ([...select.options].some(o => o.value === currentVal)) {
-        select.value = currentVal;
-      } else {
-        select.value = 'ALL';
-      }
+      // Shared crate removed: Archives are strictly private to each owner with optional read-only share links.
     }
 
     // Initialize Application
@@ -3458,24 +3849,11 @@
        ========================================================= */
     function getFilteredAndSortedRecords() {
       const searchTerm = (document.getElementById('globalSearch')?.value || '').toLowerCase().trim();
-      const memberFilter = document.getElementById('filterMember')?.value || 'ALL';
       const formatFilter = document.getElementById('filterFormat')?.value || 'ALL';
       const gradeFilter = document.getElementById('filterGrade')?.value || 'ALL';
       const sortBy = document.getElementById('sortBy')?.value || 'dateAddedDesc';
 
       let result = records.filter(item => {
-        // Multi-user crate filtering
-        if (memberFilter === 'MY_CRATE') {
-          if (currentUser) {
-            if (item.userId !== currentUser.id) return false;
-          } else {
-            // Display local / unassigned records
-            if (item.userId) return false;
-          }
-        } else if (memberFilter !== 'ALL') {
-          if (item.userId !== memberFilter) return false;
-        }
-
         const tracksText = (item.tracks || []).map(t => `${t.pos || ''} ${t.title || ''}`).join(' ');
         const matchText = (
           (item.artist || '') + ' ' +
@@ -3483,7 +3861,6 @@
           (item.format || '') + ' ' +
           (item.label || '') + ' ' +
           (item.catNo || '') + ' ' +
-          (item.ownerName || '') + ' ' +
           (item.sideATitle || '') + ' ' +
           (item.sideBTitle || '') + ' ' +
           tracksText + ' ' +
@@ -3535,20 +3912,14 @@
 
     function renderActivePills() {
       const container = document.getElementById('filterPillsContainer');
-      const searchTerm = document.getElementById('globalSearch').value.trim();
-      const memberFilter = document.getElementById('filterMember')?.value || 'ALL';
-      const formatFilter = document.getElementById('filterFormat').value;
-      const gradeFilter = document.getElementById('filterGrade').value;
+      const searchTerm = document.getElementById('globalSearch')?.value.trim();
+      const formatFilter = document.getElementById('filterFormat')?.value || 'ALL';
+      const gradeFilter = document.getElementById('filterGrade')?.value || 'ALL';
 
       let pillsHTML = '';
 
       if (searchTerm) {
         pillsHTML += `<span class="bg-vinyl-800 text-slate-200 px-2.5 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Query: "${searchTerm}" <button onclick="clearSearchInput()" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
-      }
-      if (memberFilter !== 'ALL') {
-        const sel = document.getElementById('filterMember');
-        const label = sel ? sel.options[sel.selectedIndex]?.text : memberFilter;
-        pillsHTML += `<span class="bg-vinyl-800 text-brass-400 px-2.5 py-0.5 rounded-full border border-brass-500/30 flex items-center gap-1.5"><i class="fa-solid fa-user text-[10px]"></i> ${label} <button onclick="document.getElementById('filterMember').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
       }
       if (formatFilter !== 'ALL') {
         pillsHTML += `<span class="bg-vinyl-800 text-amber-400 px-2.5 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Format: ${formatFilter} <button onclick="document.getElementById('filterFormat').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
@@ -3567,7 +3938,6 @@
 
     function resetFilters() {
       document.getElementById('globalSearch').value = '';
-      if (document.getElementById('filterMember')) document.getElementById('filterMember').value = 'ALL';
       document.getElementById('filterFormat').value = 'ALL';
       document.getElementById('filterGrade').value = 'ALL';
       document.getElementById('sortBy').value = 'dateAddedDesc';
@@ -3656,7 +4026,18 @@
     function getDiscogsSearchUrl(item) {
       const terms = getCleanSearchTerms(item.artist, item.title);
       const q = (terms.artist ? `${terms.artist} ${item.catNo || terms.title}` : (item.catNo || terms.title)).trim();
-      return `https://www.discogs.com/search/?q=${encodeURIComponent(q)}&type=release`;
+      let url = `https://www.discogs.com/search/?q=${encodeURIComponent(q)}&type=release`;
+      const is7Inch = (item.format || '').includes('7"') || (item.format || '').toLowerCase().includes('single');
+      const isBox = (item.format || '').toLowerCase().includes('box');
+      const isLP = (item.format || '').includes('LP') && !is7Inch;
+      if (is7Inch) {
+        url += `&format_exact=7%22`;
+      } else if (isBox) {
+        url += `&format_exact=Box+Set`;
+      } else if (isLP) {
+        url += `&format_exact=LP`;
+      }
+      return url;
     }
 
     function getEbaySoldUrl(item) {
@@ -3739,7 +4120,7 @@
         const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
         const isAlbum = item.format && item.format.includes('LP');
         const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(item.estimatedValue) && item.estimatedValue > 0;
-        const isOwner = !item.userId || (currentUser && item.userId === currentUser.id);
+        const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
 
         html += `
           <div class="bg-vinyl-900 rounded-2xl border border-vinyl-800 hover:border-brass-500/50 transition-all duration-200 overflow-hidden shadow-lg hover:shadow-2xl flex flex-col group">
@@ -3910,7 +4291,7 @@
       list.forEach(item => {
         const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
         const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(item.estimatedValue) && item.estimatedValue > 0;
-        const isOwner = !item.userId || (currentUser && item.userId === currentUser.id);
+        const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
 
         html += `
           <tr class="hover:bg-vinyl-850/60 transition group">
@@ -4253,9 +4634,11 @@
               <button onclick="switchView('list')" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 text-xs font-medium border border-vinyl-700 transition flex items-center gap-1.5" title="Switch to Archival Table">
                 <i class="fa-solid fa-table-list text-amber-400"></i> Table
               </button>
-              <button onclick="openAutoValuateModal()" class="px-3 py-1.5 rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 text-xs font-bold transition flex items-center gap-1.5 shadow" title="Refresh Live Pricing">
-                <i class="fa-solid fa-coins"></i> Valuate Archive
-              </button>
+              ${!isReadOnlyShareView ? `
+                <button onclick="openAutoValuateModal()" class="px-3 py-1.5 rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 text-xs font-bold transition flex items-center gap-1.5 shadow" title="Refresh Live Pricing">
+                  <i class="fa-solid fa-coins"></i> Valuate Archive
+                </button>
+              ` : ''}
             </div>
           </div>
 
@@ -4692,7 +5075,7 @@
       const isAlbum = item.format && item.format.includes('LP');
       const sym = getCurrencySymbol();
       const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(item.estimatedValue) && item.estimatedValue > 0;
-      const isOwner = !item.userId || (currentUser && item.userId === currentUser.id);
+      const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
       const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
 
       let tracksHTML = '';
@@ -5608,8 +5991,10 @@
 
       showToast(`Looking up Discogs market sales for ${artist}...`);
       const token = localStorage.getItem(TOKEN_KEY) || '';
+      const formFmt = document.getElementById('formFormat')?.value || '12" LP (Album)';
+      const formYr = document.getElementById('formYear')?.value || '';
 
-      const priceResult = await queryDiscogsMarketValue(artist, title, catNo, mediaGrade, existingDiscogsId, token);
+      const priceResult = await queryDiscogsMarketValue(artist, title, catNo, mediaGrade, existingDiscogsId, token, formFmt, formYr);
       if (priceResult) {
         document.getElementById('formEstimatedValue').value = priceResult.value.toFixed(2);
         if (priceResult.currency) {
@@ -5640,7 +6025,7 @@
       const token = localStorage.getItem(TOKEN_KEY) || '';
       showToast(`Querying Discogs price for ${record.title}...`);
 
-      const priceResult = await queryDiscogsMarketValue(record.artist, record.title, record.catNo, record.mediaGrade, record.discogsId, token);
+      const priceResult = await queryDiscogsMarketValue(record.artist, record.title, record.catNo, record.mediaGrade, record.discogsId, token, record.format, record.year);
       if (priceResult) {
         record.estimatedValue = priceResult.value;
         record.priceLow = priceResult.low;
@@ -5659,33 +6044,93 @@
       }
     }
 
-    async function queryDiscogsMarketValue(artist, title, catNo, mediaGrade, discogsId, token) {
+    async function queryDiscogsMarketValue(artist, title, catNo, mediaGrade, discogsId, token, format = '', year = null) {
       try {
         let releaseId = discogsId;
 
-        // Step 1: If no release ID, search Discogs database
+        // Step 1: If no release ID, search Discogs database with format and size specification
         if (!releaseId) {
           const terms = getCleanSearchTerms(artist, title);
           const qStr = terms.artist ? `${terms.artist} ${catNo || terms.title}` : (catNo || terms.title);
+
+          const is7Inch = (format || '').includes('7"') || (format || '').toLowerCase().includes('single');
+          const isBox = (format || '').toLowerCase().includes('box');
+          const is10Inch = (format || '').includes('10"');
+          const isMaxi = (format || '').toLowerCase().includes('maxi') || (format || '').toLowerCase().includes('12" single');
+          const isLP = (format || '').includes('LP') && !is7Inch && !isBox;
+
+          // Format parameter for Discogs search API (7", LP, Box Set, etc.)
+          let discogsFormatParam = '';
+          if (is7Inch) discogsFormatParam = '7"';
+          else if (isBox) discogsFormatParam = 'Box Set';
+          else if (is10Inch) discogsFormatParam = '10"';
+          else if (isMaxi) discogsFormatParam = '12"';
+          else if (isLP) discogsFormatParam = 'LP';
+
           let searchUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(qStr)}&type=release`;
+          if (discogsFormatParam) {
+            searchUrl += `&format=${encodeURIComponent(discogsFormatParam)}`;
+          }
           if (token) searchUrl += `&token=${encodeURIComponent(token)}`;
 
-          const searchRes = await fetch(searchUrl, {
+          let searchRes = await fetch(searchUrl, {
             headers: token ? { 'User-Agent': 'QMCVinylArchive/2.0' } : {}
           });
 
           if (!searchRes.ok) {
-            // Fallback: If unauthenticated rate limit reached
             if (searchRes.status === 401 || searchRes.status === 403) {
               promptForTokenHelp();
               return null;
             }
-            throw new Error(`Search failed (${searchRes.status})`);
           }
 
-          const searchData = await searchRes.json();
-          if (searchData.results && searchData.results.length > 0) {
-            releaseId = searchData.results[0].id;
+          let searchData = null;
+          if (searchRes.ok) {
+            searchData = await searchRes.json();
+          }
+
+          // Fallback: If strict format query returned no results, retry search with broader query
+          if (!searchData || !searchData.results || searchData.results.length === 0) {
+            let broadUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(qStr)}&type=release`;
+            if (token) broadUrl += `&token=${encodeURIComponent(token)}`;
+            const broadRes = await fetch(broadUrl, {
+              headers: token ? { 'User-Agent': 'QMCVinylArchive/2.0' } : {}
+            });
+            if (broadRes.ok) {
+              searchData = await broadRes.json();
+            }
+          }
+
+          if (searchData && searchData.results && searchData.results.length > 0) {
+            // Intelligently select the best matching result for vinyl size
+            let bestMatch = null;
+            for (const r of searchData.results) {
+              const resFmt = (Array.isArray(r.format) ? r.format.join(' ') : (r.format || '')).toLowerCase();
+              if (is7Inch && (resFmt.includes('7"') || resFmt.includes('single') || resFmt.includes('45 rpm'))) {
+                bestMatch = r;
+                break;
+              }
+              if (isBox && resFmt.includes('box')) {
+                bestMatch = r;
+                break;
+              }
+              if (is10Inch && resFmt.includes('10"')) {
+                bestMatch = r;
+                break;
+              }
+              if (isMaxi && (resFmt.includes('12"') || resFmt.includes('maxi'))) {
+                bestMatch = r;
+                break;
+              }
+              if (isLP && (resFmt.includes('lp') || resFmt.includes('album') || resFmt.includes('12"')) && !resFmt.includes('7"')) {
+                bestMatch = r;
+                break;
+              }
+            }
+            if (!bestMatch) {
+              bestMatch = searchData.results[0];
+            }
+            releaseId = bestMatch.id;
           } else {
             showToast("No matching release found on Discogs", "info");
             return null;
@@ -5783,7 +6228,7 @@
         const item = targetList[i];
         if (progress) progress.innerText = `Discogs query (${i + 1}/${targetList.length}): ${item.title}...`;
         
-        const price = await queryDiscogsMarketValue(item.artist, item.title, item.catNo, item.mediaGrade, item.discogsId, token);
+        const price = await queryDiscogsMarketValue(item.artist, item.title, item.catNo, item.mediaGrade, item.discogsId, token, item.format, item.year);
         if (price) {
           item.estimatedValue = price.value;
           item.priceLow = price.low;
