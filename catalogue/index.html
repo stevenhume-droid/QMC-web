@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -349,24 +349,33 @@
 
   <!-- COMPACT COLLECTION SUMMARY STRIP (Collection + Interactive Decades Filter) -->
   <section class="bg-vinyl-900 border-b border-vinyl-800 px-3 sm:px-4 lg:px-8 py-2.5">
-    <div id="statsStrip" class="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3">
+    <div id="statsStrip" class="grid grid-cols-1 md:grid-cols-5 gap-2 sm:gap-3">
       
-      <!-- 1. Total Collection & Format Breakdown -->
-      <div class="bg-vinyl-850/80 px-3 py-2 rounded-lg border border-vinyl-800 flex items-center justify-between min-w-0">
-        <div class="min-w-0">
-          <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400 block truncate">Collection</span>
-          <div class="flex items-baseline gap-2 flex-wrap">
-            <span id="statTotalItems" class="text-lg sm:text-xl font-bold font-mono text-brass-400">0</span>
-            <span class="text-[10px] font-mono text-slate-400 truncate">
-              <span id="statTotalLPs" class="text-amber-400 font-semibold">0</span> LP · <span id="statTotal12Singles" class="text-purple-400 font-semibold">0</span> 12" · <span id="statTotalSingles" class="text-cyan-400 font-semibold">0</span> 7"
-            </span>
+      <!-- 1. Total Collection & Format Breakdown (All Formats) -->
+      <div class="md:col-span-2 bg-vinyl-850/80 px-3 py-2 rounded-lg border border-vinyl-800 flex items-center justify-between min-w-0">
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center justify-between gap-1 mb-1">
+            <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400 block">Collection Formats</span>
+            <button type="button" onclick="toggleFormatFilter('ALL')" class="text-[9px] font-mono text-slate-400 hover:text-brass-300 transition" title="Reset filter to show all formats">All Formats</button>
           </div>
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <button type="button" onclick="toggleFormatFilter('ALL')" class="text-lg sm:text-xl font-bold font-mono text-brass-400 hover:text-brass-300 transition cursor-pointer flex-shrink-0" title="Click to view all records in collection">
+              <span id="statTotalItems">0</span>
+            </button>
+            <div id="statFormatBreakdown" class="flex items-center gap-1.5 flex-wrap text-[10px] sm:text-[11px] font-mono">
+              <!-- Dynamically populated format chips for ALL formats -->
+            </div>
+          </div>
+          <!-- Hidden compatibility counters for backwards compatibility -->
+          <span id="statTotalLPs" class="hidden">0</span>
+          <span id="statTotal12Singles" class="hidden">0</span>
+          <span id="statTotalSingles" class="hidden">0</span>
         </div>
-        <i class="fa-solid fa-layer-group text-vinyl-700 text-lg sm:text-xl hidden sm:block"></i>
+        <i class="fa-solid fa-layer-group text-vinyl-700 text-lg sm:text-xl hidden sm:block ml-2 flex-shrink-0"></i>
       </div>
 
-      <!-- 2. Expanded Condition & Tappable Decades Filter (Spans 2 columns on desktop, full width on mobile) -->
-      <div class="md:col-span-2 bg-vinyl-850/80 px-3 py-2 rounded-lg border border-vinyl-800 flex flex-col justify-center min-w-0 gap-1.5">
+      <!-- 2. Expanded Condition & Tappable Decades Filter (Spans 3 columns on desktop, full width on mobile) -->
+      <div class="md:col-span-3 bg-vinyl-850/80 px-3 py-2 rounded-lg border border-vinyl-800 flex flex-col justify-center min-w-0 gap-1.5">
         <div class="flex justify-between items-center text-[10px] uppercase tracking-wider font-semibold text-slate-400 gap-2">
           <span class="flex items-center gap-1.5 truncate">
             <span>Avg Grade:</span>
@@ -4497,15 +4506,189 @@
        ========================================================= */
     function renderStats() {
       const total = records.length;
-      document.getElementById('statTotalItems').innerText = total;
+      const totalEl = document.getElementById('statTotalItems');
+      if (totalEl) totalEl.innerText = total;
 
-      const lpCount = records.filter(r => r.format && (r.format.includes('LP') || r.format.includes('Box Set'))).length;
-      const twelveSingleCount = records.filter(r => r.format && r.format.includes('12"') && (r.format.includes('Single') || r.format.includes('Maxi'))).length;
-      const singleCount = records.filter(r => r.format && r.format.includes('7"')).length;
-      document.getElementById('statTotalLPs').innerText = lpCount;
+      const currentFormatFilter = document.getElementById('filterFormat')?.value || 'ALL';
+
+      // Calibrated format categories covering ALL formats in QMC Archive
+      const formatDefs = [
+        {
+          key: '12" LP',
+          label: '12" LP (Album)',
+          shortLabel: 'LP',
+          color: 'text-amber-400',
+          activeBg: 'bg-amber-500/20 border-amber-500/40 text-amber-300',
+          filterVal: '12" LP (Album)',
+          alwaysShow: true,
+          count: 0,
+          matcher: r => {
+            const f = (r.format || '').toLowerCase();
+            return (f.includes('lp') || f.includes('album')) && !f.includes('2x') && !f.includes('box') && !f.includes('10"') && !f.includes('single') && !f.includes('maxi');
+          }
+        },
+        {
+          key: '2xLP Gatefold',
+          label: '2xLP Gatefold (Album)',
+          shortLabel: '2xLP',
+          color: 'text-purple-400',
+          activeBg: 'bg-purple-500/20 border-purple-500/40 text-purple-300',
+          filterVal: '2xLP Gatefold (Album)',
+          alwaysShow: false,
+          count: 0,
+          matcher: r => {
+            const f = (r.format || '').toLowerCase();
+            return f.includes('2x') || f.includes('gatefold');
+          }
+        },
+        {
+          key: '12" Single',
+          label: '12" Maxi / Single',
+          shortLabel: '12" S',
+          color: 'text-sky-400',
+          activeBg: 'bg-sky-500/20 border-sky-500/40 text-sky-300',
+          filterVal: '12" Maxi / Single',
+          alwaysShow: true,
+          count: 0,
+          matcher: r => {
+            const f = (r.format || '').toLowerCase();
+            return f.includes('maxi') || (f.includes('12"') && (f.includes('single') || f.includes('ep')));
+          }
+        },
+        {
+          key: '10" Vinyl',
+          label: '10" Vinyl',
+          shortLabel: '10"',
+          color: 'text-pink-400',
+          activeBg: 'bg-pink-500/20 border-pink-500/40 text-pink-300',
+          filterVal: '10" Vinyl',
+          alwaysShow: true,
+          count: 0,
+          matcher: r => (r.format || '').includes('10"')
+        },
+        {
+          key: '7" Single',
+          label: '7" Single (45 RPM)',
+          shortLabel: '7"',
+          color: 'text-cyan-400',
+          activeBg: 'bg-cyan-500/20 border-cyan-500/40 text-cyan-300',
+          filterVal: '7" Single (45 RPM)',
+          alwaysShow: true,
+          count: 0,
+          matcher: r => {
+            const f = (r.format || '').toLowerCase();
+            return f.includes('7"') || (f.includes('single') && !f.includes('12"'));
+          }
+        },
+        {
+          key: 'Box Set',
+          label: 'Box Set (Vinyl / Multi-Disc)',
+          shortLabel: 'Box',
+          color: 'text-brass-400',
+          activeBg: 'bg-brass-500/20 border-brass-500/40 text-brass-300',
+          filterVal: 'Box Set (Vinyl / Multi-Disc)',
+          alwaysShow: false,
+          count: 0,
+          matcher: r => (r.format || '').toLowerCase().includes('box')
+        },
+        {
+          key: 'Cassette Tape',
+          label: 'Cassette Tape',
+          shortLabel: 'Tape',
+          color: 'text-teal-400',
+          activeBg: 'bg-teal-500/20 border-teal-500/40 text-teal-300',
+          filterVal: 'Cassette Tape',
+          alwaysShow: false,
+          count: 0,
+          matcher: r => {
+            const f = (r.format || '').toLowerCase();
+            return f.includes('cassette') || f.includes('tape');
+          }
+        },
+        {
+          key: 'MiniDisc',
+          label: 'MiniDisc',
+          shortLabel: 'MD',
+          color: 'text-fuchsia-400',
+          activeBg: 'bg-fuchsia-500/20 border-fuchsia-500/40 text-fuchsia-300',
+          filterVal: 'MiniDisc',
+          alwaysShow: false,
+          count: 0,
+          matcher: r => (r.format || '').toLowerCase().includes('minidisc')
+        },
+        {
+          key: 'CD / Other',
+          label: 'CD / Other',
+          shortLabel: 'CD',
+          color: 'text-slate-400',
+          activeBg: 'bg-slate-500/20 border-slate-500/40 text-slate-300',
+          filterVal: 'CD / Other',
+          alwaysShow: false,
+          count: 0,
+          matcher: () => true
+        }
+      ];
+
+      // Match each record to its proper format category
+      records.forEach(r => {
+        let matched = false;
+        for (let i = 0; i < formatDefs.length - 1; i++) {
+          if (formatDefs[i].matcher(r)) {
+            formatDefs[i].count++;
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) {
+          formatDefs[formatDefs.length - 1].count++;
+        }
+      });
+
+      // Populate legacy compatibility counters
+      const lpTotal = formatDefs.find(f => f.key === '12" LP')?.count || 0;
+      const gatefoldTotal = formatDefs.find(f => f.key === '2xLP Gatefold')?.count || 0;
+      const twelveTotal = formatDefs.find(f => f.key === '12" Single')?.count || 0;
+      const sevenTotal = formatDefs.find(f => f.key === '7" Single')?.count || 0;
+
+      const statLPs = document.getElementById('statTotalLPs');
+      if (statLPs) statLPs.innerText = lpTotal + gatefoldTotal;
       const stat12 = document.getElementById('statTotal12Singles');
-      if (stat12) stat12.innerText = twelveSingleCount;
-      document.getElementById('statTotalSingles').innerText = singleCount;
+      if (stat12) stat12.innerText = twelveTotal;
+      const stat7 = document.getElementById('statTotalSingles');
+      if (stat7) stat7.innerText = sevenTotal;
+
+      // Render ALL active and primary formats in the summary breakdown
+      const breakdownEl = document.getElementById('statFormatBreakdown');
+      if (breakdownEl) {
+        const visibleFormats = formatDefs.filter(f => f.count > 0 || f.alwaysShow);
+        let bHtml = '';
+
+        visibleFormats.forEach((f, idx) => {
+          const isActive = (currentFormatFilter === f.filterVal) || 
+                           (f.key === '12" LP' && currentFormatFilter.includes('LP') && !currentFormatFilter.includes('2x'));
+          const activeClass = isActive 
+            ? `${f.activeBg} font-bold px-1.5 py-0.5 rounded border shadow-sm` 
+            : `${f.color} hover:underline opacity-85 hover:opacity-100 transition cursor-pointer`;
+
+          bHtml += `
+            <button 
+              type="button" 
+              onclick="toggleFormatFilter('${escapeHtml(f.filterVal)}')" 
+              class="${activeClass} flex items-center gap-1 leading-none" 
+              title="Click to filter by ${escapeHtml(f.label)} (${f.count} in archive)"
+            >
+              <span class="font-bold">${f.count}</span>
+              <span class="text-[10px]">${f.shortLabel}</span>
+            </button>
+          `;
+
+          if (idx < visibleFormats.length - 1) {
+            bHtml += `<span class="text-slate-600 select-none">·</span>`;
+          }
+        });
+
+        breakdownEl.innerHTML = bHtml;
+      }
 
       // Valuation calculations
       let totalVal = 0;
@@ -4730,6 +4913,7 @@
     function handleSearchFilterChange() {
       renderRecords();
       renderActivePills();
+      renderStats();
     }
 
     function renderActivePills() {
@@ -5465,24 +5649,43 @@
       showToast(`Filtered catalogue by genre: ${genreStr}`, 'info');
     }
 
+    function toggleFormatFilter(filterVal) {
+      const sel = document.getElementById('filterFormat');
+      if (!sel) return;
+      if (filterVal === 'ALL' || sel.value === filterVal) {
+        sel.value = 'ALL';
+        showToast('Showing all formats', 'info');
+      } else {
+        sel.value = filterVal;
+        showToast(`Filtered by ${filterVal}`, 'info');
+      }
+      handleSearchFilterChange();
+      if (currentView === 'analytics') switchView('grid');
+    }
+
     function filterByFormatTag(formatStr) {
       const sel = document.getElementById('filterFormat');
       if (sel) {
-        let matched = false;
-        for (let i = 0; i < sel.options.length; i++) {
-          if (sel.options[i].value.toLowerCase().includes(formatStr.toLowerCase()) || sel.options[i].text.toLowerCase().includes(formatStr.toLowerCase())) {
-            sel.selectedIndex = i;
-            matched = true;
-            break;
+        if (formatStr === 'ALL') {
+          sel.value = 'ALL';
+          showToast('Showing all formats', 'info');
+        } else {
+          let matched = false;
+          for (let i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].value.toLowerCase().includes(formatStr.toLowerCase()) || sel.options[i].text.toLowerCase().includes(formatStr.toLowerCase())) {
+              sel.selectedIndex = i;
+              matched = true;
+              break;
+            }
           }
-        }
-        if (!matched) {
-          const searchInput = document.getElementById('globalSearch');
-          if (searchInput) searchInput.value = formatStr;
+          if (!matched) {
+            const searchInput = document.getElementById('globalSearch');
+            if (searchInput) searchInput.value = formatStr;
+          }
+          showToast(`Filtered catalogue by format: ${formatStr}`, 'info');
         }
         handleSearchFilterChange();
-        switchView('grid');
-        showToast(`Filtered catalogue by format: ${formatStr}`, 'info');
+        if (currentView === 'analytics') switchView('grid');
       }
     }
 
