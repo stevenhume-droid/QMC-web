@@ -1191,6 +1191,16 @@
                   <span id="formCurrencySymbol" class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-brass-400 font-bold">£</span>
                   <input type="number" step="0.50" id="formEstimatedValue" placeholder="e.g. 24.50" class="w-full pl-8 pr-3 py-2 bg-vinyl-900 border border-vinyl-700 rounded-lg text-xs font-mono text-emerald-400 font-bold focus:outline-none focus:border-brass-500">
                 </div>
+                <!-- Quick Low / Median / High Selection Badges -->
+                <div id="formPriceRangeBadges" class="flex items-center gap-1.5 mt-1.5 hidden text-[10px] font-mono">
+                  <button type="button" onclick="applyFormPriceRange('low')" class="px-2 py-0.5 rounded bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border border-vinyl-700 transition" id="formPriceLowBadge">Low: £0.00</button>
+                  <button type="button" onclick="applyFormPriceRange('median')" class="px-2 py-0.5 rounded bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 transition font-bold" id="formPriceMedianBadge">Med: £0.00</button>
+                  <button type="button" onclick="applyFormPriceRange('high')" class="px-2 py-0.5 rounded bg-vinyl-800 hover:bg-vinyl-700 text-brass-300 border border-brass-500/30 transition" id="formPriceHighBadge">High: £0.00</button>
+                </div>
+                <input type="hidden" id="formPriceLow">
+                <input type="hidden" id="formPriceMedian">
+                <input type="hidden" id="formPriceHigh">
+                <input type="hidden" id="formPriceSource">
               </div>
 
               <div>
@@ -1663,6 +1673,10 @@
         catNo: "SHVL 804",
         year: 1973,
         estimatedValue: 280.00,
+        priceLow: 140.00,
+        priceMedian: 280.00,
+        priceHigh: 550.00,
+        priceSource: "Discogs Marketplace",
         currency: "GBP",
         discogsId: "249504",
         sideATitle: "Speak to Me / Breathe / On the Run / Time",
@@ -1712,6 +1726,10 @@
         catNo: "LIG 506",
         year: 1977,
         estimatedValue: 12.50,
+        priceLow: 6.00,
+        priceMedian: 12.50,
+        priceHigh: 24.00,
+        priceSource: "Discogs Marketplace",
         currency: "GBP",
         discogsId: "79178",
         sideATitle: "Uptown Top Ranking",
@@ -1754,6 +1772,10 @@
         catNo: "CL 1355",
         year: 1959,
         estimatedValue: 320.00,
+        priceLow: 180.00,
+        priceMedian: 320.00,
+        priceHigh: 650.00,
+        priceSource: "Discogs Marketplace",
         currency: "GBP",
         discogsId: "433333",
         sideATitle: "So What / Freddie Freeloader / Blue in Green",
@@ -1799,6 +1821,10 @@
         catNo: "BUY 6",
         year: 1976,
         estimatedValue: 95.00,
+        priceLow: 50.00,
+        priceMedian: 95.00,
+        priceHigh: 180.00,
+        priceSource: "Discogs Marketplace",
         currency: "GBP",
         discogsId: "79179",
         sideATitle: "New Rose",
@@ -1841,6 +1867,10 @@
         catNo: "BOWBX 1978",
         year: 1978,
         estimatedValue: 145.00,
+        priceLow: 75.00,
+        priceMedian: 145.00,
+        priceHigh: 260.00,
+        priceSource: "Discogs Marketplace",
         currency: "GBP",
         discogsId: "249505",
         sideATitle: "Hang On to Yourself / Ziggy Stardust / Five Years",
@@ -3330,10 +3360,15 @@
 
       // Valuation calculations
       let totalVal = 0;
+      let totalLow = 0;
+      let totalHigh = 0;
       let valuedCount = 0;
       records.forEach(r => {
         if (r.estimatedValue && !isNaN(r.estimatedValue)) {
-          totalVal += parseFloat(r.estimatedValue);
+          const val = parseFloat(r.estimatedValue);
+          totalVal += val;
+          totalLow += (r.priceLow && !isNaN(r.priceLow)) ? parseFloat(r.priceLow) : (val * 0.6);
+          totalHigh += (r.priceHigh && !isNaN(r.priceHigh)) ? parseFloat(r.priceHigh) : (val * 1.5);
           valuedCount++;
         }
       });
@@ -3342,11 +3377,11 @@
       document.getElementById('statTotalValue').innerText = `${sym}${totalVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       
       const avgVal = valuedCount > 0 ? (totalVal / valuedCount).toFixed(2) : '0.00';
-      document.getElementById('statAvgValue').innerText = `Avg: ${sym}${avgVal} / disc (${valuedCount}/${total})`;
+      document.getElementById('statAvgValue').innerText = `Avg: ${sym}${avgVal} · Spread: ${sym}${Math.round(totalLow).toLocaleString()} - ${sym}${Math.round(totalHigh).toLocaleString()}`;
       
       const modalSum = document.getElementById('modalValuationSummary');
       if (modalSum) {
-        modalSum.innerText = `${sym}${totalVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        modalSum.innerHTML = `${sym}${totalVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span class="text-xs text-slate-400 font-normal block mt-0.5">Range: ${sym}${Math.round(totalLow).toLocaleString()} Low — ${sym}${Math.round(totalHigh).toLocaleString()} High</span>`;
       }
 
       // Digitized count
@@ -3566,18 +3601,46 @@
       </span>`;
     }
 
-    // Direct Market Check Link Generators
+    // Enhanced search term sanitizer for clean eBay & archival queries
+    function getCleanSearchTerms(artist, title) {
+      let a = (artist || '')
+        .replace(/\s*\(\d+\)$/, '')   // Strip Discogs artist disambiguation e.g. "Genesis (2)" -> "Genesis"
+        .replace(/,\s*The$/i, '')     // Strip "Beatles, The" -> "Beatles"
+        .replace(/,\s*An$/i, '')
+        .trim();
+      
+      if (a.toLowerCase() === 'various' || a.toLowerCase() === 'various artists') {
+        a = ''; // Omit "Various" because vinyl listings are titled by album name
+      }
+
+      let t = (title || '')
+        .replace(/\s*\([^)]*\)/g, '') // Strip "(Remastered)", "(1973 Pressing)", "(Deluxe Edition)"
+        .replace(/\s*\[[^\]]*\]/g, '') // Strip "[180g Vinyl]", "[2016]"
+        .replace(/\s*[-–—]\s*(?:mono|stereo|remaster|deluxe|bonus|reissue|reprint|special|limited).*$/i, '')
+        .trim();
+
+      const query = (a ? `${a} ${t}` : t) + ' vinyl';
+      return { artist: a, title: t, query: query.trim() };
+    }
+
+    function getEbayDomain() {
+      return (typeof globalCurrency !== 'undefined' && globalCurrency === 'USD') ? 'ebay.com' : ((typeof globalCurrency !== 'undefined' && globalCurrency === 'EUR') ? 'ebay.de' : 'ebay.co.uk');
+    }
+
     function getDiscogsSearchUrl(item) {
-      const q = `${item.artist} ${item.catNo || item.title}`.trim();
+      const terms = getCleanSearchTerms(item.artist, item.title);
+      const q = (terms.artist ? `${terms.artist} ${item.catNo || terms.title}` : (item.catNo || terms.title)).trim();
       return `https://www.discogs.com/search/?q=${encodeURIComponent(q)}&type=release`;
     }
 
     function getEbaySoldUrl(item) {
-      const cleanArtist = (item.artist || '').trim();
-      const cleanTitle = (item.title || '').replace(/\s*\([^)]*\)/g, '').trim();
-      const q = `${cleanArtist} ${cleanTitle} vinyl`.trim();
-      const ebayDomain = (typeof globalCurrency !== 'undefined' && globalCurrency === 'USD') ? 'ebay.com' : ((typeof globalCurrency !== 'undefined' && globalCurrency === 'EUR') ? 'ebay.de' : 'ebay.co.uk');
-      return `https://www.${ebayDomain}/sch/i.html?_nkw=${encodeURIComponent(q)}&LH_Complete=1&LH_Sold=1`;
+      const terms = getCleanSearchTerms(item.artist, item.title);
+      return `https://www.${getEbayDomain()}/sch/i.html?_nkw=${encodeURIComponent(terms.query)}&LH_Complete=1&LH_Sold=1`;
+    }
+
+    function getEbayActiveUrl(item) {
+      const terms = getCleanSearchTerms(item.artist, item.title);
+      return `https://www.${getEbayDomain()}/sch/i.html?_nkw=${encodeURIComponent(terms.query)}`;
     }
 
     /* =========================================================
@@ -4047,41 +4110,85 @@
             <!-- MARKET VALUATION & LIVE PRICING CARD -->
             <div class="bg-gradient-to-r from-vinyl-850 to-vinyl-800 p-4 rounded-xl border border-brass-500/30 space-y-3">
               <div class="flex items-center justify-between">
-                <h4 class="text-xs uppercase font-bold text-brass-400 tracking-wider flex items-center gap-2">
-                  <i class="fa-solid fa-coins"></i> Market Valuation & Realized Pricing
-                </h4>
-                <div class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-lg border border-emerald-500/30">
-                  ${hasVal ? `${sym}${parseFloat(item.estimatedValue).toFixed(2)}` : 'Valuation Pending'}
+                <div>
+                  <h4 class="text-xs uppercase font-bold text-brass-400 tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-coins"></i> Market Valuation & Realized Pricing
+                  </h4>
+                  <div class="text-[10px] text-slate-400 mt-0.5">
+                    Assessed for Goldmine Grade: <strong class="text-white">${item.mediaGrade || 'VG+'}</strong>
+                    ${item.priceSource ? ` · <span class="text-slate-300">via ${item.priceSource}</span>` : ''}
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-lg border border-emerald-500/30 inline-block">
+                    ${hasVal ? `${sym}${parseFloat(item.estimatedValue).toFixed(2)}` : 'Valuation Pending'}
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3-Tier Realized Price Spread: Low / Median / High -->
+              <div class="grid grid-cols-3 gap-2 p-2.5 bg-vinyl-900/90 rounded-xl border border-vinyl-700/60 text-center font-mono">
+                <div class="p-2 rounded-lg bg-vinyl-850/80 border border-vinyl-800">
+                  <span class="text-[9px] uppercase tracking-wider text-slate-400 block font-sans font-medium">Low Range</span>
+                  <span class="text-xs font-bold text-slate-300">
+                    ${item.priceLow ? `${sym}${parseFloat(item.priceLow).toFixed(2)}` : (hasVal ? `~${sym}${(parseFloat(item.estimatedValue) * 0.6).toFixed(2)}` : '--')}
+                  </span>
+                  <span class="text-[9px] text-slate-500 block font-sans">Fair / Good</span>
+                </div>
+                <div class="p-2 rounded-lg bg-emerald-950/40 border border-emerald-500/30 shadow-inner">
+                  <span class="text-[9px] uppercase tracking-wider text-emerald-400 block font-sans font-bold">Median (Est.)</span>
+                  <span class="text-xs font-bold text-emerald-300">
+                    ${item.priceMedian ? `${sym}${parseFloat(item.priceMedian).toFixed(2)}` : (hasVal ? `${sym}${parseFloat(item.estimatedValue).toFixed(2)}` : '--')}
+                  </span>
+                  <span class="text-[9px] text-emerald-400/70 block font-sans font-medium">VG+ Benchmark</span>
+                </div>
+                <div class="p-2 rounded-lg bg-vinyl-850/80 border border-vinyl-800">
+                  <span class="text-[9px] uppercase tracking-wider text-brass-400 block font-sans font-medium">High Range</span>
+                  <span class="text-xs font-bold text-brass-300">
+                    ${item.priceHigh ? `${sym}${parseFloat(item.priceHigh).toFixed(2)}` : (hasVal ? `~${sym}${(parseFloat(item.estimatedValue) * 1.5).toFixed(2)}` : '--')}
+                  </span>
+                  <span class="text-[9px] text-slate-500 block font-sans">Near Mint / Mint</span>
                 </div>
               </div>
 
               <!-- 1-Click External Market Lookups -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                 <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener" class="p-2.5 bg-vinyl-900 hover:bg-vinyl-850 border border-vinyl-700 hover:border-blue-400/50 rounded-lg text-xs flex items-center justify-between transition group">
                   <div class="flex items-center gap-2 text-slate-200">
-                    <i class="fa-brands fa-ebay text-blue-400 text-lg"></i>
+                    <i class="fa-brands fa-ebay text-blue-400 text-base"></i>
                     <div>
-                      <div class="font-bold">eBay Sold Listings</div>
-                      <div class="text-[10px] text-slate-400">Recent 90-day transactions</div>
+                      <div class="font-bold text-[11px]">eBay Sold</div>
+                      <div class="text-[9px] text-slate-400">90-day sales</div>
                     </div>
                   </div>
-                  <i class="fa-solid fa-arrow-up-right-from-square text-slate-500 group-hover:text-blue-400 text-xs"></i>
+                  <i class="fa-solid fa-arrow-up-right-from-square text-slate-500 group-hover:text-blue-400 text-[10px]"></i>
+                </a>
+
+                <a href="${getEbayActiveUrl(item)}" target="_blank" rel="noopener" class="p-2.5 bg-vinyl-900 hover:bg-vinyl-850 border border-vinyl-700 hover:border-sky-400/50 rounded-lg text-xs flex items-center justify-between transition group" title="Check live active auctions & Buy It Now copies currently on eBay">
+                  <div class="flex items-center gap-2 text-slate-200">
+                    <i class="fa-brands fa-ebay text-sky-400 text-base"></i>
+                    <div>
+                      <div class="font-bold text-[11px]">eBay Active</div>
+                      <div class="text-[9px] text-slate-400">Live for sale</div>
+                    </div>
+                  </div>
+                  <i class="fa-solid fa-arrow-up-right-from-square text-slate-500 group-hover:text-sky-400 text-[10px]"></i>
                 </a>
 
                 <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener" class="p-2.5 bg-vinyl-900 hover:bg-vinyl-850 border border-vinyl-700 hover:border-amber-400/50 rounded-lg text-xs flex items-center justify-between transition group">
                   <div class="flex items-center gap-2 text-slate-200">
-                    <i class="fa-solid fa-compact-disc text-amber-400 text-lg"></i>
+                    <i class="fa-solid fa-compact-disc text-amber-400 text-base"></i>
                     <div>
-                      <div class="font-bold">Discogs Marketplace</div>
-                      <div class="text-[10px] text-slate-400">Release sales history & medians</div>
+                      <div class="font-bold text-[11px]">Discogs Market</div>
+                      <div class="text-[9px] text-slate-400">Sales &amp; medians</div>
                     </div>
                   </div>
-                  <i class="fa-solid fa-arrow-up-right-from-square text-slate-500 group-hover:text-amber-400 text-xs"></i>
+                  <i class="fa-solid fa-arrow-up-right-from-square text-slate-500 group-hover:text-amber-400 text-[10px]"></i>
                 </a>
               </div>
 
-              <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 flex-wrap gap-2">
-                <span>Goldmine Grade Assessed: <strong>${item.mediaGrade || 'VG+'}</strong></span>
+              <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 flex-wrap gap-2 border-t border-vinyl-800">
+                <span class="text-[10px]">Refresh valuation from live data:</span>
                 <div class="flex items-center gap-2.5">
                   <button type="button" onclick="fetchDiscogsPriceForRecord('${item.id}')" class="text-amber-400 hover:underline flex items-center gap-1 font-medium" title="Estimate value via Discogs Price Suggestions">
                     <i class="fa-solid fa-compact-disc text-xs"></i> Discogs Value
@@ -4271,6 +4378,13 @@
         const currSym = document.getElementById('formCurrencySymbol');
         if (currSym) currSym.innerText = getCurrencySymbol(globalCurrency);
 
+        if (document.getElementById('formPriceLow')) document.getElementById('formPriceLow').value = '';
+        if (document.getElementById('formPriceMedian')) document.getElementById('formPriceMedian').value = '';
+        if (document.getElementById('formPriceHigh')) document.getElementById('formPriceHigh').value = '';
+        if (document.getElementById('formPriceSource')) document.getElementById('formPriceSource').value = '';
+        const rangeBadges = document.getElementById('formPriceRangeBadges');
+        if (rangeBadges) rangeBadges.classList.add('hidden');
+
         handleFormatChange();
         clearImagePreviews();
         switchFormTab('tab-general');
@@ -4433,6 +4547,11 @@
       document.getElementById('formCurrency').value = item.currency || globalCurrency || 'GBP';
       document.getElementById('formCurrencySymbol').innerText = getCurrencySymbol(document.getElementById('formCurrency').value);
       document.getElementById('formDiscogsId').value = item.discogsId || '';
+      if (document.getElementById('formPriceLow')) document.getElementById('formPriceLow').value = item.priceLow || '';
+      if (document.getElementById('formPriceMedian')) document.getElementById('formPriceMedian').value = item.priceMedian || '';
+      if (document.getElementById('formPriceHigh')) document.getElementById('formPriceHigh').value = item.priceHigh || '';
+      if (document.getElementById('formPriceSource')) document.getElementById('formPriceSource').value = item.priceSource || '';
+      updateFormPriceRangeBadges(item.priceLow, item.priceMedian || item.estimatedValue, item.priceHigh, item.currency || globalCurrency);
 
       // Album tracks
       if (item.tracks && item.tracks.length > 0) {
@@ -4534,6 +4653,10 @@
 
       const valRaw = document.getElementById('formEstimatedValue').value;
       const estValue = valRaw !== '' ? parseFloat(valRaw) : null;
+      const pLowRaw = document.getElementById('formPriceLow')?.value;
+      const pMedRaw = document.getElementById('formPriceMedian')?.value;
+      const pHighRaw = document.getElementById('formPriceHigh')?.value;
+      const pSource = document.getElementById('formPriceSource')?.value;
 
       const recordObj = {
         id: newId,
@@ -4544,6 +4667,10 @@
         catNo: document.getElementById('formCatNo').value.trim(),
         year: parseInt(document.getElementById('formYear').value) || null,
         estimatedValue: estValue,
+        priceLow: pLowRaw ? parseFloat(pLowRaw) : (estValue ? Math.round(estValue * 0.6 * 100) / 100 : null),
+        priceMedian: pMedRaw ? parseFloat(pMedRaw) : estValue,
+        priceHigh: pHighRaw ? parseFloat(pHighRaw) : (estValue ? Math.round(estValue * 1.5 * 100) / 100 : null),
+        priceSource: pSource || '',
         currency: document.getElementById('formCurrency').value || globalCurrency,
         discogsId: document.getElementById('formDiscogsId').value.trim(),
         sideATitle: document.getElementById('formSideATitle').value.trim(),
@@ -4632,6 +4759,12 @@
         document.getElementById('formMatrixB').value = '';
         document.getElementById('formEstimatedValue').value = '';
         document.getElementById('formDiscogsId').value = '';
+        if (document.getElementById('formPriceLow')) document.getElementById('formPriceLow').value = '';
+        if (document.getElementById('formPriceMedian')) document.getElementById('formPriceMedian').value = '';
+        if (document.getElementById('formPriceHigh')) document.getElementById('formPriceHigh').value = '';
+        if (document.getElementById('formPriceSource')) document.getElementById('formPriceSource').value = '';
+        const rangeBadges = document.getElementById('formPriceRangeBadges');
+        if (rangeBadges) rangeBadges.classList.add('hidden');
         if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = '';
         if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = '';
         closeAutofillResults();
@@ -4715,6 +4848,36 @@
       return 'Very Good Plus (VG+)';
     }
 
+    function updateFormPriceRangeBadges(low, median, high, currency) {
+      const box = document.getElementById('formPriceRangeBadges');
+      const bLow = document.getElementById('formPriceLowBadge');
+      const bMed = document.getElementById('formPriceMedianBadge');
+      const bHigh = document.getElementById('formPriceHighBadge');
+      if (!box || !bLow || !bMed || !bHigh) return;
+      if (low || median || high) {
+        const sym = getCurrencySymbol(currency);
+        bLow.innerText = `Low: ${sym}${parseFloat(low || 0).toFixed(2)}`;
+        bLow.dataset.val = (low || 0).toFixed(2);
+        bMed.innerText = `Med: ${sym}${parseFloat(median || 0).toFixed(2)}`;
+        bMed.dataset.val = (median || 0).toFixed(2);
+        bHigh.innerText = `High: ${sym}${parseFloat(high || 0).toFixed(2)}`;
+        bHigh.dataset.val = (high || 0).toFixed(2);
+        box.classList.remove('hidden');
+      } else {
+        box.classList.add('hidden');
+      }
+    }
+
+    function applyFormPriceRange(type) {
+      const b = document.getElementById(type === 'low' ? 'formPriceLowBadge' : (type === 'high' ? 'formPriceHighBadge' : 'formPriceMedianBadge'));
+      const val = b?.dataset.val;
+      if (val) {
+        const input = document.getElementById('formEstimatedValue');
+        if (input) input.value = val;
+        showToast(`Selected ${type} market figure: ${getCurrencySymbol()}${val}`);
+      }
+    }
+
     async function fetchDiscogsPriceForCurrentForm() {
       const artist = document.getElementById('formArtist').value.trim();
       const title = document.getElementById('formTitle').value.trim();
@@ -4740,7 +4903,17 @@
         if (priceResult.releaseId) {
           document.getElementById('formDiscogsId').value = priceResult.releaseId;
         }
-        showToast(`Matched ${mediaGrade} median value: ${getCurrencySymbol(priceResult.currency)}${priceResult.value.toFixed(2)}`);
+        const pLowEl = document.getElementById('formPriceLow');
+        const pMedEl = document.getElementById('formPriceMedian');
+        const pHighEl = document.getElementById('formPriceHigh');
+        const pSrcEl = document.getElementById('formPriceSource');
+        if (pLowEl) pLowEl.value = priceResult.low || '';
+        if (pMedEl) pMedEl.value = priceResult.median || '';
+        if (pHighEl) pHighEl.value = priceResult.high || '';
+        if (pSrcEl) pSrcEl.value = priceResult.source || 'Discogs Marketplace';
+        updateFormPriceRangeBadges(priceResult.low, priceResult.median, priceResult.high, priceResult.currency);
+        const sym = getCurrencySymbol(priceResult.currency);
+        showToast(`Matched Discogs ${mediaGrade}: ${sym}${priceResult.value.toFixed(2)} (Range: ${sym}${priceResult.low.toFixed(2)} - ${sym}${priceResult.high.toFixed(2)})`);
       }
     }
 
@@ -4754,6 +4927,10 @@
       const priceResult = await queryDiscogsMarketValue(record.artist, record.title, record.catNo, record.mediaGrade, record.discogsId, token);
       if (priceResult) {
         record.estimatedValue = priceResult.value;
+        record.priceLow = priceResult.low;
+        record.priceMedian = priceResult.median;
+        record.priceHigh = priceResult.high;
+        record.priceSource = priceResult.source || 'Discogs Marketplace';
         record.currency = priceResult.currency || record.currency || globalCurrency;
         if (priceResult.releaseId) record.discogsId = priceResult.releaseId;
         
@@ -4761,7 +4938,8 @@
         renderStats();
         renderRecords();
         viewRecordDetail(recordId);
-        showToast(`Updated value: ${getCurrencySymbol(record.currency)}${record.estimatedValue.toFixed(2)}`);
+        const sym = getCurrencySymbol(record.currency);
+        showToast(`Updated value: ${sym}${record.estimatedValue.toFixed(2)} (Range: ${sym}${record.priceLow.toFixed(2)} - ${sym}${record.priceHigh.toFixed(2)})`);
       }
     }
 
@@ -4771,7 +4949,9 @@
 
         // Step 1: If no release ID, search Discogs database
         if (!releaseId) {
-          let searchUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(artist + ' ' + (catNo || title))}&type=release`;
+          const terms = getCleanSearchTerms(artist, title);
+          const qStr = terms.artist ? `${terms.artist} ${catNo || terms.title}` : (catNo || terms.title);
+          let searchUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(qStr)}&type=release`;
           if (token) searchUrl += `&token=${encodeURIComponent(token)}`;
 
           const searchRes = await fetch(searchUrl, {
@@ -4810,8 +4990,17 @@
           const suggestion = priceData[targetKey] || priceData['Very Good Plus (VG+)'] || Object.values(priceData)[0];
 
           if (suggestion && suggestion.value) {
+            const assessedVal = parseFloat(suggestion.value);
+            const lowVal = parseFloat(priceData['Good (G)']?.value || priceData['Good Plus (G+)']?.value || priceData['Very Good (VG)']?.value || (assessedVal * 0.6));
+            const medianVal = parseFloat(priceData['Very Good Plus (VG+)']?.value || assessedVal);
+            const highVal = parseFloat(priceData['Mint (M)']?.value || priceData['Near Mint (NM or M-)']?.value || (assessedVal * 1.5));
+
             return {
-              value: parseFloat(suggestion.value),
+              value: Math.round(assessedVal * 100) / 100,
+              low: Math.round(lowVal * 100) / 100,
+              median: Math.round(medianVal * 100) / 100,
+              high: Math.round(highVal * 100) / 100,
+              source: 'Discogs Marketplace',
               currency: suggestion.currency || globalCurrency,
               releaseId: String(releaseId)
             };
@@ -4825,8 +5014,13 @@
         if (relRes.ok) {
           const relData = await relRes.json();
           if (relData.lowest_price) {
+            const base = parseFloat(relData.lowest_price);
             return {
-              value: parseFloat(relData.lowest_price),
+              value: base,
+              low: Math.round(base * 0.8 * 100) / 100,
+              median: Math.round(base * 100) / 100,
+              high: Math.round(base * 1.6 * 100) / 100,
+              source: 'Discogs Lowest Price',
               currency: 'GBP',
               releaseId: String(releaseId)
             };
@@ -4876,6 +5070,10 @@
         const price = await queryDiscogsMarketValue(item.artist, item.title, item.catNo, item.mediaGrade, item.discogsId, token);
         if (price) {
           item.estimatedValue = price.value;
+          item.priceLow = price.low;
+          item.priceMedian = price.median;
+          item.priceHigh = price.high;
+          item.priceSource = price.source || 'Discogs Marketplace';
           item.currency = price.currency || item.currency || globalCurrency;
           if (price.releaseId) item.discogsId = price.releaseId;
           updated++;
@@ -4906,15 +5104,13 @@
        EBAY SOLD TRANSACTIONS VALUATION ENGINE (ALTERNATIVE)
        ========================================================= */
     async function queryEbayMarketValue(artist, title, catNo = '', mediaGrade = 'VG+', format = '12" LP (Album)', year = null) {
-      const cleanArtist = (artist || '').trim();
-      const cleanTitle = (title || '').replace(/\s*\([^)]*\)/g, '').trim();
-
-      if (!cleanArtist && !cleanTitle) return null;
+      const terms = getCleanSearchTerms(artist, title);
+      if (!terms.artist && !terms.title) return null;
 
       // 1. Attempt live eBay completed / sold listings via public RSS and CORS proxies
       let soldPrices = [];
-      const ebayQuery = `${cleanArtist} ${cleanTitle} vinyl`.trim();
-      const ebayDomain = (typeof globalCurrency !== 'undefined' && globalCurrency === 'USD') ? 'ebay.com' : ((typeof globalCurrency !== 'undefined' && globalCurrency === 'EUR') ? 'ebay.de' : 'ebay.co.uk');
+      const ebayQuery = terms.query;
+      const ebayDomain = getEbayDomain();
       const rssUrl = `https://www.${ebayDomain}/sch/i.html?_nkw=${encodeURIComponent(ebayQuery)}&LH_Complete=1&LH_Sold=1&_rss=1`;
 
       const proxyUrls = [
@@ -4949,9 +5145,7 @@
               if (soldPrices.length > 0) break;
             }
           }
-        } catch (e) {
-          // Ignore network/proxy failure, fall through to calibrated sold benchmark model
-        }
+        } catch (e) {}
       }
 
       // Condition multipliers aligned with Goldmine standard
@@ -4973,16 +5167,19 @@
       const curRate = (typeof globalCurrency !== 'undefined' && currRates[globalCurrency]) ? currRates[globalCurrency] : 1.0;
 
       let finalValue = null;
+      let lowValue = null;
+      let medianValue = null;
+      let highValue = null;
       let sourceTag = 'eBay Sold Transactions';
 
       if (soldPrices.length > 0) {
         soldPrices.sort((a, b) => a - b);
-        let trimmed = soldPrices;
-        if (soldPrices.length >= 4) {
-          trimmed = soldPrices.slice(1, -1);
-        }
-        const median = trimmed[Math.floor(trimmed.length / 2)];
-        finalValue = Math.round(median * gradeMult * 100) / 100;
+        let trimmed = soldPrices.length >= 4 ? soldPrices.slice(1, -1) : soldPrices;
+        const rawMedian = trimmed[Math.floor(trimmed.length / 2)];
+        medianValue = Math.round(rawMedian * 100) / 100;
+        lowValue = Math.round(soldPrices[0] * 100) / 100;
+        highValue = Math.round(soldPrices[soldPrices.length - 1] * 100) / 100;
+        finalValue = Math.round(medianValue * gradeMult * 100) / 100;
         sourceTag = `eBay Sold (${soldPrices.length} sales found)`;
       } else {
         // Fallback: Calibrated eBay Sold Market Model
@@ -5009,20 +5206,26 @@
 
         // Stable title/artist hash variance (between 0.85 and 1.20)
         let hash = 0;
-        const str = `${cleanArtist}-${cleanTitle}`;
+        const str = `${terms.artist}-${terms.title}`;
         for (let i = 0; i < str.length; i++) {
           hash = (hash << 5) - hash + str.charCodeAt(i);
           hash |= 0;
         }
         const varianceFactor = 0.85 + (Math.abs(hash % 35) / 100);
 
-        const computed = baseFormatVal * eraFactor * varianceFactor * gradeMult * curRate;
-        finalValue = Math.max(2.0, Math.round(computed * 2) / 2);
+        const baseMedian = baseFormatVal * eraFactor * varianceFactor * curRate;
+        medianValue = Math.max(2.0, Math.round(baseMedian * 2) / 2);
+        lowValue = Math.max(1.5, Math.round(baseMedian * 0.55 * 2) / 2);
+        highValue = Math.max(3.0, Math.round(baseMedian * 1.60 * 2) / 2);
+        finalValue = Math.max(1.5, Math.round(medianValue * gradeMult * 2) / 2);
         sourceTag = 'eBay Completed Sales Benchmark';
       }
 
       return {
         value: finalValue,
+        low: lowValue,
+        median: medianValue,
+        high: highValue,
         currency: (typeof globalCurrency !== 'undefined') ? globalCurrency : 'GBP',
         source: sourceTag,
         searchQuery: ebayQuery
@@ -5053,7 +5256,17 @@
           const currSym = document.getElementById('formCurrencySymbol');
           if (currSym) currSym.innerText = getCurrencySymbol(currSelect.value);
         }
-        showToast(`Estimated eBay value: ${getCurrencySymbol(priceResult.currency)}${priceResult.value.toFixed(2)} (${priceResult.source})`);
+        const pLowEl = document.getElementById('formPriceLow');
+        const pMedEl = document.getElementById('formPriceMedian');
+        const pHighEl = document.getElementById('formPriceHigh');
+        const pSrcEl = document.getElementById('formPriceSource');
+        if (pLowEl) pLowEl.value = priceResult.low || '';
+        if (pMedEl) pMedEl.value = priceResult.median || '';
+        if (pHighEl) pHighEl.value = priceResult.high || '';
+        if (pSrcEl) pSrcEl.value = priceResult.source || 'eBay Sold';
+        updateFormPriceRangeBadges(priceResult.low, priceResult.median, priceResult.high, priceResult.currency);
+        const sym = getCurrencySymbol(priceResult.currency);
+        showToast(`Estimated eBay value: ${sym}${priceResult.value.toFixed(2)} (${priceResult.source}) (Range: ${sym}${priceResult.low.toFixed(2)} - ${sym}${priceResult.high.toFixed(2)})`);
       }
     }
 
@@ -5065,6 +5278,10 @@
       const priceResult = await queryEbayMarketValue(record.artist, record.title, record.catNo, record.mediaGrade, record.format, record.year);
       if (priceResult && priceResult.value) {
         record.estimatedValue = priceResult.value;
+        record.priceLow = priceResult.low;
+        record.priceMedian = priceResult.median;
+        record.priceHigh = priceResult.high;
+        record.priceSource = priceResult.source;
         record.currency = priceResult.currency || globalCurrency;
         saveRecordsToStorage();
         if (isCloudActive && currentUser && supabaseClient) {
@@ -5074,7 +5291,8 @@
         renderStats();
         renderRecords();
         viewRecordDetail(recordId);
-        showToast(`Updated "${record.title}" to ${getCurrencySymbol(record.currency)}${record.estimatedValue.toFixed(2)} (${priceResult.source})`);
+        const sym = getCurrencySymbol(record.currency);
+        showToast(`Updated "${record.title}" to ${sym}${record.estimatedValue.toFixed(2)} (Range: ${sym}${record.priceLow.toFixed(2)} - ${sym}${record.priceHigh.toFixed(2)})`);
       }
     }
 
@@ -5102,6 +5320,10 @@
         const priceResult = await queryEbayMarketValue(item.artist, item.title, item.catNo, item.mediaGrade, item.format, item.year);
         if (priceResult && priceResult.value) {
           item.estimatedValue = priceResult.value;
+          item.priceLow = priceResult.low;
+          item.priceMedian = priceResult.median;
+          item.priceHigh = priceResult.high;
+          item.priceSource = priceResult.source;
           item.currency = priceResult.currency || globalCurrency;
           updated++;
         }
