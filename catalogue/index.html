@@ -5788,6 +5788,18 @@
       }
 
       content.innerHTML = `
+        <!-- Mobile Top Nav Bar with Left Back Arrow and Right Exit -->
+        <div class="flex items-center justify-between pb-3 mb-4 border-b border-vinyl-800">
+          <button type="button" onclick="closeDetailModal()" class="px-3.5 py-2 rounded-xl bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 flex items-center gap-2 text-xs font-bold transition shadow">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Back to Crate</span>
+          </button>
+          <button type="button" onclick="closeDetailModal()" class="px-3.5 py-2 rounded-xl bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center gap-1.5 text-xs font-bold transition shadow">
+            <i class="fa-solid fa-xmark"></i>
+            <span>Exit Dossier</span>
+          </button>
+        </div>
+
         <div class="flex items-start justify-between border-b border-vinyl-800 pb-4 mb-5">
           <div>
             <div class="flex items-center gap-2 mb-1.5 flex-wrap">
@@ -5800,7 +5812,7 @@
             <h2 class="text-2xl font-black text-white tracking-tight">${item.artist}</h2>
             <h3 class="text-lg text-brass-400 font-medium">${item.title}</h3>
           </div>
-          <button type="button" onclick="closeDetailModal()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm flex-shrink-0">
+          <button type="button" onclick="closeDetailModal()" class="hidden sm:flex px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm flex-shrink-0">
             <i class="fa-solid fa-xmark"></i>
             <span>Exit</span>
           </button>
