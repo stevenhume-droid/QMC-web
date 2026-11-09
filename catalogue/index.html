@@ -304,11 +304,12 @@
           <option value="MY_CRATE">My Personal Crate Only</option>
         </select>
 
-        <!-- Format Filter (Album vs Single vs EP) -->
+        <!-- Format Filter (Album vs Single vs EP vs Box Set) -->
         <select id="filterFormat" onchange="handleSearchFilterChange()" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-brass-500">
           <option value="ALL">All Formats</option>
           <option value="12&quot; LP (Album)">12" LP (Album)</option>
           <option value="2xLP Gatefold (Album)">2xLP Gatefold (Album)</option>
+          <option value="Box Set (Vinyl / Multi-Disc)">Box Set (Vinyl / Multi-Disc)</option>
           <option value="7&quot; Single (45 RPM)">7" Single (45 RPM)</option>
           <option value="12&quot; Maxi / Single">12" Maxi / Single</option>
           <option value="10&quot; Vinyl">10" Vinyl</option>
@@ -620,6 +621,7 @@
           <select id="autofillFormatFilter" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-brass-400 font-semibold focus:outline-none focus:border-brass-500" title="Narrow search by release format">
             <option value="ALL">Any Format</option>
             <option value="12">12" Vinyl / LP</option>
+            <option value="BOX">Vinyl Box Set</option>
             <option value="7">7" Single (45 RPM)</option>
             <option value="10">10" Vinyl</option>
             <option value="CD">CD / Other</option>
@@ -711,6 +713,7 @@
               <select id="formFormat" onchange="handleFormatChange()" class="bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-brass-500">
                 <option value="12&quot; LP (Album)">12" LP (Album)</option>
                 <option value="2xLP Gatefold (Album)">2xLP Gatefold (Album)</option>
+                <option value="Box Set (Vinyl / Multi-Disc)">Box Set (Vinyl / Multi-Disc)</option>
                 <option value="7&quot; Single (45 RPM)">7" Single (45 RPM)</option>
                 <option value="12&quot; Maxi / Single">12" Maxi / Single</option>
                 <option value="10&quot; Vinyl">10" Vinyl</option>
@@ -1484,6 +1487,67 @@
         transferNotes: "Shure V15 Type IV, raw direct transfer.",
         researchNotes: "Acknowledged as the first UK punk single ever commercially issued, beating the Sex Pistols by over a month.",
         dateAdded: "2026-10-25T16:00:00Z"
+      },
+      {
+        id: "rec_box_1978_005",
+        format: "Box Set (Vinyl / Multi-Disc)",
+        artist: "David Bowie",
+        title: "Stage (Deluxe 3xLP Archival Box Set)",
+        label: "RCA Victor / Parlophone",
+        catNo: "BOWBX 1978",
+        year: 1978,
+        estimatedValue: 145.00,
+        currency: "GBP",
+        discogsId: "249505",
+        sideATitle: "Hang On to Yourself / Ziggy Stardust / Five Years",
+        sideADuration: "14:22",
+        sideBTitle: "Soul Love / Star / Station to Station",
+        sideBDuration: "17:45",
+        tracks: [
+          { pos: "LP1-A1", title: "Hang On to Yourself", duration: "3:26" },
+          { pos: "LP1-A2", title: "Ziggy Stardust", duration: "3:32" },
+          { pos: "LP1-A3", title: "Five Years", duration: "3:58" },
+          { pos: "LP1-A4", title: "Soul Love", duration: "2:55" },
+          { pos: "LP1-A5", title: "Star", duration: "2:31" },
+          { pos: "LP1-B1", title: "Station to Station", duration: "8:55" },
+          { pos: "LP1-B2", title: "Fame", duration: "4:06" },
+          { pos: "LP1-B3", title: "TVC 15", duration: "4:37" },
+          { pos: "LP2-C1", title: "Warszawa", duration: "6:50" },
+          { pos: "LP2-C2", title: "Speed of Life", duration: "2:44" },
+          { pos: "LP2-C3", title: "Art Decade", duration: "3:10" },
+          { pos: "LP2-C4", title: "Sense of Doubt", duration: "3:13" },
+          { pos: "LP2-C5", title: "Breaking Glass", duration: "3:28" },
+          { pos: "LP2-D1", title: "Heroes", duration: "6:19" },
+          { pos: "LP2-D2", title: "What in the World", duration: "4:24" },
+          { pos: "LP2-D3", title: "Blackout", duration: "4:01" },
+          { pos: "LP2-D4", title: "Beauty and the Beast", duration: "5:08" },
+          { pos: "LP3-E1", title: "The Jean Genie", duration: "6:17" },
+          { pos: "LP3-E2", title: "Suffragette City", duration: "4:25" },
+          { pos: "LP3-F1", title: "Alabama Song", duration: "4:00" },
+          { pos: "LP3-F2", title: "Stay", duration: "7:17" }
+        ],
+        barcode: "5099990367215",
+        country: "United Kingdom",
+        centerHole: "Solid (Small 0.28 inch)",
+        speed: "33 1/3 RPM",
+        matrixA: "BOWBX 1978-A 3xLP BOX",
+        matrixB: "BOWBX 1978-B",
+        mastering: "Ray Staff at AIR Studios",
+        pressingPlant: "Optimal Media GmbH",
+        mediaGrade: "M",
+        mediaGradeNotes: "Unplayed pristine heavyweight 180g audiophile black vinyl.",
+        sleeveGrade: "NM",
+        sleeveGradeNotes: "Deluxe lift-off lid rigid slipcase with foil debossed typography and 24-page archival booklet.",
+        coverImage: "",
+        labelAImage: "",
+        labelBImage: "",
+        genres: "Art Rock, Glam Rock, Live",
+        producer: "David Bowie & Tony Visconti",
+        provenance: "Acquired direct from Parlophone archive subscription, London 2017.",
+        transferStatus: "FLAC 24-bit/96kHz",
+        transferNotes: "Linn Sondek LP12, Ekos tonearm, Dynavector XX-2 MkII cartridge.",
+        researchNotes: "Recorded live during the 'Isolar II' world tour across Philadelphia, Providence, and Boston in spring 1978.",
+        dateAdded: "2026-10-28T18:00:00Z"
       }
     ];
 
@@ -1558,8 +1622,9 @@
       }
 
       const isSingle = format && format.includes('7"');
+      const isBoxSet = format && format.toLowerCase().includes('box');
       const cleanArtist = escapeXml((artist || 'QUEENSFERRY ARCHIVE').trim());
-      const cleanTitle = escapeXml((title || (isSingle ? '7" SINGLE PRESSING' : '12" LP ALBUM')).trim());
+      const cleanTitle = escapeXml((title || (isSingle ? '7" SINGLE PRESSING' : (isBoxSet ? 'ARCHIVAL VINYL BOX SET' : '12" LP ALBUM'))).trim());
 
       let svg = '';
 
@@ -1619,6 +1684,81 @@
           <text x="24" y="456" fill="#f8fafc" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="800">${cleanArtist.substring(0, 36)}</text>
           <text x="24" y="479" fill="#d4af37" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600">${cleanTitle.substring(0, 42)}</text>
           <text x="476" y="468" text-anchor="end" fill="#94a3b8" font-family="monospace" font-size="11" font-weight="700">7" SINGLE</text>
+        </svg>`;
+      } else if (isBoxSet) {
+        // Deluxe Archival Multi-Disc Box Set Rigid Slipcase (500x500 matching scale)
+        svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+          <defs>
+            <linearGradient id="boxBg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#141824"/>
+              <stop offset="40%" stop-color="#0b0e17"/>
+              <stop offset="100%" stop-color="#05070a"/>
+            </linearGradient>
+            <linearGradient id="spineShadow" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#000000" stop-opacity="0.85"/>
+              <stop offset="18%" stop-color="#1a2030" stop-opacity="0.5"/>
+              <stop offset="35%" stop-color="#000000" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+            </linearGradient>
+            <linearGradient id="boxGold" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#fceda2"/>
+              <stop offset="30%" stop-color="#d4af37"/>
+              <stop offset="70%" stop-color="#aa8620"/>
+              <stop offset="100%" stop-color="#695311"/>
+            </linearGradient>
+          </defs>
+          <rect width="500" height="500" fill="url(#boxBg)"/>
+          
+          <!-- 3D Box Spine Depth Impression on Left Edge -->
+          <rect x="0" y="0" width="38" height="500" fill="url(#spineShadow)"/>
+          <line x1="38" y1="0" x2="38" y2="500" stroke="#d4af37" stroke-opacity="0.3" stroke-width="1.5"/>
+
+          <!-- Ornate Double Gilt Box Set Frame -->
+          <rect x="48" y="24" width="428" height="452" rx="4" fill="none" stroke="url(#boxGold)" stroke-width="2.5" opacity="0.85"/>
+          <rect x="54" y="30" width="416" height="440" rx="2" fill="none" stroke="#d4af37" stroke-width="0.8" stroke-dasharray="4 2" opacity="0.6"/>
+
+          <!-- Corner Gilt Details -->
+          <path d="M 58 48 L 58 36 L 70 36" fill="none" stroke="#d4af37" stroke-width="2"/>
+          <path d="M 466 48 L 466 36 L 454 36" fill="none" stroke="#d4af37" stroke-width="2"/>
+          <path d="M 58 452 L 58 464 L 70 464" fill="none" stroke="#d4af37" stroke-width="2"/>
+          <path d="M 466 452 L 466 464 L 454 464" fill="none" stroke="#d4af37" stroke-width="2"/>
+
+          <!-- Header Ribbon -->
+          <rect x="74" y="50" width="376" height="28" rx="3" fill="#d4af37" fill-opacity="0.12" stroke="#d4af37" stroke-opacity="0.3" stroke-width="1"/>
+          <text x="262" y="68" text-anchor="middle" fill="#d4af37" font-family="monospace" font-size="10" font-weight="800" letter-spacing="2.5">★ DELUXE ARCHIVAL VINYL BOX SET ★</text>
+
+          <!-- Multi-Disc Stack Graphic -->
+          <g transform="translate(182, 108)">
+            <!-- Disc 3 -->
+            <rect x="36" y="8" width="86" height="110" rx="3" fill="#0d1117" stroke="#334155" stroke-width="1.2"/>
+            <circle cx="110" cy="63" r="42" fill="#141820" stroke="#252c38" stroke-width="1.5"/>
+            <circle cx="110" cy="63" r="16" fill="#a8841a" stroke="#48370b" stroke-width="1"/>
+            
+            <!-- Disc 2 -->
+            <rect x="18" y="16" width="86" height="110" rx="3" fill="#111622" stroke="#475569" stroke-width="1.2"/>
+            <circle cx="92" cy="71" r="42" fill="#1a202c" stroke="#2e3846" stroke-width="1.5"/>
+            <circle cx="92" cy="71" r="16" fill="#c99f2b" stroke="#55420d" stroke-width="1"/>
+
+            <!-- Disc 1 -->
+            <rect x="0" y="24" width="86" height="110" rx="3" fill="#151b2a" stroke="#d4af37" stroke-opacity="0.6" stroke-width="1.5"/>
+            <circle cx="74" cy="79" r="42" fill="#202738" stroke="#3d495c" stroke-width="1.5"/>
+            <circle cx="74" cy="79" r="16" fill="url(#boxGold)" stroke="#695311" stroke-width="1.2"/>
+            <circle cx="74" cy="79" r="3" fill="#0c0e14"/>
+          </g>
+
+          <!-- Central Debossed Plaque for Artist & Title -->
+          <rect x="80" y="278" width="364" height="112" rx="6" fill="#0a0d14" fill-opacity="0.9" stroke="#d4af37" stroke-opacity="0.5" stroke-width="1.5"/>
+          <rect x="84" y="282" width="356" height="104" rx="4" fill="none" stroke="#d4af37" stroke-opacity="0.2" stroke-width="1"/>
+          
+          <text x="262" y="304" text-anchor="middle" fill="#94a3b8" font-family="monospace" font-size="9" font-weight="700" letter-spacing="1.5">QUEENSFERRY ARCHIVAL VAULT</text>
+          <text x="262" y="334" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="800">${cleanArtist.substring(0, 34)}</text>
+          <text x="262" y="358" text-anchor="middle" fill="#d4af37" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600">${cleanTitle.substring(0, 38)}</text>
+          <text x="262" y="378" text-anchor="middle" fill="#cbd5e1" font-family="monospace" font-size="9" font-weight="700" letter-spacing="1.5">MULTI-DISC COLLECTOR'S EDITION</text>
+
+          <!-- Bottom Archival Stamp -->
+          <line x1="120" y1="416" x2="404" y2="416" stroke="#d4af37" stroke-opacity="0.3" stroke-width="1"/>
+          <text x="262" y="438" text-anchor="middle" fill="#d4af37" font-family="monospace" font-size="10" font-weight="700" letter-spacing="2">HIGH-FIDELITY VINYL PRESSINGS</text>
+          <text x="262" y="454" text-anchor="middle" fill="#64748b" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="500">LIMITED ARCHIVAL EDITION · RIGID SLIPCASE</text>
         </svg>`;
       } else {
         // Authentic Full-Bleed 12" LP Album Jacket (500x500 matching scale)
@@ -1940,16 +2080,19 @@
         // Option 0: Generic Archival Sleeve
         const genericSleeveUri = getDefaultCover(format, artist, title);
         const isSingle = format.includes('7"');
+        const isBoxSet = format.toLowerCase().includes('box');
+        const sleeveBadge = isSingle ? 'Generic 7" Sleeve' : (isBoxSet ? 'Generic Box Set' : 'Generic 12" Sleeve');
+        const sleeveDesc = isSingle ? 'Authentic 45 RPM Bag' : (isBoxSet ? 'Deluxe Rigid Slipcase' : 'Archival Vinyl Jacket');
         html += `
           <div class="p-2.5 bg-vinyl-850 rounded-xl border border-brass-500/30 hover:border-brass-400 flex flex-col justify-between group transition shadow">
             <div class="w-full aspect-square rounded-lg overflow-hidden border border-vinyl-700 bg-vinyl-950 mb-2 relative">
               <img src="${genericSleeveUri}" alt="Generic Sleeve" class="w-full h-full object-cover">
               <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 text-[9px] font-mono font-bold text-brass-400 border border-brass-500/30">
-                ${isSingle ? 'Generic 7" Sleeve' : 'Generic 12" Sleeve'}
+                ${sleeveBadge}
               </span>
             </div>
             <div class="text-[11px] font-semibold text-white truncate mb-0.5">QMC Generic Sleeve</div>
-            <div class="text-[10px] text-slate-400 truncate mb-2">${isSingle ? 'Authentic 45 RPM Bag' : 'Archival Vinyl Jacket'}</div>
+            <div class="text-[10px] text-slate-400 truncate mb-2">${sleeveDesc}</div>
             <button type="button" onclick="selectSleeveCandidate('')" class="w-full py-1.5 px-2 bg-vinyl-800 hover:bg-brass-500 hover:text-vinyl-950 text-brass-400 font-bold rounded text-xs transition border border-brass-500/30">
               Use Generic
             </button>
@@ -2730,7 +2873,13 @@
         ).toLowerCase();
 
         if (searchTerm && !matchText.includes(searchTerm)) return false;
-        if (formatFilter !== 'ALL' && item.format !== formatFilter) return false;
+        if (formatFilter !== 'ALL') {
+          if (item.format !== formatFilter) {
+            const isBoxFilter = formatFilter.toLowerCase().includes('box');
+            const isItemBox = (item.format || '').toLowerCase().includes('box');
+            if (!(isBoxFilter && isItemBox)) return false;
+          }
+        }
         if (gradeFilter !== 'ALL' && item.mediaGrade !== gradeFilter) return false;
 
         return true;
@@ -2836,7 +2985,10 @@
       let cls = 'bg-amber-500/20 text-amber-400 border-amber-500/30';
       let icon = 'fa-compact-disc';
 
-      if (fmt.includes('7"')) {
+      if (fmt.toLowerCase().includes('box')) {
+        cls = 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
+        icon = 'fa-box-archive';
+      } else if (fmt.includes('7"')) {
         cls = 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
         icon = 'fa-record-vinyl';
       } else if (fmt.includes('Maxi') || fmt.includes('12" Single')) {
@@ -2846,7 +2998,7 @@
 
       return `<span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono border ${cls} flex items-center gap-1">
         <i class="fa-solid ${icon} text-[9px]"></i>
-        <span>${fmt.replace(' (Album)', '').replace(' (45 RPM)', '')}</span>
+        <span>${fmt.replace(' (Album)', '').replace(' (45 RPM)', '').replace(' (Vinyl / Multi-Disc)', '')}</span>
       </span>`;
     }
 
@@ -3534,6 +3686,7 @@
       const fmtEl = document.getElementById('formFormat');
       const format = fmtEl ? fmtEl.value : '12" LP (Album)';
       const isSingle = format.includes('7"');
+      const isBoxSet = format.toLowerCase().includes('box');
       const singleContainer = document.getElementById('tracksSingleContainer');
       const albumContainer = document.getElementById('tracksAlbumContainer');
       const speedSelect = document.getElementById('formSpeed');
@@ -3546,6 +3699,12 @@
         if (speedSelect) speedSelect.value = '45 RPM';
         if (centerHole) centerHole.value = 'Solid (Small 0.28 inch)';
         if (hintText) hintText.innerText = '7-inch single pressing with dual A/B track architecture.';
+      } else if (isBoxSet) {
+        if (singleContainer) singleContainer.classList.add('hidden');
+        if (albumContainer) albumContainer.classList.remove('hidden');
+        if (speedSelect) speedSelect.value = '33 1/3 RPM';
+        if (centerHole) centerHole.value = 'Solid (Small 0.28 inch)';
+        if (hintText) hintText.innerText = 'Multi-disc archival vinyl box set with comprehensive multi-album track layout.';
       } else {
         if (singleContainer) singleContainer.classList.add('hidden');
         if (albumContainer) albumContainer.classList.remove('hidden');
@@ -4269,6 +4428,7 @@
         if (fmtChoice !== 'ALL' && releases.length > 0) {
           const filtered = releases.filter(r => {
             const mediaStr = (r.media || []).map(m => m.format || '').join(' ').toLowerCase();
+            if (fmtChoice === 'BOX') return mediaStr.includes('box') || (r.media && r.media.length >= 3) || (r.title && r.title.toLowerCase().includes('box'));
             if (fmtChoice === '7') return mediaStr.includes('7"') || mediaStr.includes('single') || mediaStr.includes('vinyl');
             if (fmtChoice === '12') return mediaStr.includes('12"') || mediaStr.includes('lp') || mediaStr.includes('vinyl');
             if (fmtChoice === '10') return mediaStr.includes('10"');
@@ -4431,24 +4591,29 @@
       const searchFormatChoice = document.getElementById('autofillFormatFilter')?.value || 'ALL';
       let assignedFormat = '12" LP (Album)';
 
-      if (searchFormatChoice === '7') {
+      if (searchFormatChoice === 'BOX') {
+        assignedFormat = 'Box Set (Vinyl / Multi-Disc)';
+      } else if (searchFormatChoice === '7') {
         assignedFormat = '7" Single (45 RPM)';
       } else if (searchFormatChoice === '12') {
-        assignedFormat = (fullRelease.media && fullRelease.media.length >= 2) ? '2xLP Gatefold (Album)' : '12" LP (Album)';
+        assignedFormat = (fullRelease.media && fullRelease.media.length >= 3) ? 'Box Set (Vinyl / Multi-Disc)' : ((fullRelease.media && fullRelease.media.length >= 2) ? '2xLP Gatefold (Album)' : '12" LP (Album)');
       } else if (searchFormatChoice === '10') {
         assignedFormat = '10" Vinyl';
       } else if (searchFormatChoice === 'CD') {
         assignedFormat = 'CD / Other';
       } else if (fullRelease.media && fullRelease.media.length > 0) {
         const m = fullRelease.media[0];
-        const formatName = m.format || '';
-        if (formatName.includes('7"')) {
+        const formatName = (m.format || '').toLowerCase();
+        const relTitle = (fullRelease.title || '').toLowerCase();
+        if (formatName.includes('box') || relTitle.includes('box set') || (fullRelease.media.length >= 3)) {
+          assignedFormat = 'Box Set (Vinyl / Multi-Disc)';
+        } else if (formatName.includes('7"')) {
           assignedFormat = '7" Single (45 RPM)';
         } else if (fullRelease.media.length >= 2) {
           assignedFormat = '2xLP Gatefold (Album)';
         } else if (formatName.includes('10"')) {
           assignedFormat = '10" Vinyl';
-        } else if (formatName.includes('CD')) {
+        } else if (formatName.includes('cd')) {
           assignedFormat = 'CD / Other';
         } else {
           assignedFormat = '12" LP (Album)';
@@ -4758,7 +4923,9 @@
         const rawFormat = getVal('format', 'type', 'media');
         
         let format = '12" LP (Album)';
-        if (rawFormat.toLowerCase().includes('7') || rawFormat.toLowerCase().includes('single') || rawFormat.toLowerCase().includes('45')) {
+        if (rawFormat.toLowerCase().includes('box')) {
+          format = 'Box Set (Vinyl / Multi-Disc)';
+        } else if (rawFormat.toLowerCase().includes('7') || rawFormat.toLowerCase().includes('single') || rawFormat.toLowerCase().includes('45')) {
           format = '7" Single (45 RPM)';
         } else if (rawFormat.toLowerCase().includes('2xlp') || rawFormat.toLowerCase().includes('gatefold')) {
           format = '2xLP Gatefold (Album)';
