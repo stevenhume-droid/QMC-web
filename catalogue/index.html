@@ -308,8 +308,11 @@
           
           <div class="border-t border-vinyl-700 my-1"></div>
           <div class="px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400 border-b border-vinyl-700">
-            Archival Export
+            Archival Export &amp; Provenance
           </div>
+          <button onclick="openInsuranceModal()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-brass-300 flex items-center gap-2 font-medium" title="Collector guide on insuring vinyl, agreed value cover, and single-item limits">
+            <i class="fa-solid fa-shield-halved text-brass-400"></i> Insuring Your Collection
+          </button>
           <button onclick="exportToCSV()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-200 flex items-center gap-2">
             <i class="fa-solid fa-file-csv text-emerald-400"></i> Export Archival CSV
           </button>
@@ -572,6 +575,22 @@
           </div>
         </div>
 
+        <!-- Insurance Advisory Callout Banner -->
+        <div class="p-3 bg-vinyl-850 border border-brass-500/30 rounded-xl flex items-center justify-between gap-3 shadow-sm">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-full bg-brass-500/10 border border-brass-500/30 flex items-center justify-center text-brass-400 flex-shrink-0">
+              <i class="fa-solid fa-shield-halved text-xs"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="font-bold text-white text-xs">Insuring Your Collection</div>
+              <div class="text-[10px] text-slate-400 truncate">Single-item caps, agreed value policies, documentation &amp; storage rules</div>
+            </div>
+          </div>
+          <button type="button" onclick="openInsuranceModal()" class="px-2.5 py-1.5 rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold text-xs whitespace-nowrap transition shadow flex-shrink-0">
+            Read Guide
+          </button>
+        </div>
+
         <!-- Valuation Target Filter Toggle -->
         <div class="flex items-center justify-between pt-1">
           <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
@@ -647,6 +666,288 @@
       <div class="border-t border-vinyl-800 px-6 py-3.5 flex justify-end bg-vinyl-850">
         <button onclick="closeValuationModal()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 transition">
           Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: INSURING YOUR COLLECTION ADVISORY GUIDE -->
+  <!-- ============================================== -->
+  <div id="insuranceModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto">
+    <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850 sticky top-0 z-10 flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-brass-500/10 border border-brass-500/30 flex items-center justify-center text-brass-400">
+            <i class="fa-solid fa-shield-halved text-base"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-white tracking-tight flex items-center gap-2">
+              <span>Insuring Your Collection</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-brass-500/20 text-brass-300 border border-brass-500/30 font-semibold uppercase">Collector Advisory</span>
+            </h2>
+            <p class="text-[11px] text-slate-400">Navigating home contents caps, agreed value policies &amp; insurer-grade provenance</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="exportToExcel()" class="hidden sm:flex px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-emerald-400 border border-emerald-500/30 text-xs font-semibold items-center gap-1.5 transition" title="Export complete catalogue with matrix stamps & grades for insurance claims">
+            <i class="fa-solid fa-file-excel text-xs"></i>
+            <span>Export Inventory (.xlsx)</span>
+          </button>
+          <button type="button" onclick="closeInsuranceModal()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm">
+            <i class="fa-solid fa-xmark"></i>
+            <span>Exit</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-4 sm:p-6 space-y-6 overflow-y-auto text-xs text-slate-300 leading-relaxed">
+        
+        <!-- Lead-in Banner -->
+        <div class="p-4 bg-brass-500/10 border border-brass-500/30 rounded-xl space-y-2">
+          <p class="text-slate-200 font-medium leading-relaxed">
+            Insuring a music collection—whether rare vinyl, vintage CDs, audio equipment, or musical instruments—requires navigating the gap between standard household contents cover and actual collectible market value.
+          </p>
+          <p class="text-slate-300 leading-relaxed">
+            Standard home insurance policies rarely cover large or rare collections adequately due to single-item caps, generic depreciation models, and strict peril exclusions.
+          </p>
+        </div>
+
+        <!-- 1. Match the Policy Type to Collection Size & Value -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-2 text-sm font-bold text-white border-b border-vinyl-800 pb-2">
+            <span class="w-6 h-6 rounded-full bg-brass-500/20 text-brass-400 flex items-center justify-center text-xs font-mono font-bold">1</span>
+            <h3>Match the Policy Type to the Collection’s Size and Value</h3>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <!-- Card A: Standard Home Contents -->
+            <div class="p-3.5 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-2 flex flex-col justify-between">
+              <div>
+                <div class="font-bold text-white text-xs mb-1 flex items-center gap-1.5">
+                  <i class="fa-solid fa-house text-slate-400"></i> Standard Home Contents
+                </div>
+                <div class="text-[10px] text-slate-400 font-mono mb-2">Modest Collections</div>
+                <p class="text-[11px] text-slate-300 mb-2">
+                  <strong class="text-brass-400">Best for:</strong> Common, easily replaceable pressings or equipment under total policy limits.
+                </p>
+              </div>
+              <div class="p-2.5 rounded-lg bg-red-950/30 border border-red-900/40 text-[10px] text-rose-300">
+                <strong>Watch out for:</strong> The <strong>single-item limit</strong> (often £1,500–£2,500) and aggregate "valuables" limits. Standard policies frequently treat a collection as a single grouped asset or pay out "actual cash value" (depreciated replacement cost) rather than collectible market value.
+              </div>
+            </div>
+
+            <!-- Card B: Scheduled Personal Articles Floater -->
+            <div class="p-3.5 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-2 flex flex-col justify-between">
+              <div>
+                <div class="font-bold text-white text-xs mb-1 flex items-center gap-1.5">
+                  <i class="fa-solid fa-file-pen text-sky-400"></i> Scheduled Personal Articles
+                </div>
+                <div class="text-[10px] text-slate-400 font-mono mb-2">Policy Endorsement / Floater</div>
+                <p class="text-[11px] text-slate-300 mb-2">
+                  <strong class="text-brass-400">Best for:</strong> Mid-sized collections with a handful of high-value standout pieces (e.g., individual records or instruments worth over your insurer's single-item threshold).
+                </p>
+              </div>
+              <div class="p-2.5 rounded-lg bg-sky-950/30 border border-sky-900/40 text-[10px] text-sky-200">
+                <strong>How it works:</strong> You itemize individual pieces with specific stated values on your existing policy. Deductibles are usually lower or waived for scheduled items.
+              </div>
+            </div>
+
+            <!-- Card C: Standalone Specialist Collectibles -->
+            <div class="p-3.5 bg-vinyl-850 border border-brass-500/40 rounded-xl space-y-2 flex flex-col justify-between shadow-lg shadow-brass-500/5">
+              <div>
+                <div class="font-bold text-brass-400 text-xs mb-1 flex items-center gap-1.5">
+                  <i class="fa-solid fa-gem text-amber-400"></i> Specialist Collectibles
+                </div>
+                <div class="text-[10px] text-slate-400 font-mono mb-2">Standalone Dedicated Cover</div>
+                <p class="text-[11px] text-slate-300 mb-2">
+                  <strong class="text-brass-400">Best for:</strong> Serious, rare, or expanding collections (e.g., dedicated vinyl collectors, rare test pressings, DJ equipment, vintage hi-fi gear).
+                </p>
+              </div>
+              <div class="p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-900/40 text-[10px] text-emerald-300">
+                <strong>Key benefits:</strong> <strong>Agreed Value coverage</strong> (payout based on appraised or documented market value rather than depreciated cost), coverage for accidental damage, flood/water damage, and transit/away-from-home protection if you transport gear or records.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Build Insurer-Grade Documentation -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-2 text-sm font-bold text-white border-b border-vinyl-800 pb-2">
+            <span class="w-6 h-6 rounded-full bg-brass-500/20 text-brass-400 flex items-center justify-center text-xs font-mono font-bold">2</span>
+            <h3>Build Insurer-Grade Documentation</h3>
+          </div>
+
+          <p class="text-[11px] text-slate-300 italic">
+            An insurance claim lives or dies by granular provenance. An item line that says <em>"The Beatles – White Album"</em> is easily disputed; an item line detailing the exact matrix/runout number and Goldmine grade is not.
+          </p>
+
+          <div class="space-y-2.5">
+            <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-brass-500/20 text-brass-400 text-center font-mono font-bold text-[10px] leading-5 flex-shrink-0 mt-0.5">1</span>
+              <div>
+                <strong class="text-white block mb-0.5">Pressing-Level Cataloguing:</strong>
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                  Log catalog numbers, pressing country, matrix/runout stamps, label variations, and release year. Tools like <strong>Discogs</strong> or dedicated cataloguing utilities allow you to export a comprehensive CSV containing historical sales data and exact release IDs.
+                </p>
+              </div>
+            </div>
+
+            <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-brass-500/20 text-brass-400 text-center font-mono font-bold text-[10px] leading-5 flex-shrink-0 mt-0.5">2</span>
+              <div>
+                <strong class="text-white block mb-0.5">Accurate Grading:</strong>
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                  Separately record media and sleeve condition using established standards (e.g., Goldmine: M, NM, VG+, VG). Over-grading undermines credibility during a loss adjustment.
+                </p>
+              </div>
+            </div>
+
+            <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-brass-500/20 text-brass-400 text-center font-mono font-bold text-[10px] leading-5 flex-shrink-0 mt-0.5">3</span>
+              <div>
+                <strong class="text-white block mb-0.5">Photographic &amp; Video Evidence:</strong>
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                  Take a continuous video walk-through of your shelves and storage setups. For top-tier items (the top 10–20% that typically hold 80% of the collection's value), photograph the front/back sleeves, inner labels, runout groove markings, and any visible flaws or signatures.
+                </p>
+              </div>
+            </div>
+
+            <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-brass-500/20 text-brass-400 text-center font-mono font-bold text-[10px] leading-5 flex-shrink-0 mt-0.5">4</span>
+              <div>
+                <strong class="text-white block mb-0.5">Receipts &amp; Price References:</strong>
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                  Save order confirmations (Discogs, eBay, record shops). For items without receipts, document median sold prices from Discogs Marketplace or Popsike rather than optimistic asking prices.
+                </p>
+              </div>
+            </div>
+
+            <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-brass-500/20 text-brass-400 text-center font-mono font-bold text-[10px] leading-5 flex-shrink-0 mt-0.5">5</span>
+              <div>
+                <strong class="text-white block mb-0.5">Redundant Off-Site Storage:</strong>
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                  Store your exported inventory, valuation PDF, and photos in secure cloud storage. If fire or flood destroys the room, your paperwork cannot be lost with it.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Check Policy Wording & Exclusions -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-2 text-sm font-bold text-white border-b border-vinyl-800 pb-2">
+            <span class="w-6 h-6 rounded-full bg-brass-500/20 text-brass-400 flex items-center justify-center text-xs font-mono font-bold">3</span>
+            <h3>Check Policy Wording &amp; Exclusions</h3>
+          </div>
+
+          <p class="text-[11px] text-slate-400">
+            Before signing or renewing, verify how the insurer handles these specific scenarios:
+          </p>
+
+          <div class="overflow-x-auto rounded-xl border border-vinyl-800 shadow-md">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-vinyl-850 text-slate-400 uppercase text-[10px] font-mono border-b border-vinyl-800">
+                <tr>
+                  <th class="py-2.5 px-3.5 font-bold w-1/3">Clause / Feature</th>
+                  <th class="py-2.5 px-3.5 font-bold">What to Look For</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-vinyl-850 bg-vinyl-900/60 font-normal">
+                <tr class="hover:bg-vinyl-850/50 transition">
+                  <td class="py-2.5 px-3.5 font-bold text-white whitespace-nowrap">Settlement Basis</td>
+                  <td class="py-2.5 px-3.5 text-slate-300">Insist on <strong>Agreed Value</strong> or <strong>Current Market Value</strong> rather than Actual Cash Value (depreciated).</td>
+                </tr>
+                <tr class="hover:bg-vinyl-850/50 transition">
+                  <td class="py-2.5 px-3.5 font-bold text-white whitespace-nowrap">Pairs, Sets &amp; Box Sets</td>
+                  <td class="py-2.5 px-3.5 text-slate-300">Ensure the policy covers the loss of value to an entire set or multi-disc box set if only one part is destroyed or stolen.</td>
+                </tr>
+                <tr class="hover:bg-vinyl-850/50 transition">
+                  <td class="py-2.5 px-3.5 font-bold text-white whitespace-nowrap">Accidental Damage</td>
+                  <td class="py-2.5 px-3.5 text-slate-300">Essential for vinyl and delicate audio hardware (spills, sleeve tears, dropped tone-arms, stylus snags).</td>
+                </tr>
+                <tr class="hover:bg-vinyl-850/50 transition">
+                  <td class="py-2.5 px-3.5 font-bold text-white whitespace-nowrap">In-Transit / Away from Home</td>
+                  <td class="py-2.5 px-3.5 text-slate-300">Critical if you move items between locations, take records to DJ sessions, or carry instruments.</td>
+                </tr>
+                <tr class="hover:bg-vinyl-850/50 transition">
+                  <td class="py-2.5 px-3.5 font-bold text-white whitespace-nowrap">Environmental Exclusions</td>
+                  <td class="py-2.5 px-3.5 text-slate-300">Standard policies almost universally exclude gradual deterioration, heat warping, dampness/humidity, and mold.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 4. Storage & Risk Mitigation Compliance -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-2 text-sm font-bold text-white border-b border-vinyl-800 pb-2">
+            <span class="w-6 h-6 rounded-full bg-brass-500/20 text-brass-400 flex items-center justify-center text-xs font-mono font-bold">4</span>
+            <h3>Storage &amp; Risk Mitigation Compliance</h3>
+          </div>
+
+          <p class="text-[11px] text-slate-400">
+            Insurers may enforce warranty conditions regarding how the collection is kept:
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-1">
+              <div class="font-bold text-white text-xs flex items-center gap-1.5">
+                <i class="fa-solid fa-arrows-up-down text-brass-400"></i> Shelving &amp; Placement
+              </div>
+              <p class="text-[11px] text-slate-400">
+                Keep items off the floor (minimum 4–6 inches) to protect against minor pipe leaks or localized floor flooding.
+              </p>
+            </div>
+
+            <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-1">
+              <div class="font-bold text-white text-xs flex items-center gap-1.5">
+                <i class="fa-solid fa-align-justify text-sky-400"></i> Orientation
+              </div>
+              <p class="text-[11px] text-slate-400">
+                Vinyl must always be stored vertically, packed snugly enough to avoid leaning without crushing.
+              </p>
+            </div>
+
+            <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-1">
+              <div class="font-bold text-white text-xs flex items-center gap-1.5">
+                <i class="fa-solid fa-temperature-half text-amber-400"></i> Climate
+              </div>
+              <p class="text-[11px] text-slate-400">
+                Keep storage away from direct sunlight, exterior uninsulated walls, and radiators to prevent vinyl warping and spine fading.
+              </p>
+            </div>
+          </div>
+
+          <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl text-[11px] text-slate-300 flex items-center gap-2.5">
+            <i class="fa-solid fa-calendar-check text-emerald-400 text-sm flex-shrink-0"></i>
+            <div>
+              <strong>Conduct an annual audit:</strong> Export a fresh CSV, check sold-price trends on your top pieces, and adjust your policy limit accordingly.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="border-t border-vinyl-800 px-6 py-3.5 flex flex-wrap items-center justify-between gap-2 bg-vinyl-850 flex-shrink-0">
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="exportToExcel()" class="px-3.5 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-file-excel"></i>
+            <span>Export Inventory (.xlsx)</span>
+          </button>
+          <button type="button" onclick="exportToCSV()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 text-xs font-semibold flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-file-csv text-emerald-400"></i>
+            <span>Export CSV</span>
+          </button>
+        </div>
+        <button onclick="closeInsuranceModal()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 transition">
+          Close Guide
         </button>
       </div>
 
@@ -2246,6 +2547,7 @@
         <button onclick="closeMobileMore();openAuthModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-circle-user text-lg text-brass-400"></i>Account</button>
         <button onclick="closeMobileMore();openShareModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-share-nodes text-lg text-sky-400"></i>Share Link</button>
         <button onclick="closeMobileMore();openValuationModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-coins text-lg text-amber-400"></i>Market Values</button>
+        <button onclick="closeMobileMore();openInsuranceModal()" class="p-3 rounded-xl bg-vinyl-850 border border-brass-500/30 text-brass-300 flex flex-col items-center gap-1.5"><i class="fa-solid fa-shield-halved text-lg text-brass-400"></i>Insurance</button>
         <button onclick="closeMobileMore();openBatchMetadataRefreshModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-arrows-rotate text-lg text-purple-400"></i>Refresh Formats</button>
         <button onclick="closeMobileMore();openBatchGenreEnrichModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-wand-magic-sparkles text-lg text-sky-400"></i>Enrich Genres</button>
         <button onclick="closeMobileMore();openDiscogsImportModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-record-vinyl text-lg text-sky-400"></i>Import Discogs</button>
@@ -5158,7 +5460,7 @@
         'detailModal', 'recordModal', 'scannerModal', 'authModal',
         'shareModal', 'valuationModal', 'batchUploadModal',
         'discogsImportModal', 'batchGenreModal', 'artworkChooserModal',
-        'addToHomeScreenModal'
+        'addToHomeScreenModal', 'insuranceModal'
       ];
       modalIds.forEach(id => {
         const el = document.getElementById(id);
@@ -6081,6 +6383,9 @@
               <button onclick="switchView('list')" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 text-xs font-medium border border-vinyl-700 transition flex items-center gap-1.5" title="Switch to Archival Table">
                 <i class="fa-solid fa-table-list text-amber-400"></i> Table
               </button>
+              <button onclick="openInsuranceModal()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 text-xs font-medium border border-brass-500/30 transition flex items-center gap-1.5" title="Insuring Your Music Collection Guide">
+                <i class="fa-solid fa-shield-halved"></i> Insurance Guide
+              </button>
               ${!isReadOnlyShareView ? `
                 <button onclick="openAutoValuateModal()" class="px-3 py-1.5 rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 text-xs font-bold transition flex items-center gap-1.5 shadow" title="Refresh Live Pricing">
                   <i class="fa-solid fa-coins"></i> Valuate Archive
@@ -6174,6 +6479,28 @@
               </div>
             </div>
 
+          </div>
+
+          <!-- Insurance & Valuation Advisory Strip in Analytics -->
+          <div class="p-4 bg-vinyl-900 rounded-2xl border border-brass-500/30 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-xl bg-brass-500/10 border border-brass-500/30 flex items-center justify-center text-brass-400 flex-shrink-0">
+                <i class="fa-solid fa-shield-halved text-lg"></i>
+              </div>
+              <div class="min-w-0">
+                <div class="text-sm font-bold text-white flex items-center gap-2">
+                  <span>Insuring Your Collection: Collector's Advisory</span>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-brass-500/20 text-brass-300 border border-brass-500/30 font-semibold uppercase">Essential</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5">
+                  Standard household contents cover rarely protects rare vinyl due to single-item caps. Read how to secure agreed value coverage and build insurer-grade documentation.
+                </p>
+              </div>
+            </div>
+            <button onclick="openInsuranceModal()" class="px-3.5 py-2 rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 text-xs font-bold transition flex items-center gap-1.5 shadow flex-shrink-0">
+              <i class="fa-solid fa-book-open"></i>
+              <span>Read Insurance Guide</span>
+            </button>
           </div>
 
           <!-- MAIN 2-COLUMN SECTION: DECADES HISTOGRAM & FORMAT BREAKDOWN -->
@@ -7566,6 +7893,14 @@
 
     function closeValuationModal() {
       document.getElementById('valuationModal').classList.add('hidden');
+    }
+
+    function openInsuranceModal() {
+      document.getElementById('insuranceModal').classList.remove('hidden');
+    }
+
+    function closeInsuranceModal() {
+      document.getElementById('insuranceModal').classList.add('hidden');
     }
 
     function saveDiscogsToken() {
