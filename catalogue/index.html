@@ -1576,19 +1576,33 @@
     <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl relative my-auto overflow-hidden">
       
       <!-- Modal Header -->
-      <div class="p-4 sm:p-5 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850 flex-shrink-0">
-        <div>
-          <h2 class="text-base font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-images text-brass-400"></i>
-            <span>Choose Record Sleeve Artwork</span>
-          </h2>
-          <p id="artworkChooserSubtitle" class="text-xs text-slate-400 mt-0.5 truncate max-w-lg">
-            Select from matching sleeves found across archival databases
-          </p>
+      <div class="p-4 sm:p-5 border-b border-vinyl-800 bg-vinyl-850 flex-shrink-0 space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-images text-brass-400"></i>
+              <span>Choose Record Sleeve Artwork</span>
+            </h2>
+            <p id="artworkChooserSubtitle" class="text-xs text-slate-400 mt-0.5 truncate max-w-lg">
+              Select from matching sleeves found across archival databases
+            </p>
+          </div>
+          <button type="button" onclick="closeArtworkChooserModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 flex items-center justify-center transition">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
         </div>
-        <button type="button" onclick="closeArtworkChooserModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 flex items-center justify-center transition">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
+
+        <!-- Search Refinement Input Bar -->
+        <div class="flex items-center gap-2">
+          <div class="relative flex-1">
+            <input type="text" id="artworkSearchQueryInput" onkeydown="if(event.key==='Enter'){event.preventDefault();rerunArtworkSearchFromInput();}" placeholder="Refine search query (e.g. artist album title)..." class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-brass-500 placeholder-slate-500">
+            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-500 text-xs"></i>
+          </div>
+          <button type="button" onclick="rerunArtworkSearchFromInput()" class="px-3.5 py-1.5 bg-vinyl-800 hover:bg-vinyl-700 text-sky-400 border border-sky-500/30 hover:border-sky-400 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition whitespace-nowrap shadow-sm">
+            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+            <span>Search Archives</span>
+          </button>
+        </div>
       </div>
 
       <!-- Modal Body (Scrollable Artwork Grid) -->
@@ -1596,12 +1610,17 @@
         <!-- Injected dynamically -->
       </div>
 
-      <!-- Modal Footer (Custom URL Paste & Actions) -->
+      <!-- Modal Footer (Custom URL Paste, Direct File Upload & Actions) -->
       <div class="p-3 sm:p-4 border-t border-vinyl-800 bg-vinyl-850 flex flex-wrap items-center justify-between gap-3 flex-shrink-0 text-xs">
-        <div class="flex items-center gap-2 flex-1 min-w-[260px]">
-          <input type="url" id="customArtworkUrlInput" placeholder="Or paste direct image URL (https://...)" class="flex-1 bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-brass-500">
+        <div class="flex items-center gap-2 flex-1 min-w-[280px]">
+          <input type="url" id="customArtworkUrlInput" placeholder="Paste direct image URL (https://...)" class="flex-1 bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-brass-500 placeholder-slate-500">
           <button type="button" onclick="applyCustomArtworkUrl()" class="px-3 py-1.5 bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 rounded-lg font-medium transition whitespace-nowrap">
             Use URL
+          </button>
+          <input type="file" id="chooserUploadInput" accept="image/*" class="hidden" onchange="handleChooserFileUpload(event)">
+          <button type="button" onclick="document.getElementById('chooserUploadInput').click()" class="px-3 py-1.5 bg-vinyl-800 hover:bg-vinyl-700 text-sky-300 border border-sky-500/30 rounded-lg font-medium transition whitespace-nowrap flex items-center gap-1.5" title="Upload local image file from your device">
+            <i class="fa-solid fa-arrow-up-from-bracket text-sky-400 text-xs"></i>
+            <span>Upload File</span>
           </button>
         </div>
         <div class="flex items-center gap-2">
@@ -2229,11 +2248,69 @@
     }
 
     /* =========================================================
-       ARTWORK CHOOSER MODAL & SLEEVE CANDIDATES BROWSER
+       ARTWORK CHOOSER MODAL & MULTI-SOURCE SLEEVE RESOLVER
+       (Deezer JSONP, TheAudioDB, Wikipedia, CAA, iTunes, Discogs)
        ========================================================= */
     let currentChooserTarget = { type: 'form', recordId: null };
 
-    async function searchAllOnlineArtworkCandidates(artist, title, releaseId = null, releaseGroupId = null) {
+    // JSONP loader for Deezer API (CORS-free, returns 1000x1000 album sleeves)
+    function fetchDeezerAlbums(query) {
+      return new Promise((resolve) => {
+        if (!query) return resolve([]);
+        const cbName = 'deezerCb_' + Math.random().toString(36).substring(2, 9);
+        const script = document.createElement('script');
+        const timer = setTimeout(() => {
+          cleanup();
+          resolve([]);
+        }, 3200);
+
+        function cleanup() {
+          clearTimeout(timer);
+          try { delete window[cbName]; } catch (e) { window[cbName] = undefined; }
+          if (script.parentNode) script.parentNode.removeChild(script);
+        }
+
+        window[cbName] = function(data) {
+          cleanup();
+          const items = (data && Array.isArray(data.data)) ? data.data : [];
+          resolve(items);
+        };
+
+        script.src = `https://api.deezer.com/search/album?q=${encodeURIComponent(query)}&limit=6&output=jsonp&callback=${cbName}`;
+        script.onerror = function() {
+          cleanup();
+          resolve([]);
+        };
+        document.head.appendChild(script);
+      });
+    }
+
+    // Direct local image file upload in artwork chooser modal
+    function handleChooserFileUpload(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        showToast("Please choose an image file (PNG, JPG, WEBP)", "error");
+        return;
+      }
+      if (file.size > 8 * 1024 * 1024) {
+        showToast("Image file exceeds 8MB limit", "error");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const dataUrl = e.target.result;
+        selectSleeveCandidate(dataUrl);
+        showToast("Custom cover artwork uploaded and applied!");
+      };
+      reader.onerror = function() {
+        showToast("Error reading file", "error");
+      };
+      reader.readAsDataURL(file);
+      event.target.value = '';
+    }
+
+    async function searchAllOnlineArtworkCandidates(artist, title, releaseId = null, releaseGroupId = null, discogsId = null) {
       const candidates = [];
       const seenUrls = new Set();
 
@@ -2243,100 +2320,303 @@
         candidates.push({ url, source, title: titleInfo });
       }
 
-      // 1. Cover Art Archive for release
-      if (releaseId) {
-        try {
-          const res = await fetch(`https://coverartarchive.org/release/${releaseId}`);
-          if (res.ok) {
-            const data = await res.json();
-            (data.images || []).forEach(img => {
-              const u = img.thumbnails?.['500'] || img.thumbnails?.large || img.image;
-              const type = img.types ? img.types.join(' / ') : (img.front ? 'Front Sleeve' : 'Artwork');
-              addCandidate(u, `Cover Art Archive (${type})`, `MusicBrainz Release`);
-            });
-          }
-        } catch (e) {}
-      }
+      const cleanArtist = (artist || '').trim();
+      const cleanTitle = (title || '').replace(/\s*\([^)]*\)/g, '').trim();
+      const fullQuery = `${cleanArtist} ${cleanTitle || (title || '')}`.trim();
 
-      // 2. Cover Art Archive for release-group
-      if (releaseGroupId) {
-        try {
-          const rgRes = await fetch(`https://coverartarchive.org/release-group/${releaseGroupId}`);
-          if (rgRes.ok) {
-            const rgData = await rgRes.json();
-            (rgData.images || []).forEach(img => {
-              const u = img.thumbnails?.['500'] || img.thumbnails?.large || img.image;
-              const type = img.types ? img.types.join(' / ') : (img.front ? 'Front Sleeve' : 'Artwork');
-              addCandidate(u, `Cover Art Archive (${type})`, 'Release Group Master');
-            });
-          }
-        } catch (e) {}
-      }
+      const fetchTasks = [];
 
-      // 3. iTunes Search API (returns multiple pressings/remasters/editions)
-      if (artist && title) {
-        try {
-          const q = encodeURIComponent(`${artist} ${title}`);
-          const itunesRes = await fetch(`https://itunes.apple.com/search?term=${q}&entity=album&limit=8`);
-          if (itunesRes.ok) {
-            const itunesData = await itunesRes.json();
-            (itunesData.results || []).forEach(item => {
-              let art = item.artworkUrl100 || '';
-              if (art) {
-                const highRes = art.replace(/100x100bb\.(jpg|png|webp)/, '600x600bb.$1');
-                const yr = item.releaseDate ? item.releaseDate.slice(0, 4) : '';
-                addCandidate(highRes, `Apple Music / iTunes (${yr || 'Digital Master'})`, item.collectionName || item.trackName);
+      // 1. Deezer API (JSONP, high-res 1000x1000)
+      if (fullQuery) {
+        fetchTasks.push((async () => {
+          try {
+            const deezerResults = await fetchDeezerAlbums(fullQuery);
+            deezerResults.forEach(item => {
+              const u = item.cover_xl || item.cover_big || item.cover_medium;
+              if (u) {
+                const type = item.record_type ? item.record_type.toUpperCase() : 'DEEZER';
+                addCandidate(u, `Deezer (${type} 1000px HQ)`, `${item.title} - ${item.artist?.name || cleanArtist}`);
               }
             });
-          }
-        } catch (e) {}
+          } catch (e) {}
+        })());
       }
 
-      // 4. MusicBrainz releases query for pressings with artwork
-      if (candidates.length < 3 && artist && title) {
-        try {
-          const mbSearchRes = await fetch(`https://musicbrainz.org/ws/2/release/?query=release:${encodeURIComponent(title)}+AND+artist:${encodeURIComponent(artist)}&fmt=json&limit=5`);
-          if (mbSearchRes.ok) {
-            const mbData = await mbSearchRes.json();
-            const releasesWithArt = (mbData.releases || []).filter(r => r['cover-art-archive']?.front).slice(0, 3);
-            for (const rel of releasesWithArt) {
-              if (rel.id !== releaseId) {
+      // 2. TheAudioDB API (Free open key '2', high-res album sleeve scans)
+      if (cleanArtist) {
+        fetchTasks.push((async () => {
+          try {
+            let url = `https://www.theaudiodb.com/api/v1/json/2/searchalbum.php?s=${encodeURIComponent(cleanArtist)}`;
+            if (cleanTitle) {
+              url += `&a=${encodeURIComponent(cleanTitle)}`;
+            }
+            const res = await fetch(url);
+            if (res.ok) {
+              const data = await res.json();
+              if (data && Array.isArray(data.album)) {
+                data.album.slice(0, 6).forEach(alb => {
+                  const u = alb.strAlbumThumbHQ || alb.strAlbumThumb;
+                  if (u) {
+                    addCandidate(u, `TheAudioDB (${alb.intYearReleased || 'HQ Sleeve'})`, `${alb.strAlbum} - ${alb.strArtist}`);
+                  }
+                });
+              }
+            }
+          } catch (e) {}
+        })());
+      }
+
+      // 3. Wikipedia / Wikimedia Commons (CORS-friendly origin=*, official high-res covers)
+      if (fullQuery) {
+        fetchTasks.push((async () => {
+          try {
+            const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrsearch=${encodeURIComponent(fullQuery + ' album')}&gsrlimit=4&prop=pageimages&pithumbsize=800`;
+            const res = await fetch(wikiUrl);
+            if (res.ok) {
+              const wikiData = await res.json();
+              const pages = wikiData.query?.pages ? Object.values(wikiData.query.pages) : [];
+              pages.forEach(p => {
+                if (p.thumbnail?.source) {
+                  addCandidate(p.thumbnail.source, `Wikipedia Archive (${p.title})`, p.title);
+                }
+              });
+            }
+          } catch (e) {}
+        })());
+      }
+
+      // 4. iTunes Search API (600x600 digital master sleeves)
+      if (fullQuery) {
+        fetchTasks.push((async () => {
+          try {
+            const itunesRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(fullQuery)}&entity=album&limit=8`);
+            if (itunesRes.ok) {
+              const itunesData = await itunesRes.json();
+              (itunesData.results || []).forEach(item => {
+                let art = item.artworkUrl100 || '';
+                if (art) {
+                  const highRes = art.replace(/100x100bb\.(jpg|png|webp)/, '600x600bb.$1');
+                  const yr = item.releaseDate ? item.releaseDate.slice(0, 4) : '';
+                  addCandidate(highRes, `Apple Music (${yr || 'Digital Master'})`, item.collectionName || item.trackName);
+                }
+              });
+            }
+          } catch (e) {}
+        })());
+      }
+
+      // 5. Cover Art Archive for release
+      if (releaseId) {
+        fetchTasks.push((async () => {
+          try {
+            const res = await fetch(`https://coverartarchive.org/release/${releaseId}`);
+            if (res.ok) {
+              const data = await res.json();
+              (data.images || []).forEach(img => {
+                const u = img.thumbnails?.['500'] || img.thumbnails?.large || img.image;
+                const type = img.types ? img.types.join(' / ') : (img.front ? 'Front Sleeve' : 'Artwork');
+                addCandidate(u, `Cover Art Archive (${type})`, `MusicBrainz Release`);
+              });
+            }
+          } catch (e) {}
+        })());
+      }
+
+      // 6. Cover Art Archive for release-group / Search Release-Groups
+      if (releaseGroupId) {
+        fetchTasks.push((async () => {
+          try {
+            const rgRes = await fetch(`https://coverartarchive.org/release-group/${releaseGroupId}`);
+            if (rgRes.ok) {
+              const rgData = await rgRes.json();
+              (rgData.images || []).forEach(img => {
+                const u = img.thumbnails?.['500'] || img.thumbnails?.large || img.image;
+                const type = img.types ? img.types.join(' / ') : (img.front ? 'Front Sleeve' : 'Artwork');
+                addCandidate(u, `Cover Art Archive (${type})`, 'Release Group Master');
+              });
+            }
+          } catch (e) {}
+        })());
+      } else if (cleanTitle && cleanArtist) {
+        fetchTasks.push((async () => {
+          try {
+            const mbRgRes = await fetch(`https://musicbrainz.org/ws/2/release-group/?query=releasegroup:${encodeURIComponent(cleanTitle)}+AND+artist:${encodeURIComponent(cleanArtist)}&fmt=json&limit=2`);
+            if (mbRgRes.ok) {
+              const mbRgData = await mbRgRes.json();
+              for (const rg of (mbRgData['release-groups'] || [])) {
                 try {
-                  const caaRes = await fetch(`https://coverartarchive.org/release/${rel.id}`);
+                  const caaRes = await fetch(`https://coverartarchive.org/release-group/${rg.id}`);
                   if (caaRes.ok) {
                     const caaData = await caaRes.json();
-                    const front = caaData.images?.find(i => i.front) || caaData.images?.[0];
-                    if (front) {
-                      const u = front.thumbnails?.['500'] || front.thumbnails?.large || front.image;
-                      const label = rel['label-info']?.[0]?.label?.name || rel.country || 'Pressing';
-                      addCandidate(u, `MusicBrainz (${label} ${rel.date?.slice(0, 4) || ''})`, rel.title);
-                    }
+                    (caaData.images || []).forEach(img => {
+                      const u = img.thumbnails?.['500'] || img.thumbnails?.large || img.image;
+                      addCandidate(u, `MusicBrainz CAA (${rg['primary-type'] || 'Front'})`, rg.title);
+                    });
                   }
                 } catch (err) {}
               }
             }
-          }
-        } catch (e) {}
+          } catch (e) {}
+        })());
       }
 
-      // 5. Discogs (if token configured)
-      const discogsToken = localStorage.getItem('QMC_DISCOGS_TOKEN');
-      if (discogsToken && artist && title) {
-        try {
-          const dUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(artist + ' ' + title)}&type=release&token=${encodeURIComponent(discogsToken)}&per_page=5`;
-          const dRes = await fetch(dUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } });
-          if (dRes.ok) {
-            const dData = await dRes.json();
-            (dData.results || []).forEach(item => {
-              if (item.cover_image && !item.cover_image.includes('spacer.gif')) {
-                addCandidate(item.cover_image, `Discogs (${item.country || 'Vinyl'} ${item.year || ''})`, item.title);
-              }
-            });
-          }
-        } catch (e) {}
+      // 7. Discogs Direct Release or Database Search
+      const discogsToken = (typeof TOKEN_KEY !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null) || localStorage.getItem('qmc_discogs_user_token') || localStorage.getItem('QMC_DISCOGS_TOKEN');
+      if (discogsId) {
+        fetchTasks.push((async () => {
+          try {
+            const headers = { 'User-Agent': 'QMCVinylArchive/2.0' };
+            if (discogsToken) headers['Authorization'] = `Discogs token=${discogsToken}`;
+            const dRes = await fetch(`https://api.discogs.com/releases/${discogsId}`, { headers });
+            if (dRes.ok) {
+              const dData = await dRes.json();
+              (dData.images || []).forEach(img => {
+                const u = img.resource_url || img.uri;
+                if (u && !u.includes('spacer.gif')) {
+                  addCandidate(u, `Discogs Pressing #${discogsId}`, dData.title || title);
+                }
+              });
+            }
+          } catch (e) {}
+        })());
       }
 
+      if (discogsToken && fullQuery) {
+        fetchTasks.push((async () => {
+          try {
+            const dUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(fullQuery)}&type=release&token=${encodeURIComponent(discogsToken)}&per_page=5`;
+            const dRes = await fetch(dUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } });
+            if (dRes.ok) {
+              const dData = await dRes.json();
+              (dData.results || []).forEach(item => {
+                if (item.cover_image && !item.cover_image.includes('spacer.gif')) {
+                  addCandidate(item.cover_image, `Discogs (${item.country || 'Vinyl'} ${item.year || ''})`, item.title);
+                }
+              });
+            }
+          } catch (e) {}
+        })());
+      }
+
+      await Promise.allSettled(fetchTasks);
       return candidates;
+    }
+
+    function renderChooserCandidates(candidates, artist, title, format = '12" LP (Album)') {
+      const grid = document.getElementById('artworkChooserGrid');
+      const subtitle = document.getElementById('artworkChooserSubtitle');
+      if (!grid) return;
+
+      let html = `
+        <div class="flex items-center justify-between pb-1 border-b border-vinyl-800 text-xs">
+          <span class="text-slate-300 font-medium">Found <strong class="text-white">${candidates.length}</strong> matching sleeve options:</span>
+          <span class="text-[11px] text-slate-500">Click any sleeve or "Use This" to apply</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 pt-1">
+      `;
+
+      // Option 0: Generic Archival Sleeve
+      const genericSleeveUri = getDefaultCover(format, artist, title);
+      const isSingle = format.includes('7"');
+      const isBoxSet = format.toLowerCase().includes('box');
+      const sleeveBadge = isSingle ? 'Generic 7" Sleeve' : (isBoxSet ? 'Generic Box Set' : 'Generic 12" Sleeve');
+      const sleeveDesc = isSingle ? 'Authentic 45 RPM Bag' : (isBoxSet ? 'Deluxe Rigid Slipcase' : 'Archival Vinyl Jacket');
+      html += `
+        <div class="p-2.5 bg-vinyl-850 rounded-xl border border-brass-500/30 hover:border-brass-400 flex flex-col justify-between group transition shadow">
+          <div class="w-full aspect-square rounded-lg overflow-hidden border border-vinyl-700 bg-vinyl-950 mb-2 relative">
+            <img src="${genericSleeveUri}" alt="Generic Sleeve" class="w-full h-full object-cover">
+            <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 text-[9px] font-mono font-bold text-brass-400 border border-brass-500/30">
+              ${sleeveBadge}
+            </span>
+          </div>
+          <div class="text-[11px] font-semibold text-white truncate mb-0.5">QMC Generic Sleeve</div>
+          <div class="text-[10px] text-slate-400 truncate mb-2">${sleeveDesc}</div>
+          <button type="button" onclick="selectSleeveCandidate('')" class="w-full py-1.5 px-2 bg-vinyl-800 hover:bg-brass-500 hover:text-vinyl-950 text-brass-400 font-bold rounded text-xs transition border border-brass-500/30">
+            Use Generic
+          </button>
+        </div>
+      `;
+
+      candidates.forEach((cand, idx) => {
+        html += `
+          <div class="p-2.5 bg-vinyl-850 rounded-xl border border-vinyl-800 hover:border-brass-500/60 flex flex-col justify-between group transition shadow">
+            <div class="w-full aspect-square rounded-lg overflow-hidden border border-vinyl-700 bg-vinyl-950 mb-2 relative cursor-pointer" onclick="selectSleeveCandidate('${escapeJsString(cand.url)}')">
+              <img src="${cand.url}" alt="Sleeve ${idx + 1}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy">
+              <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 text-[9px] font-mono text-slate-300 border border-white/10 max-w-[90%] truncate">
+                #${idx + 1}
+              </span>
+            </div>
+            <div class="text-[11px] font-semibold text-white truncate mb-0.5" title="${escapeHtml(cand.title || title)}">
+              ${escapeHtml(cand.title || title)}
+            </div>
+            <div class="text-[10px] text-brass-400/90 truncate mb-2" title="${escapeHtml(cand.source)}">
+              ${escapeHtml(cand.source)}
+            </div>
+            <button type="button" onclick="selectSleeveCandidate('${escapeJsString(cand.url)}')" class="w-full py-1.5 px-2 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold rounded text-xs transition shadow flex items-center justify-center gap-1">
+              <i class="fa-solid fa-check text-[10px]"></i>
+              <span>Use This</span>
+            </button>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+      grid.innerHTML = html;
+      if (subtitle) {
+        subtitle.innerText = `Sleeve candidates for "${artist} - ${title}" (${candidates.length} online + generic)`;
+      }
+    }
+
+    async function rerunArtworkSearchFromInput() {
+      const input = document.getElementById('artworkSearchQueryInput');
+      const val = input?.value.trim();
+      if (!val) {
+        showToast("Please enter an artist or title to search", "info");
+        return;
+      }
+      let artist = val;
+      let title = '';
+      if (val.includes(' - ')) {
+        const parts = val.split(' - ');
+        artist = parts[0].trim();
+        title = parts.slice(1).join(' - ').trim();
+      }
+
+      let format = '12" LP (Album)';
+      if (currentChooserTarget.type === 'record' && currentChooserTarget.recordId) {
+        const rec = records.find(r => r.id === currentChooserTarget.recordId);
+        if (rec && rec.format) format = rec.format;
+      } else {
+        format = document.getElementById('formFormat')?.value || format;
+      }
+
+      const grid = document.getElementById('artworkChooserGrid');
+      const subtitle = document.getElementById('artworkChooserSubtitle');
+      if (subtitle) subtitle.innerText = `Searching multiple archives for "${val}"...`;
+      if (grid) {
+        grid.innerHTML = `
+          <div class="py-12 text-center text-slate-400">
+            <i class="fa-solid fa-spinner fa-spin text-3xl text-brass-400 mb-3 block"></i>
+            <p class="text-sm font-semibold text-white">Searching Multi-Source Cover Art Archives...</p>
+            <p class="text-xs text-slate-500 mt-1">Checking Deezer, TheAudioDB, MusicBrainz CAA, Wikipedia & Apple Music</p>
+          </div>
+        `;
+      }
+
+      try {
+        const candidates = await searchAllOnlineArtworkCandidates(artist, title);
+        renderChooserCandidates(candidates, artist, title, format);
+      } catch (err) {
+        if (grid) {
+          grid.innerHTML = `
+            <div class="py-12 text-center text-slate-400">
+              <i class="fa-solid fa-triangle-exclamation text-2xl text-amber-400 mb-2 block"></i>
+              <p class="text-sm font-semibold text-white">Could not fetch online sleeves</p>
+              <p class="text-xs text-slate-500 mt-1">${escapeHtml(err.message || 'Search error')}</p>
+            </div>
+          `;
+        }
+      }
     }
 
     async function openArtworkChooserModal(targetType = 'form', recordId = null) {
@@ -2345,11 +2625,13 @@
       const grid = document.getElementById('artworkChooserGrid');
       const subtitle = document.getElementById('artworkChooserSubtitle');
       const urlInput = document.getElementById('customArtworkUrlInput');
+      const searchInput = document.getElementById('artworkSearchQueryInput');
       if (urlInput) urlInput.value = '';
 
       let artist = '';
       let title = '';
       let format = '12" LP (Album)';
+      let discogsId = null;
 
       if (targetType === 'record' && recordId) {
         const rec = records.find(r => r.id === recordId);
@@ -2357,15 +2639,21 @@
           artist = rec.artist || '';
           title = rec.title || '';
           format = rec.format || format;
+          discogsId = rec.discogsId || null;
         }
       } else {
         artist = document.getElementById('formArtist')?.value.trim() || '';
         title = document.getElementById('formTitle')?.value.trim() || '';
         format = document.getElementById('formFormat')?.value || format;
+        discogsId = document.getElementById('formDiscogsId')?.value.trim() || null;
         if (!artist && !title) {
           artist = document.getElementById('searchArtistInput')?.value.trim() || '';
           title = document.getElementById('searchTitleInput')?.value.trim() || '';
         }
+      }
+
+      if (searchInput) {
+        searchInput.value = `${artist} ${title}`.trim();
       }
 
       if (!artist && !title) {
@@ -2379,76 +2667,20 @@
       grid.innerHTML = `
         <div class="py-12 text-center text-slate-400">
           <i class="fa-solid fa-spinner fa-spin text-3xl text-brass-400 mb-3 block"></i>
-          <p class="text-sm font-semibold text-white">Searching Cover Art Archive & Online Registries...</p>
-          <p class="text-xs text-slate-500 mt-1">Gathering high-resolution sleeves across MusicBrainz, Apple Music & Discogs</p>
+          <p class="text-sm font-semibold text-white">Searching Multi-Source Cover Art Archives...</p>
+          <p class="text-xs text-slate-500 mt-1">Gathering high-res sleeves across Deezer, TheAudioDB, Wikipedia, MusicBrainz & Apple Music</p>
         </div>
       `;
 
       try {
-        const candidates = await searchAllOnlineArtworkCandidates(artist, title);
-        
-        let html = `
-          <div class="flex items-center justify-between pb-1 border-b border-vinyl-800 text-xs">
-            <span class="text-slate-300 font-medium">Found <strong class="text-white">${candidates.length}</strong> matching sleeve options:</span>
-            <span class="text-[11px] text-slate-500">Click any sleeve to apply</span>
-          </div>
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 pt-1">
-        `;
-
-        // Option 0: Generic Archival Sleeve
-        const genericSleeveUri = getDefaultCover(format, artist, title);
-        const isSingle = format.includes('7"');
-        const isBoxSet = format.toLowerCase().includes('box');
-        const sleeveBadge = isSingle ? 'Generic 7" Sleeve' : (isBoxSet ? 'Generic Box Set' : 'Generic 12" Sleeve');
-        const sleeveDesc = isSingle ? 'Authentic 45 RPM Bag' : (isBoxSet ? 'Deluxe Rigid Slipcase' : 'Archival Vinyl Jacket');
-        html += `
-          <div class="p-2.5 bg-vinyl-850 rounded-xl border border-brass-500/30 hover:border-brass-400 flex flex-col justify-between group transition shadow">
-            <div class="w-full aspect-square rounded-lg overflow-hidden border border-vinyl-700 bg-vinyl-950 mb-2 relative">
-              <img src="${genericSleeveUri}" alt="Generic Sleeve" class="w-full h-full object-cover">
-              <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 text-[9px] font-mono font-bold text-brass-400 border border-brass-500/30">
-                ${sleeveBadge}
-              </span>
-            </div>
-            <div class="text-[11px] font-semibold text-white truncate mb-0.5">QMC Generic Sleeve</div>
-            <div class="text-[10px] text-slate-400 truncate mb-2">${sleeveDesc}</div>
-            <button type="button" onclick="selectSleeveCandidate('')" class="w-full py-1.5 px-2 bg-vinyl-800 hover:bg-brass-500 hover:text-vinyl-950 text-brass-400 font-bold rounded text-xs transition border border-brass-500/30">
-              Use Generic
-            </button>
-          </div>
-        `;
-
-        candidates.forEach((cand, idx) => {
-          html += `
-            <div class="p-2.5 bg-vinyl-850 rounded-xl border border-vinyl-800 hover:border-brass-500/60 flex flex-col justify-between group transition shadow">
-              <div class="w-full aspect-square rounded-lg overflow-hidden border border-vinyl-700 bg-vinyl-950 mb-2 relative cursor-pointer" onclick="selectSleeveCandidate('${escapeJsString(cand.url)}')">
-                <img src="${cand.url}" alt="Sleeve ${idx + 1}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy">
-                <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 text-[9px] font-mono text-slate-300 border border-white/10 max-w-[90%] truncate">
-                  #${idx + 1}
-                </span>
-              </div>
-              <div class="text-[11px] font-semibold text-white truncate mb-0.5" title="${escapeHtml(cand.title || title)}">
-                ${escapeHtml(cand.title || title)}
-              </div>
-              <div class="text-[10px] text-brass-400/90 truncate mb-2" title="${escapeHtml(cand.source)}">
-                ${escapeHtml(cand.source)}
-              </div>
-              <button type="button" onclick="selectSleeveCandidate('${escapeJsString(cand.url)}')" class="w-full py-1.5 px-2 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold rounded text-xs transition shadow flex items-center justify-center gap-1">
-                <i class="fa-solid fa-check text-[10px]"></i>
-                <span>Use This</span>
-              </button>
-            </div>
-          `;
-        });
-
-        html += `</div>`;
-        grid.innerHTML = html;
-        subtitle.innerText = `Sleeve candidates for "${artist} - ${title}" (${candidates.length} online + generic)`;
+        const candidates = await searchAllOnlineArtworkCandidates(artist, title, null, null, discogsId);
+        renderChooserCandidates(candidates, artist, title, format);
       } catch (err) {
         grid.innerHTML = `
           <div class="py-12 text-center text-slate-400">
             <i class="fa-solid fa-triangle-exclamation text-2xl text-amber-400 mb-2 block"></i>
             <p class="text-sm font-semibold text-white">Could not fetch online sleeves</p>
-            <p class="text-xs text-slate-500 mt-1">${err.message || 'API request error'}</p>
+            <p class="text-xs text-slate-500 mt-1">${escapeHtml(err.message || 'API request error')}</p>
           </div>
         `;
       }
@@ -3341,8 +3573,11 @@
     }
 
     function getEbaySoldUrl(item) {
-      const q = `${item.artist} ${item.catNo || item.title} vinyl`.trim();
-      return `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(q)}&LH_Complete=1&LH_Sold=1`;
+      const cleanArtist = (item.artist || '').trim();
+      const cleanTitle = (item.title || '').replace(/\s*\([^)]*\)/g, '').trim();
+      const q = `${cleanArtist} ${cleanTitle} vinyl`.trim();
+      const ebayDomain = (typeof globalCurrency !== 'undefined' && globalCurrency === 'USD') ? 'ebay.com' : ((typeof globalCurrency !== 'undefined' && globalCurrency === 'EUR') ? 'ebay.de' : 'ebay.co.uk');
+      return `https://www.${ebayDomain}/sch/i.html?_nkw=${encodeURIComponent(q)}&LH_Complete=1&LH_Sold=1`;
     }
 
     /* =========================================================
@@ -4672,15 +4907,14 @@
        ========================================================= */
     async function queryEbayMarketValue(artist, title, catNo = '', mediaGrade = 'VG+', format = '12" LP (Album)', year = null) {
       const cleanArtist = (artist || '').trim();
-      const cleanTitle = (title || '').trim();
-      const cleanCatNo = (catNo || '').trim();
+      const cleanTitle = (title || '').replace(/\s*\([^)]*\)/g, '').trim();
 
       if (!cleanArtist && !cleanTitle) return null;
 
       // 1. Attempt live eBay completed / sold listings via public RSS and CORS proxies
       let soldPrices = [];
-      const ebayQuery = `${cleanArtist} ${cleanCatNo || cleanTitle} vinyl`.trim();
-      const ebayDomain = globalCurrency === 'USD' ? 'ebay.com' : (globalCurrency === 'EUR' ? 'ebay.de' : 'ebay.co.uk');
+      const ebayQuery = `${cleanArtist} ${cleanTitle} vinyl`.trim();
+      const ebayDomain = (typeof globalCurrency !== 'undefined' && globalCurrency === 'USD') ? 'ebay.com' : ((typeof globalCurrency !== 'undefined' && globalCurrency === 'EUR') ? 'ebay.de' : 'ebay.co.uk');
       const rssUrl = `https://www.${ebayDomain}/sch/i.html?_nkw=${encodeURIComponent(ebayQuery)}&LH_Complete=1&LH_Sold=1&_rss=1`;
 
       const proxyUrls = [
@@ -4691,7 +4925,7 @@
       for (const pUrl of proxyUrls) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 3500);
+          const timeoutId = setTimeout(() => controller.abort(), 2000);
           const res = await fetch(pUrl, { signal: controller.signal });
           clearTimeout(timeoutId);
           if (res.ok) {
@@ -4736,7 +4970,7 @@
 
       // Currency conversion factor
       const currRates = { 'GBP': 1.0, 'USD': 1.28, 'EUR': 1.17 };
-      const curRate = currRates[globalCurrency] || 1.0;
+      const curRate = (typeof globalCurrency !== 'undefined' && currRates[globalCurrency]) ? currRates[globalCurrency] : 1.0;
 
       let finalValue = null;
       let sourceTag = 'eBay Sold Transactions';
@@ -4789,8 +5023,9 @@
 
       return {
         value: finalValue,
-        currency: globalCurrency,
-        source: sourceTag
+        currency: (typeof globalCurrency !== 'undefined') ? globalCurrency : 'GBP',
+        source: sourceTag,
+        searchQuery: ebayQuery
       };
     }
 
