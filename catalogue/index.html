@@ -217,9 +217,12 @@
         </div>
       </div>
 
-      <!-- Mobile Add to Home Screen & Exit WebApp Buttons -->
+      <!-- Mobile Add to Home Screen, Barcode Scan & Exit WebApp Buttons -->
       <button type="button" onclick="openAddToHomeScreenModal()" class="md:hidden p-2 text-xs rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 transition flex items-center justify-center shadow-sm" title="Add to Home Screen">
         <i class="fa-solid fa-mobile-screen-button text-sm"></i>
+      </button>
+      <button type="button" onclick="openScannerModal()" class="md:hidden p-2 text-xs rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 transition flex items-center justify-center shadow-sm" title="Scan Barcode via Camera">
+        <i class="fa-solid fa-barcode text-sm"></i>
       </button>
       <button type="button" onclick="exitWebApp()" class="md:hidden px-2.5 py-1.5 text-xs font-bold rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 hover:border-red-800/60 transition flex items-center gap-1 shadow-sm" title="Exit current view or return to QMC Home">
         <i class="fa-solid fa-right-from-bracket text-xs text-rose-400"></i>
@@ -296,6 +299,9 @@
           <div class="px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400 border-b border-vinyl-700">
             Enrichment &amp; Metadata
           </div>
+          <button onclick="openBatchMetadataRefreshModal()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-purple-300 flex items-center gap-2 font-medium">
+            <i class="fa-solid fa-arrows-rotate text-purple-400"></i> Refresh Formats &amp; Metadata
+          </button>
           <button onclick="openBatchGenreEnrichModal()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-sky-300 flex items-center gap-2 font-medium">
             <i class="fa-solid fa-wand-magic-sparkles text-sky-400"></i> Auto-Enrich Missing Genres
           </button>
@@ -352,7 +358,7 @@
           <div class="flex items-baseline gap-2 flex-wrap">
             <span id="statTotalItems" class="text-lg sm:text-xl font-bold font-mono text-brass-400">0</span>
             <span class="text-[10px] font-mono text-slate-400 truncate">
-              <span id="statTotalLPs" class="text-amber-400 font-semibold">0</span> LP · <span id="statTotalSingles" class="text-cyan-400 font-semibold">0</span> 7"
+              <span id="statTotalLPs" class="text-amber-400 font-semibold">0</span> LP · <span id="statTotal12Singles" class="text-purple-400 font-semibold">0</span> 12" · <span id="statTotalSingles" class="text-cyan-400 font-semibold">0</span> 7"
             </span>
           </div>
         </div>
@@ -428,9 +434,11 @@
           <option value="12&quot; LP (Album)">12" LP (Album)</option>
           <option value="2xLP Gatefold (Album)">2xLP Gatefold (Album)</option>
           <option value="Box Set (Vinyl / Multi-Disc)">Box Set (Vinyl / Multi-Disc)</option>
-          <option value="7&quot; Single (45 RPM)">7" Single (45 RPM)</option>
           <option value="12&quot; Maxi / Single">12" Maxi / Single</option>
+          <option value="7&quot; Single (45 RPM)">7" Single (45 RPM)</option>
           <option value="10&quot; Vinyl">10" Vinyl</option>
+          <option value="Cassette Tape">Cassette Tape</option>
+          <option value="MiniDisc">MiniDisc</option>
           <option value="CD / Other">CD / Other</option>
         </select>
 
@@ -907,8 +915,12 @@
             <p class="text-[11px] text-slate-400">Archival entry for 12" LPs, Albums, and 7" Singles</p>
           </div>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
           <span class="text-[10px] text-slate-400 font-mono hidden sm:inline">Tip: [Ctrl + Enter] to Save & Add Next</span>
+          <button type="button" onclick="document.getElementById('recordForm').requestSubmit()" class="px-3 py-1.5 rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 text-xs font-bold flex items-center gap-1.5 shadow transition" title="Save this record">
+            <i class="fa-solid fa-check"></i>
+            <span>Save</span>
+          </button>
           <button type="button" onclick="closeAddEditModal()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm">
             <i class="fa-solid fa-xmark"></i>
             <span>Exit</span>
@@ -917,69 +929,104 @@
       </div>
 
       <!-- Quick Online Discography Auto-lookup Bar (Narrow by Artist & Title) -->
-      <div class="bg-vinyl-800/60 px-4 sm:px-6 py-2.5 border-b border-vinyl-800 flex flex-col md:flex-row md:items-center justify-between gap-2.5">
-        <div class="flex items-center gap-2 flex-1 flex-wrap">
-          <div class="flex items-center gap-1.5 text-xs text-brass-400 font-semibold whitespace-nowrap">
-            <i class="fa-solid fa-wand-magic-sparkles"></i>
-            <span>Quick Lookup:</span>
+      <div id="quickLookupBar" class="bg-vinyl-800/60 border-b border-vinyl-800 transition-all">
+        <!-- Collapsed Strip View -->
+        <div id="quickLookupCollapsedBar" class="hidden px-4 sm:px-6 py-2 items-center justify-between gap-2 text-xs cursor-pointer hover:bg-vinyl-800/80 transition" onclick="setQuickLookupCollapsed(false)" title="Click to expand discography search & barcode lookup">
+          <div class="flex items-center gap-2 min-w-0">
+            <i class="fa-solid fa-wand-magic-sparkles text-brass-400"></i>
+            <span id="quickLookupSummaryText" class="text-slate-300 font-medium truncate">Quick Lookup &amp; Barcode Scanner</span>
+            <span class="text-[10px] text-slate-500 font-mono hidden sm:inline">(Tap to search online)</span>
           </div>
-          
-          <!-- Format Filter Dropdown -->
-          <select id="autofillFormatFilter" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-brass-400 font-semibold focus:outline-none focus:border-brass-500" title="Narrow search by release format">
-            <option value="ALL">Any Format</option>
-            <option value="12">12" Vinyl / LP</option>
-            <option value="BOX">Vinyl Box Set</option>
-            <option value="7">7" Single (45 RPM)</option>
-            <option value="10">10" Vinyl</option>
-            <option value="CD">CD / Other</option>
-          </select>
-
-          <!-- Artist Input -->
-          <div class="relative flex-1 min-w-[130px]">
-            <input 
-              type="text" 
-              id="searchArtistInput" 
-              onkeydown="if(event.key === 'Enter'){ event.preventDefault(); lookupMusicBrainzManual(); }"
-              placeholder="Artist (e.g. The Damned)" 
-              class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brass-500"
-            >
+          <div class="flex items-center gap-2 flex-shrink-0" onclick="event.stopPropagation()">
+            <button type="button" onclick="openScannerModal()" class="px-2.5 py-1 text-xs rounded-lg bg-vinyl-850 hover:bg-vinyl-700 text-brass-400 border border-brass-500/40 flex items-center gap-1.5 shadow" title="Scan Barcode via Camera">
+              <i class="fa-solid fa-barcode"></i>
+              <span>Scan</span>
+            </button>
+            <button type="button" onclick="setQuickLookupCollapsed(false)" class="px-2.5 py-1 text-xs rounded-lg bg-vinyl-850 hover:bg-vinyl-700 text-slate-300 border border-vinyl-700 flex items-center gap-1" title="Expand Quick Lookup">
+              <i class="fa-solid fa-chevron-down text-[10px]"></i>
+              <span>Expand</span>
+            </button>
           </div>
-
-          <!-- Title Input -->
-          <div class="relative flex-1 min-w-[150px]">
-            <input 
-              type="text" 
-              id="searchTitleInput" 
-              onkeydown="if(event.key === 'Enter'){ event.preventDefault(); lookupMusicBrainzManual(); }"
-              placeholder="Title / Track (e.g. New Rose)" 
-              class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brass-500"
-            >
-          </div>
-
-          <!-- Clear Search Button -->
-          <button 
-            type="button" 
-            onclick="clearAutofillSearch()" 
-            id="clearSearchQueryBtn" 
-            class="px-2 py-1.5 bg-vinyl-850 hover:bg-vinyl-700 border border-vinyl-700 text-slate-400 hover:text-white rounded-lg text-xs transition" 
-            title="Clear artist and title search boxes"
-          >
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-
-          <!-- Search Button -->
-          <button type="button" onclick="lookupMusicBrainzManual()" id="musicBrainzFetchBtn" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 transition flex items-center gap-1.5 shadow whitespace-nowrap">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <span>Search</span>
-          </button>
         </div>
 
-        <!-- Form Clear / Reset Option -->
-        <div class="flex items-center gap-2 self-end md:self-auto">
-          <button type="button" onclick="confirmClearForm()" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-vinyl-850 hover:bg-red-950/50 hover:text-red-300 text-slate-400 border border-vinyl-700 hover:border-red-800 transition flex items-center gap-1.5 whitespace-nowrap" title="Clear all entry fields back to empty">
-            <i class="fa-solid fa-eraser text-xs"></i>
-            <span>Clear Entry</span>
-          </button>
+        <!-- Expanded Content View -->
+        <div id="quickLookupExpandedContent" class="px-4 sm:px-6 py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+          <div class="flex items-center gap-2 flex-1 flex-wrap">
+            <div class="flex items-center gap-1.5 text-xs text-brass-400 font-semibold whitespace-nowrap">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span>Quick Lookup:</span>
+            </div>
+            
+            <!-- Format Filter Dropdown -->
+            <select id="autofillFormatFilter" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-brass-400 font-semibold focus:outline-none focus:border-brass-500" title="Narrow search by release format">
+              <option value="ALL">Any Format</option>
+              <option value="12">12" Vinyl / LP</option>
+              <option value="12S">12" Single / Maxi</option>
+              <option value="BOX">Vinyl Box Set</option>
+              <option value="7">7" Single (45 RPM)</option>
+              <option value="10">10" Vinyl</option>
+              <option value="CASSETTE">Cassette Tape</option>
+              <option value="MINIDISC">MiniDisc</option>
+              <option value="CD">CD / Other</option>
+            </select>
+
+            <!-- Artist Input -->
+            <div class="relative flex-1 min-w-[130px]">
+              <input 
+                type="text" 
+                id="searchArtistInput" 
+                onkeydown="if(event.key === 'Enter'){ event.preventDefault(); lookupMusicBrainzManual(); }"
+                placeholder="Artist (e.g. The Damned)" 
+                class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brass-500"
+              >
+            </div>
+
+            <!-- Title Input -->
+            <div class="relative flex-1 min-w-[150px]">
+              <input 
+                type="text" 
+                id="searchTitleInput" 
+                onkeydown="if(event.key === 'Enter'){ event.preventDefault(); lookupMusicBrainzManual(); }"
+                placeholder="Title / Track (e.g. New Rose)" 
+                class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brass-500"
+              >
+            </div>
+
+            <!-- Clear Search Button -->
+            <button 
+              type="button" 
+              onclick="clearAutofillSearch()" 
+              id="clearSearchQueryBtn" 
+              class="px-2 py-1.5 bg-vinyl-850 hover:bg-vinyl-700 border border-vinyl-700 text-slate-400 hover:text-white rounded-lg text-xs transition" 
+              title="Clear artist and title search boxes"
+            >
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <!-- Search Button -->
+            <button type="button" onclick="lookupMusicBrainzManual()" id="musicBrainzFetchBtn" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 transition flex items-center gap-1.5 shadow whitespace-nowrap">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <span>Search</span>
+            </button>
+
+            <!-- Scan Barcode Button -->
+            <button type="button" onclick="openScannerModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-vinyl-850 hover:bg-vinyl-700 border border-brass-500/40 text-brass-400 transition flex items-center gap-1.5 shadow whitespace-nowrap" title="Scan Barcode via Camera">
+              <i class="fa-solid fa-barcode"></i>
+              <span>Scan</span>
+            </button>
+          </div>
+
+          <!-- Controls: Collapse & Clear -->
+          <div class="flex items-center gap-2 self-end md:self-auto">
+            <button type="button" onclick="setQuickLookupCollapsed(true)" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-vinyl-850 hover:bg-vinyl-700 text-slate-400 hover:text-slate-200 border border-vinyl-700 transition flex items-center gap-1" title="Hide Quick Lookup bar">
+              <i class="fa-solid fa-chevron-up text-[10px]"></i>
+              <span class="hidden sm:inline">Hide</span>
+            </button>
+            <button type="button" onclick="confirmClearForm()" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-vinyl-850 hover:bg-red-950/50 hover:text-red-300 text-slate-400 border border-vinyl-700 hover:border-red-800 transition flex items-center gap-1.5 whitespace-nowrap" title="Clear all entry fields back to empty">
+              <i class="fa-solid fa-eraser text-xs"></i>
+              <span>Clear Entry</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1023,9 +1070,11 @@
                 <option value="12&quot; LP (Album)">12" LP (Album)</option>
                 <option value="2xLP Gatefold (Album)">2xLP Gatefold (Album)</option>
                 <option value="Box Set (Vinyl / Multi-Disc)">Box Set (Vinyl / Multi-Disc)</option>
-                <option value="7&quot; Single (45 RPM)">7" Single (45 RPM)</option>
                 <option value="12&quot; Maxi / Single">12" Maxi / Single</option>
+                <option value="7&quot; Single (45 RPM)">7" Single (45 RPM)</option>
                 <option value="10&quot; Vinyl">10" Vinyl</option>
+                <option value="Cassette Tape">Cassette Tape</option>
+                <option value="MiniDisc">MiniDisc</option>
                 <option value="CD / Other">CD / Other</option>
               </select>
             </div>
@@ -1190,6 +1239,10 @@
               <label class="block text-xs font-semibold text-slate-300 mb-1">Barcode / UPC / EAN</label>
               <div class="flex gap-2">
                 <input type="text" id="formBarcode" placeholder="Scan or enter barcode" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-brass-500">
+                <button type="button" onclick="openScannerModal()" class="px-3 py-2 bg-vinyl-800 hover:bg-vinyl-700 border border-brass-500/40 rounded-lg text-xs text-brass-400 flex items-center gap-1.5 shadow" title="Scan Barcode via Camera">
+                  <i class="fa-solid fa-barcode"></i>
+                  <span class="hidden sm:inline">Scan</span>
+                </button>
                 <button type="button" onclick="lookupMusicBrainzByBarcodeField()" class="px-3 py-2 bg-vinyl-800 hover:bg-vinyl-700 border border-vinyl-700 rounded-lg text-xs text-brass-400" title="Lookup Online via MusicBrainz">
                   <i class="fa-solid fa-magnifying-glass-chart"></i>
                 </button>
@@ -1895,6 +1948,140 @@
   </div>
 
   <!-- ============================================== -->
+  <!-- MODAL: BATCH ARCHIVE METADATA & FORMAT REFRESH -->
+  <!-- ============================================== -->
+  <div id="batchMetadataRefreshModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto">
+    <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-2xl flex flex-col shadow-2xl overflow-hidden my-auto">
+      
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+            <i class="fa-solid fa-arrows-rotate text-sm"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-white tracking-tight flex items-center gap-2">
+              <span>Refresh Formats &amp; Archive Metadata</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">Batch Audit</span>
+            </h2>
+            <p class="text-[11px] text-slate-400">Audit crate, reclassify 12" singles, cassettes &amp; MiniDiscs, and backfill metadata</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeBatchMetadataRefreshModal()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm">
+          <i class="fa-solid fa-xmark"></i>
+          <span>Exit</span>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
+        <!-- Summary Stats Card -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 text-center">
+            <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Total Crate</div>
+            <div id="batchRefreshTotalRecords" class="text-xl font-bold font-mono text-white mt-0.5">0</div>
+          </div>
+          <div class="p-3 bg-vinyl-850 rounded-xl border border-purple-500/30 text-center">
+            <div class="text-[10px] text-purple-400 uppercase tracking-wider font-semibold">12" Singles / Maxis</div>
+            <div id="batchRefresh12SCount" class="text-xl font-bold font-mono text-purple-300 mt-0.5">0</div>
+          </div>
+          <div class="p-3 bg-vinyl-850 rounded-xl border border-teal-500/30 text-center">
+            <div class="text-[10px] text-teal-400 uppercase tracking-wider font-semibold">Cassette / MD</div>
+            <div id="batchRefreshTapeCount" class="text-xl font-bold font-mono text-teal-300 mt-0.5">0</div>
+          </div>
+          <div class="p-3 bg-vinyl-850 rounded-xl border border-amber-500/30 text-center">
+            <div class="text-[10px] text-amber-400 uppercase tracking-wider font-semibold">Missing Metadata</div>
+            <div id="batchRefreshMissingCount" class="text-xl font-bold font-mono text-amber-300 mt-0.5">0</div>
+          </div>
+        </div>
+
+        <!-- Scope Selection Card -->
+        <div class="p-4 bg-vinyl-850 rounded-xl border border-vinyl-800 space-y-3">
+          <div class="text-xs font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-filter text-purple-400"></i>
+            <span>Scan Scope &amp; Target Records:</span>
+          </div>
+          <div class="space-y-2 text-xs">
+            <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-vinyl-800/60 cursor-pointer">
+              <input type="radio" name="batchRefreshMode" value="audit" checked class="mt-0.5 text-purple-500 focus:ring-purple-400 bg-vinyl-900 border-vinyl-700">
+              <div>
+                <span class="font-semibold text-slate-200">Audit &amp; Reclassify Potential Misclassifications (Recommended)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Checks records saved as 12" LP or CD/Other with single/maxi/cassette/MD titles, 45 RPM speeds, or short tracklists.</p>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-vinyl-800/60 cursor-pointer">
+              <input type="radio" name="batchRefreshMode" value="all" class="mt-0.5 text-purple-500 focus:ring-purple-400 bg-vinyl-900 border-vinyl-700">
+              <div>
+                <span class="font-semibold text-slate-200">Comprehensive Full Refresh (All Records in Crate)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Audits every record against Discogs &amp; MusicBrainz, backfilling missing data across the entire archive.</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Options Checkboxes -->
+        <div class="p-4 bg-vinyl-850 rounded-xl border border-vinyl-800 space-y-2.5">
+          <div class="text-xs font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-brass-400"></i>
+            <span>Refresh Operations:</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <label class="flex items-center gap-2 p-1.5 rounded hover:bg-vinyl-800/40 cursor-pointer">
+              <input type="checkbox" id="batchRefreshOpt12S" checked class="rounded text-purple-500 focus:ring-purple-400 bg-vinyl-900 border-vinyl-700">
+              <span class="text-slate-300">Reclassify 12" Singles &amp; Maxis</span>
+            </label>
+            <label class="flex items-center gap-2 p-1.5 rounded hover:bg-vinyl-800/40 cursor-pointer">
+              <input type="checkbox" id="batchRefreshOptTapes" checked class="rounded text-teal-500 focus:ring-teal-400 bg-vinyl-900 border-vinyl-700">
+              <span class="text-slate-300">Reclassify Cassettes &amp; MiniDiscs</span>
+            </label>
+            <label class="flex items-center gap-2 p-1.5 rounded hover:bg-vinyl-800/40 cursor-pointer">
+              <input type="checkbox" id="batchRefreshOptGenres" checked class="rounded text-sky-500 focus:ring-sky-400 bg-vinyl-900 border-vinyl-700">
+              <span class="text-slate-300">Backfill Missing Genres &amp; Styles</span>
+            </label>
+            <label class="flex items-center gap-2 p-1.5 rounded hover:bg-vinyl-800/40 cursor-pointer">
+              <input type="checkbox" id="batchRefreshOptValuate" checked class="rounded text-amber-500 focus:ring-amber-400 bg-vinyl-900 border-vinyl-700">
+              <span class="text-slate-300">Refresh Market Valuation</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Progress Card (Hidden initially) -->
+        <div id="batchRefreshProgressCard" class="hidden p-4 bg-vinyl-850 rounded-xl border border-purple-500/40 space-y-3">
+          <div class="flex items-center justify-between text-xs font-semibold">
+            <span id="batchRefreshProgressStatus" class="text-purple-300 flex items-center gap-2">
+              <i class="fa-solid fa-spinner fa-spin"></i> Initializing audit...
+            </span>
+            <span id="batchRefreshProgressPercent" class="font-mono text-white">0%</span>
+          </div>
+          <div class="w-full bg-vinyl-950 h-2.5 rounded-full overflow-hidden border border-vinyl-750">
+            <div id="batchRefreshProgressBar" class="h-full bg-gradient-to-r from-purple-500 via-sky-500 to-teal-400 transition-all duration-200" style="width: 0%;"></div>
+          </div>
+          <div class="flex items-center justify-between text-[11px] font-mono text-slate-400">
+            <span>Reclassified: <strong id="batchRefreshReclassifiedCount" class="text-purple-300">0</strong></span>
+            <span>Enriched: <strong id="batchRefreshEnrichedCount" class="text-emerald-300">0</strong></span>
+            <span>Valuated: <strong id="batchRefreshValuatedCount" class="text-amber-300">0</strong></span>
+          </div>
+          <!-- Live Activity Log -->
+          <div id="batchRefreshLog" class="p-2.5 bg-vinyl-950 rounded-lg border border-vinyl-800 text-[10px] font-mono text-slate-400 max-h-36 overflow-y-auto space-y-1">
+            <div class="text-slate-500 italic">Ready to audit archive.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-6 py-3 border-t border-vinyl-800 bg-vinyl-850 flex items-center justify-between">
+        <button type="button" onclick="closeBatchMetadataRefreshModal()" class="px-4 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 text-xs font-semibold transition">
+          Close
+        </button>
+        <button type="button" id="startBatchRefreshBtn" onclick="runBatchMetadataRefresh()" class="px-5 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-2 shadow-lg transition">
+          <i class="fa-solid fa-arrows-rotate"></i>
+          <span>Start Refresh</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================== -->
   <!-- MODAL: COVER ARTWORK CHOOSER / SLEEVE SELECTOR -->
   <!-- ============================================== -->
   <div id="artworkChooserModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[80] flex items-center justify-center p-3 sm:p-6 hidden overflow-y-auto" style="z-index: 80;">
@@ -1991,6 +2178,7 @@
         <button onclick="closeMobileMore();openAuthModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-circle-user text-lg text-brass-400"></i>Account</button>
         <button onclick="closeMobileMore();openShareModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-share-nodes text-lg text-sky-400"></i>Share Link</button>
         <button onclick="closeMobileMore();openValuationModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-coins text-lg text-amber-400"></i>Market Values</button>
+        <button onclick="closeMobileMore();openBatchMetadataRefreshModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-arrows-rotate text-lg text-purple-400"></i>Refresh Formats</button>
         <button onclick="closeMobileMore();openBatchGenreEnrichModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-wand-magic-sparkles text-lg text-sky-400"></i>Enrich Genres</button>
         <button onclick="closeMobileMore();openDiscogsImportModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-record-vinyl text-lg text-sky-400"></i>Import Discogs</button>
         <button onclick="closeMobileMore();openBatchUploadModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-file-excel text-lg text-emerald-400"></i>Batch Upload</button>
@@ -2439,8 +2627,10 @@
       const is10Inch = format && format.includes('10"');
       const is12Single = format && (format.toLowerCase().includes('maxi') || (format.includes('12"') && format.toLowerCase().includes('single')));
       const isBoxSet = format && format.toLowerCase().includes('box');
+      const isCassette = format && (format.toLowerCase().includes('cassette') || format.toLowerCase().includes('tape'));
+      const isMiniDisc = format && format.toLowerCase().includes('minidisc');
       const cleanArtist = escapeXml((artist || 'QUEENSFERRY ARCHIVE').trim());
-      const cleanTitle = escapeXml((title || (isSingle ? '7" SINGLE PRESSING' : (isBoxSet ? 'ARCHIVAL VINYL BOX SET' : (is10Inch ? '10" VINYL PRESSING' : (is12Single ? '12" SINGLE / MAXI' : '12" LP ALBUM'))))).trim());
+      const cleanTitle = escapeXml((title || (isSingle ? '7" SINGLE PRESSING' : (isBoxSet ? 'ARCHIVAL VINYL BOX SET' : (is10Inch ? '10" VINYL PRESSING' : (is12Single ? '12" SINGLE / MAXI' : (isCassette ? 'CASSETTE TAPE' : (isMiniDisc ? 'MINIDISC RELEASE' : '12" LP ALBUM'))))))).trim());
 
       let svg = '';
 
@@ -2566,6 +2756,139 @@
           <text x="262" y="284" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="900">${cleanArtist.substring(0, 32)}</text>
           <text x="262" y="308" text-anchor="middle" fill="#d4af37" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700">${cleanTitle.substring(0, 36)}</text>
           <text x="262" y="332" text-anchor="middle" fill="#cbd5e1" font-family="monospace" font-size="9" font-weight="700" letter-spacing="1.5">MULTI-DISC COLLECTOR'S EDITION</text>
+        </svg>`;
+      } else if (isCassette) {
+        // Vintage Compact Audio Cassette Tape (500x500 explicit scale)
+        svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="casBg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#132322"/>
+              <stop offset="50%" stop-color="#0a1414"/>
+              <stop offset="100%" stop-color="#050a0a"/>
+            </linearGradient>
+            <linearGradient id="casShell" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#1f3735"/>
+              <stop offset="100%" stop-color="#0e1b1a"/>
+            </linearGradient>
+            <linearGradient id="casLabel" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#14b8a6"/>
+              <stop offset="100%" stop-color="#0f766e"/>
+            </linearGradient>
+          </defs>
+          <rect width="500" height="500" fill="url(#casBg)"/>
+          
+          <!-- Outer Cassette Shell Frame (420x270, rounded) -->
+          <rect x="40" y="115" width="420" height="270" rx="16" fill="url(#casShell)" stroke="#2dd4bf" stroke-opacity="0.4" stroke-width="2"/>
+          <rect x="52" y="127" width="396" height="246" rx="10" fill="none" stroke="#134e4a" stroke-width="1.5"/>
+
+          <!-- Top Write-Protect Notches & Screws -->
+          <circle cx="56" cy="131" r="4" fill="#042f2e" stroke="#2dd4bf" stroke-width="1"/>
+          <circle cx="444" cy="131" r="4" fill="#042f2e" stroke="#2dd4bf" stroke-width="1"/>
+          <circle cx="56" cy="369" r="4" fill="#042f2e" stroke="#2dd4bf" stroke-width="1"/>
+          <circle cx="444" cy="369" r="4" fill="#042f2e" stroke="#2dd4bf" stroke-width="1"/>
+          <circle cx="250" cy="131" r="3.5" fill="#042f2e" stroke="#2dd4bf" stroke-width="0.8"/>
+
+          <!-- Adhesive Label Paper -->
+          <rect x="74" y="148" width="352" height="196" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"/>
+          <rect x="80" y="154" width="340" height="36" rx="4" fill="url(#casLabel)"/>
+          <text x="92" y="176" fill="#ffffff" font-family="monospace" font-size="11" font-weight="900" letter-spacing="1">SIDE A · STEREO</text>
+          <text x="408" y="176" text-anchor="end" fill="#ccfbf1" font-family="monospace" font-size="10" font-weight="700">TYPE I / NORMAL EQ</text>
+
+          <!-- Label Artist & Title -->
+          <text x="250" y="210" text-anchor="middle" fill="#0f172a" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="900">${cleanArtist.substring(0, 28)}</text>
+          <text x="250" y="226" text-anchor="middle" fill="#0f766e" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="800">${cleanTitle.substring(0, 32)}</text>
+
+          <!-- Transparent Tape Window Area -->
+          <rect x="135" y="240" width="230" height="84" rx="6" fill="#0f172a" stroke="#042f2e" stroke-width="2"/>
+          <!-- Magnetic Tape Ribbon in Window -->
+          <rect x="195" y="258" width="110" height="48" fill="#451a03" stroke="#291102" stroke-width="1"/>
+          <line x1="250" y1="240" x2="250" y2="324" stroke="#334155" stroke-width="1" stroke-dasharray="2 3"/>
+
+          <!-- Left Spool Hub -->
+          <circle cx="180" cy="282" r="24" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+          <circle cx="180" cy="282" r="10" fill="#0f172a"/>
+          <!-- Spool Teeth -->
+          <path d="M 180 262 L 180 267 M 180 297 L 180 302 M 160 282 L 165 282 M 195 282 L 200 282" stroke="#0f172a" stroke-width="3" stroke-linecap="round"/>
+
+          <!-- Right Spool Hub -->
+          <circle cx="320" cy="282" r="24" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+          <circle cx="320" cy="282" r="10" fill="#0f172a"/>
+          <path d="M 320 262 L 320 267 M 320 297 L 320 302 M 300 282 L 305 282 M 335 282 L 340 282" stroke="#0f172a" stroke-width="3" stroke-linecap="round"/>
+
+          <!-- Bottom Trapezoid Head Area -->
+          <polygon points="120,385 380,385 345,415 155,415" fill="#0d1b1a" stroke="#2dd4bf" stroke-opacity="0.3" stroke-width="1.5"/>
+          <circle cx="190" cy="400" r="4.5" fill="#042f2e" stroke="#2dd4bf" stroke-width="1"/>
+          <circle cx="310" cy="400" r="4.5" fill="#042f2e" stroke="#2dd4bf" stroke-width="1"/>
+          <rect x="235" y="394" width="30" height="12" rx="2" fill="#334155"/>
+
+          <!-- Header Ribbon -->
+          <text x="24" y="27" fill="#2dd4bf" font-family="monospace" font-size="10" font-weight="800" letter-spacing="2">ARCHIVAL CASSETTE TAPE</text>
+          <text x="476" y="27" text-anchor="end" fill="#94a3b8" font-family="monospace" font-size="10" font-weight="700">COMPACT CASSETTE</text>
+        </svg>`;
+      } else if (isMiniDisc) {
+        // Retro 90s Magneto-Optical MiniDisc Cartridge (500x500 explicit scale)
+        svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="mdBg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#241228"/>
+              <stop offset="50%" stop-color="#140817"/>
+              <stop offset="100%" stop-color="#09030a"/>
+            </linearGradient>
+            <linearGradient id="mdCart" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#3b1d42"/>
+              <stop offset="100%" stop-color="#1e0a24"/>
+            </linearGradient>
+            <linearGradient id="mdShutter" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#94a3b8"/>
+              <stop offset="25%" stop-color="#cbd5e1"/>
+              <stop offset="50%" stop-color="#f8fafc"/>
+              <stop offset="75%" stop-color="#cbd5e1"/>
+              <stop offset="100%" stop-color="#64748b"/>
+            </linearGradient>
+            <radialGradient id="mdDisc" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#f472b6"/>
+              <stop offset="40%" stop-color="#a855f7"/>
+              <stop offset="75%" stop-color="#38bdf8"/>
+              <stop offset="100%" stop-color="#1e1b4b"/>
+            </radialGradient>
+          </defs>
+          <rect width="500" height="500" fill="url(#mdBg)"/>
+
+          <!-- MiniDisc Cartridge Body (360x360 square, rounded) -->
+          <rect x="70" y="75" width="360" height="360" rx="14" fill="url(#mdCart)" stroke="#d946ef" stroke-opacity="0.5" stroke-width="2"/>
+          <rect x="80" y="85" width="340" height="340" rx="10" fill="none" stroke="#701a75" stroke-width="1.2"/>
+
+          <!-- Circular Window Exposing Optical Disc -->
+          <circle cx="250" cy="265" r="120" fill="url(#mdDisc)" stroke="#4a044e" stroke-width="2.5" opacity="0.85"/>
+          <circle cx="250" cy="265" r="105" fill="none" stroke="#e879f9" stroke-width="0.8" opacity="0.5"/>
+          <circle cx="250" cy="265" r="75" fill="none" stroke="#38bdf8" stroke-width="0.8" stroke-dasharray="4 2" opacity="0.6"/>
+          <!-- Disc Center Clamping Hub -->
+          <circle cx="250" cy="265" r="28" fill="#1e1b4b" stroke="#cbd5e1" stroke-width="2"/>
+          <circle cx="250" cy="265" r="8" fill="#cbd5e1"/>
+
+          <!-- Sliding Aluminum Shutter on Left Side -->
+          <rect x="86" y="195" width="95" height="140" rx="3" fill="url(#mdShutter)" stroke="#475569" stroke-width="1.5"/>
+          <line x1="94" y1="205" x2="94" y2="325" stroke="#475569" stroke-width="1" opacity="0.5"/>
+          <line x1="99" y1="205" x2="99" y2="325" stroke="#475569" stroke-width="1" opacity="0.5"/>
+          <text x="133" y="270" text-anchor="middle" fill="#0f172a" font-family="monospace" font-size="10" font-weight="900" transform="rotate(-90 133 270)" letter-spacing="1.5">MINIDISC</text>
+
+          <!-- Top Adhesive Label Strip -->
+          <rect x="96" y="98" width="308" height="74" rx="4" fill="#fdf4ff" stroke="#c026d3" stroke-width="1.5"/>
+          <rect x="100" y="102" width="300" height="18" fill="#d946ef"/>
+          <text x="108" y="115" fill="#ffffff" font-family="monospace" font-size="9" font-weight="900">ATRAC DIGITAL AUDIO · 74 MIN</text>
+          <text x="392" y="115" text-anchor="end" fill="#fdf4ff" font-family="monospace" font-size="9" font-weight="800">QMC MD</text>
+          
+          <text x="250" y="140" text-anchor="middle" fill="#0f172a" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="900">${cleanArtist.substring(0, 28)}</text>
+          <text x="250" y="157" text-anchor="middle" fill="#a21caf" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="800">${cleanTitle.substring(0, 32)}</text>
+
+          <!-- Top-Right Insertion Arrow Notch -->
+          <path d="M 390 190 L 405 200 L 390 210 Z" fill="#d946ef" opacity="0.8"/>
+          <rect x="360" y="390" width="50" height="25" rx="3" fill="#2e1065" stroke="#7e22ce" stroke-width="1"/>
+          <text x="385" y="407" text-anchor="middle" fill="#e9d5ff" font-family="monospace" font-size="9" font-weight="800">MD-74</text>
+
+          <!-- Header Ribbon -->
+          <text x="24" y="27" fill="#f472b6" font-family="monospace" font-size="10" font-weight="800" letter-spacing="2">ARCHIVAL MINIDISC</text>
+          <text x="476" y="27" text-anchor="end" fill="#94a3b8" font-family="monospace" font-size="10" font-weight="700">MAGNETO-OPTICAL</text>
         </svg>`;
       } else {
         // Authentic Full-Bleed 12" LP Album Jacket (500x500 explicit scale)
@@ -4176,9 +4499,12 @@
       const total = records.length;
       document.getElementById('statTotalItems').innerText = total;
 
-      const lpCount = records.filter(r => r.format && r.format.includes('LP')).length;
-      const singleCount = records.filter(r => r.format && (r.format.includes('7"') || r.format.includes('Single'))).length;
+      const lpCount = records.filter(r => r.format && (r.format.includes('LP') || r.format.includes('Box Set'))).length;
+      const twelveSingleCount = records.filter(r => r.format && r.format.includes('12"') && (r.format.includes('Single') || r.format.includes('Maxi'))).length;
+      const singleCount = records.filter(r => r.format && r.format.includes('7"')).length;
       document.getElementById('statTotalLPs').innerText = lpCount;
+      const stat12 = document.getElementById('statTotal12Singles');
+      if (stat12) stat12.innerText = twelveSingleCount;
       document.getElementById('statTotalSingles').innerText = singleCount;
 
       // Valuation calculations
@@ -4659,7 +4985,7 @@
     }
 
     // Enhanced search term sanitizer for clean eBay & archival queries
-    function getCleanSearchTerms(artist, title) {
+    function getCleanSearchTerms(artist, title, format = '') {
       let a = (artist || '')
         .replace(/\s*\(\d+\)$/, '')   // Strip Discogs artist disambiguation e.g. "Genesis (2)" -> "Genesis"
         .replace(/,\s*The$/i, '')     // Strip "Beatles, The" -> "Beatles"
@@ -4676,8 +5002,60 @@
         .replace(/\s*[-–—]\s*(?:mono|stereo|remaster|deluxe|bonus|reissue|reprint|special|limited).*$/i, '')
         .trim();
 
-      const query = (a ? `${a} ${t}` : t) + ' vinyl';
+      const fLow = (format || '').toLowerCase();
+      let fmtSuffix = ' vinyl';
+      if (fLow.includes('cassette') || fLow.includes('tape')) {
+        fmtSuffix = ' cassette';
+      } else if (fLow.includes('minidisc')) {
+        fmtSuffix = ' minidisc';
+      } else if (fLow.includes('cd')) {
+        fmtSuffix = ' cd';
+      }
+
+      const query = (a ? `${a} ${t}` : t) + fmtSuffix;
       return { artist: a, title: t, query: query.trim() };
+    }
+
+    // Music streaming & listening queries sanitizer (Spotify / Apple Music / YouTube / Bandcamp)
+    function getStreamingSearchQuery(item, trackTitle = '') {
+      const cleanArtist = (item.artist || '')
+        .replace(/\s*\(\d+\)$/, '')
+        .replace(/,\s*The$/i, '')
+        .replace(/,\s*An$/i, '')
+        .trim();
+      
+      if (trackTitle) {
+        const cleanT = String(trackTitle)
+          .replace(/^\d+[\.\-\s]+/, '')
+          .replace(/\s*\([^)]*(?:remaster|mono|stereo|version|mix)[^)]*\)/gi, '')
+          .replace(/\s*\[[^\]]*\]/g, '')
+          .trim();
+        return cleanArtist ? `${cleanArtist} ${cleanT}`.trim() : cleanT;
+      }
+
+      let cleanReleaseTitle = (item.title || '')
+        .replace(/\s*\([^)]*(?:album|45 rpm|deluxe|remaster|mono|stereo|pressing|gatefold|box set|vinyl)[^)]*\)/gi, '')
+        .replace(/\s*\[[^\]]*\]/g, '')
+        .trim();
+      
+      // For singles formatted as "Side A / Side B", stream the primary A-side title
+      if (cleanReleaseTitle.includes(' / ')) {
+        const parts = cleanReleaseTitle.split(' / ');
+        if (parts[0]) cleanReleaseTitle = parts[0].trim();
+      }
+      return cleanArtist ? `${cleanArtist} ${cleanReleaseTitle}`.trim() : cleanReleaseTitle;
+    }
+
+    function getStreamingLinks(item, trackTitle = '') {
+      const q = getStreamingSearchQuery(item, trackTitle);
+      const enc = encodeURIComponent(q);
+      return {
+        query: q,
+        spotify: `https://open.spotify.com/search/${enc}`,
+        apple: `https://music.apple.com/search?term=${enc}`,
+        youtube: `https://www.youtube.com/results?search_query=${enc}`,
+        bandcamp: `https://bandcamp.com/search?q=${enc}&item_type=${trackTitle ? 't' : 'a'}`
+      };
     }
 
     function getEbayDomain() {
@@ -4685,16 +5063,26 @@
     }
 
     function getDiscogsSearchUrl(item) {
-      const terms = getCleanSearchTerms(item.artist, item.title);
+      const terms = getCleanSearchTerms(item.artist, item.title, item.format);
       const q = (terms.artist ? `${terms.artist} ${item.catNo || terms.title}` : (item.catNo || terms.title)).trim();
       let url = `https://www.discogs.com/search/?q=${encodeURIComponent(q)}&type=release`;
       const fLow = (item.format || '').toLowerCase();
+      const isCassette = fLow.includes('cassette') || fLow.includes('tape');
+      const isMiniDisc = fLow.includes('minidisc');
+      const isCD = fLow.includes('cd');
       const is10Inch = fLow.includes('10"');
       const is12Single = fLow.includes('maxi') || (fLow.includes('12"') && (fLow.includes('single') || fLow.includes('ep')));
       const is7Inch = fLow.includes('7"') || (fLow.includes('single') && !fLow.includes('12"') && !is10Inch);
       const isBox = fLow.includes('box');
-      const isLP = fLow.includes('lp') && !is7Inch && !is10Inch && !is12Single;
-      if (is10Inch) {
+      const isLP = fLow.includes('lp') && !is7Inch && !is10Inch && !is12Single && !isBox;
+      
+      if (isCassette) {
+        url += `&format_exact=Cassette`;
+      } else if (isMiniDisc) {
+        url += `&format_exact=MiniDisc`;
+      } else if (isCD) {
+        url += `&format_exact=CD`;
+      } else if (is10Inch) {
         url += `&format_exact=10%22`;
       } else if (is12Single) {
         url += `&format_exact=12%22`;
@@ -4709,12 +5097,12 @@
     }
 
     function getEbaySoldUrl(item) {
-      const terms = getCleanSearchTerms(item.artist, item.title);
+      const terms = getCleanSearchTerms(item.artist, item.title, item.format);
       return `https://www.${getEbayDomain()}/sch/i.html?_nkw=${encodeURIComponent(terms.query)}&LH_Complete=1&LH_Sold=1`;
     }
 
     function getEbayActiveUrl(item) {
-      const terms = getCleanSearchTerms(item.artist, item.title);
+      const terms = getCleanSearchTerms(item.artist, item.title, item.format);
       return `https://www.${getEbayDomain()}/sch/i.html?_nkw=${encodeURIComponent(terms.query)}`;
     }
 
@@ -4944,11 +5332,11 @@
               <tr>
                 <th class="py-3 px-3">Artist / Release Title</th>
                 <th class="py-3 px-3">Format</th>
-                <th class="py-3 px-3">Cat #</th>
-                <th class="py-3 px-3">Label</th>
                 <th class="py-3 px-3">Year</th>
                 <th class="py-3 px-3">Media</th>
                 <th class="py-3 px-3">Est. Value</th>
+                <th class="py-3 px-3">Cat #</th>
+                <th class="py-3 px-3">Label</th>
                 <th class="py-3 px-3">Market Checks</th>
                 <th class="py-3 px-3 text-right">Actions</th>
               </tr>
@@ -4960,6 +5348,7 @@
         const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
         const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(item.estimatedValue) && item.estimatedValue > 0;
         const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
+        const streamLinks = getStreamingLinks(item);
 
         html += `
           <tr class="hover:bg-vinyl-850/60 transition group">
@@ -4990,15 +5379,15 @@
             <td class="py-2.5 px-3 whitespace-nowrap">
               ${getFormatBadge(item.format)}
             </td>
-            <td class="py-2.5 px-3 font-mono text-brass-400/90 whitespace-nowrap">
-              ${item.catNo || 'S/N'}
-            </td>
-            <td class="py-2.5 px-3 whitespace-nowrap">${item.label || '--'}</td>
             <td class="py-2.5 px-3 font-mono">${item.year || '--'}</td>
             <td class="py-2.5 px-3 whitespace-nowrap">${getGradeBadge(item.mediaGrade)}</td>
             <td class="py-2.5 px-3 whitespace-nowrap font-mono font-bold text-emerald-400">
               ${hasVal ? `${sym}${parseFloat(item.estimatedValue).toFixed(2)}` : '<span class="text-slate-600 font-normal">--</span>'}
             </td>
+            <td class="py-2.5 px-3 font-mono text-brass-400/90 whitespace-nowrap">
+              ${item.catNo || 'S/N'}
+            </td>
+            <td class="py-2.5 px-3 whitespace-nowrap">${item.label || '--'}</td>
             <td class="py-2.5 px-3 whitespace-nowrap">
               <div class="flex items-center gap-2">
                 <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener" class="text-slate-400 hover:text-blue-400" title="eBay Sold Listings">
@@ -5006,6 +5395,12 @@
                 </a>
                 <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener" class="text-slate-400 hover:text-amber-400" title="Discogs Marketplace">
                   <i class="fa-solid fa-compact-disc"></i>
+                </a>
+                <a href="${streamLinks.spotify}" target="_blank" rel="noopener" class="text-slate-400 hover:text-emerald-400" title="Audition on Spotify">
+                  <i class="fa-brands fa-spotify text-sm"></i>
+                </a>
+                <a href="${streamLinks.youtube}" target="_blank" rel="noopener" class="text-slate-400 hover:text-red-400" title="Search on YouTube">
+                  <i class="fa-brands fa-youtube text-sm"></i>
                 </a>
               </div>
             </td>
@@ -5198,15 +5593,17 @@
       const collectorCount = (gradeMap['M'] || 0) + (gradeMap['NM'] || 0) + (gradeMap['VG+'] || 0);
       const collectorPct = Math.round((collectorCount / total) * 100);
 
-      // 4. Format Breakdown Calculations
+      // 4. Format Breakdown Calculations (Calibrated order: specific formats before general matchers)
       const formatCategories = [
         { key: '12" LP', label: '12" LP (Album)', icon: 'fa-solid fa-compact-disc', color: 'text-amber-400', barBg: 'bg-amber-400', count: 0, val: 0, matcher: r => (r.format || '').includes('LP') && !(r.format || '').includes('2x') && !(r.format || '').toLowerCase().includes('box') },
         { key: '2xLP Gatefold', label: '2xLP Gatefold', icon: 'fa-solid fa-book-open', color: 'text-purple-400', barBg: 'bg-purple-400', count: 0, val: 0, matcher: r => (r.format || '').includes('2x') || (r.format || '').toLowerCase().includes('gatefold') },
         { key: 'Box Set', label: 'Box Set', icon: 'fa-solid fa-box-archive', color: 'text-brass-400', barBg: 'bg-brass-400', count: 0, val: 0, matcher: r => (r.format || '').toLowerCase().includes('box') },
-        { key: '7" Single', label: '7" Single (45 RPM)', icon: 'fa-solid fa-circle-dot', color: 'text-emerald-400', barBg: 'bg-emerald-400', count: 0, val: 0, matcher: r => (r.format || '').includes('7"') || (r.format || '').toLowerCase().includes('single') },
-        { key: '12" Maxi / EP', label: '12" Maxi / EP', icon: 'fa-solid fa-record-vinyl', color: 'text-sky-400', barBg: 'bg-sky-400', count: 0, val: 0, matcher: r => (r.format || '').toLowerCase().includes('maxi') || (r.format || '').toLowerCase().includes('ep') },
+        { key: '12" Single', label: '12" Maxi / Single', icon: 'fa-solid fa-circle-dot', color: 'text-sky-400', barBg: 'bg-sky-400', count: 0, val: 0, matcher: r => (r.format || '').toLowerCase().includes('maxi') || ((r.format || '').includes('12"') && (r.format || '').toLowerCase().includes('single')) || (r.format || '').toLowerCase().includes('ep') },
+        { key: '7" Single', label: '7" Single (45 RPM)', icon: 'fa-solid fa-record-vinyl', color: 'text-emerald-400', barBg: 'bg-emerald-400', count: 0, val: 0, matcher: r => (r.format || '').includes('7"') || ((r.format || '').toLowerCase().includes('single') && !(r.format || '').includes('12"')) },
         { key: '10" Vinyl', label: '10" Vinyl', icon: 'fa-solid fa-circle', color: 'text-pink-400', barBg: 'bg-pink-400', count: 0, val: 0, matcher: r => (r.format || '').includes('10"') },
-        { key: 'Other', label: 'Other Formats', icon: 'fa-solid fa-compact-disc', color: 'text-slate-400', barBg: 'bg-slate-400', count: 0, val: 0, matcher: () => true }
+        { key: 'Cassette', label: 'Cassette Tape', icon: 'fa-solid fa-tape', color: 'text-teal-400', barBg: 'bg-teal-400', count: 0, val: 0, matcher: r => (r.format || '').toLowerCase().includes('cassette') || (r.format || '').toLowerCase().includes('tape') },
+        { key: 'MiniDisc', label: 'MiniDisc', icon: 'fa-solid fa-floppy-disk', color: 'text-fuchsia-400', barBg: 'bg-fuchsia-400', count: 0, val: 0, matcher: r => (r.format || '').toLowerCase().includes('minidisc') },
+        { key: 'CD / Other', label: 'CD / Other', icon: 'fa-solid fa-compact-disc', color: 'text-slate-400', barBg: 'bg-slate-400', count: 0, val: 0, matcher: () => true }
       ];
 
       list.forEach(r => {
@@ -5756,33 +6153,69 @@
       const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(item.estimatedValue) && item.estimatedValue > 0;
       const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
       const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
+      const streamLinks = getStreamingLinks(item);
 
       let tracksHTML = '';
       if (item.tracks && item.tracks.length > 0) {
-        tracksHTML = item.tracks.map(t => `
-          <div class="flex items-center justify-between p-2 bg-vinyl-900 rounded-lg border border-vinyl-800">
-            <div class="flex items-center gap-2">
-              <span class="w-6 h-5 rounded bg-vinyl-800 text-brass-400 text-center font-mono font-bold text-[10px] leading-5">${t.pos || '•'}</span>
-              <span class="font-medium text-white">${t.title}</span>
+        tracksHTML = item.tracks.map((t, tIdx) => {
+          const tStream = getStreamingLinks(item, t.title);
+          return `
+          <div class="flex items-center justify-between p-2 bg-vinyl-900 rounded-lg border border-vinyl-800 hover:border-vinyl-700 transition group/track">
+            <div class="flex items-center gap-2 min-w-0 pr-2">
+              <span class="w-6 h-5 rounded bg-vinyl-800 text-brass-400 text-center font-mono font-bold text-[10px] leading-5 flex-shrink-0">${t.pos || (tIdx + 1)}</span>
+              <span class="font-medium text-white truncate">${t.title}</span>
             </div>
-            <span class="font-mono text-slate-400 text-xs">${t.duration || '--:--'}</span>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="font-mono text-slate-400 text-xs">${t.duration || '--:--'}</span>
+              <div class="flex items-center gap-1 opacity-70 group-hover/track:opacity-100 transition">
+                <a href="${tStream.spotify}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-emerald-400 transition" title="Audition on Spotify">
+                  <i class="fa-brands fa-spotify text-xs"></i>
+                </a>
+                <a href="${tStream.youtube}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-red-400 transition" title="Search on YouTube">
+                  <i class="fa-brands fa-youtube text-xs"></i>
+                </a>
+              </div>
+            </div>
           </div>
-        `).join('');
+        `;
+        }).join('');
       } else {
+        const aStream = getStreamingLinks(item, item.sideATitle || item.title);
+        const bStream = getStreamingLinks(item, item.sideBTitle || 'Side B Track');
         tracksHTML = `
-          <div class="flex items-center justify-between p-2 bg-vinyl-900 rounded-lg border border-vinyl-800">
-            <div class="flex items-center gap-2">
-              <span class="w-5 h-5 rounded-full bg-brass-500/20 text-brass-400 text-center font-bold text-[10px] leading-5">A</span>
-              <span class="font-medium text-white">${item.sideATitle || item.title}</span>
+          <div class="flex items-center justify-between p-2 bg-vinyl-900 rounded-lg border border-vinyl-800 hover:border-vinyl-700 transition group/track">
+            <div class="flex items-center gap-2 min-w-0 pr-2">
+              <span class="w-5 h-5 rounded-full bg-brass-500/20 text-brass-400 text-center font-bold text-[10px] leading-5 flex-shrink-0">A</span>
+              <span class="font-medium text-white truncate">${item.sideATitle || item.title}</span>
             </div>
-            <span class="font-mono text-slate-400">${item.sideADuration || '--:--'}</span>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="font-mono text-slate-400 text-xs">${item.sideADuration || '--:--'}</span>
+              <div class="flex items-center gap-1 opacity-70 group-hover/track:opacity-100 transition">
+                <a href="${aStream.spotify}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-emerald-400 transition" title="Audition on Spotify">
+                  <i class="fa-brands fa-spotify text-xs"></i>
+                </a>
+                <a href="${aStream.youtube}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-red-400 transition" title="Search on YouTube">
+                  <i class="fa-brands fa-youtube text-xs"></i>
+                </a>
+              </div>
+            </div>
           </div>
-          <div class="flex items-center justify-between p-2 bg-vinyl-900 rounded-lg border border-vinyl-800">
-            <div class="flex items-center gap-2">
-              <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-300 text-center font-bold text-[10px] leading-5">B</span>
-              <span class="font-medium text-white">${item.sideBTitle || 'Side B Track'}</span>
+          <div class="flex items-center justify-between p-2 bg-vinyl-900 rounded-lg border border-vinyl-800 hover:border-vinyl-700 transition group/track">
+            <div class="flex items-center gap-2 min-w-0 pr-2">
+              <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-300 text-center font-bold text-[10px] leading-5 flex-shrink-0">B</span>
+              <span class="font-medium text-white truncate">${item.sideBTitle || 'Side B Track'}</span>
             </div>
-            <span class="font-mono text-slate-400">${item.sideBDuration || '--:--'}</span>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="font-mono text-slate-400 text-xs">${item.sideBDuration || '--:--'}</span>
+              <div class="flex items-center gap-1 opacity-70 group-hover/track:opacity-100 transition">
+                <a href="${bStream.spotify}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-emerald-400 transition" title="Audition on Spotify">
+                  <i class="fa-brands fa-spotify text-xs"></i>
+                </a>
+                <a href="${bStream.youtube}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-red-400 transition" title="Search on YouTube">
+                  <i class="fa-brands fa-youtube text-xs"></i>
+                </a>
+              </div>
+            </div>
           </div>
         `;
       }
@@ -5892,14 +6325,14 @@
               <div class="p-2 bg-vinyl-850 rounded-lg border border-vinyl-800 text-center">
                 <span class="text-[10px] font-bold text-slate-400 block mb-1">Side A Label</span>
                 <div class="relative">
-                  <img src="${item.labelAImage || getDefaultLabelImage('A', item)}" alt="Side A Label" class="w-full aspect-square max-h-28 object-cover rounded border border-vinyl-700 mx-auto">
+                  <img src="${item.labelAImage || getDefaultLabelImage('A', item)}" alt="Side A Label" class="w-full aspect-square max-h-28 object-cover rounded border border-vinyl-700 mx-auto" onerror="this.onerror=null; this.src=getDefaultLabelImage('A', { artist: '${encodeURIComponent(item.artist || '')}', title: '${encodeURIComponent(item.title || '')}', format: '${encodeURIComponent(item.format || '')}', isEncoded: true });">
                   ${!item.labelAImage ? '<span class="absolute bottom-1 inset-x-1 py-0.5 rounded bg-black/75 text-[8px] font-mono text-slate-400">Default Label</span>' : ''}
                 </div>
               </div>
               <div class="p-2 bg-vinyl-850 rounded-lg border border-vinyl-800 text-center">
                 <span class="text-[10px] font-bold text-slate-400 block mb-1">Side B Label</span>
                 <div class="relative">
-                  <img src="${item.labelBImage || getDefaultLabelImage('B', item)}" alt="Side B Label" class="w-full aspect-square max-h-28 object-cover rounded border border-vinyl-700 mx-auto">
+                  <img src="${item.labelBImage || getDefaultLabelImage('B', item)}" alt="Side B Label" class="w-full aspect-square max-h-28 object-cover rounded border border-vinyl-700 mx-auto" onerror="this.onerror=null; this.src=getDefaultLabelImage('B', { artist: '${encodeURIComponent(item.artist || '')}', title: '${encodeURIComponent(item.title || '')}', format: '${encodeURIComponent(item.format || '')}', isEncoded: true });">
                   ${!item.labelBImage ? '<span class="absolute bottom-1 inset-x-1 py-0.5 rounded bg-black/75 text-[8px] font-mono text-slate-400">Default Label</span>' : ''}
                 </div>
               </div>
@@ -6004,6 +6437,37 @@
                     <i class="fa-brands fa-ebay text-sm"></i> eBay Sold Value
                   </button>
                 </div>
+              </div>
+            </div>
+
+            <!-- STREAM & AUDITION RELEASE CARD -->
+            <div class="bg-gradient-to-r from-vinyl-850 to-vinyl-800 p-4 rounded-xl border border-brass-500/30 space-y-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="text-xs uppercase font-bold text-brass-400 tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-headphones text-brass-400"></i> Stream &amp; Audition Release
+                  </h4>
+                  <p class="text-[11px] text-slate-400">Listen online across major music streaming &amp; digital audio platforms</p>
+                </div>
+                <span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-vinyl-900 border border-vinyl-700 text-slate-300">1-Click Audition</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                <a href="${streamLinks.spotify}" target="_blank" rel="noopener noreferrer" class="p-2.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center gap-2 text-xs font-bold transition shadow-sm" title="Search ${escapeHtml(streamLinks.query)} on Spotify">
+                  <i class="fa-brands fa-spotify text-base"></i>
+                  <span>Spotify</span>
+                </a>
+                <a href="${streamLinks.apple}" target="_blank" rel="noopener noreferrer" class="p-2.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center justify-center gap-2 text-xs font-bold transition shadow-sm" title="Search ${escapeHtml(streamLinks.query)} on Apple Music">
+                  <i class="fa-brands fa-apple text-base"></i>
+                  <span>Apple Music</span>
+                </a>
+                <a href="${streamLinks.youtube}" target="_blank" rel="noopener noreferrer" class="p-2.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 flex items-center justify-center gap-2 text-xs font-bold transition shadow-sm" title="Search ${escapeHtml(streamLinks.query)} on YouTube">
+                  <i class="fa-brands fa-youtube text-base"></i>
+                  <span>YouTube</span>
+                </a>
+                <a href="${streamLinks.bandcamp}" target="_blank" rel="noopener noreferrer" class="p-2.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 flex items-center justify-center gap-2 text-xs font-bold transition shadow-sm" title="Search ${escapeHtml(streamLinks.query)} on Bandcamp">
+                  <i class="fa-brands fa-bandcamp text-base"></i>
+                  <span>Bandcamp</span>
+                </a>
               </div>
             </div>
 
@@ -6140,6 +6604,25 @@
     /* =========================================================
        ADD / EDIT MODAL & FORM CONTROL (OPTIMIZED WORKFLOW)
        ========================================================= */
+    function setQuickLookupCollapsed(collapsed, summaryText = '') {
+      const collBar = document.getElementById('quickLookupCollapsedBar');
+      const expContent = document.getElementById('quickLookupExpandedContent');
+      const sumEl = document.getElementById('quickLookupSummaryText');
+      if (sumEl && summaryText) {
+        sumEl.innerText = summaryText;
+      }
+      if (!collBar || !expContent) return;
+      if (collapsed) {
+        collBar.classList.remove('hidden');
+        collBar.classList.add('flex');
+        expContent.classList.add('hidden');
+      } else {
+        collBar.classList.add('hidden');
+        collBar.classList.remove('flex');
+        expContent.classList.remove('hidden');
+      }
+    }
+
     function closeAutofillResults() {
       const container = document.getElementById('autofillResultsContainer');
       if (container) {
@@ -6166,6 +6649,7 @@
         if (tInput) tInput.value = '';
         
         closeAutofillResults();
+        setQuickLookupCollapsed(false, 'Quick Lookup & Barcode Scanner');
         
         const fmt = document.getElementById('formFormat');
         if (fmt) fmt.value = sessionDefaults.format || '12" LP (Album)';
@@ -6220,6 +6704,8 @@
       const is10Inch = format.includes('10"');
       const is12Single = format.toLowerCase().includes('maxi') || (format.includes('12"') && format.toLowerCase().includes('single'));
       const isBoxSet = format.toLowerCase().includes('box');
+      const isCassette = format.toLowerCase().includes('cassette') || format.toLowerCase().includes('tape');
+      const isMiniDisc = format.toLowerCase().includes('minidisc');
       const singleContainer = document.getElementById('tracksSingleContainer');
       const albumContainer = document.getElementById('tracksAlbumContainer');
       const speedSelect = document.getElementById('formSpeed');
@@ -6250,6 +6736,18 @@
         if (speedSelect) speedSelect.value = '33 1/3 RPM';
         if (centerHole) centerHole.value = 'Solid (Small 0.28 inch)';
         if (hintText) hintText.innerText = 'Multi-disc archival vinyl box set with comprehensive multi-album track layout.';
+      } else if (isCassette) {
+        if (singleContainer) singleContainer.classList.add('hidden');
+        if (albumContainer) albumContainer.classList.remove('hidden');
+        if (speedSelect) speedSelect.value = '33 1/3 RPM';
+        if (centerHole) centerHole.value = 'Solid (Small 0.28 inch)';
+        if (hintText) hintText.innerText = 'Compact audio cassette tape (Side A / Side B program).';
+      } else if (isMiniDisc) {
+        if (singleContainer) singleContainer.classList.add('hidden');
+        if (albumContainer) albumContainer.classList.remove('hidden');
+        if (speedSelect) speedSelect.value = '33 1/3 RPM';
+        if (centerHole) centerHole.value = 'Solid (Small 0.28 inch)';
+        if (hintText) hintText.innerText = 'Magneto-optical MiniDisc release with digital track markers.';
       } else {
         if (singleContainer) singleContainer.classList.add('hidden');
         if (albumContainer) albumContainer.classList.remove('hidden');
@@ -6355,6 +6853,7 @@
       if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = item.artist || '';
       if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = item.title || '';
       closeAutofillResults();
+      setQuickLookupCollapsed(true, `Editing: ${item.artist} – ${item.title}`);
 
       document.getElementById('formFormat').value = item.format || '12" LP (Album)';
       handleFormatChange();
@@ -6790,21 +7289,28 @@
 
         // Step 1: If no release ID, search Discogs database with format and size specification
         if (!releaseId) {
-          const terms = getCleanSearchTerms(artist, title);
+          const terms = getCleanSearchTerms(artist, title, format);
           const qStr = terms.artist ? `${terms.artist} ${catNo || terms.title}` : (catNo || terms.title);
 
-          const is7Inch = (format || '').includes('7"') || (format || '').toLowerCase().includes('single');
-          const isBox = (format || '').toLowerCase().includes('box');
-          const is10Inch = (format || '').includes('10"');
-          const isMaxi = (format || '').toLowerCase().includes('maxi') || (format || '').toLowerCase().includes('12" single');
-          const isLP = (format || '').includes('LP') && !is7Inch && !isBox;
+          const fLow = (format || '').toLowerCase();
+          const isCassette = fLow.includes('cassette') || fLow.includes('tape');
+          const isMiniDisc = fLow.includes('minidisc');
+          const isCD = fLow.includes('cd');
+          const is10Inch = fLow.includes('10"');
+          const is12Single = fLow.includes('maxi') || (fLow.includes('12"') && (fLow.includes('single') || fLow.includes('ep')));
+          const is7Inch = fLow.includes('7"') || (fLow.includes('single') && !fLow.includes('12"') && !is10Inch);
+          const isBox = fLow.includes('box');
+          const isLP = fLow.includes('lp') && !is7Inch && !is10Inch && !is12Single && !isBox;
 
           // Format parameter for Discogs search API (7", LP, Box Set, etc.)
           let discogsFormatParam = '';
-          if (is7Inch) discogsFormatParam = '7"';
-          else if (isBox) discogsFormatParam = 'Box Set';
+          if (isCassette) discogsFormatParam = 'Cassette';
+          else if (isMiniDisc) discogsFormatParam = 'MiniDisc';
+          else if (isCD) discogsFormatParam = 'CD';
           else if (is10Inch) discogsFormatParam = '10"';
-          else if (isMaxi) discogsFormatParam = '12"';
+          else if (is12Single) discogsFormatParam = '12"';
+          else if (is7Inch) discogsFormatParam = '7"';
+          else if (isBox) discogsFormatParam = 'Box Set';
           else if (isLP) discogsFormatParam = 'LP';
 
           let searchUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(qStr)}&type=release`;
@@ -7013,7 +7519,7 @@
        EBAY SOLD TRANSACTIONS VALUATION ENGINE (ALTERNATIVE)
        ========================================================= */
     async function queryEbayMarketValue(artist, title, catNo = '', mediaGrade = 'VG+', format = '12" LP (Album)', year = null) {
-      const terms = getCleanSearchTerms(artist, title);
+      const terms = getCleanSearchTerms(artist, title, format);
       if (!terms.artist && !terms.title) return null;
 
       // 1. Attempt live eBay completed / sold listings via public RSS and CORS proxies
@@ -7096,9 +7602,11 @@
         const fmtLow = (format || '').toLowerCase();
         if (fmtLow.includes('box')) baseFormatVal = 55.0;
         else if (fmtLow.includes('2xlp') || fmtLow.includes('gatefold')) baseFormatVal = 28.0;
-        else if (fmtLow.includes('12" maxi') || fmtLow.includes('12" single')) baseFormatVal = 12.5;
+        else if (fmtLow.includes('12" maxi') || fmtLow.includes('12" single') || fmtLow.includes('maxi')) baseFormatVal = 12.5;
         else if (fmtLow.includes('10"')) baseFormatVal = 15.0;
         else if (fmtLow.includes('7"')) baseFormatVal = 9.0;
+        else if (fmtLow.includes('minidisc')) baseFormatVal = 22.0;
+        else if (fmtLow.includes('cassette') || fmtLow.includes('tape')) baseFormatVal = 10.0;
         else if (fmtLow.includes('cd')) baseFormatVal = 6.5;
 
         // Vintage Era factor
@@ -7533,6 +8041,270 @@
     }
 
     /* =========================================================
+       BATCH ARCHIVE METADATA & FORMAT REFRESH ENGINE
+       ========================================================= */
+    function openBatchMetadataRefreshModal() {
+      const total = records.length;
+      const s12Count = records.filter(r => (r.format || '').includes('12"') && ((r.format || '').toLowerCase().includes('single') || (r.format || '').toLowerCase().includes('maxi'))).length;
+      const tapeCount = records.filter(r => (r.format || '').toLowerCase().includes('cassette') || (r.format || '').toLowerCase().includes('tape') || (r.format || '').toLowerCase().includes('minidisc')).length;
+      const missingCount = records.filter(r => !r.genres || !r.genres.trim() || !r.year || !r.estimatedValue).length;
+
+      const totalEl = document.getElementById('batchRefreshTotalRecords');
+      const s12El = document.getElementById('batchRefresh12SCount');
+      const tapeEl = document.getElementById('batchRefreshTapeCount');
+      const missEl = document.getElementById('batchRefreshMissingCount');
+
+      if (totalEl) totalEl.innerText = total;
+      if (s12El) s12El.innerText = s12Count;
+      if (tapeEl) tapeEl.innerText = tapeCount;
+      if (missEl) missEl.innerText = missingCount;
+
+      const pCard = document.getElementById('batchRefreshProgressCard');
+      if (pCard) pCard.classList.add('hidden');
+
+      const modal = document.getElementById('batchMetadataRefreshModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeBatchMetadataRefreshModal() {
+      const modal = document.getElementById('batchMetadataRefreshModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    let isBatchMetadataRefreshRunning = false;
+
+    async function runBatchMetadataRefresh() {
+      if (isBatchMetadataRefreshRunning) return;
+
+      const modeRadio = document.querySelector('input[name="batchRefreshMode"]:checked');
+      const mode = modeRadio ? modeRadio.value : 'audit';
+
+      const opt12S = document.getElementById('batchRefreshOpt12S')?.checked ?? true;
+      const optTapes = document.getElementById('batchRefreshOptTapes')?.checked ?? true;
+      const optGenres = document.getElementById('batchRefreshOptGenres')?.checked ?? true;
+      const optValuate = document.getElementById('batchRefreshOptValuate')?.checked ?? true;
+
+      // Identify target records
+      let targetList = [];
+      if (mode === 'audit') {
+        targetList = records.filter(r => {
+          const fmt = (r.format || '').toLowerCase();
+          const title = (r.title || '').toLowerCase();
+          const speed = (r.speed || '').toLowerCase();
+          const tracks = r.tracks || [];
+
+          // Format candidate check
+          const isLp = fmt.includes('lp');
+          const isOther = fmt.includes('cd') || fmt.includes('other');
+          const titleHasSingle = title.includes('single') || title.includes('maxi') || title.includes('ep') || title.includes('45 rpm') || title.includes('12"');
+          const titleHasTape = title.includes('cassette') || title.includes('tape') || title.includes('minidisc');
+          const hasShortTracks = isLp && tracks.length > 0 && tracks.length <= 4;
+          const is45Speed = speed.includes('45');
+          const isMissingMeta = !r.genres || !r.genres.trim() || !r.year || !r.estimatedValue;
+
+          return (isLp && (titleHasSingle || hasShortTracks || is45Speed)) ||
+                 (isOther && (titleHasTape || titleHasSingle)) ||
+                 isMissingMeta;
+        });
+      } else {
+        targetList = [...records];
+      }
+
+      if (targetList.length === 0) {
+        showToast("No records match the selected audit scope.", "info");
+        return;
+      }
+
+      const pCard = document.getElementById('batchRefreshProgressCard');
+      const pStatus = document.getElementById('batchRefreshProgressStatus');
+      const pPercent = document.getElementById('batchRefreshProgressPercent');
+      const pBar = document.getElementById('batchRefreshProgressBar');
+      const pReclass = document.getElementById('batchRefreshReclassifiedCount');
+      const pEnrich = document.getElementById('batchRefreshEnrichedCount');
+      const pVal = document.getElementById('batchRefreshValuatedCount');
+      const pLog = document.getElementById('batchRefreshLog');
+      const btn = document.getElementById('startBatchRefreshBtn');
+
+      if (pCard) pCard.classList.remove('hidden');
+      if (btn) {
+        btn.disabled = true;
+        btn.classList.add('opacity-50');
+      }
+      if (pLog) pLog.innerHTML = '<div class="text-purple-400 font-semibold">Starting archival metadata &amp; format audit...</div>';
+
+      isBatchMetadataRefreshRunning = true;
+      let reclassifiedCount = 0;
+      let enrichedCount = 0;
+      let valuatedCount = 0;
+      const updatedRecords = [];
+
+      const discogsToken = localStorage.getItem('qmc_discogs_user_token') || localStorage.getItem('QMC_DISCOGS_TOKEN');
+
+      for (let i = 0; i < targetList.length; i++) {
+        const rec = targetList[i];
+        const pct = Math.round(((i + 1) / targetList.length) * 100);
+
+        if (pPercent) pPercent.innerText = `${pct}% (${i + 1}/${targetList.length})`;
+        if (pBar) pBar.style.width = `${pct}%`;
+        if (pStatus) pStatus.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Auditing: <span class="text-white">${escapeHtml(rec.artist)} – ${escapeHtml(rec.title)}</span>`;
+
+        let changed = false;
+        const oldFormat = rec.format;
+
+        // 1. Format Reclassification
+        const fLow = (rec.format || '').toLowerCase();
+        const tLow = (rec.title || '').toLowerCase();
+        const speedLow = (rec.speed || '').toLowerCase();
+        const tracksCount = (rec.tracks || []).length;
+
+        if (opt12S && (fLow.includes('lp') || fLow.includes('other'))) {
+          const is12Candidate = tLow.includes('12"') && (tLow.includes('single') || tLow.includes('maxi') || tLow.includes('ep') || tLow.includes('mix')) ||
+                                tLow.includes('maxi single') || tLow.includes('maxi-single') ||
+                                (speedLow.includes('45') && fLow.includes('12"')) ||
+                                (fLow.includes('12"') && tracksCount > 0 && tracksCount <= 4);
+          if (is12Candidate) {
+            rec.format = '12" Maxi / Single';
+            if (!rec.speed || rec.speed.includes('33')) rec.speed = '45 RPM';
+            reclassifiedCount++;
+            changed = true;
+            if (pLog) {
+              const row = document.createElement('div');
+              row.className = 'text-purple-300';
+              row.innerText = `[Format] ${rec.artist} – ${rec.title}: ${oldFormat} -> 12" Maxi / Single`;
+              pLog.appendChild(row);
+              pLog.scrollTop = pLog.scrollHeight;
+            }
+          }
+        }
+
+        if (optTapes && (fLow.includes('other') || fLow.includes('cd') || fLow.includes('lp'))) {
+          if (tLow.includes('cassette') || tLow.includes('tape')) {
+            rec.format = 'Cassette Tape';
+            reclassifiedCount++;
+            changed = true;
+            if (pLog) {
+              const row = document.createElement('div');
+              row.className = 'text-teal-300';
+              row.innerText = `[Format] ${rec.artist} – ${rec.title}: ${oldFormat} -> Cassette Tape`;
+              pLog.appendChild(row);
+              pLog.scrollTop = pLog.scrollHeight;
+            }
+          } else if (tLow.includes('minidisc') || /\bmd\b/.test(tLow)) {
+            rec.format = 'MiniDisc';
+            reclassifiedCount++;
+            changed = true;
+            if (pLog) {
+              const row = document.createElement('div');
+              row.className = 'text-fuchsia-300';
+              row.innerText = `[Format] ${rec.artist} – ${rec.title}: ${oldFormat} -> MiniDisc`;
+              pLog.appendChild(row);
+              pLog.scrollTop = pLog.scrollHeight;
+            }
+          }
+        }
+
+        // 2. Metadata Backfill (Genres)
+        if (optGenres && (!rec.genres || !rec.genres.trim())) {
+          try {
+            const fetchedGenres = await fetchGenreFromOnlineSources(rec.artist, rec.title);
+            if (fetchedGenres) {
+              rec.genres = fetchedGenres;
+              enrichedCount++;
+              changed = true;
+              if (pLog) {
+                const row = document.createElement('div');
+                row.className = 'text-sky-300';
+                row.innerText = `[Genre] ${rec.artist} – ${rec.title}: Added "${fetchedGenres}"`;
+                pLog.appendChild(row);
+                pLog.scrollTop = pLog.scrollHeight;
+              }
+            }
+          } catch (e) {}
+        }
+
+        // 3. Valuation Refresh
+        if (optValuate && (changed || !rec.estimatedValue || rec.estimatedValue === '0' || rec.estimatedValue === 0)) {
+          try {
+            let val = null;
+            if (discogsToken) {
+              val = await queryDiscogsMarketValue(rec.artist, rec.title, rec.catNo, rec.mediaGrade || 'VG+', rec.discogsId, discogsToken, rec.format, rec.year);
+            }
+            if (!val) {
+              val = await queryEbayMarketValue(rec.artist, rec.title, rec.catNo, rec.mediaGrade || 'VG+', rec.format, rec.year);
+            }
+            if (val && val.median) {
+              rec.estimatedValue = val.median;
+              if (val.low) rec.priceLow = val.low;
+              if (val.median) rec.priceMedian = val.median;
+              if (val.high) rec.priceHigh = val.high;
+              rec.priceSource = val.source || 'Batch Valuation Engine';
+              valuatedCount++;
+              changed = true;
+              if (pLog) {
+                const row = document.createElement('div');
+                row.className = 'text-amber-300';
+                row.innerText = `[Value] ${rec.artist} – ${rec.title}: £${parseFloat(val.median).toFixed(2)}`;
+                pLog.appendChild(row);
+                pLog.scrollTop = pLog.scrollHeight;
+              }
+            }
+          } catch (e) {}
+        }
+
+        if (changed) {
+          updatedRecords.push(rec);
+        }
+
+        if (pReclass) pReclass.innerText = reclassifiedCount;
+        if (pEnrich) pEnrich.innerText = enrichedCount;
+        if (pVal) pVal.innerText = valuatedCount;
+
+        await new Promise(r => setTimeout(r, 150));
+      }
+
+      saveRecordsToStorage();
+      renderStats();
+      renderRecords();
+      if (typeof renderArchiveStation === 'function') renderArchiveStation();
+
+      // Batch sync to cloud
+      if (isCloudActive && currentUser && supabaseClient && updatedRecords.length > 0) {
+        const dbRows = updatedRecords.map(r => mapRecordToDb(r, currentUser.id));
+        supabaseClient.from('records').upsert(dbRows).catch(e => console.warn("Cloud sync batch refresh error:", e));
+      }
+
+      // Update counters in modal
+      const totalRecs = records.length;
+      const s12Count = records.filter(r => (r.format || '').includes('12"') && ((r.format || '').toLowerCase().includes('single') || (r.format || '').toLowerCase().includes('maxi'))).length;
+      const tapeCount = records.filter(r => (r.format || '').toLowerCase().includes('cassette') || (r.format || '').toLowerCase().includes('tape') || (r.format || '').toLowerCase().includes('minidisc')).length;
+      const missingCount = records.filter(r => !r.genres || !r.genres.trim() || !r.year || !r.estimatedValue).length;
+
+      document.getElementById('batchRefreshTotalRecords').innerText = totalRecs;
+      document.getElementById('batchRefresh12SCount').innerText = s12Count;
+      document.getElementById('batchRefreshTapeCount').innerText = tapeCount;
+      document.getElementById('batchRefreshMissingCount').innerText = missingCount;
+
+      if (pStatus) {
+        pStatus.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span class="text-emerald-300">Refresh Complete!</span>`;
+      }
+      if (pLog) {
+        const row = document.createElement('div');
+        row.className = 'text-emerald-400 font-bold mt-2 pt-2 border-t border-vinyl-800';
+        row.innerText = `Audit Finished! Reclassified: ${reclassifiedCount}, Enriched: ${enrichedCount}, Valuated: ${valuatedCount}.`;
+        pLog.appendChild(row);
+        pLog.scrollTop = pLog.scrollHeight;
+      }
+
+      if (btn) {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50');
+      }
+      isBatchMetadataRefreshRunning = false;
+
+      showToast(`Refresh complete: updated ${updatedRecords.length} records in crate!`, "success");
+    }
+
+    /* =========================================================
        LIVE MUSICBRAINZ OPEN DISCOGRAPHY API & MULTI-MATCH SELECTOR
        ========================================================= */
     let stagedOnlineReleases = [];
@@ -7654,50 +8426,212 @@
       let queryDisplay = artist && title ? `${artist} - ${title}` : (title || artist || barcode);
       showToast(`Searching open discography for "${queryDisplay}"...`);
 
+      const fmtChoice = document.getElementById('autofillFormatFilter')?.value || 'ALL';
+      const discogsToken = localStorage.getItem('qmc_discogs_user_token') || localStorage.getItem('QMC_DISCOGS_TOKEN');
+
       try {
-        let apiUrl = '';
+        let releases = [];
+
         if (barcode || /^\d{8,14}$/.test(title)) {
           const bc = barcode || title;
-          apiUrl = `https://musicbrainz.org/ws/2/release/?query=barcode:${encodeURIComponent(bc)}&fmt=json&limit=15`;
+          // Step 1: MusicBrainz Barcode Search
+          try {
+            const mbRes = await fetch(`https://musicbrainz.org/ws/2/release/?query=barcode:${encodeURIComponent(bc)}&fmt=json&limit=25`);
+            if (mbRes.ok) {
+              const mbData = await mbRes.json();
+              releases = mbData.releases || [];
+            }
+          } catch (e) {}
+
+          // Step 2: Fallback to Discogs Barcode Search if MusicBrainz returned 0
+          if (releases.length === 0) {
+            try {
+              let dcUrl = `https://api.discogs.com/database/search?barcode=${encodeURIComponent(bc)}&type=release`;
+              if (discogsToken) dcUrl += `&token=${encodeURIComponent(discogsToken)}`;
+              const dcRes = await fetch(dcUrl, {
+                headers: discogsToken ? { 'User-Agent': 'QMCVinylArchive/2.0' } : {}
+              });
+              if (dcRes.ok) {
+                const dcData = await dcRes.json();
+                const dcItems = dcData.results || [];
+                dcItems.forEach(item => {
+                  const titleParts = (item.title || '').split(' - ');
+                  const itemArtist = titleParts.length > 1 ? titleParts[0].trim() : '';
+                  const itemTitle = titleParts.length > 1 ? titleParts.slice(1).join(' - ').trim() : item.title;
+                  const catNo = item.catno || '';
+                  const label = (item.label && item.label[0]) || '';
+                  const year = item.year ? String(item.year) : '';
+                  const country = item.country || '';
+                  const formatStr = Array.isArray(item.format) ? item.format.join(', ') : (item.format || 'Vinyl');
+
+                  releases.push({
+                    id: 'dc_' + item.id,
+                    discogsId: item.id,
+                    source: 'discogs',
+                    title: itemTitle,
+                    'artist-credit': [{ name: itemArtist }],
+                    date: year,
+                    country: country,
+                    barcode: bc,
+                    'label-info': [{ label: { name: label }, 'catalog-number': catNo }],
+                    media: [{ format: formatStr, 'track-count': 0 }],
+                    coverImage: item.cover_image || item.thumb || ''
+                  });
+                });
+              }
+            } catch (e) {
+              console.warn("Discogs barcode fallback check:", e);
+            }
+          }
         } else if (artist && title) {
           const cleanA = cleanLucene(artist);
           const cleanT = cleanLucene(title);
-          // Precision Lucene query targeting artist and release fields specifically!
-          let lucene = `artist:"${cleanA}" AND (release:"${cleanT}" OR releaseaccent:"${cleanT}")`;
-          apiUrl = `https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(lucene)}&fmt=json&limit=15`;
+
+          // Build format filter Lucene clause
+          let fmtClause = '';
+          if (fmtChoice === '12') {
+            fmtClause = ' AND (format:"12\\" Vinyl" OR format:"Vinyl" OR format:"LP")';
+          } else if (fmtChoice === '12S') {
+            fmtClause = ' AND (format:"12\\" Vinyl" OR format:"Vinyl") AND (primarytype:Single OR primarytype:EP)';
+          } else if (fmtChoice === '7') {
+            fmtClause = ' AND (format:"7\\" Vinyl" OR format:"Vinyl")';
+          } else if (fmtChoice === '10') {
+            fmtClause = ' AND (format:"10\\" Vinyl" OR format:"10\\"")';
+          } else if (fmtChoice === 'CASSETTE') {
+            fmtClause = ' AND format:Cassette';
+          } else if (fmtChoice === 'MINIDISC') {
+            fmtClause = ' AND format:MiniDisc';
+          } else if (fmtChoice === 'BOX') {
+            fmtClause = ' AND (format:"Box-Set" OR format:"Vinyl")';
+          } else if (fmtChoice === 'CD') {
+            fmtClause = ' AND format:CD';
+          } else {
+            // Default "ALL" mode: Boost vinyl pressings in primary query
+            fmtClause = ' AND (format:"Vinyl" OR format:"12\\" Vinyl" OR format:"7\\" Vinyl" OR format:"10\\" Vinyl" OR format:"LP")';
+          }
+
+          // Parallel Query A (Targeted with format) & Query B (Broad unquoted)
+          const targetedLucene = `artist:"${cleanA}" AND (release:"${cleanT}" OR releaseaccent:"${cleanT}")${fmtClause}`;
+          const broadLucene = `artist:(${cleanA}) AND release:(${cleanT})`;
+
+          const queryPromises = [
+            fetch(`https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(targetedLucene)}&fmt=json&limit=25`).then(r => r.ok ? r.json() : null),
+            fetch(`https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(broadLucene)}&fmt=json&limit=25`).then(r => r.ok ? r.json() : null)
+          ];
+
+          // If Discogs token available, run parallel Discogs database search
+          if (discogsToken) {
+            let dcSearchUrl = `https://api.discogs.com/database/search?artist=${encodeURIComponent(cleanA)}&release_title=${encodeURIComponent(cleanT)}&type=release&per_page=10&token=${encodeURIComponent(discogsToken)}`;
+            if (fmtChoice === '7') dcSearchUrl += '&format=7%22';
+            else if (fmtChoice === '12' || fmtChoice === '12S') dcSearchUrl += '&format=12%22';
+            else if (fmtChoice === '10') dcSearchUrl += '&format=10%22';
+            else if (fmtChoice === 'CASSETTE') dcSearchUrl += '&format=Cassette';
+            else if (fmtChoice === 'MINIDISC') dcSearchUrl += '&format=MiniDisc';
+            else if (fmtChoice === 'ALL') dcSearchUrl += '&format=Vinyl';
+
+            queryPromises.push(
+              fetch(dcSearchUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
+                .then(r => r.ok ? r.json() : null)
+                .catch(() => null)
+            );
+          }
+
+          const results = await Promise.allSettled(queryPromises);
+
+          const seenIds = new Set();
+          results.forEach((res, rIdx) => {
+            if (res.status === 'fulfilled' && res.value) {
+              if (rIdx < 2 && res.value.releases) {
+                res.value.releases.forEach(rel => {
+                  if (!seenIds.has(rel.id)) {
+                    seenIds.add(rel.id);
+                    releases.push(rel);
+                  }
+                });
+              } else if (rIdx === 2 && res.value.results) {
+                // Discogs releases
+                res.value.results.forEach(item => {
+                  const id = 'dc_' + item.id;
+                  if (!seenIds.has(id)) {
+                    seenIds.add(id);
+                    const titleParts = (item.title || '').split(' - ');
+                    const itemArtist = titleParts.length > 1 ? titleParts[0].trim() : cleanA;
+                    const itemTitle = titleParts.length > 1 ? titleParts.slice(1).join(' - ').trim() : item.title;
+                    const catNo = item.catno || '';
+                    const label = (item.label && item.label[0]) || '';
+                    const year = item.year ? String(item.year) : '';
+                    const country = item.country || '';
+                    const formatStr = Array.isArray(item.format) ? item.format.join(', ') : (item.format || 'Vinyl');
+
+                    releases.push({
+                      id: id,
+                      discogsId: item.id,
+                      source: 'discogs',
+                      title: itemTitle,
+                      'artist-credit': [{ name: itemArtist }],
+                      date: year,
+                      country: country,
+                      'label-info': [{ label: { name: label }, 'catalog-number': catNo }],
+                      media: [{ format: formatStr, 'track-count': 0 }],
+                      coverImage: item.cover_image || item.thumb || ''
+                    });
+                  }
+                });
+              }
+            }
+          });
+
+          // Step 3: Release-group expansion fallback if fewer than 2 results found
+          if (releases.length < 2) {
+            try {
+              const rgUrl = `https://musicbrainz.org/ws/2/release-group/?query=artist:(${encodeURIComponent(cleanA)}) AND releasegroup:(${encodeURIComponent(cleanT)})&fmt=json&limit=2`;
+              const rgRes = await fetch(rgUrl);
+              if (rgRes.ok) {
+                const rgData = await rgRes.json();
+                const topRg = rgData['release-groups']?.[0];
+                if (topRg && topRg.id) {
+                  const rgReleasesUrl = `https://musicbrainz.org/ws/2/release?release-group=${topRg.id}&inc=labels+media+artist-credits&fmt=json&limit=30`;
+                  const rgrRes = await fetch(rgReleasesUrl);
+                  if (rgrRes.ok) {
+                    const rgrData = await rgrRes.json();
+                    (rgrData.releases || []).forEach(rel => {
+                      if (!seenIds.has(rel.id)) {
+                        seenIds.add(rel.id);
+                        releases.push(rel);
+                      }
+                    });
+                  }
+                }
+              }
+            } catch (e) {}
+          }
         } else if (artist) {
           const cleanA = cleanLucene(artist);
-          apiUrl = `https://musicbrainz.org/ws/2/release/?query=artist:"${encodeURIComponent(cleanA)}"&fmt=json&limit=15`;
+          const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${encodeURIComponent(cleanA)}"&fmt=json&limit=25`);
+          if (res.ok) {
+            const data = await res.json();
+            releases = data.releases || [];
+          }
         } else {
           const cleanT = cleanLucene(title);
-          apiUrl = `https://musicbrainz.org/ws/2/release/?query=release:"${encodeURIComponent(cleanT)}"&fmt=json&limit=15`;
-        }
-
-        let res = await fetch(apiUrl);
-        if (!res.ok) throw new Error("MusicBrainz service busy");
-        let data = await res.json();
-        let releases = data.releases || [];
-
-        // If targeted search returned 0 (e.g. slight spelling/punctuation variation), fallback to relaxed keyword search
-        if (releases.length === 0 && artist && title) {
-          const fallbackQuery = `${cleanLucene(artist)} ${cleanLucene(title)}`;
-          const fallbackUrl = `https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(fallbackQuery)}&fmt=json&limit=15`;
-          const fallbackRes = await fetch(fallbackUrl);
-          if (fallbackRes.ok) {
-            const fallbackData = await fallbackRes.json();
-            releases = fallbackData.releases || [];
+          const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=release:"${encodeURIComponent(cleanT)}"&fmt=json&limit=25`);
+          if (res.ok) {
+            const data = await res.json();
+            releases = data.releases || [];
           }
         }
 
-        // Apply format filter if selected by the user
-        const fmtChoice = document.getElementById('autofillFormatFilter')?.value || 'ALL';
+        // Apply strict format filter if user specified a non-ALL format
         if (fmtChoice !== 'ALL' && releases.length > 0) {
           const filtered = releases.filter(r => {
             const mediaStr = (r.media || []).map(m => m.format || '').join(' ').toLowerCase();
             if (fmtChoice === 'BOX') return mediaStr.includes('box') || (r.media && r.media.length >= 3) || (r.title && r.title.toLowerCase().includes('box'));
+            if (fmtChoice === '12S') return (mediaStr.includes('12"') || mediaStr.includes('vinyl')) && (mediaStr.includes('single') || mediaStr.includes('maxi') || mediaStr.includes('ep') || (r.title && (r.title.toLowerCase().includes('single') || r.title.toLowerCase().includes('mix'))));
             if (fmtChoice === '7') return mediaStr.includes('7"') || mediaStr.includes('single') || mediaStr.includes('vinyl');
             if (fmtChoice === '12') return mediaStr.includes('12"') || mediaStr.includes('lp') || mediaStr.includes('vinyl');
             if (fmtChoice === '10') return mediaStr.includes('10"');
+            if (fmtChoice === 'CASSETTE') return mediaStr.includes('cassette') || mediaStr.includes('tape');
+            if (fmtChoice === 'MINIDISC') return mediaStr.includes('minidisc');
             if (fmtChoice === 'CD') return mediaStr.includes('cd');
             return true;
           });
@@ -7705,6 +8639,17 @@
             releases = filtered;
           }
         }
+
+        // Smart Vinyl-First Sorting
+        releases.sort((a, b) => {
+          const aFmt = (a.media?.[0]?.format || '').toLowerCase();
+          const bFmt = (b.media?.[0]?.format || '').toLowerCase();
+          const aIsVinyl = aFmt.includes('vinyl') || aFmt.includes('lp') || aFmt.includes('12"') || aFmt.includes('7"') || aFmt.includes('10"');
+          const bIsVinyl = bFmt.includes('vinyl') || bFmt.includes('lp') || bFmt.includes('12"') || bFmt.includes('7"') || bFmt.includes('10"');
+          if (aIsVinyl && !bIsVinyl) return -1;
+          if (!aIsVinyl && bIsVinyl) return 1;
+          return 0;
+        });
 
         renderAutofillResults(releases, queryDisplay);
 
@@ -7822,83 +8767,196 @@
       const match = stagedOnlineReleases[index];
       if (!match) return;
 
-      showToast(`Loading full tracklist for "${match.title}"...`, "info");
+      showToast(`Loading details for "${match.title}"...`, "info");
 
-      // Fetch full release details with recordings & tracklists from MusicBrainz
-      let fullRelease = match;
-      try {
-        const detailRes = await fetch(`https://musicbrainz.org/ws/2/release/${match.id}?inc=recordings+artist-credits+labels+genres+tags&fmt=json`);
-        if (detailRes.ok) {
-          fullRelease = await detailRes.json();
-        }
-      } catch (err) {
-        console.warn("Could not fetch release recordings detail, using summary:", err);
-      }
-
-      if (fullRelease['artist-credit'] && fullRelease['artist-credit'].length > 0) {
-        document.getElementById('formArtist').value = fullRelease['artist-credit'][0].name || '';
-      }
-      document.getElementById('formTitle').value = fullRelease.title || '';
-
-      if (fullRelease.date) {
-        const yr = parseInt(fullRelease.date.slice(0, 4));
-        if (!isNaN(yr)) document.getElementById('formYear').value = yr;
-      }
-      if (fullRelease.country) document.getElementById('formCountry').value = fullRelease.country;
-      if (fullRelease.barcode) document.getElementById('formBarcode').value = fullRelease.barcode;
-
-      if (fullRelease['label-info'] && fullRelease['label-info'].length > 0) {
-        const lInfo = fullRelease['label-info'][0];
-        if (lInfo.label && lInfo.label.name) document.getElementById('formLabel').value = lInfo.label.name;
-        if (lInfo['catalog-number']) document.getElementById('formCatNo').value = lInfo['catalog-number'];
-      }
-
-      // Format determination
       const searchFormatChoice = document.getElementById('autofillFormatFilter')?.value || 'ALL';
-      let assignedFormat = '12" LP (Album)';
-
-      if (searchFormatChoice === 'BOX') {
-        assignedFormat = 'Box Set (Vinyl / Multi-Disc)';
-      } else if (searchFormatChoice === '7') {
-        assignedFormat = '7" Single (45 RPM)';
-      } else if (searchFormatChoice === '12') {
-        assignedFormat = (fullRelease.media && fullRelease.media.length >= 3) ? 'Box Set (Vinyl / Multi-Disc)' : ((fullRelease.media && fullRelease.media.length >= 2) ? '2xLP Gatefold (Album)' : '12" LP (Album)');
-      } else if (searchFormatChoice === '10') {
-        assignedFormat = '10" Vinyl';
-      } else if (searchFormatChoice === 'CD') {
-        assignedFormat = 'CD / Other';
-      } else if (fullRelease.media && fullRelease.media.length > 0) {
-        const m = fullRelease.media[0];
-        const formatName = (m.format || '').toLowerCase();
-        const relTitle = (fullRelease.title || '').toLowerCase();
-        if (formatName.includes('box') || relTitle.includes('box set') || (fullRelease.media.length >= 3)) {
-          assignedFormat = 'Box Set (Vinyl / Multi-Disc)';
-        } else if (formatName.includes('10"')) {
-          assignedFormat = '10" Vinyl';
-        } else if (formatName.includes('7"')) {
-          assignedFormat = '7" Single (45 RPM)';
-        } else if (fullRelease.media.length >= 2) {
-          assignedFormat = '2xLP Gatefold (Album)';
-        } else if (formatName.includes('cd')) {
-          assignedFormat = 'CD / Other';
-        } else {
-          assignedFormat = '12" LP (Album)';
-        }
-      }
-
-      document.getElementById('formFormat').value = assignedFormat;
-      handleFormatChange();
-
-      // Pull & format the complete tracklist
-      const isSingle = assignedFormat.includes('7"');
-      const allTrackLines = [];
+      let fullRelease = match;
+      let totalTracksFound = 0;
+      let allTrackLines = [];
       let trackA = '';
       let trackADur = '';
       let trackB = '';
       let trackBDur = '';
-      let totalTracksFound = 0;
+      let artistName = '';
+      let titleName = match.title || '';
+      let releaseYear = null;
+      let releaseCountry = '';
+      let releaseBarcode = '';
+      let releaseLabel = '';
+      let releaseCatNo = '';
+      let releaseGenres = [];
+      let discogsCoverUrl = '';
+      let assignedFormat = '12" LP (Album)';
 
-      if (fullRelease.media && fullRelease.media.length > 0) {
+      if (match.source === 'discogs' && match.discogsId) {
+        // Source: Discogs Database
+        try {
+          const token = getDiscogsToken();
+          let dUrl = `https://api.discogs.com/releases/${encodeURIComponent(match.discogsId)}`;
+          if (token) dUrl += `?token=${encodeURIComponent(token)}`;
+          const dRes = await fetch(dUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } });
+          if (dRes.ok) {
+            const dData = await dRes.json();
+            fullRelease = dData;
+            artistName = (dData.artists && dData.artists[0]?.name) ? dData.artists[0].name.replace(/\s\(\d+\)$/, '') : (match['artist-credit']?.[0]?.name || '');
+            titleName = dData.title || match.title || '';
+            releaseYear = dData.year || (match.date ? parseInt(match.date.slice(0, 4)) : null);
+            releaseCountry = dData.country || match.country || '';
+            releaseBarcode = (dData.identifiers?.find(i => i.type === 'Barcode')?.value || match.barcode || '').replace(/\D/g, '');
+            if (dData.labels && dData.labels.length > 0) {
+              releaseLabel = dData.labels[0].name || '';
+              releaseCatNo = dData.labels[0].catno || '';
+            }
+            if (Array.isArray(dData.genres)) releaseGenres.push(...dData.genres);
+            if (Array.isArray(dData.styles)) releaseGenres.push(...dData.styles);
+
+            // Determine format using our comprehensive parser
+            assignedFormat = parseDiscogsFormat(dData.formats || match.rawDiscogsFormat || []);
+
+            // Tracklist parsing
+            if (Array.isArray(dData.tracklist)) {
+              dData.tracklist.forEach((t, tIdx) => {
+                if (t.type_ === 'heading') return;
+                totalTracksFound++;
+                const pos = t.position || String(tIdx + 1);
+                const tTitle = t.title || `Track ${tIdx + 1}`;
+                const durSuffix = t.duration ? ` (${t.duration})` : '';
+                allTrackLines.push(`${pos}. ${tTitle}${durSuffix}`);
+
+                if (pos === 'A' || pos === 'A1' || totalTracksFound === 1) {
+                  trackA = tTitle;
+                  trackADur = t.duration || '';
+                } else if (pos === 'B' || pos === 'B1' || totalTracksFound === 2) {
+                  trackB = tTitle;
+                  trackBDur = t.duration || '';
+                }
+              });
+            }
+
+            // Cover image
+            if (dData.images && dData.images.length > 0) {
+              const pImg = dData.images.find(img => img.type === 'primary') || dData.images[0];
+              if (pImg && (pImg.uri || pImg.resource_url) && !pImg.uri.includes('spacer.gif')) {
+                discogsCoverUrl = pImg.uri || pImg.resource_url;
+              }
+            } else if (match.coverThumb && !match.coverThumb.includes('spacer.gif')) {
+              discogsCoverUrl = match.coverThumb;
+            }
+          }
+        } catch (err) {
+          console.warn("Could not fetch full Discogs release details, using match summary:", err);
+        }
+      } else {
+        // Source: MusicBrainz
+        try {
+          const detailRes = await fetch(`https://musicbrainz.org/ws/2/release/${match.id}?inc=recordings+artist-credits+labels+genres+tags+release-groups&fmt=json`);
+          if (detailRes.ok) {
+            fullRelease = await detailRes.json();
+          }
+        } catch (err) {
+          console.warn("Could not fetch release recordings detail, using summary:", err);
+        }
+
+        if (fullRelease['artist-credit'] && fullRelease['artist-credit'].length > 0) {
+          artistName = fullRelease['artist-credit'][0].name || '';
+        }
+        titleName = fullRelease.title || '';
+        if (fullRelease.date) {
+          const yr = parseInt(fullRelease.date.slice(0, 4));
+          if (!isNaN(yr)) releaseYear = yr;
+        }
+        releaseCountry = fullRelease.country || '';
+        releaseBarcode = fullRelease.barcode || '';
+        if (fullRelease['label-info'] && fullRelease['label-info'].length > 0) {
+          const lInfo = fullRelease['label-info'][0];
+          if (lInfo.label && lInfo.label.name) releaseLabel = lInfo.label.name;
+          if (lInfo['catalog-number']) releaseCatNo = lInfo['catalog-number'];
+        }
+
+        if (Array.isArray(fullRelease.genres)) {
+          fullRelease.genres.forEach(g => g && g.name && releaseGenres.push(g.name));
+        }
+        if (Array.isArray(fullRelease.tags)) {
+          fullRelease.tags.slice(0, 4).forEach(t => t && t.name && releaseGenres.push(t.name));
+        }
+
+        // Format determination from MusicBrainz media & release-group
+        const rgType = (fullRelease['release-group']?.['primary-type'] || '').toLowerCase();
+        const rgSecTypes = (fullRelease['release-group']?.['secondary-types'] || []).map(s => String(s).toLowerCase());
+        const isSingleOrEP = rgType === 'single' || rgType === 'ep' || rgSecTypes.includes('single') || rgSecTypes.includes('ep');
+
+        let totalMbTracks = 0;
+        if (fullRelease.media && fullRelease.media.length > 0) {
+          fullRelease.media.forEach(m => totalMbTracks += (m.tracks?.length || 0));
+        }
+
+        if (searchFormatChoice === 'BOX') {
+          assignedFormat = 'Box Set (Vinyl / Multi-Disc)';
+        } else if (searchFormatChoice === '7') {
+          assignedFormat = '7" Single (45 RPM)';
+        } else if (searchFormatChoice === '12S') {
+          assignedFormat = '12" Maxi / Single';
+        } else if (searchFormatChoice === '10') {
+          assignedFormat = '10" Vinyl';
+        } else if (searchFormatChoice === 'CASSETTE') {
+          assignedFormat = 'Cassette Tape';
+        } else if (searchFormatChoice === 'MINIDISC') {
+          assignedFormat = 'MiniDisc';
+        } else if (searchFormatChoice === 'CD') {
+          assignedFormat = 'CD / Other';
+        } else if (fullRelease.media && fullRelease.media.length > 0) {
+          const m = fullRelease.media[0];
+          const formatName = (m.format || '').toLowerCase();
+          const relTitle = (fullRelease.title || '').toLowerCase();
+
+          if (formatName.includes('minidisc') || relTitle.includes('minidisc')) {
+            assignedFormat = 'MiniDisc';
+          } else if (formatName.includes('cassette') || relTitle.includes('cassette')) {
+            assignedFormat = 'Cassette Tape';
+          } else if (formatName.includes('box') || relTitle.includes('box set') || (fullRelease.media.length >= 3)) {
+            assignedFormat = 'Box Set (Vinyl / Multi-Disc)';
+          } else if (formatName.includes('10"')) {
+            assignedFormat = '10" Vinyl';
+          } else if (formatName.includes('7"')) {
+            assignedFormat = '7" Single (45 RPM)';
+          } else if (formatName.includes('12"') && (isSingleOrEP || (totalMbTracks > 0 && totalMbTracks <= 5))) {
+            assignedFormat = '12" Maxi / Single';
+          } else if (fullRelease.media.length >= 2) {
+            assignedFormat = '2xLP Gatefold (Album)';
+          } else if (formatName.includes('cd')) {
+            assignedFormat = 'CD / Other';
+          } else if (isSingleOrEP && totalMbTracks > 0 && totalMbTracks <= 5) {
+            assignedFormat = '12" Maxi / Single';
+          } else {
+            assignedFormat = '12" LP (Album)';
+          }
+        }
+      }
+
+      // Populate General Fields
+      if (artistName) document.getElementById('formArtist').value = artistName;
+      if (titleName) document.getElementById('formTitle').value = titleName;
+      if (releaseYear) document.getElementById('formYear').value = releaseYear;
+      if (releaseCountry) document.getElementById('formCountry').value = releaseCountry;
+      if (releaseBarcode) document.getElementById('formBarcode').value = releaseBarcode;
+      if (releaseLabel) document.getElementById('formLabel').value = releaseLabel;
+      if (releaseCatNo) document.getElementById('formCatNo').value = releaseCatNo;
+
+      // Override format if user selected a explicit format in quick lookup filter
+      if (searchFormatChoice === '12S') assignedFormat = '12" Maxi / Single';
+      else if (searchFormatChoice === '7') assignedFormat = '7" Single (45 RPM)';
+      else if (searchFormatChoice === '10') assignedFormat = '10" Vinyl';
+      else if (searchFormatChoice === 'CASSETTE') assignedFormat = 'Cassette Tape';
+      else if (searchFormatChoice === 'MINIDISC') assignedFormat = 'MiniDisc';
+
+      document.getElementById('formFormat').value = assignedFormat;
+      handleFormatChange();
+
+      // Tracklist parsing for MusicBrainz (if not already extracted from Discogs)
+      const is7Inch = assignedFormat.includes('7"');
+      const is12Maxi = assignedFormat.includes('12" Maxi');
+
+      if (allTrackLines.length === 0 && fullRelease.media && fullRelease.media.length > 0) {
         fullRelease.media.forEach((med, mIdx) => {
           const discTracks = med.tracks || [];
           const discPrefix = fullRelease.media.length > 1 ? `D${mIdx + 1}-` : '';
@@ -7913,7 +8971,7 @@
 
             let pos = t.number;
             if (!pos) {
-              if (isSingle) {
+              if (is7Inch || is12Maxi) {
                 pos = tIdx === 0 ? 'A' : (tIdx === 1 ? 'B' : String(tIdx + 1));
               } else if (fullRelease.media.length > 1) {
                 pos = `${discPrefix}${tIdx + 1}`;
@@ -7941,7 +8999,7 @@
       }
 
       // Populate A & B track fields for singles
-      if (isSingle || trackA) {
+      if (is7Inch || is12Maxi || trackA) {
         if (trackA) {
           document.getElementById('formSideATitle').value = trackA;
           document.getElementById('formSideADuration').value = trackADur;
@@ -7955,24 +9013,21 @@
       // Add research note info if empty
       const notesField = document.getElementById('formResearchNotes');
       if (notesField && !notesField.value) {
-        notesField.value = `MusicBrainz Release: ${fullRelease.id} (${fullRelease.country || 'Global'}, ${fullRelease.date || 'n/a'}). Status: ${fullRelease.status || 'Official'}.`;
+        if (match.source === 'discogs') {
+          notesField.value = `Discogs Release [r${match.discogsId}] (${releaseCountry || 'Global'}, ${releaseYear || 'n/a'}). Format: ${assignedFormat}.`;
+        } else {
+          notesField.value = `MusicBrainz Release: ${fullRelease.id || match.id} (${releaseCountry || 'Global'}, ${releaseYear || 'n/a'}). Status: ${fullRelease.status || 'Official'}.`;
+        }
       }
 
       // Populate genres if currently empty
       const genresField = document.getElementById('formGenres');
       if (genresField && !genresField.value) {
-        const mbGenres = [];
-        if (Array.isArray(fullRelease.genres)) {
-          fullRelease.genres.forEach(g => g && g.name && mbGenres.push(g.name));
-        }
-        if (Array.isArray(fullRelease.tags)) {
-          fullRelease.tags.slice(0, 4).forEach(t => t && t.name && mbGenres.push(t.name));
-        }
-        if (mbGenres.length > 0) {
-          genresField.value = mbGenres.join(', ');
+        if (releaseGenres.length > 0) {
+          genresField.value = Array.from(new Set(releaseGenres.filter(Boolean))).slice(0, 6).join(', ');
         } else {
-          const releaseArtist = (fullRelease['artist-credit']?.[0]?.name || document.getElementById('formArtist')?.value || '').trim();
-          fetchGenreFromOnlineSources(releaseArtist, fullRelease.title).then(g => {
+          const finalArtist = (artistName || document.getElementById('formArtist')?.value || '').trim();
+          fetchGenreFromOnlineSources(finalArtist, titleName).then(g => {
             if (g && genresField && !genresField.value) {
               genresField.value = g;
             }
@@ -7980,15 +9035,18 @@
         }
       }
 
-      // Only pull online album cover for 12" LPs / albums. For 7" singles, use generic sleeve per policy!
-      if (!isSingle) {
-        const releaseArtist = (fullRelease['artist-credit']?.[0]?.name || document.getElementById('formArtist')?.value || '').trim();
+      // Cover artwork: 7" singles use generic sleeve per policy; albums and 12" maxis get online cover
+      if (discogsCoverUrl && !is7Inch) {
+        updateFormCoverPreview(discogsCoverUrl);
+        showToast("Loaded high-res cover art from Discogs!");
+      } else if (!is7Inch) {
+        const finalArtist = (artistName || document.getElementById('formArtist')?.value || '').trim();
         const rgId = fullRelease['release-group']?.id;
-        findOnlineCoverArtwork(releaseArtist, fullRelease.title, fullRelease.id, rgId, assignedFormat)
+        findOnlineCoverArtwork(finalArtist, titleName, fullRelease.id || match.id, rgId, assignedFormat)
           .then(coverUrl => {
             if (coverUrl) {
               updateFormCoverPreview(coverUrl);
-              showToast("Loaded album cover! (Use 'Choose Sleeve' to change)");
+              showToast("Loaded cover artwork! (Use 'Choose Sleeve' to change)");
             }
           })
           .catch(err => console.warn("Auto cover fetch notice:", err));
@@ -7997,7 +9055,8 @@
       }
 
       closeAutofillResults();
-      showToast(`Autofilled "${fullRelease.title}" with ${totalTracksFound} tracks!`);
+      setQuickLookupCollapsed(true, `Matched: ${artistName || 'Artist'} – ${titleName} (${releaseYear || 'n/a'})`);
+      showToast(`Autofilled "${titleName}" with ${totalTracksFound || allTrackLines.length} tracks!`);
       switchFormTab('tab-general');
     }
 
@@ -8188,11 +9247,13 @@
 
     async function openScannerModal() {
       document.getElementById('scannerModal').classList.remove('hidden');
-      await populateScannerCameras();
       await startScannerStream(currentScannerCameraId);
-      setTimeout(() => {
-        document.getElementById('manualBarcodeInput')?.focus();
-      }, 250);
+      await populateScannerCameras();
+      if (window.innerWidth >= 640) {
+        setTimeout(() => {
+          document.getElementById('manualBarcodeInput')?.focus();
+        }, 250);
+      }
     }
 
     function closeScannerModal() {
@@ -8427,16 +9488,24 @@
       if (f.includes('2xlp') || f.includes('gatefold') || f.includes('gat') || (f.match(/\blp\b/g) || []).length === 2 || f.includes('+ lp')) {
         return '2xLP Gatefold (Album)';
       }
+      // Cassette
+      if (f.includes('cassette') || f.includes('tape')) {
+        return 'Cassette Tape';
+      }
+      // MiniDisc
+      if (f.includes('minidisc') || /\bmd\b/.test(f)) {
+        return 'MiniDisc';
+      }
+      // 12" maxi / single
+      if (f.includes('12"') && (f.includes('single') || f.includes('maxi') || f.includes('ep') || f.includes('45 rpm') || f.includes('promo') || (!f.includes('lp') && !f.includes('album')))) {
+        return '12" Maxi / Single';
+      }
       // 7" single
       if (f.includes('7"') || f.includes("7'") || f.includes('7 inch') || (f.includes('single') && !f.includes('12"'))) {
         return '7" Single (45 RPM)';
       }
-      // 12" maxi / single
-      if (f.includes('12"') && (f.includes('single') || f.includes('maxi') || f.includes('ep'))) {
-        return '12" Maxi / Single';
-      }
       // CD / Other
-      if (f.includes('cd') || f.includes('cassette') || f.includes('file') || f.includes('sacd') || f.includes('dvd')) {
+      if (f.includes('cd') || f.includes('file') || f.includes('sacd') || f.includes('dvd')) {
         return 'CD / Other';
       }
       // Standard 12" LP
