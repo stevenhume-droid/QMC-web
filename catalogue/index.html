@@ -4052,7 +4052,8 @@
           const segment = document.createElement('div');
           segment.className = `h-full ${colors[idx % colors.length]} hover:brightness-125 transition cursor-pointer`;
           segment.style.width = `${pct}%`;
-          segment.title = `${dec}: ${decadeMap[dec]} records (${pct}%) — Click to open Analytics`;
+          segment.title = `${dec}: ${decadeMap[dec]} records (${pct}%) — Click to filter ${dec}`;
+          segment.onclick = (e) => { e.stopPropagation(); filterByDecade(dec); };
           decadeBar.appendChild(segment);
         });
       }
@@ -4067,27 +4068,46 @@
       const gradeFilter = document.getElementById('filterGrade')?.value || 'ALL';
       const sortBy = document.getElementById('sortBy')?.value || 'dateAddedDesc';
 
-      let result = records.filter(item => {
-        const tracksText = (item.tracks || []).map(t => `${t.pos || ''} ${t.title || ''}`).join(' ');
-        const matchText = (
-          (item.artist || '') + ' ' +
-          (item.title || '') + ' ' +
-          (item.format || '') + ' ' +
-          (item.label || '') + ' ' +
-          (item.catNo || '') + ' ' +
-          (item.sideATitle || '') + ' ' +
-          (item.sideBTitle || '') + ' ' +
-          tracksText + ' ' +
-          (item.matrixA || '') + ' ' +
-          (item.matrixB || '') + ' ' +
-          (item.genres || '') + ' ' +
-          (item.producer || '') + ' ' +
-          (item.researchNotes || '') + ' ' +
-          (item.mastering || '') + ' ' +
-          (item.pressingPlant || '')
-        ).toLowerCase();
+      const decadeMatch = searchTerm.match(/^(19\d0|20\d0)s$/);
+      const shortDecadeMatch = searchTerm.match(/^(\d0)s$/);
+      const targetDecade = decadeMatch
+        ? decadeMatch[1] + 's'
+        : (shortDecadeMatch ? ((parseInt(shortDecadeMatch[1]) >= 50 ? '19' : '20') + shortDecadeMatch[1] + 's') : null);
+      const isUnknownYearSearch = (searchTerm === 'unknown year' || searchTerm === 'unknown decade');
 
-        if (searchTerm && !matchText.includes(searchTerm)) return false;
+      let result = records.filter(item => {
+        const yNum = parseInt(item.year);
+        const itemDecade = (!isNaN(yNum) && yNum > 1900 && yNum < 2100) ? (Math.floor(yNum / 10) * 10 + 's') : '';
+
+        if (targetDecade) {
+          if (itemDecade !== targetDecade) return false;
+        } else if (isUnknownYearSearch) {
+          if (itemDecade !== '') return false;
+        } else if (searchTerm) {
+          const tracksText = (item.tracks || []).map(t => `${t.pos || ''} ${t.title || ''}`).join(' ');
+          const matchText = (
+            (item.artist || '') + ' ' +
+            (item.title || '') + ' ' +
+            (item.format || '') + ' ' +
+            (item.label || '') + ' ' +
+            (item.catNo || '') + ' ' +
+            (item.year || '') + ' ' +
+            itemDecade + ' ' +
+            (item.country || '') + ' ' +
+            (item.sideATitle || '') + ' ' +
+            (item.sideBTitle || '') + ' ' +
+            tracksText + ' ' +
+            (item.matrixA || '') + ' ' +
+            (item.matrixB || '') + ' ' +
+            (item.genres || '') + ' ' +
+            (item.producer || '') + ' ' +
+            (item.researchNotes || '') + ' ' +
+            (item.mastering || '') + ' ' +
+            (item.pressingPlant || '')
+          ).toLowerCase();
+
+          if (!matchText.includes(searchTerm)) return false;
+        }
         if (formatFilter !== 'ALL') {
           if (item.format !== formatFilter) {
             const isBoxFilter = formatFilter.toLowerCase().includes('box');
@@ -4641,13 +4661,13 @@
        COLLECTION ANALYTICS & INTELLIGENCE DASHBOARD
        ========================================================= */
     function filterByDecade(decadeStr) {
-      if (!decadeStr || decadeStr === 'Unknown') return;
-      const decClean = decadeStr.replace('s', '');
+      if (!decadeStr) return;
+      const queryVal = (decadeStr === 'Unknown') ? 'Unknown Year' : decadeStr;
       const searchInput = document.getElementById('globalSearch');
-      if (searchInput) searchInput.value = decClean;
+      if (searchInput) searchInput.value = queryVal;
       handleSearchFilterChange();
       switchView('grid');
-      showToast(`Filtered catalogue for ${decadeStr} releases`, 'info');
+      showToast(`Filtered catalogue for ${decadeStr === 'Unknown' ? 'Unknown Year' : decadeStr} releases`, 'info');
     }
 
     function filterByGenre(genreStr) {

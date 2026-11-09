@@ -1,12 +1,35 @@
-# Implementation Plan for Claude: First-Class 12" Singles, Archive Metadata Refresh, Barcode Scanner & Auto-Minimising Save Bar
+# Implementation Plan for Claude: First-Class 12" Singles, Cassette & MiniDisc Categories, Metadata Refresh, Barcode Scanner, Auto-Minimising UI & Expanded Vinyl Search
 
 **Target File:** `catalogue/index.html`
 
 ---
 
-## 1. First-Class 12" Singles Category (Root-Cause Audit & Fixes)
+## 1. First-Class Format Categories: `12" Maxi / Single`, `Cassette Tape` & `MiniDisc`
 
-### 1.1 Top Summary Counter Conflation (`renderStats`, ~line 3969 & HTML ~line 319)
+### 1.1 Format Selectors (`#filterFormat` ~line 402, `#autofillFormatFilter` ~line 899, `#formFormat` ~line 993)
+* **Add `<option>` entries across all three format dropdowns**:
+  * In `#filterFormat` (main toolbar) and `#formFormat` (Add/Edit modal):
+    * `12" LP (Album)`
+    * `2xLP Gatefold (Album)`
+    * `Box Set (Vinyl / Multi-Disc)`
+    * `12" Maxi / Single`
+    * `7" Single (45 RPM)`
+    * `10" Vinyl`
+    * `Cassette Tape` *(new)*
+    * `MiniDisc` *(new)*
+    * `CD / Other`
+  * In `#autofillFormatFilter` (Quick Lookup bar):
+    * `ALL` → `Any Format`
+    * `12` → `12" Vinyl / LP`
+    * `12S` → `12" Single / Maxi` *(new)*
+    * `BOX` → `Vinyl Box Set`
+    * `7` → `7" Single (45 RPM)`
+    * `10` → `10" Vinyl`
+    * `CASSETTE` → `Cassette Tape` *(new)*
+    * `MINIDISC` → `MiniDisc` *(new)*
+    * `CD` → `CD / Other`
+
+### 1.2 Top Summary Counter Conflation (`renderStats`, ~line 3969 & HTML ~line 319)
 * **Current Problem**:
   ```javascript
   const lpCount = records.filter(r => r.format && r.format.includes('LP')).length;
@@ -14,64 +37,88 @@
   ```
   Because `"12\" Maxi / Single"` contains `"Single"`, 12" singles are lumped into the `7"` counter (`#statTotalSingles`).
 * **Fix**:
-  * Separate into three distinct counters in the top **Collection** summary card:
+  * Separate into distinct counters in the top **Collection** summary card:
     * `#statTotalLPs`: `12" LP (Album)` / `2xLP Gatefold (Album)` / `Box Set (Vinyl / Multi-Disc)`
     * `#statTotal12Singles`: `12" Maxi / Single` (`r.format.includes('12"') && (r.format.includes('Maxi') || r.format.includes('Single'))`)
     * `#statTotalSingles`: `7" Single (45 RPM)` (`r.format.includes('7"')`)
   * Update the HTML subline in the first summary card (~line 319) to display:
     `<span id="statTotalLPs" class="text-amber-400 font-semibold">0</span> LP · <span id="statTotal12Singles" class="text-purple-400 font-semibold">0</span> 12" · <span id="statTotalSingles" class="text-cyan-400 font-semibold">0</span> 7"`
 
-### 1.2 Discogs Search & Valuation Bug (`getDiscogsSearchUrl` ~line 4294 & `queryDiscogsMarketValue` ~line 6346)
+### 1.3 Format Badges (`getFormatBadge`, ~line 4242) & Generic Covers (`getDefaultCover`)
+* Update `getFormatBadge(format)` to style each format distinctly:
+  * `Box Set`: Indigo (`bg-indigo-500/20 text-indigo-300 border-indigo-500/30`, icon `fa-box-archive`)
+  * `12" Maxi / Single`: Purple (`bg-purple-500/20 text-purple-300 border-purple-500/30`, icon `fa-circle-dot`)
+  * `7" Single`: Cyan (`bg-cyan-500/20 text-cyan-300 border-cyan-500/30`, icon `fa-record-vinyl`)
+  * `10" Vinyl`: Pink (`bg-pink-500/20 text-pink-300 border-pink-500/30`, icon `fa-record-vinyl`)
+  * `Cassette Tape`: Emerald/Teal (`bg-teal-500/20 text-teal-300 border-teal-500/30`, icon `fa-tape`)
+  * `MiniDisc`: Rose/Fuchsia (`bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/30`, icon `fa-floppy-disk`)
+  * `CD / Other`: Sky (`bg-sky-500/20 text-sky-300 border-sky-500/30`, icon `fa-compact-disc`)
+  * `12" LP` / `2xLP`: Amber (`bg-amber-500/20 text-amber-400 border-amber-500/30`, icon `fa-compact-disc`)
+* Update `getDefaultCover(format, artist, title)` so `12" Maxi / Single`, `Cassette Tape`, and `MiniDisc` each render a tailored SVG fallback label when no sleeve photo is set.
+
+### 1.4 Collection Analytics Format Breakdown Bug (`renderAnalyticsView`, ~lines 4791–4799)
 * **Current Problem**:
+  In `formatCategories`, the `7" Single` matcher (`r => (r.format || '').includes('7"') || (r.format || '').toLowerCase().includes('single')`) runs *before* `12" Maxi / EP`, swallowing every `"12\" Maxi / Single"` item so `12" Maxi / EP` always shows `0`!
+* **Fix**:
+  Update `formatCategories` order and matchers to include `12" Maxi / Single`, `Cassette Tape`, `MiniDisc`, and `CD / Other`:
   ```javascript
-  const is7Inch = (format || '').includes('7"') || (format || '').toLowerCase().includes('single');
+  const formatCategories = [
+    { key: '12" LP', label: '12" LP (Album)', icon: 'fa-solid fa-compact-disc', color: 'text-amber-400', barBg: 'bg-amber-400', count: 0, val: 0, matcher: r => (r.format || '').includes('LP') && !(r.format || '').includes('2x') && !(r.format || '').toLowerCase().includes('box') },
+    { key: '2xLP Gatefold', label: '2xLP Gatefold', icon: 'fa-solid fa-book-open', color: 'text-purple-400', barBg: 'bg-purple-400', count: 0, val: 0, matcher: r => (r.format || '').includes('2x') || (r.format || '').toLowerCase().includes('gatefold') },
+    { key: 'Box Set', label: 'Box Set', icon: 'fa-solid fa-box-archive', color: 'text-brass-400', barBg: 'bg-brass-400', count: 0, val: 0, matcher: r => (r.format || '').toLowerCase().includes('box') },
+    { key: '12" Single', label: '12" Maxi / Single', icon: 'fa-solid fa-circle-dot', color: 'text-sky-400', barBg: 'bg-sky-400', count: 0, val: 0, matcher: r => (r.format || '').toLowerCase().includes('maxi') || ((r.format || '').includes('12"') && (r.format || '').toLowerCase().includes('single')) || (r.format || '').toLowerCase().includes('ep') },
+    { key: '7" Single', label: '7" Single (45 RPM)', icon: 'fa-solid fa-record-vinyl', color: 'text-emerald-400', barBg: 'bg-emerald-400', count: 0, val: 0, matcher: r => (r.format || '').includes('7"') || ((r.format || '').toLowerCase().includes('single') && !(r.format || '').includes('12"')) },
+    { key: '10" Vinyl', label: '10" Vinyl', icon: 'fa-solid fa-circle', color: 'text-pink-400', barBg: 'bg-pink-400', count: 0, val: 0, matcher: r => (r.format || '').includes('10"') },
+    { key: 'Cassette', label: 'Cassette Tape', icon: 'fa-solid fa-tape', color: 'text-teal-400', barBg: 'bg-teal-400', count: 0, val: 0, matcher: r => (r.format || '').toLowerCase().includes('cassette') || (r.format || '').toLowerCase().includes('tape') },
+    { key: 'MiniDisc', label: 'MiniDisc', icon: 'fa-solid fa-floppy-disk', color: 'text-fuchsia-400', barBg: 'bg-fuchsia-400', count: 0, val: 0, matcher: r => (r.format || '').toLowerCase().includes('minidisc') },
+    { key: 'CD / Other', label: 'CD / Other', icon: 'fa-solid fa-compact-disc', color: 'text-slate-400', barBg: 'bg-slate-400', count: 0, val: 0, matcher: () => true }
+  ];
   ```
-  Because `"12\" Maxi / Single"` includes `'single'`, `is7Inch` evaluates to `true` before `isMaxi` is ever checked! As a result, 12" singles are priced and searched on Discogs as `7"` singles (`format=7"`).
-* **Fix**:
-  * Define:
-    ```javascript
-    const fmtLow = (format || '').toLowerCase();
-    const is12Single = fmtLow.includes('12"') && (fmtLow.includes('single') || fmtLow.includes('maxi') || fmtLow.includes('ep'));
-    const is7Inch = fmtLow.includes('7"') || (fmtLow.includes('single') && !fmtLow.includes('12"'));
-    ```
-  * In `getDiscogsSearchUrl` and `queryDiscogsMarketValue`, check `is12Single` (`isMaxi`) properly and pass `format_exact=12%22` / `format=12"`.
 
-### 1.3 Quick Lookup & MusicBrainz Autofill Missing 12" Single Option (`#autofillFormatFilter` ~line 899, `executeMusicBrainzSearch` ~line 7243, `applySelectedRelease` ~line 7407)
+### 1.5 Discogs Search & Valuation Bug (`getDiscogsSearchUrl` ~line 4294, `queryDiscogsMarketValue` ~line 6346, `queryEbayMarketValue` ~line 6646)
 * **Current Problem**:
-  * `#autofillFormatFilter` only has `12" Vinyl / LP` (`value="12"`) and `7" Single` (`value="7"`), with no `12" Single / Maxi` (`value="12S"`) option.
-  * In `applySelectedRelease` (~line 7420), when inspecting a MusicBrainz release, if `media[0].format` is `12" Vinyl`, it always defaults to `'12" LP (Album)'` even when `release-group['primary-type']` is `'Single'` or `'EP'`, or when the release has `<= 4` tracks.
+  `const is7Inch = (format || '').includes('7"') || (format || '').toLowerCase().includes('single');` evaluates to `true` for `"12\" Maxi / Single"` before `isMaxi` is checked!
 * **Fix**:
-  * Add `<option value="12S">12" Single / Maxi</option>` to `#autofillFormatFilter`.
-  * In `executeMusicBrainzSearch`, map `12S` to `format:"12\" Vinyl" AND (primarytype:single OR primarytype:ep)`.
-  * In `applySelectedRelease`:
-    * Include `+release-groups` in the MusicBrainz detail fetch URL (`?inc=recordings+artist-credits+labels+genres+tags+release-groups&fmt=json`).
-    * Auto-assign `'12" Maxi / Single'` when `searchFormatChoice === '12S'`, or when a 12" vinyl release has `release-group['primary-type']` of `'Single'` or `'EP'`, title includes `'12"'` / `'maxi'` / `'extended'`, or total tracks on a single 12" disc is `<= 4`.
+  ```javascript
+  const fmtLow = (format || '').toLowerCase();
+  const is12Single = fmtLow.includes('maxi') || (fmtLow.includes('12"') && (fmtLow.includes('single') || fmtLow.includes('ep')));
+  const is7Inch = fmtLow.includes('7"') || (fmtLow.includes('single') && !fmtLow.includes('12"'));
+  const isCassette = fmtLow.includes('cassette') || fmtLow.includes('tape');
+  const isMiniDisc = fmtLow.includes('minidisc');
+  ```
+  * Pass `format=12"` (for `is12Single`), `format=Cassette` (for `isCassette`), and `format=MiniDisc` (for `isMiniDisc`) to Discogs search & `getDiscogsSearchUrl`.
+  * In `queryEbayMarketValue` fallback model (~line 6646) and `getCleanSearchTerms`:
+    * Do not append `' vinyl'` to eBay search queries when the format is `Cassette Tape`, `MiniDisc`, or `CD / Other` (append `' cassette'`, `' minidisc'`, or `' cd'` respectively!).
+    * Set calibrated fallback base values: `Cassette Tape` = `10.0`, `MiniDisc` = `22.0`, `12" Maxi / Single` = `12.5`.
 
-### 1.4 Form Format Change Handler (`handleFormatChange`, ~line 5789)
-* **Current Problem**:
-  * Only checks `isSingle = format.includes('7"')` and `isBoxSet`, treating `12" Maxi / Single` as a 33⅓ RPM LP.
-* **Fix**:
-  * Add an `is12Single = format.includes('Maxi') || format.includes('12" Single')` branch:
-    * Default `formSpeed` to `'45 RPM'` (most 12" singles are 45 RPM, while still allowing 33⅓ RPM).
-    * Show the multi-track editor (`tracksAlbumContainer`) since 12" singles often have 2–4 mixes (e.g., `A1. Extended Mix`, `B1. Dub`, `B2. Instrumental`).
-    * Update `#formatHintText` to: `'12-inch single / maxi-single (45 or 33⅓ RPM, extended mixes & B-sides).'`.
+### 1.6 Quick Lookup & MusicBrainz Autofill (`executeMusicBrainzSearch` ~line 7243 & `applySelectedRelease` ~line 7407)
+* In `executeMusicBrainzSearch`:
+  * `12S` → `format:"12\" Vinyl" AND (primarytype:single OR primarytype:ep)`
+  * `CASSETTE` → `format:Cassette`
+  * `MINIDISC` → `format:MiniDisc`
+* In `applySelectedRelease`:
+  * Request `+release-groups` in the MusicBrainz release detail fetch (`?inc=recordings+artist-credits+labels+genres+tags+release-groups&fmt=json`).
+  * Map `searchFormatChoice === '12S'` or 12" vinyl with `release-group['primary-type']` of `'Single'`/`'EP'` (or `<= 4` tracks on a single 12" disc) → `'12" Maxi / Single'`.
+  * Map `searchFormatChoice === 'CASSETTE'` or `formatName.includes('cassette')` → `'Cassette Tape'`.
+  * Map `searchFormatChoice === 'MINIDISC'` or `formatName.includes('minidisc')` → `'MiniDisc'`.
 
-### 1.5 Discogs CSV Import Parser (`parseDiscogsFormat`, ~line 7984)
-* **Current Problem**:
-  * On Discogs, 12" singles are often tagged as `"Vinyl, 12\", 45 RPM"` or `"Vinyl, 12\", Promo"` without the word `"Single"` or `"Maxi"` (whereas LPs always include `"LP"` or `"Album"`).
-  * Currently, those fall through to line 7993 (`f.includes('12"')`) and get misclassified as `'12" LP (Album)'`.
-* **Fix**:
-  * In `parseDiscogsFormat`, classify as `'12" Maxi / Single'` whenever `f.includes('12"')` AND (`f.includes('single') || f.includes('maxi') || f.includes('ep') || f.includes('45 rpm') || f.includes('promo') || (!f.includes('lp') && !f.includes('album'))`).
+### 1.7 Form Format Change Handler (`handleFormatChange`, ~line 5789)
+* Add branches in `handleFormatChange()` for:
+  * `12" Maxi / Single`: sets `formSpeed` to `'45 RPM'`, shows multi-track editor (`tracksAlbumContainer`), sets hint to `'12-inch single / maxi-single (45 or 33⅓ RPM, extended mixes & B-sides).'`.
+  * `Cassette Tape`: shows multi-track editor, sets hint to `'Compact audio cassette tape (Side A / Side B program).'`.
+  * `MiniDisc`: shows multi-track editor, sets hint to `'Magneto-optical MiniDisc release.'`.
 
-### 1.6 Cover Art & Default Sleeve Badge (`getDefaultCover` & `applySelectedRelease`)
-* Ensure `findOnlineCoverArtwork` remains enabled for `12" Maxi / Single` (since 12" singles usually have picture sleeves).
-* In `getDefaultCover`, give `12" Maxi / Single` a distinct label/accent when falling back to a generic sleeve so it is visually distinguishable from a 12" LP and a 7" single.
+### 1.8 Discogs CSV & Batch Import Parser (`parseDiscogsFormat`, ~line 7984)
+* Update `parseDiscogsFormat(rawFormat)`:
+  * **Cassette**: `if (f.includes('cassette') || f.includes('tape')) return 'Cassette Tape';` (must run *before* `CD / Other`!).
+  * **MiniDisc**: `if (f.includes('minidisc') || /\bmd\b/.test(f)) return 'MiniDisc';` (must run *before* `CD / Other`!).
+  * **12" Maxi / Single**: `if (f.includes('12"') && (f.includes('single') || f.includes('maxi') || f.includes('ep') || f.includes('45 rpm') || f.includes('promo') || (!f.includes('lp') && !f.includes('album')))) return '12" Maxi / Single';`
 
 ---
 
 ## 2. Batch Archive Metadata & Format Refresh Tool (For Titles Already in the Archive)
 
-Many 12" singles already in the archive may currently be stored as `12" LP (Album)` (from earlier Discogs CSV imports or MusicBrainz lookups) or have missing/outdated genres, tracklists, years, or valuations.
+Many 12" singles, cassettes, or MiniDiscs already in the archive may currently be stored as `12" LP (Album)` or `CD / Other` (from earlier Discogs CSV imports or MusicBrainz lookups) or have missing/outdated genres, tracklists, years, or valuations.
 
 ### New Feature: **"Refresh Archive Metadata & Formats"** Modal (`#batchMetadataRefreshModal`)
 * **Where to Trigger**:
@@ -79,16 +126,16 @@ Many 12" singles already in the archive may currently be stored as `12" LP (Albu
   * In the mobile **More** bottom sheet (`#mobileMoreSheet`).
 * **What It Does (Per Record)**:
   1. **Queries Discogs Release API** (by `rec.discogsId` if present, or by `artist + title + catNo` search) and/or **MusicBrainz**:
-     * **Format Re-Classification**: Inspects Discogs `formats` array (`name`, `descriptions` like `"12\""`, `"Single"`, `"Maxi-Single"`, `"EP"`, `"45 RPM"`, `"LP"`, `"Album"`, `"7\""`) and tracklist count:
+     * **Format Re-Classification**: Inspects Discogs `formats` array (`name`, `descriptions` like `"12\""`, `"Single"`, `"Maxi-Single"`, `"EP"`, `"45 RPM"`, `"Cassette"`, `"MiniDisc"`, `"LP"`, `"Album"`, `"7\""`) and tracklist count:
        * Automatically re-classifies 12" singles that were mistakenly saved as `12" LP (Album)` → `12" Maxi / Single` (and updates `speed` to `'45 RPM'` if indicated on Discogs).
-       * Also fixes any `7"` or `2xLP Gatefold` or `Box Set` mismatches if detected from the official Discogs release entry.
+       * Automatically re-classifies `Cassette` and `MiniDisc` items that were previously grouped under `CD / Other` → `Cassette Tape` / `MiniDisc`.
      * **Metadata Backfill**:
        * Backfills missing `genres` (combining Discogs `genres` + `styles`, with iTunes fallback).
        * Backfills missing `year`, `country`, `label`, `catNo`, `discogsId`, and `tracks` (if empty).
      * **Optional Re-Valuation Checkbox**:
-       * Checkbox (enabled by default): *"Re-fetch Discogs market valuation for any record whose format changed (e.g. LP/7" → 12" Single)"*.
+       * Checkbox (enabled by default): *"Re-fetch Discogs market valuation for any record whose format changed"*.
   2. **Live Progress & Summary Log**:
-     * Shows progress bar, count of records re-classified to `12" Maxi / Single`, count of records with backfilled metadata, and a live log of changes.
+     * Shows progress bar, count of records re-classified (`12" Maxi / Single`, `Cassette Tape`, `MiniDisc`, etc.), count of records with backfilled metadata, and a live log of changes.
   3. **Persistence**:
      * Calls `saveRecordsToStorage()`, `renderStats()`, `renderRecords()`, and batch-upserts modified rows to Supabase Cloud (`supabaseClient.from('records').upsert(dbRows)`).
 
@@ -119,9 +166,9 @@ Many 12" singles already in the archive may currently be stored as `12" LP (Albu
 
 ### 3.3 Camera Startup Order & Discogs Barcode Fallback (`startScannerStream` ~line 7604 & `handleBarcodeScanned` ~line 7758)
 * **Camera Startup**: In `openScannerModal()`, start `startScannerStream(currentScannerCameraId)` *first* (using `{ facingMode: "environment" }`) and call `populateScannerCameras()` *after* the stream starts, avoiding double permission prompts or stalled enumeration on iOS Safari.
-* **Discogs Barcode Fallback (Especially for 12" Singles)**:
-  * Currently, `handleBarcodeScanned(code)` only calls `executeMusicBrainzSearch(cleanCode, true)`. Many UK/EU 12" singles and indie pressings have their barcode indexed on Discogs (`https://api.discogs.com/database/search?barcode=${encodeURIComponent(cleanCode)}&type=release`) even when MusicBrainz lacks the barcode.
-  * When MusicBrainz barcode search returns 0 releases, automatically fall back to Discogs barcode search, populate the form fields (Artist, Title, Label, Cat#, Year, Discogs ID, Genres, Cover Art), and use `parseDiscogsFormat` on the Discogs `format` array so 12" singles scanned by barcode are automatically set to `12" Maxi / Single`.
+* **Discogs Barcode Fallback**:
+  * Currently, `handleBarcodeScanned(code)` only calls `executeMusicBrainzSearch(cleanCode, true)`. Many UK/EU 12" singles, cassettes, and indie pressings have their barcode indexed on Discogs (`https://api.discogs.com/database/search?barcode=${encodeURIComponent(cleanCode)}&type=release`) even when MusicBrainz lacks the barcode.
+  * When MusicBrainz barcode search returns 0 releases, automatically fall back to Discogs barcode search, populate the form fields (Artist, Title, Label, Cat#, Year, Discogs ID, Genres, Cover Art), and use `parseDiscogsFormat` on the Discogs `format` array so 12" singles, cassettes, and MiniDiscs scanned by barcode are automatically set to their proper format.
 
 ---
 
@@ -152,13 +199,48 @@ Many 12" singles already in the archive may currently be stored as `12" LP (Albu
 
 ---
 
-## 5. Verification Checklist
+## 5. Expanded Vinyl-First Multi-Source Search (`executeMusicBrainzSearch`, ~lines 7192–7275)
+
+### 5.1 Why Vinyl Releases Are Currently Missed
+1. **Top-15 Cap Swallowed by CDs & Digital Releases**:
+   * `executeMusicBrainzSearch` queries `https://musicbrainz.org/ws/2/release/?query=artist:"..." AND (release:"..." OR releaseaccent:"...")&fmt=json&limit=15` **without** any format clause in the Lucene query.
+   * For popular albums with 50–200 editions on MusicBrainz, the first 15 results returned by default relevance are frequently `CD` and `Digital Media`.
+   * Post-filtering those 15 results in JavaScript (`lines 7243–7257`) means that if none of the top 15 happen to be Vinyl, zero Vinyl pressings are shown even when dozens of Vinyl pressings exist in MusicBrainz.
+2. **Strict Phrase Quotes Block the Fallback Query**:
+   * Because `artist:"..." AND release:"..."` uses strict phrase quotes, if even 1 CD or Digital edition matches the exact phrase (`releases.length > 0`), the relaxed keyword fallback (`lines 7232–7240`) never runs, and slight title variations (e.g. `"The Dark Side..."` vs `"Dark Side..."`, or subtitle/edition suffixes) miss the Vinyl pressing.
+3. **Single-Database Limitation (MusicBrainz Release Search Only)**:
+   * Quick Lookup currently only queries MusicBrainz `/ws/2/release/`. It never queries **MusicBrainz Release-Groups** (to find the master album and expand its Vinyl pressings) or **Discogs Database Search** (`https://api.discogs.com/database/search`), where many UK/EU vinyl LPs, 12" singles, white labels, and club pressings are catalogued.
+
+### 5.2 Multi-Pronged Search Expansion Fix
+1. **Pass Format Directly into the MusicBrainz Lucene Query & Run a Parallel Vinyl-Boosted Query**:
+   * Increase `limit` from `15` to `25`.
+   * Run parallel MusicBrainz queries via `Promise.allSettled`:
+     * **Query A (Format-Targeted / Vinyl-First)**:
+       * If `fmtChoice === 'ALL'` or `'12'` or `'7'` or `'10'`: append `AND (format:"Vinyl" OR format:"12\" Vinyl" OR format:"7\" Vinyl" OR format:"10\" Vinyl" OR format:"LP")` directly to the Lucene query so MusicBrainz returns Vinyl pressings from its index even when an album has 150 CD/Digital reissues.
+       * If `fmtChoice === '12S'`: append `AND (format:"12\" Vinyl" OR format:"Vinyl") AND (primarytype:"Single" OR primarytype:"EP")`.
+       * If `fmtChoice === 'CASSETTE'`: append `AND format:"Cassette"`.
+       * If `fmtChoice === 'MINIDISC'`: append `AND format:"MiniDisc"`.
+     * **Query B (Broad Unquoted + Quoted Release Search)**:
+       * Query `artist:(${cleanA}) AND release:(${cleanT})` (unquoted token match alongside phrase match) so minor punctuation, `"The "`, or subtitle differences still match.
+2. **MusicBrainz Release-Group Expansion Fallback**:
+   * If the direct release queries return fewer than 3 Vinyl matches, automatically query `https://musicbrainz.org/ws/2/release-group/?query=artist:(${cleanA}) AND releasegroup:(${cleanT})&fmt=json&limit=3` and fetch the releases for the top matching release-group (`https://musicbrainz.org/ws/2/release?release-group=${rgId}&inc=labels+media+artist-credits&fmt=json&limit=50`), prioritizing Vinyl pressings.
+3. **Discogs Parallel Search Integration**:
+   * When a Discogs token is available (`localStorage.getItem('qmc_discogs_user_token') || localStorage.getItem('QMC_DISCOGS_TOKEN')`), run a parallel Discogs search (`https://api.discogs.com/database/search?artist=${encodeURIComponent(artist)}&release_title=${encodeURIComponent(title)}&format=Vinyl&type=release&per_page=10`) and merge Discogs results into `stagedOnlineReleases` (with a `SOURCE: DISCOGS` badge).
+   * When the user clicks **Use This Pressing** on a Discogs result in `applySelectedRelease(index)`, fetch `https://api.discogs.com/releases/${match.discogsId}` to autofill the full tracklist, label, cat#, year, country, genres, Discogs ID, and cover artwork.
+4. **Smart Deduplication & Vinyl-First Sorting**:
+   * Merge and deduplicate candidates from Query A, Query B, Release-Group expansion, and Discogs.
+   * Sort results so **Vinyl pressings (`12" Vinyl`, `LP`, `7" Vinyl`, `10" Vinyl`)** always appear at the top of `#autofillResultsContainer`, followed by Cassette/MiniDisc/CD, with a **"Search Broad / Include All Formats"** button at the bottom of the results list if the user wants to expand further.
+
+---
+
+## 6. Verification Checklist
 - [ ] Verify `#statTotalLPs`, `#statTotal12Singles`, and `#statTotalSingles` all render and sum accurately in `renderStats()`.
-- [ ] Confirm `getFormatBadge('12" Maxi / Single')` renders a distinct purple badge in Gallery cards, Table rows, and the Record Dossier.
-- [ ] Confirm `#filterFormat` in the main toolbar filters `12" Maxi / Single` cleanly without matching `12" LP (Album)` or `7" Single (45 RPM)`.
-- [ ] Confirm Collection Analytics (`renderAnalyticsView`, ~line 4796) matches all `12" Maxi / Single` records in the format breakdown chart.
-- [ ] Verify `queryDiscogsMarketValue` and `getDiscogsSearchUrl` no longer misidentify `12" Maxi / Single` as `is7Inch`.
+- [ ] Confirm `getFormatBadge` renders distinct badges for `12" Maxi / Single` (purple), `Cassette Tape` (teal), and `MiniDisc` (fuchsia) in Gallery cards, Table rows, and the Record Dossier.
+- [ ] Confirm `#filterFormat` in the main toolbar filters `12" Maxi / Single`, `Cassette Tape`, and `MiniDisc` cleanly.
+- [ ] Confirm Collection Analytics (`renderAnalyticsView`, ~line 4791) fixes the `7" Single` vs `12" Maxi / Single` matcher order bug and displays dedicated rows for `12" Maxi / Single`, `Cassette Tape`, and `MiniDisc`.
+- [ ] Verify `queryDiscogsMarketValue`, `getDiscogsSearchUrl`, and `queryEbayMarketValue` properly handle `12" Maxi / Single`, `Cassette Tape`, and `MiniDisc`.
 - [ ] Verify barcode scanning is reachable on mobile (in header/More sheet and inside `#recordModal`), does not pop up the mobile keyboard on open, and falls back to Discogs when MusicBrainz has no barcode match.
 - [ ] Verify `#quickLookupBar` auto-collapses once a search result is applied, when editing an existing record, or when typing manually into `#recordForm`, and can be re-expanded with 1 tap.
 - [ ] Verify `.rec-footer` auto-minimises on new entries / while typing so form fields have maximum vertical screen space.
+- [ ] Verify `executeMusicBrainzSearch` surfaces Vinyl pressings even for albums with dozens of CD/Digital reissues, supports unquoted/fuzzy title matching, and merges Discogs Vinyl matches when a token is configured.
 - [ ] Run brace and `<div>` balance checks before committing.
