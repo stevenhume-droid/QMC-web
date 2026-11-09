@@ -4046,12 +4046,17 @@
 
     function mapRecordToDb(rec, userId) {
       let rNotes = rec.researchNotes || '';
-      // Pack extra vinyl specs into metadata comment inside research_notes for lossless cloud sync
-      if (rec.vinylColor || rec.vinylWeight) {
-        rNotes = rNotes.replace(/<!--qmc_vspec:.*?-->/g, '').trim();
-        const vSpec = JSON.stringify({ color: rec.vinylColor || '', weight: rec.vinylWeight || '' });
-        rNotes = (rNotes ? (rNotes + '\n') : '') + `<!--qmc_vspec:${vSpec}-->`;
-      }
+      // Pack extra vinyl specs and price spreads into metadata comment inside research_notes for lossless cloud sync
+      rNotes = rNotes.replace(/<!--qmc_vspec:.*?-->/g, '').trim();
+      const vSpec = JSON.stringify({
+        color: rec.vinylColor || '',
+        weight: rec.vinylWeight || '',
+        pLow: (rec.priceLow !== undefined && rec.priceLow !== null) ? rec.priceLow : null,
+        pMed: (rec.priceMedian !== undefined && rec.priceMedian !== null) ? rec.priceMedian : null,
+        pHigh: (rec.priceHigh !== undefined && rec.priceHigh !== null) ? rec.priceHigh : null,
+        pSource: rec.priceSource || ''
+      });
+      rNotes = (rNotes ? (rNotes + '\n') : '') + `<!--qmc_vspec:${vSpec}-->`;
 
       return {
         id: rec.id,
@@ -4099,6 +4104,11 @@
     function mapDbToRecord(row) {
       let vinylColor = row.vinyl_color || row.vinylColor || '';
       let vinylWeight = row.vinyl_weight || row.vinylWeight || '';
+      let priceLow = (row.price_low !== undefined && row.price_low !== null) ? parseFloat(row.price_low) : null;
+      let priceMedian = (row.price_median !== undefined && row.price_median !== null) ? parseFloat(row.price_median) : null;
+      let priceHigh = (row.price_high !== undefined && row.price_high !== null) ? parseFloat(row.price_high) : null;
+      let priceSource = row.price_source || '';
+
       let cleanNotes = row.research_notes || '';
       const vSpecMatch = cleanNotes.match(/<!--qmc_vspec:(.*?)-->/);
       if (vSpecMatch) {
@@ -4106,8 +4116,19 @@
           const parsed = JSON.parse(vSpecMatch[1]);
           if (!vinylColor && parsed.color) vinylColor = parsed.color;
           if (!vinylWeight && parsed.weight) vinylWeight = parsed.weight;
+          if (priceLow === null && parsed.pLow !== undefined && parsed.pLow !== null) priceLow = parseFloat(parsed.pLow);
+          if (priceMedian === null && parsed.pMed !== undefined && parsed.pMed !== null) priceMedian = parseFloat(parsed.pMed);
+          if (priceHigh === null && parsed.pHigh !== undefined && parsed.pHigh !== null) priceHigh = parseFloat(parsed.pHigh);
+          if (!priceSource && parsed.pSource) priceSource = parsed.pSource;
           cleanNotes = cleanNotes.replace(/<!--qmc_vspec:.*?-->/g, '').trim();
         } catch (e) {}
+      }
+
+      const estVal = (row.estimated_value !== null && row.estimated_value !== undefined && !isNaN(parseFloat(row.estimated_value))) ? parseFloat(row.estimated_value) : null;
+      if (estVal !== null) {
+        if (priceLow === null) priceLow = Math.round(estVal * 0.6 * 100) / 100;
+        if (priceMedian === null) priceMedian = estVal;
+        if (priceHigh === null) priceHigh = Math.round(estVal * 1.5 * 100) / 100;
       }
 
       return {
@@ -4120,7 +4141,11 @@
         label: row.label || '',
         catNo: row.cat_no || '',
         year: row.year,
-        estimatedValue: (row.estimated_value !== null && row.estimated_value !== undefined) ? parseFloat(row.estimated_value) : null,
+        estimatedValue: estVal,
+        priceLow: priceLow,
+        priceMedian: priceMedian,
+        priceHigh: priceHigh,
+        priceSource: priceSource,
         currency: row.currency || 'GBP',
         discogsId: row.discogs_id || '',
         sideATitle: row.side_a_title || '',
@@ -4870,8 +4895,28 @@
           records = JSON.parse(stored);
           records.forEach(r => {
             if (!r.format) r.format = '7" Single (45 RPM)';
-            if (r.estimatedValue !== undefined && r.estimatedValue !== null) {
-              r.estimatedValue = parseFloat(r.estimatedValue) || 0;
+            if (r.estimatedValue !== undefined && r.estimatedValue !== null && r.estimatedValue !== '') {
+              r.estimatedValue = parseFloat(r.estimatedValue);
+              if (isNaN(r.estimatedValue)) r.estimatedValue = null;
+            } else {
+              r.estimatedValue = null;
+            }
+            if (r.estimatedValue !== null) {
+              if (r.priceLow !== undefined && r.priceLow !== null && !isNaN(parseFloat(r.priceLow))) {
+                r.priceLow = parseFloat(r.priceLow);
+              } else {
+                r.priceLow = Math.round(r.estimatedValue * 0.6 * 100) / 100;
+              }
+              if (r.priceMedian !== undefined && r.priceMedian !== null && !isNaN(parseFloat(r.priceMedian))) {
+                r.priceMedian = parseFloat(r.priceMedian);
+              } else {
+                r.priceMedian = r.estimatedValue;
+              }
+              if (r.priceHigh !== undefined && r.priceHigh !== null && !isNaN(parseFloat(r.priceHigh))) {
+                r.priceHigh = parseFloat(r.priceHigh);
+              } else {
+                r.priceHigh = Math.round(r.estimatedValue * 1.5 * 100) / 100;
+              }
             }
           });
         } else {
@@ -5779,7 +5824,7 @@
       list.forEach(item => {
         const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
         const isAlbum = item.format && item.format.includes('LP');
-        const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(item.estimatedValue) && item.estimatedValue > 0;
+        const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
         const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
 
         html += `
@@ -5962,7 +6007,7 @@
 
       list.forEach(item => {
         const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
-        const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(item.estimatedValue) && item.estimatedValue > 0;
+        const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
         const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
         const streamLinks = getStreamingLinks(item);
 
@@ -6852,7 +6897,7 @@
       const content = document.getElementById('detailModalContent');
       const isAlbum = item.format && item.format.includes('LP');
       const sym = getCurrencySymbol();
-      const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(item.estimatedValue) && item.estimatedValue > 0;
+      const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
       const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
       const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
       const streamLinks = getStreamingLinks(item);
@@ -7077,10 +7122,15 @@
                     ${item.priceSource ? ` · <span class="text-slate-300">via ${item.priceSource}</span>` : ''}
                   </div>
                 </div>
-                <div class="text-right">
-                  <div class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-lg border border-emerald-500/30 inline-block">
+                <div class="text-right flex items-center gap-2">
+                  <div class="text-xs font-mono font-bold ${hasVal ? 'text-emerald-400 bg-emerald-950/80 border-emerald-500/30' : 'text-amber-400 bg-amber-950/80 border-amber-500/30'} px-3 py-1 rounded-lg border inline-block">
                     ${hasVal ? `${sym}${parseFloat(item.estimatedValue).toFixed(2)}` : 'Valuation Pending'}
                   </div>
+                  ${isOwner ? `
+                    <button type="button" onclick="editRecord('${item.id}')" class="px-2.5 py-1 text-[11px] rounded bg-brass-500/10 hover:bg-brass-500/20 text-brass-400 border border-brass-500/30 transition flex items-center gap-1 font-medium" title="Edit record &amp; valuation">
+                      <i class="fa-solid fa-pen text-[10px]"></i> Edit
+                    </button>
+                  ` : ''}
                 </div>
               </div>
 
@@ -7146,18 +7196,16 @@
               </div>
 
               <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 flex-wrap gap-2 border-t border-vinyl-800">
-                <span class="text-[10px]">Refresh valuation &amp; genres:</span>
-                <div class="flex items-center gap-2.5">
-                  <button type="button" onclick="autoEnrichRecordGenre('${item.id}')" class="text-sky-400 hover:underline flex items-center gap-1 font-medium" title="Auto-detect genres from Discogs &amp; iTunes">
-                    <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> Genre
+                <span class="text-[10px] font-medium text-slate-300">Live Valuation &amp; Metadata:</span>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <button type="button" onclick="autoEnrichRecordGenre('${item.id}')" class="px-2.5 py-1 bg-vinyl-900 hover:bg-vinyl-850 border border-vinyl-700 hover:border-sky-500/50 text-sky-400 hover:text-sky-300 rounded-md text-[11px] font-medium flex items-center gap-1 shadow-sm transition" title="Auto-detect genres from Discogs &amp; iTunes">
+                    <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Genre
                   </button>
-                  <span class="text-slate-600">•</span>
-                  <button type="button" onclick="fetchDiscogsPriceForRecord('${item.id}')" class="text-amber-400 hover:underline flex items-center gap-1 font-medium" title="Estimate value via Discogs Price Suggestions">
-                    <i class="fa-solid fa-compact-disc text-xs"></i> Discogs Value
+                  <button type="button" onclick="fetchDiscogsPriceForRecord('${item.id}')" class="px-2.5 py-1 bg-vinyl-900 hover:bg-amber-950/40 border border-vinyl-700 hover:border-amber-500/50 text-amber-400 hover:text-amber-300 rounded-md text-[11px] font-medium flex items-center gap-1 shadow-sm transition" title="Estimate value via Discogs Price Suggestions">
+                    <i class="fa-solid fa-compact-disc text-[10px]"></i> Discogs Value
                   </button>
-                  <span class="text-slate-600">•</span>
-                  <button type="button" onclick="fetchEbayPriceForRecord('${item.id}')" class="text-blue-400 hover:underline flex items-center gap-1 font-medium" title="Estimate value via eBay Sold Listings">
-                    <i class="fa-brands fa-ebay text-sm"></i> eBay Sold Value
+                  <button type="button" onclick="fetchEbayPriceForRecord('${item.id}')" class="px-2.5 py-1 bg-vinyl-900 hover:bg-blue-950/40 border border-vinyl-700 hover:border-blue-500/50 text-blue-400 hover:text-blue-300 rounded-md text-[11px] font-medium flex items-center gap-1 shadow-sm transition" title="Estimate value via eBay Sold Listings">
+                    <i class="fa-brands fa-ebay text-xs"></i> eBay Sold Value
                   </button>
                 </div>
               </div>
@@ -7848,6 +7896,10 @@
         setTimeout(() => document.getElementById('formArtist').focus(), 100);
       } else {
         closeAddEditModal();
+        const detailModal = document.getElementById('detailModal');
+        if (detailModal && !detailModal.classList.contains('hidden')) {
+          viewRecordDetail(recordObj.id);
+        }
       }
     }
 
@@ -8028,6 +8080,10 @@
         }
         
         saveRecordsToStorage();
+        if (isCloudActive && currentUser && supabaseClient) {
+          const dbRow = mapRecordToDb(record, currentUser.id);
+          supabaseClient.from('records').upsert(dbRow).catch(e => console.warn("Discogs cloud save error:", e));
+        }
         renderStats();
         renderRecords();
         viewRecordDetail(recordId);
@@ -8039,6 +8095,7 @@
     async function queryDiscogsMarketValue(artist, title, catNo, mediaGrade, discogsId, token, format = '', year = null) {
       try {
         let releaseId = discogsId;
+        let discogsGenres = [];
 
         // Step 1: If no release ID, search Discogs database with format and size specification
         if (!releaseId) {
@@ -8117,7 +8174,7 @@
                 bestMatch = r;
                 break;
               }
-              if (isMaxi && (resFmt.includes('12"') || resFmt.includes('maxi'))) {
+              if (is12Single && (resFmt.includes('12"') || resFmt.includes('maxi'))) {
                 bestMatch = r;
                 break;
               }
@@ -8137,8 +8194,6 @@
             return null;
           }
         }
-
-        let discogsGenres = [];
 
         // Step 2: Fetch price suggestions based on condition
         let priceUrl = `https://api.discogs.com/marketplace/price_suggestions/${releaseId}`;
