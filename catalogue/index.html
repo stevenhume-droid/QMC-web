@@ -958,20 +958,26 @@
             <!-- Sleeve / Cover Image -->
             <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 flex flex-col items-center">
               <span class="text-xs font-semibold text-slate-300 mb-2">Album Cover / Picture Sleeve</span>
-              <div id="previewCoverBox" class="w-full h-36 bg-vinyl-900 rounded-lg border border-dashed border-vinyl-700 flex items-center justify-center overflow-hidden mb-2 relative group">
+              <div id="previewCoverBox" class="w-full aspect-square max-w-[200px] bg-vinyl-900 rounded-lg border border-dashed border-vinyl-700 flex items-center justify-center overflow-hidden mb-2 relative group">
                 <img id="previewCoverImg" src="" alt="Cover Art" class="w-full h-full object-cover hidden">
                 <div id="placeholderCover" class="text-center p-3 text-slate-500">
-                  <i class="fa-regular fa-image text-2xl mb-1"></i>
-                  <p class="text-[10px]">No image uploaded</p>
+                  <i class="fa-regular fa-image text-3xl mb-1 text-slate-600 block"></i>
+                  <p class="text-[11px] font-semibold text-slate-400">Default Sleeve Active</p>
+                  <p class="text-[10px] text-slate-500">Upload or browse online sleeves</p>
                 </div>
               </div>
               <input type="file" id="uploadCoverInput" accept="image/*" onchange="handleImageUpload(event, 'previewCoverImg', 'placeholderCover')" class="hidden">
-              <div class="flex flex-col gap-1.5 w-full">
-                <button type="button" onclick="document.getElementById('uploadCoverInput').click()" class="w-full py-1.5 px-3 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 rounded text-xs flex items-center justify-center gap-1.5">
-                  <i class="fa-solid fa-camera"></i> Select Photo
-                </button>
-                <button type="button" onclick="pullCoverArtForCurrentForm()" id="pullCoverBtn" class="w-full py-1.5 px-3 bg-brass-500/10 hover:bg-brass-500/20 text-brass-400 border border-brass-500/30 rounded text-xs flex items-center justify-center gap-1.5 transition" title="Auto-find cover artwork from Cover Art Archive & iTunes">
-                  <i class="fa-solid fa-wand-magic-sparkles"></i> Pull Online Artwork
+              <div class="flex flex-col gap-1.5 w-full max-w-[200px]">
+                <div class="grid grid-cols-2 gap-1.5">
+                  <button type="button" onclick="document.getElementById('uploadCoverInput').click()" class="py-1.5 px-2 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 rounded text-xs flex items-center justify-center gap-1 transition">
+                    <i class="fa-solid fa-camera"></i> Upload
+                  </button>
+                  <button type="button" onclick="openArtworkChooserModal('form')" id="pullCoverBtn" class="py-1.5 px-2 bg-brass-500/10 hover:bg-brass-500/20 text-brass-400 border border-brass-500/30 rounded text-xs flex items-center justify-center gap-1 transition whitespace-nowrap" title="Browse and choose from matching sleeves found online">
+                    <i class="fa-solid fa-images"></i> Browse
+                  </button>
+                </div>
+                <button type="button" onclick="removeCoverArtFromForm()" id="removeCoverBtn" class="w-full py-1.5 px-3 bg-red-950/40 hover:bg-red-900/50 text-red-300 border border-red-800/60 rounded text-xs flex items-center justify-center gap-1.5 transition hidden">
+                  <i class="fa-solid fa-trash-can"></i> Remove Sleeve
                 </button>
               </div>
             </div>
@@ -979,7 +985,7 @@
             <!-- Side A Label Image -->
             <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 flex flex-col items-center">
               <span class="text-xs font-semibold text-slate-300 mb-2">Side A Center Label</span>
-              <div id="previewLabelABox" class="w-full h-36 bg-vinyl-900 rounded-lg border border-dashed border-vinyl-700 flex items-center justify-center overflow-hidden mb-2 relative">
+              <div id="previewLabelABox" class="w-full aspect-square max-w-[200px] bg-vinyl-900 rounded-lg border border-dashed border-vinyl-700 flex items-center justify-center overflow-hidden mb-2 relative">
                 <img id="previewLabelAImg" src="" alt="Side A Label" class="w-full h-full object-cover hidden">
                 <div id="placeholderLabelA" class="text-center p-3 text-slate-500">
                   <i class="fa-solid fa-circle-notch text-2xl mb-1"></i>
@@ -987,7 +993,7 @@
                 </div>
               </div>
               <input type="file" id="uploadLabelAInput" accept="image/*" onchange="handleImageUpload(event, 'previewLabelAImg', 'placeholderLabelA')" class="hidden">
-              <button type="button" onclick="document.getElementById('uploadLabelAInput').click()" class="w-full py-1.5 px-3 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 rounded text-xs flex items-center justify-center gap-1.5">
+              <button type="button" onclick="document.getElementById('uploadLabelAInput').click()" class="w-full max-w-[200px] py-1.5 px-3 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 rounded text-xs flex items-center justify-center gap-1.5">
                 <i class="fa-solid fa-camera"></i> Select Photo
               </button>
             </div>
@@ -995,7 +1001,7 @@
             <!-- Side B Label Image -->
             <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 flex flex-col items-center">
               <span class="text-xs font-semibold text-slate-300 mb-2">Side B Center Label</span>
-              <div id="previewLabelBBox" class="w-full h-36 bg-vinyl-900 rounded-lg border border-dashed border-vinyl-700 flex items-center justify-center overflow-hidden mb-2 relative">
+              <div id="previewLabelBBox" class="w-full aspect-square max-w-[200px] bg-vinyl-900 rounded-lg border border-dashed border-vinyl-700 flex items-center justify-center overflow-hidden mb-2 relative">
                 <img id="previewLabelBImg" src="" alt="Side B Label" class="w-full h-full object-cover hidden">
                 <div id="placeholderLabelB" class="text-center p-3 text-slate-500">
                   <i class="fa-solid fa-circle-notch text-2xl mb-1"></i>
@@ -1003,7 +1009,7 @@
                 </div>
               </div>
               <input type="file" id="uploadLabelBInput" accept="image/*" onchange="handleImageUpload(event, 'previewLabelBImg', 'placeholderLabelB')" class="hidden">
-              <button type="button" onclick="document.getElementById('uploadLabelBInput').click()" class="w-full py-1.5 px-3 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 rounded text-xs flex items-center justify-center gap-1.5">
+              <button type="button" onclick="document.getElementById('uploadLabelBInput').click()" class="w-full max-w-[200px] py-1.5 px-3 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 rounded text-xs flex items-center justify-center gap-1.5">
                 <i class="fa-solid fa-camera"></i> Select Photo
               </button>
             </div>
@@ -1236,6 +1242,54 @@
   </div>
 
   <!-- ============================================== -->
+  <!-- MODAL: COVER ARTWORK CHOOSER / SLEEVE SELECTOR -->
+  <!-- ============================================== -->
+  <div id="artworkChooserModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6 hidden overflow-y-auto">
+    <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl relative my-auto overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850 flex-shrink-0">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-images text-brass-400"></i>
+            <span>Choose Record Sleeve Artwork</span>
+          </h2>
+          <p id="artworkChooserSubtitle" class="text-xs text-slate-400 mt-0.5 truncate max-w-lg">
+            Select from matching sleeves found across archival databases
+          </p>
+        </div>
+        <button type="button" onclick="closeArtworkChooserModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable Artwork Grid) -->
+      <div id="artworkChooserGrid" class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
+        <!-- Injected dynamically -->
+      </div>
+
+      <!-- Modal Footer (Custom URL Paste & Actions) -->
+      <div class="p-3 sm:p-4 border-t border-vinyl-800 bg-vinyl-850 flex flex-wrap items-center justify-between gap-3 flex-shrink-0 text-xs">
+        <div class="flex items-center gap-2 flex-1 min-w-[260px]">
+          <input type="url" id="customArtworkUrlInput" placeholder="Or paste direct image URL (https://...)" class="flex-1 bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-brass-500">
+          <button type="button" onclick="applyCustomArtworkUrl()" class="px-3 py-1.5 bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 rounded-lg font-medium transition whitespace-nowrap">
+            Use URL
+          </button>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="applyDefaultSleeveFromChooser()" class="px-3 py-1.5 bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 rounded-lg font-medium transition whitespace-nowrap">
+            <i class="fa-solid fa-record-vinyl mr-1"></i> Use Generic Sleeve
+          </button>
+          <button type="button" onclick="closeArtworkChooserModal()" class="px-3.5 py-1.5 bg-vinyl-700 hover:bg-vinyl-600 text-white rounded-lg font-medium transition">
+            Cancel
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================== -->
   <!-- MODAL: RECORD FULL ARCHIVAL DETAIL VIEW        -->
   <!-- ============================================== -->
   <div id="detailModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto">
@@ -1333,7 +1387,7 @@
         mediaGradeNotes: "Clean playback with light paper scuffs visible under direct light. No skips.",
         sleeveGrade: "VG+",
         sleeveGradeNotes: "Original Lightning company die-cut paper sleeve with slight crease.",
-        coverImage: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80",
+        coverImage: "",
         labelAImage: "",
         labelBImage: "",
         genres: "Roots Reggae, Dub",
@@ -1420,7 +1474,7 @@
         mediaGradeNotes: "Pristine archival unplayed copy.",
         sleeveGrade: "VG+",
         sleeveGradeNotes: "First press Delga flipback picture sleeve.",
-        coverImage: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=600&q=80",
+        coverImage: "",
         labelAImage: "",
         labelBImage: "",
         genres: "Punk Rock",
@@ -1489,6 +1543,11 @@
       return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[c]));
     }
 
+    function escapeJsString(str) {
+      if (!str) return '';
+      return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
     function getDefaultCover(format = '', artist = '', title = '', isEncoded = false) {
       if (isEncoded) {
         try {
@@ -1499,44 +1558,135 @@
       }
 
       const isSingle = format && format.includes('7"');
-      const formatBadge = isSingle ? '7" SINGLE · 45 RPM' : '12" LP · 33⅓ RPM';
-      const cleanArtist = escapeXml((artist || 'VINYL ARCHIVE').trim());
-      const cleanTitle = escapeXml((title || 'COLLECTIVE PRESSING').trim());
+      const cleanArtist = escapeXml((artist || 'QUEENSFERRY ARCHIVE').trim());
+      const cleanTitle = escapeXml((title || (isSingle ? '7" SINGLE PRESSING' : '12" LP ALBUM')).trim());
 
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
-        <defs>
-          <radialGradient id="discGrad" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#242b38"/>
-            <stop offset="65%" stop-color="#0f131a"/>
-            <stop offset="100%" stop-color="#080a0e"/>
-          </radialGradient>
-          <radialGradient id="centerLabelGrad" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#f5d77f"/>
-            <stop offset="60%" stop-color="#d4af37"/>
-            <stop offset="100%" stop-color="#997b1e"/>
-          </radialGradient>
-          <linearGradient id="jacketGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#1e2430"/>
-            <stop offset="100%" stop-color="#0c0e14"/>
-          </linearGradient>
-        </defs>
-        <rect width="500" height="500" fill="#0d1017"/>
-        <rect x="12" y="12" width="476" height="476" rx="14" fill="url(#jacketGrad)" stroke="#2b3445" stroke-width="2"/>
-        <circle cx="250" cy="225" r="160" fill="url(#discGrad)" stroke="#1a202c" stroke-width="3"/>
-        <circle cx="250" cy="225" r="142" fill="none" stroke="#2a3344" stroke-width="1.2" stroke-dasharray="10 3" opacity="0.6"/>
-        <circle cx="250" cy="225" r="124" fill="none" stroke="#252d3d" stroke-width="1" opacity="0.7"/>
-        <circle cx="250" cy="225" r="106" fill="none" stroke="#2a3344" stroke-width="1.2" opacity="0.5"/>
-        <circle cx="250" cy="225" r="88" fill="none" stroke="#252d3d" stroke-width="1" opacity="0.8"/>
-        <circle cx="250" cy="225" r="58" fill="url(#centerLabelGrad)" stroke="#786016" stroke-width="2"/>
-        <circle cx="250" cy="225" r="52" fill="none" stroke="#8c701a" stroke-width="1" stroke-dasharray="3 2"/>
-        <circle cx="250" cy="225" r="13" fill="#0c0e14" stroke="#524212" stroke-width="2"/>
-        <text x="250" y="202" text-anchor="middle" fill="#2d2203" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="900" letter-spacing="1.5">QUEENSFERRY</text>
-        <text x="250" y="254" text-anchor="middle" fill="#3d2f06" font-family="monospace" font-size="8" font-weight="700" letter-spacing="1">${formatBadge}</text>
-        <rect x="26" y="410" width="448" height="64" rx="10" fill="#141923" stroke="#2b3547" stroke-width="1.5"/>
-        <text x="44" y="435" fill="#f8fafc" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700">${cleanArtist.substring(0, 34)}</text>
-        <text x="44" y="457" fill="#d4af37" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500">${cleanTitle.substring(0, 38)}</text>
-        <text x="456" y="446" text-anchor="end" fill="#94a3b8" font-family="monospace" font-size="10" font-weight="700">${formatBadge}</text>
-      </svg>`;
+      let svg = '';
+
+      if (isSingle) {
+        // Authentic Full-Bleed 7" Single 45 RPM Generic Company Sleeve (Same 500x500 size as LP)
+        svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+          <defs>
+            <linearGradient id="singlePaper" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#231b15"/>
+              <stop offset="45%" stop-color="#17120e"/>
+              <stop offset="100%" stop-color="#0a0807"/>
+            </linearGradient>
+            <radialGradient id="label45" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#f8e392"/>
+              <stop offset="45%" stop-color="#d4af37"/>
+              <stop offset="85%" stop-color="#aa8620"/>
+              <stop offset="100%" stop-color="#72580f"/>
+            </radialGradient>
+            <radialGradient id="vinyl45" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#2a2520"/>
+              <stop offset="70%" stop-color="#12100e"/>
+              <stop offset="100%" stop-color="#080706"/>
+            </radialGradient>
+          </defs>
+          <rect width="500" height="500" fill="url(#singlePaper)"/>
+          
+          <!-- Retro 7" Company Sleeve Graphic Bands -->
+          <rect x="0" y="0" width="500" height="40" fill="#d4af37" fill-opacity="0.12"/>
+          <line x1="0" y1="40" x2="500" y2="40" stroke="#d4af37" stroke-opacity="0.4" stroke-width="2"/>
+          <text x="24" y="25" fill="#d4af37" font-family="monospace" font-size="11" font-weight="800" letter-spacing="2">ARCHIVAL 45 RPM SINGLE</text>
+          <text x="476" y="25" text-anchor="end" fill="#94a3b8" font-family="monospace" font-size="10" font-weight="700">7" VINYL</text>
+
+          <!-- Outer Sleeve Circular Ringwear Impression -->
+          <circle cx="250" cy="245" r="215" fill="none" stroke="#332a24" stroke-width="1.5" stroke-dasharray="14 4" opacity="0.5"/>
+          
+          <!-- Die-cut Window Cutout (Revealing Black 45 Vinyl) -->
+          <circle cx="250" cy="245" r="180" fill="url(#vinyl45)" stroke="#3e332a" stroke-width="3"/>
+          <circle cx="250" cy="245" r="162" fill="none" stroke="#251f1a" stroke-width="1.2" opacity="0.8"/>
+          <circle cx="250" cy="245" r="144" fill="none" stroke="#322922" stroke-width="1.5" stroke-dasharray="10 3" opacity="0.6"/>
+          
+          <!-- Authentic 7" 45 RPM Center Label -->
+          <circle cx="250" cy="245" r="95" fill="url(#label45)" stroke="#55420d" stroke-width="3"/>
+          <circle cx="250" cy="245" r="88" fill="none" stroke="#755b13" stroke-width="1.2" stroke-dasharray="3 2"/>
+          <circle cx="250" cy="245" r="28" fill="#0d1017" stroke="#48370b" stroke-width="2.5"/>
+          
+          <!-- 45 RPM Center Spider Adaptor Graphic -->
+          <path d="M 232 245 L 222 245 M 268 245 L 278 245 M 250 227 L 250 217 M 250 263 L 250 273" stroke="#d4af37" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="250" cy="245" r="9" fill="#d4af37" fill-opacity="0.2" stroke="#d4af37" stroke-width="1.5"/>
+
+          <text x="250" y="185" text-anchor="middle" fill="#2d2203" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="900" letter-spacing="1.5">QUEENSFERRY</text>
+          <text x="250" y="198" text-anchor="middle" fill="#4d3b07" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="800" letter-spacing="1">MUSIC COLLECTIVE</text>
+          <text x="250" y="302" text-anchor="middle" fill="#2d2203" font-family="monospace" font-size="13" font-weight="900" letter-spacing="2">45 RPM</text>
+
+          <!-- Lower Metadata Title Placard -->
+          <rect x="0" y="430" width="500" height="70" fill="#0c0a09" fill-opacity="0.95"/>
+          <line x1="0" y1="430" x2="500" y2="430" stroke="#332a24" stroke-width="1.5"/>
+          <text x="24" y="456" fill="#f8fafc" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="800">${cleanArtist.substring(0, 36)}</text>
+          <text x="24" y="479" fill="#d4af37" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600">${cleanTitle.substring(0, 42)}</text>
+          <text x="476" y="468" text-anchor="end" fill="#94a3b8" font-family="monospace" font-size="11" font-weight="700">7" SINGLE</text>
+        </svg>`;
+      } else {
+        // Authentic Full-Bleed 12" LP Album Jacket (500x500 matching scale)
+        svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+          <defs>
+            <radialGradient id="ringwear" cx="50%" cy="50%" r="50%">
+              <stop offset="68%" stop-color="#ffffff" stop-opacity="0"/>
+              <stop offset="82%" stop-color="#ffffff" stop-opacity="0.04"/>
+              <stop offset="90%" stop-color="#ffffff" stop-opacity="0.07"/>
+              <stop offset="94%" stop-color="#000000" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="#000000" stop-opacity="0.6"/>
+            </radialGradient>
+            <linearGradient id="sleeveBg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#181e29"/>
+              <stop offset="50%" stop-color="#11151e"/>
+              <stop offset="100%" stop-color="#0a0c12"/>
+            </linearGradient>
+            <radialGradient id="centerLabel" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#fceda2"/>
+              <stop offset="35%" stop-color="#d4af37"/>
+              <stop offset="85%" stop-color="#997b1e"/>
+              <stop offset="100%" stop-color="#695311"/>
+            </radialGradient>
+            <radialGradient id="grooveGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#212734"/>
+              <stop offset="70%" stop-color="#11141c"/>
+              <stop offset="100%" stop-color="#07090c"/>
+            </radialGradient>
+          </defs>
+
+          <!-- Full-bleed 500x500 Album Jacket -->
+          <rect width="500" height="500" fill="url(#sleeveBg)"/>
+          
+          <!-- Vintage Record Ring Impression -->
+          <circle cx="250" cy="245" r="236" fill="none" stroke="#2c3647" stroke-width="1.5" opacity="0.4"/>
+          <circle cx="250" cy="245" r="230" fill="url(#ringwear)"/>
+          
+          <!-- Outer Vinyl Disc Grooves -->
+          <circle cx="250" cy="245" r="195" fill="url(#grooveGrad)" stroke="#1a202c" stroke-width="2"/>
+          <circle cx="250" cy="245" r="180" fill="none" stroke="#2c3545" stroke-width="1" stroke-dasharray="6 2" opacity="0.6"/>
+          <circle cx="250" cy="245" r="165" fill="none" stroke="#232b38" stroke-width="1" opacity="0.7"/>
+          <circle cx="250" cy="245" r="150" fill="none" stroke="#2c3545" stroke-width="1.2" stroke-dasharray="12 4" opacity="0.5"/>
+          <circle cx="250" cy="245" r="135" fill="none" stroke="#1f2632" stroke-width="1" opacity="0.8"/>
+          
+          <!-- Archival Center Label -->
+          <circle cx="250" cy="245" r="92" fill="url(#centerLabel)" stroke="#4e3d09" stroke-width="2.5"/>
+          <circle cx="250" cy="245" r="85" fill="none" stroke="#705912" stroke-width="1.2" stroke-dasharray="3 2"/>
+          <circle cx="250" cy="245" r="76" fill="none" stroke="#876d1a" stroke-width="0.8"/>
+          <circle cx="250" cy="245" r="16" fill="#0d1017" stroke="#423409" stroke-width="2.5"/>
+          
+          <!-- Label Typography -->
+          <text x="250" y="190" text-anchor="middle" fill="#2d2203" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="900" letter-spacing="2">QUEENSFERRY</text>
+          <text x="250" y="205" text-anchor="middle" fill="#4d3b07" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="700" letter-spacing="1">MUSIC COLLECTIVE</text>
+          <text x="250" y="295" text-anchor="middle" fill="#382a04" font-family="monospace" font-size="10" font-weight="800" letter-spacing="1.5">33⅓ RPM · LP</text>
+          
+          <!-- Upper & Lower Archival Typography on Sleeve Header/Footer -->
+          <rect x="0" y="0" width="500" height="40" fill="#0b0e14" fill-opacity="0.6"/>
+          <line x1="0" y1="40" x2="500" y2="40" stroke="#252c3a" stroke-width="1"/>
+          <text x="24" y="25" fill="#94a3b8" font-family="monospace" font-size="11" font-weight="700" letter-spacing="1">QMC ARCHIVAL PRESSING</text>
+          <text x="476" y="25" text-anchor="end" fill="#d4af37" font-family="monospace" font-size="11" font-weight="700">12" LONG PLAY</text>
+
+          <rect x="0" y="430" width="500" height="70" fill="#0b0e14" fill-opacity="0.9"/>
+          <line x1="0" y1="430" x2="500" y2="430" stroke="#252c3a" stroke-width="1"/>
+          <text x="24" y="456" fill="#f8fafc" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="800">${cleanArtist.substring(0, 36)}</text>
+          <text x="24" y="479" fill="#d4af37" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600">${cleanTitle.substring(0, 42)}</text>
+          <text x="476" y="468" text-anchor="end" fill="#94a3b8" font-family="monospace" font-size="11" font-weight="700">12" LP</text>
+        </svg>`;
+      }
 
       return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
     }
@@ -1544,7 +1694,12 @@
     /* =========================================================
        ONLINE ALBUM COVER ARTWORK RESOLVER (CAA + ITUNES + DISCOGS)
        ========================================================= */
-    async function findOnlineCoverArtwork(artist, title, releaseId = null, releaseGroupId = null) {
+    async function findOnlineCoverArtwork(artist, title, releaseId = null, releaseGroupId = null, format = '') {
+      // Per specification: 7" singles use generic sleeve, only pull for 12" LPs / albums
+      if (format && format.includes('7"')) {
+        return null;
+      }
+
       // Source 1: Cover Art Archive by specific Release MBID
       if (releaseId) {
         try {
@@ -1590,7 +1745,6 @@
               const item = itunesData.results[0];
               const art = item.artworkUrl100 || '';
               if (art) {
-                // Upscale to high-resolution 600x600 artwork
                 return art.replace(/100x100bb\.(jpg|png|webp)/, '600x600bb.$1');
               }
             }
@@ -1618,6 +1772,318 @@
       }
 
       return null;
+    }
+
+    /* =========================================================
+       ARTWORK CHOOSER MODAL & SLEEVE CANDIDATES BROWSER
+       ========================================================= */
+    let currentChooserTarget = { type: 'form', recordId: null };
+
+    async function searchAllOnlineArtworkCandidates(artist, title, releaseId = null, releaseGroupId = null) {
+      const candidates = [];
+      const seenUrls = new Set();
+
+      function addCandidate(url, source, titleInfo = '') {
+        if (!url || seenUrls.has(url)) return;
+        seenUrls.add(url);
+        candidates.push({ url, source, title: titleInfo });
+      }
+
+      // 1. Cover Art Archive for release
+      if (releaseId) {
+        try {
+          const res = await fetch(`https://coverartarchive.org/release/${releaseId}`);
+          if (res.ok) {
+            const data = await res.json();
+            (data.images || []).forEach(img => {
+              const u = img.thumbnails?.['500'] || img.thumbnails?.large || img.image;
+              const type = img.types ? img.types.join(' / ') : (img.front ? 'Front Sleeve' : 'Artwork');
+              addCandidate(u, `Cover Art Archive (${type})`, `MusicBrainz Release`);
+            });
+          }
+        } catch (e) {}
+      }
+
+      // 2. Cover Art Archive for release-group
+      if (releaseGroupId) {
+        try {
+          const rgRes = await fetch(`https://coverartarchive.org/release-group/${releaseGroupId}`);
+          if (rgRes.ok) {
+            const rgData = await rgRes.json();
+            (rgData.images || []).forEach(img => {
+              const u = img.thumbnails?.['500'] || img.thumbnails?.large || img.image;
+              const type = img.types ? img.types.join(' / ') : (img.front ? 'Front Sleeve' : 'Artwork');
+              addCandidate(u, `Cover Art Archive (${type})`, 'Release Group Master');
+            });
+          }
+        } catch (e) {}
+      }
+
+      // 3. iTunes Search API (returns multiple pressings/remasters/editions)
+      if (artist && title) {
+        try {
+          const q = encodeURIComponent(`${artist} ${title}`);
+          const itunesRes = await fetch(`https://itunes.apple.com/search?term=${q}&entity=album&limit=8`);
+          if (itunesRes.ok) {
+            const itunesData = await itunesRes.json();
+            (itunesData.results || []).forEach(item => {
+              let art = item.artworkUrl100 || '';
+              if (art) {
+                const highRes = art.replace(/100x100bb\.(jpg|png|webp)/, '600x600bb.$1');
+                const yr = item.releaseDate ? item.releaseDate.slice(0, 4) : '';
+                addCandidate(highRes, `Apple Music / iTunes (${yr || 'Digital Master'})`, item.collectionName || item.trackName);
+              }
+            });
+          }
+        } catch (e) {}
+      }
+
+      // 4. MusicBrainz releases query for pressings with artwork
+      if (candidates.length < 3 && artist && title) {
+        try {
+          const mbSearchRes = await fetch(`https://musicbrainz.org/ws/2/release/?query=release:${encodeURIComponent(title)}+AND+artist:${encodeURIComponent(artist)}&fmt=json&limit=5`);
+          if (mbSearchRes.ok) {
+            const mbData = await mbSearchRes.json();
+            const releasesWithArt = (mbData.releases || []).filter(r => r['cover-art-archive']?.front).slice(0, 3);
+            for (const rel of releasesWithArt) {
+              if (rel.id !== releaseId) {
+                try {
+                  const caaRes = await fetch(`https://coverartarchive.org/release/${rel.id}`);
+                  if (caaRes.ok) {
+                    const caaData = await caaRes.json();
+                    const front = caaData.images?.find(i => i.front) || caaData.images?.[0];
+                    if (front) {
+                      const u = front.thumbnails?.['500'] || front.thumbnails?.large || front.image;
+                      const label = rel['label-info']?.[0]?.label?.name || rel.country || 'Pressing';
+                      addCandidate(u, `MusicBrainz (${label} ${rel.date?.slice(0, 4) || ''})`, rel.title);
+                    }
+                  }
+                } catch (err) {}
+              }
+            }
+          }
+        } catch (e) {}
+      }
+
+      // 5. Discogs (if token configured)
+      const discogsToken = localStorage.getItem('QMC_DISCOGS_TOKEN');
+      if (discogsToken && artist && title) {
+        try {
+          const dUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(artist + ' ' + title)}&type=release&token=${encodeURIComponent(discogsToken)}&per_page=5`;
+          const dRes = await fetch(dUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } });
+          if (dRes.ok) {
+            const dData = await dRes.json();
+            (dData.results || []).forEach(item => {
+              if (item.cover_image && !item.cover_image.includes('spacer.gif')) {
+                addCandidate(item.cover_image, `Discogs (${item.country || 'Vinyl'} ${item.year || ''})`, item.title);
+              }
+            });
+          }
+        } catch (e) {}
+      }
+
+      return candidates;
+    }
+
+    async function openArtworkChooserModal(targetType = 'form', recordId = null) {
+      currentChooserTarget = { type: targetType, recordId };
+      const modal = document.getElementById('artworkChooserModal');
+      const grid = document.getElementById('artworkChooserGrid');
+      const subtitle = document.getElementById('artworkChooserSubtitle');
+      const urlInput = document.getElementById('customArtworkUrlInput');
+      if (urlInput) urlInput.value = '';
+
+      let artist = '';
+      let title = '';
+      let format = '12" LP (Album)';
+
+      if (targetType === 'record' && recordId) {
+        const rec = records.find(r => r.id === recordId);
+        if (rec) {
+          artist = rec.artist || '';
+          title = rec.title || '';
+          format = rec.format || format;
+        }
+      } else {
+        artist = document.getElementById('formArtist')?.value.trim() || '';
+        title = document.getElementById('formTitle')?.value.trim() || '';
+        format = document.getElementById('formFormat')?.value || format;
+      }
+
+      if (!artist && !title) {
+        showToast("Please enter an Artist or Title first to browse sleeves.", "info");
+        if (targetType === 'form') switchFormTab('tab-general');
+        return;
+      }
+
+      modal.classList.remove('hidden');
+      subtitle.innerText = `Searching multiple archives for "${artist} - ${title}"...`;
+      grid.innerHTML = `
+        <div class="py-12 text-center text-slate-400">
+          <i class="fa-solid fa-spinner fa-spin text-3xl text-brass-400 mb-3 block"></i>
+          <p class="text-sm font-semibold text-white">Searching Cover Art Archive & Online Registries...</p>
+          <p class="text-xs text-slate-500 mt-1">Gathering high-resolution sleeves across MusicBrainz, Apple Music & Discogs</p>
+        </div>
+      `;
+
+      try {
+        const candidates = await searchAllOnlineArtworkCandidates(artist, title);
+        
+        let html = `
+          <div class="flex items-center justify-between pb-1 border-b border-vinyl-800 text-xs">
+            <span class="text-slate-300 font-medium">Found <strong class="text-white">${candidates.length}</strong> matching sleeve options:</span>
+            <span class="text-[11px] text-slate-500">Click any sleeve to apply</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 pt-1">
+        `;
+
+        // Option 0: Generic Archival Sleeve
+        const genericSleeveUri = getDefaultCover(format, artist, title);
+        const isSingle = format.includes('7"');
+        html += `
+          <div class="p-2.5 bg-vinyl-850 rounded-xl border border-brass-500/30 hover:border-brass-400 flex flex-col justify-between group transition shadow">
+            <div class="w-full aspect-square rounded-lg overflow-hidden border border-vinyl-700 bg-vinyl-950 mb-2 relative">
+              <img src="${genericSleeveUri}" alt="Generic Sleeve" class="w-full h-full object-cover">
+              <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 text-[9px] font-mono font-bold text-brass-400 border border-brass-500/30">
+                ${isSingle ? 'Generic 7" Sleeve' : 'Generic 12" Sleeve'}
+              </span>
+            </div>
+            <div class="text-[11px] font-semibold text-white truncate mb-0.5">QMC Generic Sleeve</div>
+            <div class="text-[10px] text-slate-400 truncate mb-2">${isSingle ? 'Authentic 45 RPM Bag' : 'Archival Vinyl Jacket'}</div>
+            <button type="button" onclick="selectSleeveCandidate('')" class="w-full py-1.5 px-2 bg-vinyl-800 hover:bg-brass-500 hover:text-vinyl-950 text-brass-400 font-bold rounded text-xs transition border border-brass-500/30">
+              Use Generic
+            </button>
+          </div>
+        `;
+
+        candidates.forEach((cand, idx) => {
+          html += `
+            <div class="p-2.5 bg-vinyl-850 rounded-xl border border-vinyl-800 hover:border-brass-500/60 flex flex-col justify-between group transition shadow">
+              <div class="w-full aspect-square rounded-lg overflow-hidden border border-vinyl-700 bg-vinyl-950 mb-2 relative cursor-pointer" onclick="selectSleeveCandidate('${escapeJsString(cand.url)}')">
+                <img src="${cand.url}" alt="Sleeve ${idx + 1}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy">
+                <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 text-[9px] font-mono text-slate-300 border border-white/10 max-w-[90%] truncate">
+                  #${idx + 1}
+                </span>
+              </div>
+              <div class="text-[11px] font-semibold text-white truncate mb-0.5" title="${escapeHtml(cand.title || title)}">
+                ${escapeHtml(cand.title || title)}
+              </div>
+              <div class="text-[10px] text-brass-400/90 truncate mb-2" title="${escapeHtml(cand.source)}">
+                ${escapeHtml(cand.source)}
+              </div>
+              <button type="button" onclick="selectSleeveCandidate('${escapeJsString(cand.url)}')" class="w-full py-1.5 px-2 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold rounded text-xs transition shadow flex items-center justify-center gap-1">
+                <i class="fa-solid fa-check text-[10px]"></i>
+                <span>Use This</span>
+              </button>
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+        grid.innerHTML = html;
+        subtitle.innerText = `Sleeve candidates for "${artist} - ${title}" (${candidates.length} online + generic)`;
+      } catch (err) {
+        grid.innerHTML = `
+          <div class="py-12 text-center text-slate-400">
+            <i class="fa-solid fa-triangle-exclamation text-2xl text-amber-400 mb-2 block"></i>
+            <p class="text-sm font-semibold text-white">Could not fetch online sleeves</p>
+            <p class="text-xs text-slate-500 mt-1">${err.message || 'API request error'}</p>
+          </div>
+        `;
+      }
+    }
+
+    function selectSleeveCandidate(url) {
+      if (currentChooserTarget.type === 'form') {
+        const cImg = document.getElementById('previewCoverImg');
+        const placeholder = document.getElementById('placeholderCover');
+        const rmBtn = document.getElementById('removeCoverBtn');
+
+        if (url) {
+          if (cImg) {
+            cImg.src = url;
+            cImg.classList.remove('hidden');
+          }
+          if (placeholder) placeholder.classList.add('hidden');
+          if (rmBtn) rmBtn.classList.remove('hidden');
+          showToast("Applied selected cover sleeve to form!");
+        } else {
+          // Revert to generic sleeve
+          if (cImg) {
+            cImg.src = '';
+            cImg.classList.add('hidden');
+          }
+          if (placeholder) placeholder.classList.remove('hidden');
+          if (rmBtn) rmBtn.classList.add('hidden');
+          showToast("Reverted back to generic archival sleeve.");
+        }
+      } else if (currentChooserTarget.type === 'record' && currentChooserTarget.recordId) {
+        const item = records.find(r => r.id === currentChooserTarget.recordId);
+        if (item) {
+          item.coverImage = url || '';
+          saveRecordsToStorage();
+          if (isCloudActive && currentUser && supabaseClient) {
+            const dbRow = mapRecordToDb(item, currentUser.id);
+            supabaseClient.from('records').upsert(dbRow, { onConflict: 'id' }).then(() => {}).catch(e => console.warn(e));
+          }
+          renderStats();
+          renderRecords();
+          viewRecordDetail(item.id);
+          showToast(url ? `Updated cover sleeve for "${item.title}"!` : `Reverted "${item.title}" to generic sleeve.`);
+        }
+      }
+
+      closeArtworkChooserModal();
+    }
+
+    function removeCoverArtFromForm(silent = false) {
+      const cImg = document.getElementById('previewCoverImg');
+      const placeholder = document.getElementById('placeholderCover');
+      const rmBtn = document.getElementById('removeCoverBtn');
+      if (cImg) {
+        cImg.src = '';
+        cImg.classList.add('hidden');
+      }
+      if (placeholder) placeholder.classList.remove('hidden');
+      if (rmBtn) rmBtn.classList.add('hidden');
+      if (!silent) showToast("Removed sleeve. Record will use generic archival jacket.");
+    }
+
+    function deleteCoverArtForRecord(recordId) {
+      const item = records.find(r => r.id === recordId);
+      if (!item) return;
+      const proceed = confirm(`Remove custom cover sleeve for "${item.title}" and revert to generic archival sleeve?`);
+      if (!proceed) return;
+
+      item.coverImage = '';
+      saveRecordsToStorage();
+      if (isCloudActive && currentUser && supabaseClient) {
+        const dbRow = mapRecordToDb(item, currentUser.id);
+        supabaseClient.from('records').upsert(dbRow, { onConflict: 'id' }).then(() => {}).catch(e => console.warn(e));
+      }
+      renderStats();
+      renderRecords();
+      viewRecordDetail(recordId);
+      showToast(`Removed custom sleeve for "${item.title}". Generic sleeve active.`);
+    }
+
+    function applyCustomArtworkUrl() {
+      const input = document.getElementById('customArtworkUrlInput');
+      const url = input?.value.trim();
+      if (!url) {
+        showToast("Please enter an image URL first.", "info");
+        return;
+      }
+      selectSleeveCandidate(url);
+    }
+
+    function applyDefaultSleeveFromChooser() {
+      selectSleeveCandidate('');
+    }
+
+    function closeArtworkChooserModal() {
+      const modal = document.getElementById('artworkChooserModal');
+      if (modal) modal.classList.add('hidden');
     }
 
     /* =========================================================
@@ -2760,10 +3226,17 @@
               <img src="${coverSrc}" alt="Cover" class="w-full h-full object-cover" onerror="this.onerror=null; this.src=getDefaultCover('${encodeURIComponent(item.format || '')}', '${encodeURIComponent(item.artist || '')}', '${encodeURIComponent(item.title || '')}', true)">
             </div>
 
-            <button type="button" onclick="pullCoverArtForRecord('${item.id}')" id="detailPullArtBtn-${item.id}" class="w-full py-2 px-3 bg-vinyl-850 hover:bg-vinyl-800 text-brass-400 border border-brass-500/30 hover:border-brass-400 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 shadow transition" title="Auto-pull album artwork from Cover Art Archive or iTunes">
-              <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
-              <span>${item.coverImage ? 'Refresh / Re-pull Cover Art' : 'Pull Album Cover Artwork'}</span>
-            </button>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="openArtworkChooserModal('record', '${item.id}')" id="detailPullArtBtn-${item.id}" class="flex-1 py-2 px-3 bg-vinyl-850 hover:bg-vinyl-800 text-brass-400 border border-brass-500/30 hover:border-brass-400 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 shadow transition" title="Choose from multiple matching sleeve options or generic">
+                <i class="fa-solid fa-images text-xs"></i>
+                <span>${item.coverImage ? 'Choose Alternate Sleeve' : 'Choose Cover Sleeve'}</span>
+              </button>
+              ${item.coverImage ? `
+                <button type="button" onclick="deleteCoverArtForRecord('${item.id}')" class="py-2 px-2.5 bg-red-950/40 hover:bg-red-900/50 text-red-300 border border-red-800/60 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 shadow transition" title="Remove custom sleeve and revert to generic sleeve">
+                  <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+              ` : ''}
+            </div>
 
             <div class="bg-vinyl-850 p-3 rounded-xl border border-vinyl-800 space-y-2 text-xs">
               <div class="flex justify-between items-center">
@@ -3119,6 +3592,8 @@
         const el = document.getElementById(id);
         if (el) el.classList.remove('hidden');
       });
+      const rmBtn = document.getElementById('removeCoverBtn');
+      if (rmBtn) rmBtn.classList.add('hidden');
     }
 
     function handleImageUpload(event, imgElementId, placeholderId) {
@@ -3132,6 +3607,10 @@
         img.src = e.target.result;
         img.classList.remove('hidden');
         if (placeholder) placeholder.classList.add('hidden');
+        if (imgElementId === 'previewCoverImg') {
+          const rmBtn = document.getElementById('removeCoverBtn');
+          if (rmBtn) rmBtn.classList.remove('hidden');
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -3200,6 +3679,8 @@
         cImg.src = item.coverImage;
         cImg.classList.remove('hidden');
         document.getElementById('placeholderCover').classList.add('hidden');
+        const rmBtn = document.getElementById('removeCoverBtn');
+        if (rmBtn) rmBtn.classList.remove('hidden');
       }
       if (item.labelAImage) {
         const laImg = document.getElementById('previewLabelAImg');
@@ -4046,23 +4527,29 @@
         notesField.value = `MusicBrainz Release: ${fullRelease.id} (${fullRelease.country || 'Global'}, ${fullRelease.date || 'n/a'}). Status: ${fullRelease.status || 'Official'}.`;
       }
 
-      // Automatically pull cover artwork from Cover Art Archive / iTunes / Discogs
-      const releaseArtist = (fullRelease['artist-credit']?.[0]?.name || document.getElementById('formArtist')?.value || '').trim();
-      const rgId = fullRelease['release-group']?.id;
-      findOnlineCoverArtwork(releaseArtist, fullRelease.title, fullRelease.id, rgId)
-        .then(coverUrl => {
-          if (coverUrl) {
-            const cImg = document.getElementById('previewCoverImg');
-            const placeholder = document.getElementById('placeholderCover');
-            if (cImg) {
-              cImg.src = coverUrl;
-              cImg.classList.remove('hidden');
+      // Only pull online album cover for 12" LPs / albums. For 7" singles, use generic sleeve per policy!
+      if (!isSingle) {
+        const releaseArtist = (fullRelease['artist-credit']?.[0]?.name || document.getElementById('formArtist')?.value || '').trim();
+        const rgId = fullRelease['release-group']?.id;
+        findOnlineCoverArtwork(releaseArtist, fullRelease.title, fullRelease.id, rgId, assignedFormat)
+          .then(coverUrl => {
+            if (coverUrl) {
+              const cImg = document.getElementById('previewCoverImg');
+              const placeholder = document.getElementById('placeholderCover');
+              const rmBtn = document.getElementById('removeCoverBtn');
+              if (cImg) {
+                cImg.src = coverUrl;
+                cImg.classList.remove('hidden');
+              }
+              if (placeholder) placeholder.classList.add('hidden');
+              if (rmBtn) rmBtn.classList.remove('hidden');
+              showToast("Loaded album cover! (Use 'Browse' under Media to change)");
             }
-            if (placeholder) placeholder.classList.add('hidden');
-            showToast("Found and loaded album cover artwork!");
-          }
-        })
-        .catch(err => console.warn("Auto cover fetch notice:", err));
+          })
+          .catch(err => console.warn("Auto cover fetch notice:", err));
+      } else {
+        removeCoverArtFromForm(true);
+      }
 
       closeAutofillResults();
       showToast(`Autofilled "${fullRelease.title}" with ${totalTracksFound} tracks!`);
@@ -4070,80 +4557,7 @@
     }
 
     async function pullCoverArtForCurrentForm() {
-      const artist = document.getElementById('formArtist')?.value.trim();
-      const title = document.getElementById('formTitle')?.value.trim();
-      if (!artist && !title) {
-        showToast("Please enter an Artist and Title first to search for cover artwork.", "info");
-        switchFormTab('tab-general');
-        return;
-      }
-
-      const btn = document.getElementById('pullCoverBtn');
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i> Searching...`;
-      }
-      showToast(`Searching online artwork for "${artist} - ${title}"...`);
-
-      try {
-        const coverUrl = await findOnlineCoverArtwork(artist, title);
-        if (coverUrl) {
-          const cImg = document.getElementById('previewCoverImg');
-          const placeholder = document.getElementById('placeholderCover');
-          if (cImg) {
-            cImg.src = coverUrl;
-            cImg.classList.remove('hidden');
-          }
-          if (placeholder) placeholder.classList.add('hidden');
-          showToast("Album cover artwork loaded!");
-        } else {
-          showToast("No online cover artwork found for this release.", "info");
-        }
-      } catch (err) {
-        showToast("Artwork search error: " + (err.message || err), "error");
-      } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Pull Online Artwork`;
-        }
-      }
-    }
-
-    async function pullCoverArtForRecord(recordId) {
-      const item = records.find(r => r.id === recordId);
-      if (!item) return;
-
-      const btn = document.getElementById(`detailPullArtBtn-${recordId}`);
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>Searching Artwork...</span>`;
-      }
-      showToast(`Searching online artwork for "${item.artist} - ${item.title}"...`);
-
-      try {
-        const coverUrl = await findOnlineCoverArtwork(item.artist, item.title, null, null);
-        if (coverUrl) {
-          item.coverImage = coverUrl;
-          saveRecordsToStorage();
-          if (isCloudActive && currentUser && supabaseClient) {
-            const dbRow = mapRecordToDb(item, currentUser.id);
-            supabaseClient.from('records').upsert(dbRow, { onConflict: 'id' }).then(() => {}).catch(e => console.warn(e));
-          }
-          renderStats();
-          renderRecords();
-          viewRecordDetail(recordId);
-          showToast(`Updated album cover for "${item.title}"!`);
-        } else {
-          showToast("No online artwork found for this release.", "info");
-        }
-      } catch (err) {
-        showToast("Artwork search error: " + (err.message || err), "error");
-      } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-xs"></i> <span>${item.coverImage ? 'Refresh / Re-pull Cover Art' : 'Pull Album Cover Artwork'}</span>`;
-        }
-      }
+      openArtworkChooserModal('form');
     }
 
     /* =========================================================
