@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0c0d10">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="QMC Archive">
   <meta name="mobile-web-app-capable" content="yes">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -129,17 +129,23 @@
       /* Toasts sit above the bottom nav, full width */
       #toastContainer { left: 12px; right: 12px; bottom: calc(76px + env(safe-area-inset-bottom)) !important; align-items: stretch; }
 
-      /* All modals become full-screen sheets on phones */
-      div[id$="Modal"].fixed { padding: 0 !important; align-items: stretch !important; overflow: hidden !important; }
+      /* All modals become bottom-anchored sheets on phones with safe-area top clearance so top-right Exit is always clickable */
+      div[id$="Modal"].fixed {
+        padding: max(2.75rem, calc(env(safe-area-inset-top, 0px) + 1rem)) 0 0 0 !important;
+        align-items: flex-end !important;
+        overflow: hidden !important;
+      }
       div[id$="Modal"].fixed > div {
         width: 100% !important; max-width: 100% !important;
-        height: 100dvh !important; max-height: 100dvh !important;
-        border-radius: 0 !important; margin: 0 !important;
+        height: auto !important;
+        max-height: calc(100dvh - max(2.75rem, calc(env(safe-area-inset-top, 0px) + 1rem))) !important;
+        border-radius: 1.25rem 1.25rem 0 0 !important;
+        margin: auto 0 0 0 !important;
         overflow-y: auto !important;
-        padding-bottom: env(safe-area-inset-bottom);
+        padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
       }
       /* Modals whose content is the card itself need to scroll */
-      #detailModalContent { overflow-y: auto !important; padding: 1rem !important; }
+      #detailModalContent { overflow-y: auto !important; padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px)) 1rem !important; }
       div[id$="Modal"].fixed .max-h-\[80vh\] { max-height: none !important; }
 
       /* Sticky save bar inside the Add/Edit form */
@@ -151,8 +157,13 @@
       #recordForm .rec-footer > div { width: 100%; }
       #recordForm .rec-footer button { flex: 1 1 auto; justify-content: center; }
 
-      /* Header: compact */
-      #appHeader { gap: .5rem; padding-top: .5rem; padding-bottom: .5rem; position: static; }
+      /* Header: compact with safe-area top clearance for phone WebApps */
+      #appHeader {
+        gap: .5rem;
+        padding-top: max(0.65rem, calc(env(safe-area-inset-top, 0px) + 0.4rem));
+        padding-bottom: .5rem;
+        position: static;
+      }
 
       /* Filters collapse behind a toggle */
       #filtersRow:not(.filters-open) .mf { display: none !important; }
@@ -206,9 +217,13 @@
         </div>
       </div>
 
-      <!-- Mobile Add to Home Screen Quick Icon -->
+      <!-- Mobile Add to Home Screen & Exit WebApp Buttons -->
       <button type="button" onclick="openAddToHomeScreenModal()" class="md:hidden p-2 text-xs rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 transition flex items-center justify-center shadow-sm" title="Add to Home Screen">
         <i class="fa-solid fa-mobile-screen-button text-sm"></i>
+      </button>
+      <button type="button" onclick="exitWebApp()" class="md:hidden px-2.5 py-1.5 text-xs font-bold rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 hover:border-red-800/60 transition flex items-center gap-1 shadow-sm" title="Exit current view or return to QMC Home">
+        <i class="fa-solid fa-right-from-bracket text-xs text-rose-400"></i>
+        <span>Exit</span>
       </button>
 
       <!-- Share Read-Only Link Quick Trigger -->
@@ -485,8 +500,9 @@
             <p class="text-[11px] text-slate-400">Discogs Marketplace & eBay Completed Sales Averages</p>
           </div>
         </div>
-        <button onclick="closeValuationModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+        <button type="button" onclick="closeValuationModal()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm">
           <i class="fa-solid fa-xmark"></i>
+          <span>Exit</span>
         </button>
       </div>
 
@@ -637,8 +653,9 @@
             <p class="text-[11px] text-slate-400">Import collections in bulk with flexible column auto-mapping</p>
           </div>
         </div>
-        <button onclick="closeBatchUploadModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+        <button type="button" onclick="closeBatchUploadModal()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm">
           <i class="fa-solid fa-xmark"></i>
+          <span>Exit</span>
         </button>
       </div>
 
@@ -769,8 +786,9 @@
             <p class="text-[11px] text-slate-400">Directly ingest your Discogs collection with Release IDs, grading & formats</p>
           </div>
         </div>
-        <button onclick="closeDiscogsImportModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+        <button type="button" onclick="closeDiscogsImportModal()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm">
           <i class="fa-solid fa-xmark"></i>
+          <span>Exit</span>
         </button>
       </div>
 
@@ -891,8 +909,9 @@
         </div>
         <div class="flex items-center gap-3">
           <span class="text-[10px] text-slate-400 font-mono hidden sm:inline">Tip: [Ctrl + Enter] to Save & Add Next</span>
-          <button onclick="closeAddEditModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <button type="button" onclick="closeAddEditModal()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm">
             <i class="fa-solid fa-xmark"></i>
+            <span>Exit</span>
           </button>
         </div>
       </div>
@@ -1441,8 +1460,9 @@
             <p class="text-[11px] text-slate-400">Hardware-accelerated camera stream, photo upload & laser wedge</p>
           </div>
         </div>
-        <button onclick="closeScannerModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition">
-          <i class="fa-solid fa-xmark text-base"></i>
+        <button type="button" onclick="closeScannerModal()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm">
+          <i class="fa-solid fa-xmark text-sm"></i>
+          <span>Exit</span>
         </button>
       </div>
 
@@ -1533,6 +1553,12 @@
           <i class="fa-solid fa-wifi text-[9px] text-emerald-400"></i>
           <span>Handheld USB / Bluetooth laser scanner wedge listener active</span>
         </div>
+
+        <!-- Bottom Exit Button for Phone WebApp -->
+        <button type="button" onclick="closeScannerModal()" class="w-full mt-2 py-2.5 px-4 rounded-xl bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 font-bold text-xs flex items-center justify-center gap-2 transition">
+          <i class="fa-solid fa-xmark"></i>
+          <span>Exit Scanner</span>
+        </button>
       </div>
     </div>
   </div>
@@ -1554,8 +1580,9 @@
             <p class="text-[11px] text-slate-400">Multi-User Vinyl Archive & Cloud Crates</p>
           </div>
         </div>
-        <button onclick="closeAuthModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+        <button type="button" onclick="closeAuthModal()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm">
           <i class="fa-solid fa-xmark"></i>
+          <span>Exit</span>
         </button>
       </div>
 
@@ -1651,6 +1678,10 @@
 
         </div>
 
+        <button type="button" onclick="closeAuthModal()" class="w-full py-2.5 px-4 rounded-xl bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border border-vinyl-700 font-semibold text-xs flex items-center justify-center gap-1.5 transition">
+          <i class="fa-solid fa-xmark"></i>
+          <span>Exit / Close</span>
+        </button>
       </div>
 
     </div>
@@ -1673,8 +1704,9 @@
             <p class="text-[11px] text-slate-400">Private Read-Only Link (No Editing / Deleting)</p>
           </div>
         </div>
-        <button onclick="closeShareModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+        <button type="button" onclick="closeShareModal()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm">
           <i class="fa-solid fa-xmark"></i>
+          <span>Exit</span>
         </button>
       </div>
 
@@ -1742,6 +1774,10 @@
 
         </div>
 
+        <button type="button" onclick="closeShareModal()" class="w-full py-2.5 px-4 rounded-xl bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border border-vinyl-700 font-semibold text-xs flex items-center justify-center gap-1.5 transition">
+          <i class="fa-solid fa-xmark"></i>
+          <span>Exit / Close</span>
+        </button>
       </div>
 
     </div>
@@ -1767,8 +1803,9 @@
             <p class="text-[11px] text-slate-400">Scan and auto-populate genres &amp; styles from Discogs, iTunes, and MusicBrainz</p>
           </div>
         </div>
-        <button type="button" onclick="closeBatchGenreEnrichModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+        <button type="button" onclick="closeBatchGenreEnrichModal()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm">
           <i class="fa-solid fa-xmark"></i>
+          <span>Exit</span>
         </button>
       </div>
 
@@ -1875,8 +1912,9 @@
               Select from matching sleeves found across archival databases
             </p>
           </div>
-          <button type="button" onclick="closeArtworkChooserModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 flex items-center justify-center transition">
+          <button type="button" onclick="closeArtworkChooserModal()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm">
             <i class="fa-solid fa-xmark"></i>
+            <span>Exit</span>
           </button>
         </div>
 
@@ -1937,7 +1975,13 @@
   <div id="mobileMoreSheet" class="fixed inset-0 z-[90] hidden sm:!hidden" style="z-index:90;">
     <div class="absolute inset-0 bg-black/70" onclick="closeMobileMore()"></div>
     <div id="mobileMoreCard" class="absolute bottom-0 inset-x-0 bg-vinyl-900 border-t border-vinyl-700 rounded-t-2xl p-4 max-h-[85dvh] overflow-y-auto">
-      <div class="w-10 h-1 bg-vinyl-700 rounded-full mx-auto mb-3"></div>
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Quick Actions &amp; Tools</span>
+        <button type="button" onclick="closeMobileMore()" class="px-3 py-1 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 text-xs font-bold flex items-center gap-1.5">
+          <i class="fa-solid fa-xmark"></i>
+          <span>Close</span>
+        </button>
+      </div>
       <!-- Featured Mobile Action: Add to Home Screen + Barcode Scan -->
       <div class="grid grid-cols-2 gap-2 mb-2 text-xs font-semibold">
         <button onclick="closeMobileMore();openAddToHomeScreenModal()" class="p-2.5 rounded-xl bg-gradient-to-r from-brass-500/20 to-amber-500/10 border border-brass-500/40 text-brass-400 flex items-center justify-center gap-2 shadow"><i class="fa-solid fa-mobile-screen-button text-sm"></i><span>Add to Home Screen</span></button>
@@ -1957,6 +2001,16 @@
         <button onclick="closeMobileMore();forceBustCache()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-arrows-rotate text-lg text-sky-400"></i>Hard Reload</button>
         <button onclick="closeMobileMore();clearAllRecordsPrompt()" class="p-3 rounded-xl bg-vinyl-850 border border-rose-900/50 text-rose-300 flex flex-col items-center gap-1.5"><i class="fa-solid fa-eraser text-lg"></i>Clear Archive</button>
       </div>
+      <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-vinyl-800 text-xs font-bold">
+        <button type="button" onclick="closeMobileMore()" class="py-2.5 px-3 rounded-xl bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-xmark"></i>
+          <span>Close Menu</span>
+        </button>
+        <button type="button" onclick="closeMobileMore();exitWebApp()" class="py-2.5 px-3 rounded-xl bg-red-950/50 hover:bg-red-900/60 text-rose-300 border border-rose-800/60 flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Exit to QMC Home</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1973,8 +2027,9 @@
             <p class="text-[11px] text-slate-400">Launch full-screen like a native mobile app</p>
           </div>
         </div>
-        <button type="button" onclick="closeAddToHomeScreenModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-vinyl-800">
+        <button type="button" onclick="closeAddToHomeScreenModal()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm">
           <i class="fa-solid fa-xmark"></i>
+          <span>Exit</span>
         </button>
       </div>
 
@@ -4469,8 +4524,69 @@
       }
     }
 
+    function closeAllModals() {
+      let closedAny = false;
+      const modalIds = [
+        'detailModal', 'recordModal', 'scannerModal', 'authModal',
+        'shareModal', 'valuationModal', 'batchUploadModal',
+        'discogsImportModal', 'batchGenreModal', 'artworkChooserModal',
+        'addToHomeScreenModal'
+      ];
+      modalIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.classList.contains('hidden')) {
+          if (id === 'scannerModal' && typeof closeScannerModal === 'function') {
+            closeScannerModal();
+          } else {
+            el.classList.add('hidden');
+          }
+          closedAny = true;
+        }
+      });
+      const sheet = document.getElementById('mobileMoreSheet');
+      if (sheet && sheet.classList.contains('open')) {
+        sheet.classList.remove('open');
+        closedAny = true;
+      }
+      return closedAny;
+    }
+
+    function exitWebApp() {
+      // 1. If any modal or mobile sheet is open, close it first
+      if (closeAllModals()) return;
+      // 2. If in Analytics view, return to Crate view
+      if (typeof currentView !== 'undefined' && currentView === 'analytics') {
+        switchView('grid');
+        return;
+      }
+      // 3. If in Read-Only Shared View, exit shared view
+      if (typeof isReadOnlyShareView !== 'undefined' && isReadOnlyShareView && typeof exitSharedView === 'function') {
+        exitSharedView();
+        return;
+      }
+      // 4. Otherwise exit back to QMC Main Hub (or close standalone window)
+      if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
+        window.history.back();
+      } else {
+        window.location.href = '../index.html';
+      }
+    }
+
+    // Allow tapping the dark backdrop strip above/outside any modal sheet to close it
+    document.addEventListener('click', (e) => {
+      const t = e.target;
+      if (t && t.id && t.id.endsWith('Modal') && t.classList.contains('fixed')) {
+        if (t.id === 'scannerModal' && typeof closeScannerModal === 'function') {
+          closeScannerModal();
+        } else {
+          t.classList.add('hidden');
+        }
+      }
+    });
+
     function mobileNav(target) {
       closeMobileMore();
+      if (target !== 'more') closeAllModals();
       if (target === 'crate') {
         switchView(currentView === 'analytics' ? 'grid' : currentView);
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -5684,8 +5800,9 @@
             <h2 class="text-2xl font-black text-white tracking-tight">${item.artist}</h2>
             <h3 class="text-lg text-brass-400 font-medium">${item.title}</h3>
           </div>
-          <button onclick="closeDetailModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 flex items-center justify-center transition">
+          <button type="button" onclick="closeDetailModal()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm flex-shrink-0">
             <i class="fa-solid fa-xmark"></i>
+            <span>Exit</span>
           </button>
         </div>
 
@@ -5980,21 +6097,22 @@
           </div>
         </div>
 
-        <div class="mt-6 pt-4 border-t border-vinyl-800 flex justify-between items-center">
-          <div class="text-[11px] text-slate-500 font-mono">
+        <div class="sticky bottom-0 -mx-4 sm:mx-0 mt-6 pt-3 pb-2 px-4 sm:px-0 bg-vinyl-900/95 backdrop-blur border-t border-vinyl-800 flex flex-wrap justify-between items-center gap-2 z-10">
+          <div class="text-[11px] text-slate-500 font-mono hidden sm:block">
             Record ID: ${item.id}
           </div>
-          <div class="flex gap-2">
+          <div class="flex gap-2 w-full sm:w-auto justify-end">
             ${isOwner ? `
-              <button onclick="openArtworkChooserModal('record', '${item.id}')" class="px-3.5 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-sky-400 border border-sky-500/30 text-xs font-semibold flex items-center gap-1.5 transition shadow">
-                <i class="fa-solid fa-images"></i> Choose Sleeve
+              <button onclick="openArtworkChooserModal('record', '${item.id}')" class="px-3 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-sky-400 border border-sky-500/30 text-xs font-semibold flex items-center gap-1.5 transition shadow">
+                <i class="fa-solid fa-images"></i> <span>Sleeve</span>
               </button>
-              <button onclick="editRecord('${item.id}'); closeDetailModal();" class="px-3.5 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 text-xs font-semibold">
-                Edit Metadata
+              <button onclick="editRecord('${item.id}'); closeDetailModal();" class="px-3 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 text-xs font-semibold flex items-center gap-1.5">
+                <i class="fa-solid fa-pen-to-square"></i> <span>Edit</span>
               </button>
             ` : ''}
-            <button onclick="closeDetailModal()" class="px-3.5 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 text-xs">
-              Close
+            <button type="button" onclick="closeDetailModal()" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow">
+              <i class="fa-solid fa-xmark"></i>
+              <span>Exit Dossier</span>
             </button>
           </div>
         </div>
