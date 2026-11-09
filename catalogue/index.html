@@ -1235,9 +1235,9 @@
               <span class="text-xs font-semibold text-slate-300 mb-2">Side A Center Label</span>
               <div id="previewLabelABox" class="w-full aspect-square max-w-[200px] bg-vinyl-900 rounded-lg border border-dashed border-vinyl-700 flex items-center justify-center overflow-hidden mb-2 relative">
                 <img id="previewLabelAImg" src="" alt="Side A Label" class="w-full h-full object-cover hidden">
-                <div id="placeholderLabelA" class="text-center p-3 text-slate-500">
-                  <i class="fa-solid fa-circle-notch text-2xl mb-1"></i>
-                  <p class="text-[10px]">No label photo</p>
+                <div id="placeholderLabelA" class="w-full h-full relative flex items-center justify-center">
+                  <img id="defaultLabelAPreview" src="" alt="Default Side A Label" class="w-full h-full object-cover">
+                  <span class="absolute bottom-1.5 inset-x-2 py-0.5 rounded bg-black/75 text-[9px] font-mono text-slate-300 text-center border border-white/10">Default Side A</span>
                 </div>
               </div>
               <input type="file" id="uploadLabelAInput" accept="image/*" onchange="handleImageUpload(event, 'previewLabelAImg', 'placeholderLabelA')" class="hidden">
@@ -1251,9 +1251,9 @@
               <span class="text-xs font-semibold text-slate-300 mb-2">Side B Center Label</span>
               <div id="previewLabelBBox" class="w-full aspect-square max-w-[200px] bg-vinyl-900 rounded-lg border border-dashed border-vinyl-700 flex items-center justify-center overflow-hidden mb-2 relative">
                 <img id="previewLabelBImg" src="" alt="Side B Label" class="w-full h-full object-cover hidden">
-                <div id="placeholderLabelB" class="text-center p-3 text-slate-500">
-                  <i class="fa-solid fa-circle-notch text-2xl mb-1"></i>
-                  <p class="text-[10px]">No label photo</p>
+                <div id="placeholderLabelB" class="w-full h-full relative flex items-center justify-center">
+                  <img id="defaultLabelBPreview" src="" alt="Default Side B Label" class="w-full h-full object-cover">
+                  <span class="absolute bottom-1.5 inset-x-2 py-0.5 rounded bg-black/75 text-[9px] font-mono text-slate-300 text-center border border-white/10">Default Side B</span>
                 </div>
               </div>
               <input type="file" id="uploadLabelBInput" accept="image/*" onchange="handleImageUpload(event, 'previewLabelBImg', 'placeholderLabelB')" class="hidden">
@@ -2503,6 +2503,78 @@
       }
 
       return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    function getDefaultLabelImage(side = 'A', item = {}) {
+      const s = (side || 'A').toUpperCase() === 'B' ? 'B' : 'A';
+      const cleanArtist = escapeXml((item.artist || 'QMC ARCHIVE').toUpperCase());
+      const trackOrTitle = s === 'A'
+        ? (item.sideATitle || (item.tracks && item.tracks[0]?.title) || item.title || 'Side A')
+        : (item.sideBTitle || (item.tracks && item.tracks[1]?.title) || item.title || 'Side B');
+      const cleanTrack = escapeXml(trackOrTitle);
+      const cleanLabel = escapeXml((item.label || 'QMC ARCHIVAL PRESSING').toUpperCase());
+      const cleanCat = escapeXml((item.catNo || 'CAT # UNLISTED').toUpperCase());
+      const fmt = item.format || '12" LP (Album)';
+      const is45 = fmt.includes('7"') || (item.speed && item.speed.includes('45'));
+      const cleanSpeed = escapeXml(item.speed || (is45 ? '45 RPM' : '33⅓ RPM'));
+      const isLargeHole = (item.centerHole && (item.centerHole.includes('Large') || item.centerHole.includes('Jukebox')));
+      const holeRadius = isLargeHole ? 36 : 14;
+
+      const gradStops = s === 'A'
+        ? `<stop offset="0%" stop-color="#fceda2"/><stop offset="35%" stop-color="#d4af37"/><stop offset="80%" stop-color="#997b1e"/><stop offset="100%" stop-color="#5e4a0e"/>`
+        : `<stop offset="0%" stop-color="#e2e8f0"/><stop offset="35%" stop-color="#94a3b8"/><stop offset="80%" stop-color="#475569"/><stop offset="100%" stop-color="#1e293b"/>`;
+      const ringStroke = s === 'A' ? '#5e4a0e' : '#334155';
+      const textDark = s === 'A' ? '#1c1504' : '#0f172a';
+      const textSub = s === 'A' ? '#3d2f07' : '#1e293b';
+
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+        <defs>
+          <radialGradient id="lblGrad${s}" cx="50%" cy="50%" r="50%">${gradStops}</radialGradient>
+          <radialGradient id="vinylRim${s}" cx="50%" cy="50%" r="50%">
+            <stop offset="65%" stop-color="#161b26"/>
+            <stop offset="88%" stop-color="#0b0e14"/>
+            <stop offset="100%" stop-color="#05070a"/>
+          </radialGradient>
+        </defs>
+        <rect width="300" height="300" fill="#090b10"/>
+        <circle cx="150" cy="150" r="144" fill="url(#vinylRim${s})" stroke="#1e293b" stroke-width="1.5"/>
+        <circle cx="150" cy="150" r="134" fill="none" stroke="#263042" stroke-width="0.9" stroke-dasharray="6 3"/>
+        <circle cx="150" cy="150" r="123" fill="none" stroke="#1e2636" stroke-width="0.8"/>
+        <circle cx="150" cy="150" r="112" fill="url(#lblGrad${s})" stroke="${ringStroke}" stroke-width="3"/>
+        <circle cx="150" cy="150" r="103" fill="none" stroke="${ringStroke}" stroke-width="1" stroke-dasharray="3 2" opacity="0.75"/>
+        <line x1="48" y1="122" x2="252" y2="122" stroke="${ringStroke}" stroke-width="1" opacity="0.55"/>
+        <line x1="48" y1="178" x2="252" y2="178" stroke="${ringStroke}" stroke-width="1" opacity="0.55"/>
+        <text x="150" y="78" text-anchor="middle" fill="${textDark}" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="900" letter-spacing="1.5">${cleanLabel.substring(0, 22)}</text>
+        <text x="150" y="96" text-anchor="middle" fill="${textSub}" font-family="monospace" font-size="8.5" font-weight="700" letter-spacing="1">${cleanCat.substring(0, 22)}</text>
+        <text x="80" y="146" text-anchor="middle" fill="${textDark}" font-family="monospace" font-size="11" font-weight="900">SIDE ${s}</text>
+        <text x="80" y="160" text-anchor="middle" fill="${textSub}" font-family="monospace" font-size="8.5" font-weight="700">${cleanSpeed.substring(0, 10)}</text>
+        <text x="220" y="146" text-anchor="middle" fill="${textDark}" font-family="monospace" font-size="9.5" font-weight="800">STEREO</text>
+        <text x="220" y="160" text-anchor="middle" fill="${textSub}" font-family="monospace" font-size="8" font-weight="700">QMC VAULT</text>
+        <text x="150" y="204" text-anchor="middle" fill="${textDark}" font-family="system-ui, -apple-system, sans-serif" font-size="10.5" font-weight="900">${cleanArtist.substring(0, 24)}</text>
+        <text x="150" y="221" text-anchor="middle" fill="${textSub}" font-family="system-ui, -apple-system, sans-serif" font-size="9.5" font-weight="700">${cleanTrack.substring(0, 26)}</text>
+        <circle cx="150" cy="150" r="${holeRadius}" fill="#090b10" stroke="${ringStroke}" stroke-width="2.5"/>
+        <circle cx="150" cy="150" r="2.5" fill="#d4af37" fill-opacity="0.45"/>
+      </svg>`;
+
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    function refreshDefaultLabelPlaceholders(itemOverride = null) {
+      const meta = itemOverride || {
+        artist: document.getElementById('formArtist')?.value.trim() || '',
+        title: document.getElementById('formTitle')?.value.trim() || '',
+        label: document.getElementById('formLabel')?.value.trim() || '',
+        catNo: document.getElementById('formCatNo')?.value.trim() || '',
+        format: document.getElementById('formFormat')?.value || '12" LP (Album)',
+        speed: document.getElementById('formSpeed')?.value || '33 1/3 RPM',
+        centerHole: document.getElementById('formCenterHole')?.value || '',
+        sideATitle: document.getElementById('formSideATitle')?.value.trim() || '',
+        sideBTitle: document.getElementById('formSideBTitle')?.value.trim() || ''
+      };
+      const defA = document.getElementById('defaultLabelAPreview');
+      const defB = document.getElementById('defaultLabelBPreview');
+      if (defA) defA.src = getDefaultLabelImage('A', meta);
+      if (defB) defB.src = getDefaultLabelImage('B', meta);
     }
 
     /* =========================================================
@@ -5514,19 +5586,21 @@
               </div>` : ''}
             </div>
 
-            <!-- Labels row if uploaded -->
+            <!-- Labels row (uses custom uploaded photo or generated archival center label) -->
             <div class="grid grid-cols-2 gap-2">
               <div class="p-2 bg-vinyl-850 rounded-lg border border-vinyl-800 text-center">
                 <span class="text-[10px] font-bold text-slate-400 block mb-1">Side A Label</span>
-                ${item.labelAImage ? 
-                  `<img src="${item.labelAImage}" class="w-full h-20 object-cover rounded border border-vinyl-700">` : 
-                  `<div class="h-20 bg-vinyl-900 rounded flex items-center justify-center text-[10px] text-slate-600">Not Photographed</div>`}
+                <div class="relative">
+                  <img src="${item.labelAImage || getDefaultLabelImage('A', item)}" alt="Side A Label" class="w-full aspect-square max-h-28 object-cover rounded border border-vinyl-700 mx-auto">
+                  ${!item.labelAImage ? '<span class="absolute bottom-1 inset-x-1 py-0.5 rounded bg-black/75 text-[8px] font-mono text-slate-400">Default Label</span>' : ''}
+                </div>
               </div>
               <div class="p-2 bg-vinyl-850 rounded-lg border border-vinyl-800 text-center">
                 <span class="text-[10px] font-bold text-slate-400 block mb-1">Side B Label</span>
-                ${item.labelBImage ? 
-                  `<img src="${item.labelBImage}" class="w-full h-20 object-cover rounded border border-vinyl-700">` : 
-                  `<div class="h-20 bg-vinyl-900 rounded flex items-center justify-center text-[10px] text-slate-600">Not Photographed</div>`}
+                <div class="relative">
+                  <img src="${item.labelBImage || getDefaultLabelImage('B', item)}" alt="Side B Label" class="w-full aspect-square max-h-28 object-cover rounded border border-vinyl-700 mx-auto">
+                  ${!item.labelBImage ? '<span class="absolute bottom-1 inset-x-1 py-0.5 rounded bg-black/75 text-[8px] font-mono text-slate-400">Default Label</span>' : ''}
+                </div>
               </div>
             </div>
           </div>
@@ -5892,6 +5966,9 @@
         targetBtn.classList.remove('border-transparent', 'text-slate-400');
         targetBtn.classList.add('border-brass-500', 'text-brass-400', 'font-semibold');
       }
+      if (typeof refreshDefaultLabelPlaceholders === 'function') {
+        refreshDefaultLabelPlaceholders();
+      }
     }
 
     function clearImagePreviews() {
@@ -5906,6 +5983,9 @@
         const el = document.getElementById(id);
         if (el) el.classList.remove('hidden');
       });
+      if (typeof refreshDefaultLabelPlaceholders === 'function') {
+        refreshDefaultLabelPlaceholders();
+      }
       const rmBtn = document.getElementById('removeCoverBtn');
       if (rmBtn) rmBtn.classList.add('hidden');
       const t1Badge = document.getElementById('tab1CoverBadge');
