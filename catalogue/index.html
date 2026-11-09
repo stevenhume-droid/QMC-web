@@ -995,19 +995,19 @@
       <div class="flex items-center justify-between border-b border-vinyl-800 px-2 sm:px-6 bg-vinyl-900 overflow-x-auto no-scrollbar text-xs font-medium">
         <div class="flex">
           <button type="button" onclick="switchFormTab('tab-general')" id="tabBtn-general" class="form-tab-btn py-3 px-3 border-b-2 border-brass-500 text-brass-400 font-semibold whitespace-nowrap">
-            1. General & Tracks
-          </button>
-          <button type="button" onclick="switchFormTab('tab-pressing')" id="tabBtn-pressing" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
-            2. Pressing & Runout Matrix
+            1. Record
           </button>
           <button type="button" onclick="switchFormTab('tab-grading')" id="tabBtn-grading" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
-            3. Grading & Market Value
+            2. Condition & Value
+          </button>
+          <button type="button" onclick="switchFormTab('tab-pressing')" id="tabBtn-pressing" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
+            3. Pressing & Labels
           </button>
           <button type="button" onclick="switchFormTab('tab-visuals')" id="tabBtn-visuals" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
-            4. Labels & Artwork
+            4. Sleeve Art
           </button>
           <button type="button" onclick="switchFormTab('tab-research')" id="tabBtn-research" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
-            5. Historical & Transfers
+            5. Research & Transfers
           </button>
         </div>
         <button type="button" onclick="openArtworkChooserModal('form')" class="my-auto py-1.5 px-3 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 hover:border-sky-400 text-xs font-semibold flex items-center gap-1.5 transition whitespace-nowrap ml-3" title="Browse and choose sleeve artwork choices">
@@ -1099,6 +1099,39 @@
               <label class="block text-xs font-semibold text-slate-300 mb-1">Release Year</label>
               <input type="number" id="formYear" min="1930" max="2035" placeholder="1973" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-brass-500">
             </div>
+          </div>
+
+          <!-- Condition (moved here from the Grading tab) -->
+          <div class="p-3 sm:p-4 bg-vinyl-850 rounded-xl border border-vinyl-800 space-y-3">
+            <h3 class="text-xs uppercase font-bold text-brass-400 tracking-wider flex items-center gap-2"><i class="fa-solid fa-star-half-stroke"></i> Condition (Goldmine)</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-300 mb-1">Vinyl / Media</label>
+                <select id="formMediaGrade" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-2 text-sm font-semibold text-brass-400 focus:outline-none focus:border-brass-500">
+                  <option value="M">M - Mint (Absolute pristine, unplayed or sealed)</option>
+                  <option value="NM" selected>NM - Near Mint (Virtually flawless, silent surfaces)</option>
+                  <option value="VG+">VG+ - Very Good Plus (Light sleeve scuffs, plays clean)</option>
+                  <option value="VG">VG - Very Good (Light surface noise, groove wear visible)</option>
+                  <option value="G+">G+ - Good Plus (Continuous light surface noise, skips avoided)</option>
+                  <option value="G">G - Good (Significant wear, groove distortion)</option>
+                  <option value="F">F - Fair (Heavy scratches, may skip)</option>
+                  <option value="P">P - Poor (Severely damaged / collection filler)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-300 mb-1">Sleeve / Jacket</label>
+                <select id="formSleeveGrade" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-2 text-sm font-semibold text-brass-400 focus:outline-none focus:border-brass-500">
+                  <option value="M">M - Mint (Flawless, crisp sharp spine, sealed)</option>
+                  <option value="NM">NM - Near Mint (Minor shelf wear, clean edges)</option>
+                  <option value="VG+" selected>VG+ - Very Good Plus (Slight corner ding or light ring wear)</option>
+                  <option value="VG">VG - Very Good (Seam split starting, price tag residue)</option>
+                  <option value="G+">G+ - Good Plus (Significant seam wear, creases)</option>
+                  <option value="G">G - Good (Heavy split seams, tape repairs)</option>
+                  <option value="Generic">Generic / Replacement Inner Sleeve</option>
+                </select>
+              </div>
+            </div>
+            <p class="text-[10px] text-slate-500">Add inspection notes and pricing on the <strong>Condition &amp; Value</strong> tab.</p>
           </div>
 
           <!-- Dynamic Tracks Section -->
@@ -1213,43 +1246,63 @@
               <input type="text" id="formPressingPlant" placeholder="e.g. The Gramophone Co. Ltd. Hayes, Specialty Records" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
             </div>
           </div>
+
+          <!-- Center label photography (moved from the Artwork tab) -->
+          <div class="pt-2 border-t border-vinyl-800">
+            <h3 class="text-xs uppercase font-bold text-brass-400 tracking-wider flex items-center gap-2 mb-1"><i class="fa-solid fa-circle-notch"></i> Center Label Photos</h3>
+            <p class="text-[11px] text-slate-400 mb-3">Photograph the A and B side labels to help verify the pressing.</p>
+            <div class="grid grid-cols-2 gap-3 sm:gap-4">
+            <!-- Side A Label Image -->
+            <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 flex flex-col items-center">
+              <span class="text-xs font-semibold text-slate-300 mb-2">Side A Center Label</span>
+              <div id="previewLabelABox" class="w-full aspect-square max-w-[200px] bg-vinyl-900 rounded-lg border border-dashed border-vinyl-700 flex items-center justify-center overflow-hidden mb-2 relative">
+                <img id="previewLabelAImg" src="" alt="Side A Label" class="w-full h-full object-cover hidden">
+                <div id="placeholderLabelA" class="text-center p-3 text-slate-500">
+                  <i class="fa-solid fa-circle-notch text-2xl mb-1"></i>
+                  <p class="text-[10px]">No label photo</p>
+                </div>
+              </div>
+              <input type="file" id="uploadLabelAInput" accept="image/*" onchange="handleImageUpload(event, 'previewLabelAImg', 'placeholderLabelA')" class="hidden">
+              <button type="button" onclick="document.getElementById('uploadLabelAInput').click()" class="w-full max-w-[200px] py-1.5 px-3 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 rounded text-xs flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-camera"></i> Select Photo
+              </button>
+            </div>
+
+            <!-- Side B Label Image -->
+            <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 flex flex-col items-center">
+              <span class="text-xs font-semibold text-slate-300 mb-2">Side B Center Label</span>
+              <div id="previewLabelBBox" class="w-full aspect-square max-w-[200px] bg-vinyl-900 rounded-lg border border-dashed border-vinyl-700 flex items-center justify-center overflow-hidden mb-2 relative">
+                <img id="previewLabelBImg" src="" alt="Side B Label" class="w-full h-full object-cover hidden">
+                <div id="placeholderLabelB" class="text-center p-3 text-slate-500">
+                  <i class="fa-solid fa-circle-notch text-2xl mb-1"></i>
+                  <p class="text-[10px]">No label photo</p>
+                </div>
+              </div>
+              <input type="file" id="uploadLabelBInput" accept="image/*" onchange="handleImageUpload(event, 'previewLabelBImg', 'placeholderLabelB')" class="hidden">
+              <button type="button" onclick="document.getElementById('uploadLabelBInput').click()" class="w-full max-w-[200px] py-1.5 px-3 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 rounded text-xs flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-camera"></i> Select Photo
+              </button>
+            </div>
+            </div>
+          </div>
         </div>
 
         <!-- TAB 3: Goldmine Grading & Valuation Standard -->
         <div id="tab-grading" class="form-tab-pane hidden space-y-4">
           <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-lg text-xs text-slate-300">
-            <span class="font-bold text-brass-400">Goldmine Grading Scale:</span> Mint (M) > Near Mint (NM) > Very Good Plus (VG+) > Very Good (VG) > Good Plus (G+) > Good (G) > Fair (F) > Poor (P).
+            <span class="font-bold text-brass-400">Goldmine Scale</span> (set the grades on the Record tab): Mint (M) > Near Mint (NM) > Very Good Plus (VG+) > Very Good (VG) > Good Plus (G+) > Good (G) > Fair (F) > Poor (P).
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Media Grade -->
             <div class="p-4 bg-vinyl-850 rounded-xl border border-vinyl-800 space-y-2">
-              <label class="block text-xs font-bold uppercase text-slate-300 tracking-wider">Vinyl Media Grade</label>
-              <select id="formMediaGrade" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-2 text-sm font-semibold text-brass-400 focus:outline-none focus:border-brass-500">
-                <option value="M">M - Mint (Absolute pristine, unplayed or sealed)</option>
-                <option value="NM" selected>NM - Near Mint (Virtually flawless, silent surfaces)</option>
-                <option value="VG+">VG+ - Very Good Plus (Light sleeve scuffs, plays clean)</option>
-                <option value="VG">VG - Very Good (Light surface noise, groove wear visible)</option>
-                <option value="G+">G+ - Good Plus (Continuous light surface noise, skips avoided)</option>
-                <option value="G">G - Good (Significant wear, groove distortion)</option>
-                <option value="F">F - Fair (Heavy scratches, may skip)</option>
-                <option value="P">P - Poor (Severely damaged / collection filler)</option>
-              </select>
+              <label class="block text-xs font-bold uppercase text-slate-300 tracking-wider">Vinyl Media Condition Notes <span class="normal-case font-normal text-slate-500">(grade is set on the Record tab)</span></label>
               <textarea id="formMediaGradeNotes" rows="2" placeholder="Visual and audio inspection notes (e.g. hair-line paper sleeve scuffs under bright light, plays quiet)..." class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-brass-500"></textarea>
             </div>
 
             <!-- Sleeve Grade -->
             <div class="p-4 bg-vinyl-850 rounded-xl border border-vinyl-800 space-y-2">
-              <label class="block text-xs font-bold uppercase text-slate-300 tracking-wider">Sleeve / Jacket Grade</label>
-              <select id="formSleeveGrade" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-2 text-sm font-semibold text-brass-400 focus:outline-none focus:border-brass-500">
-                <option value="M">M - Mint (Flawless, crisp sharp spine, sealed)</option>
-                <option value="NM">NM - Near Mint (Minor shelf wear, clean edges)</option>
-                <option value="VG+" selected>VG+ - Very Good Plus (Slight corner ding or light ring wear)</option>
-                <option value="VG">VG - Very Good (Seam split starting, price tag residue)</option>
-                <option value="G+">G+ - Good Plus (Significant seam wear, creases)</option>
-                <option value="G">G - Good (Heavy split seams, tape repairs)</option>
-                <option value="Generic">Generic / Replacement Inner Sleeve</option>
-              </select>
+              <label class="block text-xs font-bold uppercase text-slate-300 tracking-wider">Sleeve / Jacket Condition Notes <span class="normal-case font-normal text-slate-500">(grade is set on the Record tab)</span></label>
               <textarea id="formSleeveGradeNotes" rows="2" placeholder="Sleeve notes (e.g. includes original poster, inserts, lyric inner bag, minor corner crease)..." class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-brass-500"></textarea>
             </div>
           </div>
@@ -1312,10 +1365,10 @@
         <!-- TAB 4: Labels & Artwork Visuals -->
         <div id="tab-visuals" class="form-tab-pane hidden space-y-4">
           <div class="text-xs text-slate-400 mb-2">
-            Upload cover art and center label photography for archival verification:
+            Upload or choose the album cover / picture sleeve (center label photos now live on the Pressing & Labels tab):
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 gap-4">
             <!-- Sleeve / Cover Image -->
             <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 flex flex-col items-center">
               <span class="text-xs font-semibold text-slate-300 mb-2">Album Cover / Picture Sleeve</span>
@@ -1341,38 +1394,6 @@
                   <i class="fa-solid fa-trash-can"></i> Remove Sleeve
                 </button>
               </div>
-            </div>
-
-            <!-- Side A Label Image -->
-            <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 flex flex-col items-center">
-              <span class="text-xs font-semibold text-slate-300 mb-2">Side A Center Label</span>
-              <div id="previewLabelABox" class="w-full aspect-square max-w-[200px] bg-vinyl-900 rounded-lg border border-dashed border-vinyl-700 flex items-center justify-center overflow-hidden mb-2 relative">
-                <img id="previewLabelAImg" src="" alt="Side A Label" class="w-full h-full object-cover hidden">
-                <div id="placeholderLabelA" class="text-center p-3 text-slate-500">
-                  <i class="fa-solid fa-circle-notch text-2xl mb-1"></i>
-                  <p class="text-[10px]">No label photo</p>
-                </div>
-              </div>
-              <input type="file" id="uploadLabelAInput" accept="image/*" onchange="handleImageUpload(event, 'previewLabelAImg', 'placeholderLabelA')" class="hidden">
-              <button type="button" onclick="document.getElementById('uploadLabelAInput').click()" class="w-full max-w-[200px] py-1.5 px-3 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 rounded text-xs flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-camera"></i> Select Photo
-              </button>
-            </div>
-
-            <!-- Side B Label Image -->
-            <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 flex flex-col items-center">
-              <span class="text-xs font-semibold text-slate-300 mb-2">Side B Center Label</span>
-              <div id="previewLabelBBox" class="w-full aspect-square max-w-[200px] bg-vinyl-900 rounded-lg border border-dashed border-vinyl-700 flex items-center justify-center overflow-hidden mb-2 relative">
-                <img id="previewLabelBImg" src="" alt="Side B Label" class="w-full h-full object-cover hidden">
-                <div id="placeholderLabelB" class="text-center p-3 text-slate-500">
-                  <i class="fa-solid fa-circle-notch text-2xl mb-1"></i>
-                  <p class="text-[10px]">No label photo</p>
-                </div>
-              </div>
-              <input type="file" id="uploadLabelBInput" accept="image/*" onchange="handleImageUpload(event, 'previewLabelBImg', 'placeholderLabelB')" class="hidden">
-              <button type="button" onclick="document.getElementById('uploadLabelBInput').click()" class="w-full max-w-[200px] py-1.5 px-3 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 rounded text-xs flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-camera"></i> Select Photo
-              </button>
             </div>
           </div>
         </div>
