@@ -288,13 +288,15 @@
         <i class="fa-solid fa-wave-square text-vinyl-700 text-xl"></i>
       </div>
 
-      <!-- Decades Bar -->
-      <div class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 flex flex-col justify-center">
+      <!-- Decades Bar (Clickable to jump directly to Analytics) -->
+      <div onclick="switchView('analytics')" class="bg-vinyl-850/80 p-3 rounded-lg border border-vinyl-800 hover:border-brass-500/50 flex flex-col justify-center cursor-pointer transition group" title="Click to view Collection Analytics & Decades Graph">
         <div class="flex justify-between items-center text-[10px] uppercase tracking-wider font-semibold text-slate-400 mb-1">
-          <span>Decades</span>
-          <span id="statDecadesSummary" class="text-slate-300 font-normal truncate max-w-[80px]">--</span>
+          <span class="flex items-center gap-1 group-hover:text-brass-400 transition">
+            <i class="fa-solid fa-chart-column text-brass-400 text-[9px]"></i> Decades
+          </span>
+          <span id="statDecadesSummary" class="text-brass-400 font-mono text-[10px] font-semibold flex items-center gap-1">--</span>
         </div>
-        <div id="decadeDistributionBar" class="w-full bg-vinyl-800 h-2 rounded-full overflow-hidden flex"></div>
+        <div id="decadeDistributionBar" class="w-full bg-vinyl-800 h-2.5 rounded-full overflow-hidden flex shadow-inner"></div>
       </div>
     </div>
   </section>
@@ -361,13 +363,19 @@
           <option value="formatAsc">Format: LPs First</option>
         </select>
 
-        <!-- View Switcher -->
+        <!-- View Switcher (Gallery, Table, Analytics) -->
         <div class="flex items-center bg-vinyl-850 border border-vinyl-700 rounded-lg p-0.5">
-          <button id="viewGridBtn" onclick="switchView('grid')" class="px-2.5 py-1.5 rounded text-xs bg-vinyl-700 text-brass-400 font-medium transition" title="Grid Sleeve View">
+          <button id="viewGridBtn" onclick="switchView('grid')" class="px-2.5 py-1.5 rounded text-xs bg-vinyl-700 text-brass-400 font-medium transition flex items-center gap-1.5" title="Grid Sleeve View">
             <i class="fa-solid fa-grip"></i>
+            <span class="hidden sm:inline">Gallery</span>
           </button>
-          <button id="viewListBtn" onclick="switchView('list')" class="px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition" title="Archival Table View">
+          <button id="viewListBtn" onclick="switchView('list')" class="px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5" title="Archival Table View">
             <i class="fa-solid fa-table-list"></i>
+            <span class="hidden sm:inline">Table</span>
+          </button>
+          <button id="viewAnalyticsBtn" onclick="switchView('analytics')" class="px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5" title="Collection Analytics & Graphs">
+            <i class="fa-solid fa-chart-pie text-xs"></i>
+            <span>Analytics</span>
           </button>
         </div>
       </div>
@@ -3412,20 +3420,37 @@
       });
 
       const decadeKeys = Object.keys(decadeMap).sort();
-      const decadeSummary = decadeKeys.map(k => `${k} (${decadeMap[k]})`).join(' · ');
-      document.getElementById('statDecadesSummary').innerText = decadeSummary || 'None';
+      let topDecade = '';
+      let topCount = 0;
+      decadeKeys.forEach(k => {
+        if (decadeMap[k] > topCount) {
+          topCount = decadeMap[k];
+          topDecade = k;
+        }
+      });
+      const topPct = total ? Math.round((topCount / total) * 100) : 0;
+      const statDecSummaryEl = document.getElementById('statDecadesSummary');
+      if (statDecSummaryEl) {
+        if (topDecade) {
+          statDecSummaryEl.innerHTML = `<span class="truncate">Top: <strong class="text-white">${topDecade}</strong> (${topPct}%)</span> <i class="fa-solid fa-chevron-right text-[8px] opacity-70"></i>`;
+        } else {
+          statDecSummaryEl.innerHTML = `<span>Analytics</span> <i class="fa-solid fa-chevron-right text-[8px] opacity-70"></i>`;
+        }
+      }
 
       const decadeBar = document.getElementById('decadeDistributionBar');
-      decadeBar.innerHTML = '';
-      const colors = ['bg-amber-400', 'bg-emerald-400', 'bg-sky-400', 'bg-pink-400', 'bg-purple-400'];
-      decadeKeys.forEach((dec, idx) => {
-        const pct = total ? ((decadeMap[dec] / total) * 100).toFixed(1) : 0;
-        const segment = document.createElement('div');
-        segment.className = `h-full ${colors[idx % colors.length]}`;
-        segment.style.width = `${pct}%`;
-        segment.title = `${dec}: ${decadeMap[dec]} records (${pct}%)`;
-        decadeBar.appendChild(segment);
-      });
+      if (decadeBar) {
+        decadeBar.innerHTML = '';
+        const colors = ['bg-amber-400', 'bg-emerald-400', 'bg-sky-400', 'bg-pink-400', 'bg-purple-400', 'bg-teal-400', 'bg-indigo-400'];
+        decadeKeys.forEach((dec, idx) => {
+          const pct = total ? ((decadeMap[dec] / total) * 100).toFixed(1) : 0;
+          const segment = document.createElement('div');
+          segment.className = `h-full ${colors[idx % colors.length]} hover:brightness-125 transition cursor-pointer`;
+          segment.style.width = `${pct}%`;
+          segment.title = `${dec}: ${decadeMap[dec]} records (${pct}%) — Click to open Analytics`;
+          decadeBar.appendChild(segment);
+        });
+      }
     }
 
     /* =========================================================
@@ -3553,14 +3578,15 @@
       currentView = mode;
       const gridBtn = document.getElementById('viewGridBtn');
       const listBtn = document.getElementById('viewListBtn');
+      const analyticsBtn = document.getElementById('viewAnalyticsBtn');
 
-      if (mode === 'grid') {
-        gridBtn.className = "px-2.5 py-1.5 rounded text-xs bg-vinyl-700 text-brass-400 font-medium transition";
-        listBtn.className = "px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition";
-      } else {
-        listBtn.className = "px-2.5 py-1.5 rounded text-xs bg-vinyl-700 text-brass-400 font-medium transition";
-        gridBtn.className = "px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition";
-      }
+      const activeClasses = "px-2.5 py-1.5 rounded text-xs bg-vinyl-700 text-brass-400 font-medium transition flex items-center gap-1.5 shadow-sm";
+      const inactiveClasses = "px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5";
+
+      if (gridBtn) gridBtn.className = (mode === 'grid') ? activeClasses : inactiveClasses;
+      if (listBtn) listBtn.className = (mode === 'list') ? activeClasses : inactiveClasses;
+      if (analyticsBtn) analyticsBtn.className = (mode === 'analytics') ? activeClasses : inactiveClasses;
+
       renderRecords();
     }
 
@@ -3698,6 +3724,8 @@
 
       if (currentView === 'grid') {
         renderGridView(filtered, container);
+      } else if (currentView === 'analytics') {
+        renderAnalyticsView(filtered, container);
       } else {
         renderListView(filtered, container);
       }
@@ -3961,6 +3989,694 @@
           </table>
         </div>
       `;
+      container.innerHTML = html;
+    }
+
+    /* =========================================================
+       COLLECTION ANALYTICS & INTELLIGENCE DASHBOARD
+       ========================================================= */
+    function filterByDecade(decadeStr) {
+      if (!decadeStr || decadeStr === 'Unknown') return;
+      const decClean = decadeStr.replace('s', '');
+      const searchInput = document.getElementById('globalSearch');
+      if (searchInput) searchInput.value = decClean;
+      handleSearchFilterChange();
+      switchView('grid');
+      showToast(`Filtered catalogue for ${decadeStr} releases`, 'info');
+    }
+
+    function filterByGenre(genreStr) {
+      if (!genreStr) return;
+      const searchInput = document.getElementById('globalSearch');
+      if (searchInput) searchInput.value = genreStr;
+      handleSearchFilterChange();
+      switchView('grid');
+      showToast(`Filtered catalogue by genre: ${genreStr}`, 'info');
+    }
+
+    function filterByFormatTag(formatStr) {
+      const sel = document.getElementById('filterFormat');
+      if (sel) {
+        let matched = false;
+        for (let i = 0; i < sel.options.length; i++) {
+          if (sel.options[i].value.toLowerCase().includes(formatStr.toLowerCase()) || sel.options[i].text.toLowerCase().includes(formatStr.toLowerCase())) {
+            sel.selectedIndex = i;
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) {
+          const searchInput = document.getElementById('globalSearch');
+          if (searchInput) searchInput.value = formatStr;
+        }
+        handleSearchFilterChange();
+        switchView('grid');
+        showToast(`Filtered catalogue by format: ${formatStr}`, 'info');
+      }
+    }
+
+    function renderAnalyticsView(list, container) {
+      const sym = getCurrencySymbol();
+      const total = list.length;
+      if (total === 0) {
+        container.innerHTML = `
+          <div class="p-12 text-center bg-vinyl-900 rounded-2xl border border-vinyl-800">
+            <i class="fa-solid fa-chart-pie text-4xl text-slate-600 mb-3 block"></i>
+            <h3 class="text-lg font-bold text-white mb-1">No Data Available</h3>
+            <p class="text-sm text-slate-400 mb-4">No records match the active filters to generate analytics.</p>
+            <button onclick="resetFilters()" class="px-4 py-2 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-semibold rounded-lg text-xs">Reset All Filters</button>
+          </div>
+        `;
+        return;
+      }
+
+      // 1. Valuation Calculations
+      let totalMedian = 0;
+      let totalLow = 0;
+      let totalHigh = 0;
+      let valuedCount = 0;
+      let highestValueItem = null;
+      let maxVal = -1;
+
+      list.forEach(item => {
+        if (item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(item.estimatedValue) && Number(item.estimatedValue) > 0) {
+          const val = parseFloat(item.estimatedValue);
+          valuedCount++;
+          totalMedian += val;
+          const low = (item.priceLow && !isNaN(item.priceLow)) ? parseFloat(item.priceLow) : (val * 0.6);
+          const high = (item.priceHigh && !isNaN(item.priceHigh)) ? parseFloat(item.priceHigh) : (val * 1.5);
+          totalLow += low;
+          totalHigh += high;
+
+          if (val > maxVal) {
+            maxVal = val;
+            highestValueItem = item;
+          }
+        }
+      });
+
+      const avgVal = valuedCount > 0 ? (totalMedian / valuedCount).toFixed(2) : '0.00';
+      const valuedPct = Math.round((valuedCount / total) * 100);
+
+      // 2. Decades Calculations
+      const decadeMap = {};
+      let minYear = 9999;
+      let maxYear = 0;
+
+      list.forEach(r => {
+        if (r.year) {
+          const y = parseInt(r.year);
+          if (!isNaN(y) && y > 1900 && y < 2100) {
+            if (y < minYear) minYear = y;
+            if (y > maxYear) maxYear = y;
+            const dec = Math.floor(y / 10) * 10 + 's';
+            if (!decadeMap[dec]) decadeMap[dec] = { count: 0, val: 0 };
+            decadeMap[dec].count++;
+            decadeMap[dec].val += (parseFloat(r.estimatedValue) || 0);
+            return;
+          }
+        }
+        if (!decadeMap['Unknown']) decadeMap['Unknown'] = { count: 0, val: 0 };
+        decadeMap['Unknown'].count++;
+        decadeMap['Unknown'].val += (parseFloat(r.estimatedValue) || 0);
+      });
+
+      const sortedDecades = Object.keys(decadeMap).sort((a, b) => {
+        if (a === 'Unknown') return 1;
+        if (b === 'Unknown') return -1;
+        return a.localeCompare(b);
+      });
+
+      let maxDecadeCount = 1;
+      let topDecadeKey = '';
+      let topDecadeCount = 0;
+      sortedDecades.forEach(d => {
+        if (decadeMap[d].count > maxDecadeCount) maxDecadeCount = decadeMap[d].count;
+        if (d !== 'Unknown' && decadeMap[d].count > topDecadeCount) {
+          topDecadeCount = decadeMap[d].count;
+          topDecadeKey = d;
+        }
+      });
+
+      // 3. Condition Health Calculations
+      const gradeMap = { 'M': 0, 'NM': 0, 'VG+': 0, 'VG': 0, 'G+': 0, 'G': 0, 'F': 0, 'P': 0 };
+      const gradeWeights = { 'M': 8, 'NM': 7, 'VG+': 6, 'VG': 5, 'G+': 4, 'G': 3, 'F': 2, 'P': 1 };
+      let sumGradeWeight = 0;
+      let gradedItems = 0;
+
+      list.forEach(r => {
+        const g = r.mediaGrade || 'VG+';
+        if (gradeMap[g] !== undefined) {
+          gradeMap[g]++;
+          sumGradeWeight += (gradeWeights[g] || 6);
+          gradedItems++;
+        } else {
+          gradeMap['VG+']++;
+          sumGradeWeight += 6;
+          gradedItems++;
+        }
+      });
+
+      const avgGradeWeight = gradedItems > 0 ? Math.round(sumGradeWeight / gradedItems) : 6;
+      const reverseAvgGrade = Object.keys(gradeWeights).find(k => gradeWeights[k] === avgGradeWeight) || 'VG+';
+      const collectorCount = (gradeMap['M'] || 0) + (gradeMap['NM'] || 0) + (gradeMap['VG+'] || 0);
+      const collectorPct = Math.round((collectorCount / total) * 100);
+
+      // 4. Format Breakdown Calculations
+      const formatCategories = [
+        { key: '12" LP', label: '12" LP (Album)', icon: 'fa-solid fa-compact-disc', color: 'text-amber-400', barBg: 'bg-amber-400', count: 0, val: 0, matcher: r => (r.format || '').includes('LP') && !(r.format || '').includes('2x') && !(r.format || '').toLowerCase().includes('box') },
+        { key: '2xLP Gatefold', label: '2xLP Gatefold', icon: 'fa-solid fa-book-open', color: 'text-purple-400', barBg: 'bg-purple-400', count: 0, val: 0, matcher: r => (r.format || '').includes('2x') || (r.format || '').toLowerCase().includes('gatefold') },
+        { key: 'Box Set', label: 'Box Set', icon: 'fa-solid fa-box-archive', color: 'text-brass-400', barBg: 'bg-brass-400', count: 0, val: 0, matcher: r => (r.format || '').toLowerCase().includes('box') },
+        { key: '7" Single', label: '7" Single (45 RPM)', icon: 'fa-solid fa-circle-dot', color: 'text-emerald-400', barBg: 'bg-emerald-400', count: 0, val: 0, matcher: r => (r.format || '').includes('7"') || (r.format || '').toLowerCase().includes('single') },
+        { key: '12" Maxi / EP', label: '12" Maxi / EP', icon: 'fa-solid fa-record-vinyl', color: 'text-sky-400', barBg: 'bg-sky-400', count: 0, val: 0, matcher: r => (r.format || '').toLowerCase().includes('maxi') || (r.format || '').toLowerCase().includes('ep') },
+        { key: '10" Vinyl', label: '10" Vinyl', icon: 'fa-solid fa-circle', color: 'text-pink-400', barBg: 'bg-pink-400', count: 0, val: 0, matcher: r => (r.format || '').includes('10"') },
+        { key: 'Other', label: 'Other Formats', icon: 'fa-solid fa-compact-disc', color: 'text-slate-400', barBg: 'bg-slate-400', count: 0, val: 0, matcher: () => true }
+      ];
+
+      list.forEach(r => {
+        const val = parseFloat(r.estimatedValue) || 0;
+        let matched = false;
+        for (let i = 0; i < formatCategories.length - 1; i++) {
+          if (formatCategories[i].matcher(r)) {
+            formatCategories[i].count++;
+            formatCategories[i].val += val;
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) {
+          formatCategories[formatCategories.length - 1].count++;
+          formatCategories[formatCategories.length - 1].val += val;
+        }
+      });
+
+      const activeFormats = formatCategories.filter(f => f.count > 0);
+
+      // 5. Digital Preservation / FLAC Status
+      const digitizedCount = list.filter(r => r.transferStatus && r.transferStatus !== 'Not Digitized' && r.transferStatus !== 'Pending').length;
+      const digitizedPct = Math.round((digitizedCount / total) * 100);
+
+      // 6. Top 5 Most Valuable Gems
+      const rankedGems = [...list]
+        .filter(r => r.estimatedValue && !isNaN(r.estimatedValue) && Number(r.estimatedValue) > 0)
+        .sort((a, b) => parseFloat(b.estimatedValue) - parseFloat(a.estimatedValue))
+        .slice(0, 5);
+
+      // 7. Top Genres
+      const genreCounts = {};
+      list.forEach(r => {
+        if (r.genres) {
+          const parts = r.genres.split(/[,/]/).map(s => s.trim()).filter(Boolean);
+          parts.forEach(p => {
+            const clean = p.charAt(0).toUpperCase() + p.slice(1);
+            genreCounts[clean] = (genreCounts[clean] || 0) + 1;
+          });
+        }
+      });
+      const topGenres = Object.entries(genreCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6);
+
+      // 8. Top Labels
+      const labelCounts = {};
+      list.forEach(r => {
+        if (r.label) {
+          const clean = r.label.split('/')[0].trim();
+          if (clean) {
+            labelCounts[clean] = (labelCounts[clean] || 0) + 1;
+          }
+        }
+      });
+      const topLabels = Object.entries(labelCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6);
+
+      // Decade Color Palette
+      const decadeColors = [
+        { bar: 'from-amber-500 to-amber-400', badge: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
+        { bar: 'from-emerald-500 to-teal-400', badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
+        { bar: 'from-sky-500 to-cyan-400', badge: 'bg-sky-500/20 text-sky-300 border-sky-500/30' },
+        { bar: 'from-pink-500 to-rose-400', badge: 'bg-pink-500/20 text-pink-300 border-pink-500/30' },
+        { bar: 'from-purple-500 to-indigo-400', badge: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
+        { bar: 'from-brass-500 to-yellow-400', badge: 'bg-brass-500/20 text-brass-300 border-brass-500/30' },
+        { bar: 'from-blue-500 to-indigo-500', badge: 'bg-blue-500/20 text-blue-300 border-blue-500/30' },
+        { bar: 'from-slate-600 to-slate-400', badge: 'bg-slate-700 text-slate-300 border-slate-600' }
+      ];
+
+      // Assemble HTML
+      let html = `
+        <div class="space-y-6 animate-fadeIn">
+          
+          <!-- ANALYTICS TOP HERO BANNER -->
+          <div class="bg-gradient-to-r from-vinyl-900 via-vinyl-850 to-vinyl-900 p-6 rounded-2xl border border-vinyl-750 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+              <div class="w-14 h-14 rounded-2xl bg-brass-500/10 border border-brass-500/30 flex items-center justify-center text-brass-400 shadow-inner">
+                <i class="fa-solid fa-chart-pie text-2xl"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="text-xl font-bold text-white tracking-tight">Collection Intelligence & Archival Analytics</h2>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-brass-500/20 text-brass-400 border border-brass-500/30 uppercase">Live Telemetry</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5">
+                  Analyzing <strong class="text-white">${total}</strong> ${total === 1 ? 'record' : 'records'} in active view
+                  ${list.length !== records.length ? `<span class="text-amber-400 font-semibold ml-1">(Filtered from ${records.length} total)</span> · <button onclick="resetFilters()" class="text-brass-400 underline hover:text-brass-300">Reset to all records</button>` : '· Full crate archive'}
+                </p>
+              </div>
+            </div>
+
+            <!-- Quick Jump View Controls -->
+            <div class="flex items-center gap-2 self-stretch md:self-auto justify-end">
+              <button onclick="switchView('grid')" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 text-xs font-medium border border-vinyl-700 transition flex items-center gap-1.5" title="Switch to Sleeve Gallery View">
+                <i class="fa-solid fa-grip text-sky-400"></i> Gallery
+              </button>
+              <button onclick="switchView('list')" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 text-xs font-medium border border-vinyl-700 transition flex items-center gap-1.5" title="Switch to Archival Table">
+                <i class="fa-solid fa-table-list text-amber-400"></i> Table
+              </button>
+              <button onclick="openAutoValuateModal()" class="px-3 py-1.5 rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 text-xs font-bold transition flex items-center gap-1.5 shadow" title="Refresh Live Pricing">
+                <i class="fa-solid fa-coins"></i> Valuate Archive
+              </button>
+            </div>
+          </div>
+
+          <!-- TOP 4 KPI CARDS -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <!-- KPI 1: Valuation Spread -->
+            <div class="bg-vinyl-900/90 p-5 rounded-2xl border border-vinyl-800 hover:border-brass-500/40 transition shadow-lg flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">
+                  <span class="flex items-center gap-1.5"><i class="fa-solid fa-scale-balanced text-brass-400"></i> Archive Valuation</span>
+                  <span class="text-[10px] text-emerald-400 font-mono">${valuedPct}% Priced</span>
+                </div>
+                <div class="text-2xl font-black font-mono text-brass-400">
+                  ${sym}${totalMedian.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div class="text-[11px] text-slate-400 mt-1">
+                  Median market estimate (${valuedCount} of ${total} records)
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t border-vinyl-800/80 flex items-center justify-between text-[11px] font-mono">
+                <span class="text-slate-400">Low: <strong class="text-slate-200">${sym}${Math.round(totalLow).toLocaleString()}</strong></span>
+                <span class="text-slate-500">|</span>
+                <span class="text-slate-400">High: <strong class="text-emerald-300">${sym}${Math.round(totalHigh).toLocaleString()}</strong></span>
+              </div>
+            </div>
+
+            <!-- KPI 2: Average & Peak Gems -->
+            <div class="bg-vinyl-900/90 p-5 rounded-2xl border border-vinyl-800 hover:border-sky-500/40 transition shadow-lg flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">
+                  <span class="flex items-center gap-1.5"><i class="fa-solid fa-gem text-sky-400"></i> Median Item Value</span>
+                  <span class="text-[10px] text-sky-300 font-mono">Per Record</span>
+                </div>
+                <div class="text-2xl font-black font-mono text-white">
+                  ${sym}${avgVal}
+                </div>
+                <div class="text-[11px] text-slate-400 mt-1 truncate">
+                  ${highestValueItem ? `Peak: <strong class="text-brass-300">${escapeHtml(highestValueItem.artist)}</strong> (${sym}${parseFloat(highestValueItem.estimatedValue).toFixed(2)})` : 'No priced records yet'}
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t border-vinyl-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                <span>Priced Items: <strong class="text-white">${valuedCount}</strong></span>
+                <span>Unvalued: <strong class="text-amber-400/80">${total - valuedCount}</strong></span>
+              </div>
+            </div>
+
+            <!-- KPI 3: Goldmine Health Index -->
+            <div class="bg-vinyl-900/90 p-5 rounded-2xl border border-vinyl-800 hover:border-emerald-500/40 transition shadow-lg flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">
+                  <span class="flex items-center gap-1.5"><i class="fa-solid fa-heart-pulse text-emerald-400"></i> Condition Quality</span>
+                  <span class="text-[10px] text-emerald-400 font-mono font-bold">${reverseAvgGrade} Avg</span>
+                </div>
+                <div class="text-2xl font-black font-mono text-emerald-400">
+                  ${collectorPct}%
+                </div>
+                <div class="text-[11px] text-slate-400 mt-1">
+                  Collector condition (<strong class="text-white">${collectorCount}</strong> copies VG+ or higher)
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t border-vinyl-800/80 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                <span>Mint/NM: <strong class="text-emerald-300">${(gradeMap['M'] || 0) + (gradeMap['NM'] || 0)}</strong></span>
+                <span>VG: <strong class="text-amber-300">${gradeMap['VG'] || 0}</strong></span>
+                <span>Below VG: <strong class="text-rose-400">${(gradeMap['G+'] || 0) + (gradeMap['G'] || 0) + (gradeMap['F'] || 0) + (gradeMap['P'] || 0)}</strong></span>
+              </div>
+            </div>
+
+            <!-- KPI 4: Archival Transfer Preservation -->
+            <div class="bg-vinyl-900/90 p-5 rounded-2xl border border-vinyl-800 hover:border-purple-500/40 transition shadow-lg flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">
+                  <span class="flex items-center gap-1.5"><i class="fa-solid fa-wave-square text-purple-400"></i> FLAC Digitized</span>
+                  <span class="text-[10px] text-purple-300 font-mono">24/96 Studio</span>
+                </div>
+                <div class="text-2xl font-black font-mono text-purple-400">
+                  ${digitizedPct}%
+                </div>
+                <div class="text-[11px] text-slate-400 mt-1">
+                  <strong class="text-white">${digitizedCount}</strong> of ${total} records audio-archived
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t border-vinyl-800/80 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                <span>Preserved: <strong class="text-purple-300">${digitizedCount}</strong></span>
+                <span>Pending Rip: <strong class="text-slate-400">${total - digitizedCount}</strong></span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- MAIN 2-COLUMN SECTION: DECADES HISTOGRAM & FORMAT BREAKDOWN -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- DECADES DISTRIBUTION DEEP-DIVE (2 Columns Wide) -->
+            <div class="lg:col-span-2 bg-vinyl-900 rounded-2xl border border-vinyl-800 p-6 shadow-xl flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                      <i class="fa-solid fa-chart-column text-amber-400"></i> Decades Distribution & Chronological Span
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5">
+                      Span: <strong class="text-slate-200">${minYear !== 9999 ? minYear : 'Unknown'} — ${maxYear !== 0 ? maxYear : 'Unknown'}</strong> · Click any decade row to filter crate
+                    </p>
+                  </div>
+                  <span class="text-xs text-slate-400 font-mono hidden sm:inline">
+                    Dominant: <strong class="text-brass-400">${topDecadeKey || 'N/A'}</strong> (${topDecadeCount} LPs)
+                  </span>
+                </div>
+
+                <!-- Decades Histogram List -->
+                <div class="space-y-3.5 mt-2">
+                  ${sortedDecades.map((dec, idx) => {
+                    const data = decadeMap[dec];
+                    const pctOfTotal = total ? ((data.count / total) * 100).toFixed(1) : '0';
+                    const barWidth = ((data.count / maxDecadeCount) * 100).toFixed(1);
+                    const pal = decadeColors[idx % decadeColors.length];
+                    const isTop = (dec === topDecadeKey);
+
+                    return `
+                      <div onclick="filterByDecade('${dec}')" class="group p-2.5 rounded-xl bg-vinyl-950/60 hover:bg-vinyl-800/80 border border-vinyl-800/60 hover:border-brass-500/50 cursor-pointer transition flex flex-col gap-1.5 shadow-sm" title="Click to view all ${dec} releases">
+                        <div class="flex items-center justify-between text-xs">
+                          <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded font-mono font-bold text-[11px] border ${pal.badge} ${isTop ? 'ring-1 ring-brass-400' : ''}">
+                              ${dec}
+                            </span>
+                            <span class="text-slate-300 font-medium group-hover:text-brass-300 transition">
+                              ${data.count} ${data.count === 1 ? 'record' : 'records'}
+                            </span>
+                            <span class="text-slate-500 font-mono text-[10px]">(${pctOfTotal}%)</span>
+                          </div>
+                          <div class="flex items-center gap-3">
+                            <span class="font-mono text-slate-400 text-xs">
+                              Est: <strong class="text-slate-200">${sym}${data.val.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                            </span>
+                            <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 group-hover:text-brass-400 group-hover:translate-x-1 transition-all"></i>
+                          </div>
+                        </div>
+
+                        <!-- Progress Bar Track -->
+                        <div class="w-full bg-vinyl-800/80 h-3 rounded-full overflow-hidden p-0.5">
+                          <div class="h-full rounded-full bg-gradient-to-r ${pal.bar} transition-all duration-700 shadow-sm" style="width: ${barWidth}%"></div>
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+
+              <!-- Footer Tip -->
+              <div class="mt-5 pt-3 border-t border-vinyl-800/60 flex items-center justify-between text-[11px] text-slate-500">
+                <span><i class="fa-solid fa-lightbulb text-amber-400 mr-1"></i> Tip: Select any era to open Gallery filtered to that decade.</span>
+                <span class="font-mono text-slate-400">${sortedDecades.length} Distinct Eras</span>
+              </div>
+            </div>
+
+            <!-- FORMAT & PACKAGING BREAKDOWN (1 Column Wide) -->
+            <div class="bg-vinyl-900 rounded-2xl border border-vinyl-800 p-6 shadow-xl flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                      <i class="fa-solid fa-layer-group text-sky-400"></i> Format Spectrum
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Physical vinyl disc configurations</p>
+                  </div>
+                </div>
+
+                <!-- Format Stacked Bar -->
+                <div class="w-full bg-vinyl-800 h-3.5 rounded-full overflow-hidden flex shadow-inner mb-5">
+                  ${activeFormats.map(fmt => {
+                    const pct = total ? ((fmt.count / total) * 100).toFixed(1) : 0;
+                    return `<div class="h-full ${fmt.barBg} hover:opacity-80 transition" style="width: ${pct}%" title="${fmt.label}: ${fmt.count} (${pct}%)"></div>`;
+                  }).join('')}
+                </div>
+
+                <!-- Format Category List -->
+                <div class="space-y-2.5">
+                  ${activeFormats.map(fmt => {
+                    const pct = total ? ((fmt.count / total) * 100).toFixed(1) : '0';
+                    return `
+                      <div onclick="filterByFormatTag('${fmt.key}')" class="group p-2.5 rounded-xl bg-vinyl-950/60 hover:bg-vinyl-800/70 border border-vinyl-800/50 hover:border-sky-500/50 cursor-pointer transition flex items-center justify-between text-xs" title="Click to filter by ${fmt.label}">
+                        <div class="flex items-center gap-2.5">
+                          <i class="${fmt.icon} ${fmt.color} text-sm w-4 text-center"></i>
+                          <div>
+                            <div class="font-medium text-slate-200 group-hover:text-white transition">${fmt.label}</div>
+                            <div class="text-[10px] text-slate-500 font-mono">${fmt.count} copies · ${pct}%</div>
+                          </div>
+                        </div>
+                        <div class="text-right">
+                          <div class="font-mono font-bold text-slate-300">${sym}${fmt.val.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+                          <div class="text-[10px] text-slate-500">Valuation</div>
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+
+              <!-- Footer Tip -->
+              <div class="mt-4 pt-3 border-t border-vinyl-800/60 text-[11px] text-slate-500 flex items-center justify-between">
+                <span>Includes 12" LPs, Singles & Box Sets</span>
+                <i class="fa-solid fa-record-vinyl text-slate-600"></i>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- CONDITION GRADING SPECTRUM & AUDIO TRANSFER PRESERVATION -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- CONDITION HEALTH SPECTRUM -->
+            <div class="bg-vinyl-900 rounded-2xl border border-vinyl-800 p-6 shadow-xl flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                      <i class="fa-solid fa-gem text-emerald-400"></i> Goldmine Condition Health Index
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Media playback quality distribution across archive</p>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    ${collectorPct}% Collector Grade
+                  </span>
+                </div>
+
+                <!-- Condition Stacked Visual Bar -->
+                <div class="w-full bg-vinyl-800 h-3 rounded-full overflow-hidden flex shadow-inner my-4">
+                  <div class="bg-emerald-400 h-full" style="width: ${total ? ((gradeMap['M'] / total) * 100) : 0}%" title="Mint: ${gradeMap['M']}"></div>
+                  <div class="bg-teal-400 h-full" style="width: ${total ? ((gradeMap['NM'] / total) * 100) : 0}%" title="Near Mint: ${gradeMap['NM']}"></div>
+                  <div class="bg-blue-400 h-full" style="width: ${total ? ((gradeMap['VG+'] / total) * 100) : 0}%" title="VG+: ${gradeMap['VG+']}"></div>
+                  <div class="bg-amber-400 h-full" style="width: ${total ? ((gradeMap['VG'] / total) * 100) : 0}%" title="VG: ${gradeMap['VG']}"></div>
+                  <div class="bg-orange-400 h-full" style="width: ${total ? ((gradeMap['G+'] / total) * 100) : 0}%" title="G+: ${gradeMap['G+']}"></div>
+                  <div class="bg-rose-500 h-full" style="width: ${total ? (((gradeMap['G'] + gradeMap['F'] + gradeMap['P']) / total) * 100) : 0}%" title="G/F/P: ${gradeMap['G'] + gradeMap['F'] + gradeMap['P']}"></div>
+                </div>
+
+                <!-- Condition Table Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                  <div class="p-2.5 rounded-xl bg-vinyl-950/60 border border-vinyl-800/60">
+                    <div class="flex items-center justify-between">
+                      <span class="font-bold text-emerald-300">Mint (M)</span>
+                      <span class="font-mono text-slate-400">${gradeMap['M'] || 0}</span>
+                    </div>
+                    <div class="text-[10px] text-slate-500 mt-1">Perfect, unplayed</div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-vinyl-950/60 border border-vinyl-800/60">
+                    <div class="flex items-center justify-between">
+                      <span class="font-bold text-teal-300">Near Mint (NM)</span>
+                      <span class="font-mono text-slate-400">${gradeMap['NM'] || 0}</span>
+                    </div>
+                    <div class="text-[10px] text-slate-500 mt-1">Flawless, quiet vinyl</div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-vinyl-950/60 border border-vinyl-800/60">
+                    <div class="flex items-center justify-between">
+                      <span class="font-bold text-blue-300">VG+</span>
+                      <span class="font-mono text-slate-400">${gradeMap['VG+'] || 0}</span>
+                    </div>
+                    <div class="text-[10px] text-slate-500 mt-1">Excellent playback</div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-vinyl-950/60 border border-vinyl-800/60">
+                    <div class="flex items-center justify-between">
+                      <span class="font-bold text-amber-300">VG</span>
+                      <span class="font-mono text-slate-400">${gradeMap['VG'] || 0}</span>
+                    </div>
+                    <div class="text-[10px] text-slate-500 mt-1">Minor surface noise</div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-vinyl-950/60 border border-vinyl-800/60">
+                    <div class="flex items-center justify-between">
+                      <span class="font-bold text-orange-400">Good Plus (G+)</span>
+                      <span class="font-mono text-slate-400">${gradeMap['G+'] || 0}</span>
+                    </div>
+                    <div class="text-[10px] text-slate-500 mt-1">Noticeable wear</div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-vinyl-950/60 border border-vinyl-800/60">
+                    <div class="flex items-center justify-between">
+                      <span class="font-bold text-rose-400">G / Fair / Poor</span>
+                      <span class="font-mono text-slate-400">${(gradeMap['G'] || 0) + (gradeMap['F'] || 0) + (gradeMap['P'] || 0)}</span>
+                    </div>
+                    <div class="text-[10px] text-slate-500 mt-1">Heavy play wear</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 pt-3 border-t border-vinyl-800/60 flex items-center justify-between text-[11px] text-slate-500">
+                <span>Standard Goldmine Grading System</span>
+                <span class="text-emerald-400 font-semibold">${collectorCount} of ${total} Collector Grade</span>
+              </div>
+            </div>
+
+            <!-- MUSICAL LANDSCAPE (GENRES & LABELS) -->
+            <div class="bg-vinyl-900 rounded-2xl border border-vinyl-800 p-6 shadow-xl flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                      <i class="fa-solid fa-music text-purple-400"></i> Top Genres & Record Labels
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Musical styles and pressing houses</p>
+                  </div>
+                </div>
+
+                <!-- Two side-by-side sub-sections -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                  
+                  <!-- Top Genres -->
+                  <div>
+                    <div class="text-[11px] uppercase tracking-wider font-semibold text-slate-400 mb-2 flex items-center gap-1.5">
+                      <i class="fa-solid fa-guitar text-pink-400 text-xs"></i> Key Genres
+                    </div>
+                    <div class="space-y-1.5">
+                      ${topGenres.length > 0 ? topGenres.map(([genre, count]) => `
+                        <div onclick="filterByGenre('${genre}')" class="group flex items-center justify-between p-2 rounded-lg bg-vinyl-950/60 hover:bg-vinyl-800/70 border border-vinyl-800/50 cursor-pointer transition text-xs">
+                          <span class="text-slate-300 group-hover:text-brass-300 font-medium truncate">${genre}</span>
+                          <span class="font-mono text-[11px] text-slate-400 bg-vinyl-800 px-1.5 py-0.5 rounded">${count}</span>
+                        </div>
+                      `).join('') : '<div class="text-xs text-slate-500 italic p-3">No genre tags recorded yet.</div>'}
+                    </div>
+                  </div>
+
+                  <!-- Top Record Labels -->
+                  <div>
+                    <div class="text-[11px] uppercase tracking-wider font-semibold text-slate-400 mb-2 flex items-center gap-1.5">
+                      <i class="fa-solid fa-building text-sky-400 text-xs"></i> Pressing Houses
+                    </div>
+                    <div class="space-y-1.5">
+                      ${topLabels.length > 0 ? topLabels.map(([label, count]) => `
+                        <div class="flex items-center justify-between p-2 rounded-lg bg-vinyl-950/60 border border-vinyl-800/50 text-xs">
+                          <span class="text-slate-300 font-medium truncate" title="${label}">${label}</span>
+                          <span class="font-mono text-[11px] text-slate-400 bg-vinyl-800 px-1.5 py-0.5 rounded">${count}</span>
+                        </div>
+                      `).join('') : '<div class="text-xs text-slate-500 italic p-3">No labels recorded yet.</div>'}
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <div class="mt-4 pt-3 border-t border-vinyl-800/60 flex items-center justify-between text-[11px] text-slate-500">
+                <span>Click any genre tag to inspect releases in the crate</span>
+                <i class="fa-solid fa-sliders text-slate-600"></i>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- TOP 5 MOST VALUABLE RELEASES IN CRATE ("CRATE GEMS") -->
+          <div class="bg-vinyl-900 rounded-2xl border border-vinyl-800 p-6 shadow-xl">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                  <i class="fa-solid fa-trophy text-brass-400"></i> Top 5 Most Valuable Crate Gems
+                </h3>
+                <p class="text-xs text-slate-400 mt-0.5">Highest market valuation releases in active collection</p>
+              </div>
+              <span class="text-xs text-slate-400 font-mono hidden sm:inline">Discogs & eBay Market Median</span>
+            </div>
+
+            ${rankedGems.length > 0 ? `
+              <div class="grid grid-cols-1 md:grid-cols-5 gap-3.5">
+                ${rankedGems.map((gem, index) => {
+                  const rankBadges = ['bg-amber-500/20 text-amber-300 border-amber-500/40', 'bg-slate-500/20 text-slate-300 border-slate-500/40', 'bg-amber-700/20 text-amber-500 border-amber-700/40', 'bg-vinyl-800 text-slate-400 border-vinyl-700', 'bg-vinyl-800 text-slate-400 border-vinyl-700'];
+                  const coverSrc = gem.coverImage || getDefaultCover(gem.format, gem.artist, gem.title);
+                  const val = parseFloat(gem.estimatedValue) || 0;
+                  const low = (gem.priceLow && !isNaN(gem.priceLow)) ? parseFloat(gem.priceLow) : (val * 0.6);
+                  const high = (gem.priceHigh && !isNaN(gem.priceHigh)) ? parseFloat(gem.priceHigh) : (val * 1.5);
+
+                  return `
+                    <div onclick="viewRecordDetail('${gem.id}')" class="group bg-vinyl-950/70 hover:bg-vinyl-800/80 rounded-xl border border-vinyl-800 hover:border-brass-500/50 p-3 flex flex-col justify-between cursor-pointer transition shadow hover:shadow-xl relative overflow-hidden" title="Click to view dossier for ${escapeHtml(gem.title)}">
+                      
+                      <!-- Rank Pill -->
+                      <div class="flex items-center justify-between mb-2">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black border ${rankBadges[index]}">
+                          #${index + 1} GEM
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-mono">${gem.year || '----'}</span>
+                      </div>
+
+                      <!-- Sleeve Artwork -->
+                      <div class="w-full aspect-square rounded-lg bg-vinyl-900 overflow-hidden mb-2 relative">
+                        <img src="${coverSrc}" alt="${escapeHtml(gem.title)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.onerror=null; this.src=getDefaultCover('${encodeURIComponent(gem.format || '')}', '${encodeURIComponent(gem.artist || '')}', '${encodeURIComponent(gem.title || '')}', true)">
+                        <div class="absolute bottom-1 right-1">
+                          ${getGradeBadge(gem.mediaGrade || 'VG+')}
+                        </div>
+                      </div>
+
+                      <!-- Title & Artist -->
+                      <div class="flex-1">
+                        <div class="font-bold text-white text-xs truncate group-hover:text-brass-300 transition" title="${escapeHtml(gem.title)}">
+                          ${gem.title}
+                        </div>
+                        <div class="text-slate-400 text-[11px] truncate" title="${escapeHtml(gem.artist)}">
+                          ${gem.artist}
+                        </div>
+                      </div>
+
+                      <!-- Value Badge -->
+                      <div class="mt-2.5 pt-2 border-t border-vinyl-800 flex flex-col">
+                        <div class="text-sm font-black font-mono text-brass-400">
+                          ${sym}${val.toFixed(2)}
+                        </div>
+                        <div class="text-[9px] text-slate-500 font-mono flex items-center justify-between">
+                          <span>${sym}${Math.round(low)}</span>
+                          <span class="text-slate-600">to</span>
+                          <span>${sym}${Math.round(high)}</span>
+                        </div>
+                      </div>
+
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            ` : `
+              <div class="p-6 text-center text-slate-400 text-xs italic bg-vinyl-950/50 rounded-xl border border-vinyl-800">
+                No valued items available in current filter. Use "Valuate Archive" to estimate record values.
+              </div>
+            `}
+          </div>
+
+        </div>
+      `;
+
       container.innerHTML = html;
     }
 
