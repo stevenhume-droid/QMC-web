@@ -2308,9 +2308,11 @@
       }
 
       const isSingle = format && format.includes('7"');
+      const is10Inch = format && format.includes('10"');
+      const is12Single = format && (format.toLowerCase().includes('maxi') || (format.includes('12"') && format.toLowerCase().includes('single')));
       const isBoxSet = format && format.toLowerCase().includes('box');
       const cleanArtist = escapeXml((artist || 'QUEENSFERRY ARCHIVE').trim());
-      const cleanTitle = escapeXml((title || (isSingle ? '7" SINGLE PRESSING' : (isBoxSet ? 'ARCHIVAL VINYL BOX SET' : '12" LP ALBUM'))).trim());
+      const cleanTitle = escapeXml((title || (isSingle ? '7" SINGLE PRESSING' : (isBoxSet ? 'ARCHIVAL VINYL BOX SET' : (is10Inch ? '10" VINYL PRESSING' : (is12Single ? '12" SINGLE / MAXI' : '12" LP ALBUM'))))).trim());
 
       let svg = '';
 
@@ -2494,11 +2496,11 @@
           <text x="250" y="168" text-anchor="middle" fill="#2d2203" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="900" letter-spacing="2">QUEENSFERRY ARCHIVE</text>
           <text x="250" y="196" text-anchor="middle" fill="#17120e" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="900">${cleanArtist.substring(0, 26)}</text>
           <text x="250" y="215" text-anchor="middle" fill="#382a04" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="800">${cleanTitle.substring(0, 30)}</text>
-          <text x="250" y="324" text-anchor="middle" fill="#2d2203" font-family="monospace" font-size="11" font-weight="800" letter-spacing="1.5">33⅓ RPM · LP STEREO</text>
+          <text x="250" y="324" text-anchor="middle" fill="#2d2203" font-family="monospace" font-size="11" font-weight="800" letter-spacing="1.5">${is10Inch ? '10" VINYL · STEREO' : (is12Single ? '45 RPM · 12" SINGLE' : '33⅓ RPM · LP STEREO')}</text>
           
           <!-- Upper Header Line -->
           <text x="24" y="25" fill="#94a3b8" font-family="monospace" font-size="10" font-weight="700" letter-spacing="1">QMC ARCHIVAL PRESSING</text>
-          <text x="476" y="25" text-anchor="end" fill="#d4af37" font-family="monospace" font-size="10" font-weight="700">12" LONG PLAY</text>
+          <text x="476" y="25" text-anchor="end" fill="#d4af37" font-family="monospace" font-size="10" font-weight="700">${is10Inch ? '10" VINYL' : (is12Single ? '12" MAXI / SINGLE' : '12" LONG PLAY')}</text>
         </svg>`;
       }
 
@@ -4229,7 +4231,23 @@
           const ranks = { 'M': 8, 'NM': 7, 'VG+': 6, 'VG': 5, 'G+': 4, 'G': 3, 'F': 2, 'P': 1 };
           return (ranks[b.mediaGrade] || 0) - (ranks[a.mediaGrade] || 0);
         }
-        if (sortBy === 'formatAsc') return (a.format || '').localeCompare(b.format || '');
+        if (sortBy === 'formatAsc') {
+          const getFormatRank = (fmt = '') => {
+            const f = fmt.toLowerCase();
+            if (f.includes('12" lp') || (f.includes('lp') && !f.includes('2x') && !f.includes('box') && !f.includes('10"'))) return 1;
+            if (f.includes('2x') || f.includes('gatefold')) return 2;
+            if (f.includes('box')) return 3;
+            if (f.includes('maxi') || (f.includes('12"') && (f.includes('single') || f.includes('ep')))) return 4;
+            if (f.includes('10"')) return 5;
+            if (f.includes('7"') || f.includes('single')) return 6;
+            if (f.includes('cassette') || f.includes('tape')) return 7;
+            if (f.includes('minidisc')) return 8;
+            return 9;
+          };
+          const rankDiff = getFormatRank(a.format) - getFormatRank(b.format);
+          if (rankDiff !== 0) return rankDiff;
+          return (a.artist || '').localeCompare(b.artist || '');
+        }
         return 0;
       });
 
@@ -4364,18 +4382,31 @@
 
     function getFormatBadge(format) {
       const fmt = format || '12" LP (Album)';
+      const fLow = fmt.toLowerCase();
       let cls = 'bg-amber-500/20 text-amber-400 border-amber-500/30';
       let icon = 'fa-compact-disc';
 
-      if (fmt.toLowerCase().includes('box')) {
+      if (fLow.includes('box')) {
         cls = 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
         icon = 'fa-box-archive';
+      } else if (fmt.includes('10"')) {
+        cls = 'bg-pink-500/20 text-pink-300 border-pink-500/30';
+        icon = 'fa-record-vinyl';
       } else if (fmt.includes('7"')) {
         cls = 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
         icon = 'fa-record-vinyl';
-      } else if (fmt.includes('Maxi') || fmt.includes('12" Single')) {
+      } else if (fLow.includes('maxi') || (fmt.includes('12"') && (fLow.includes('single') || fLow.includes('ep')))) {
         cls = 'bg-purple-500/20 text-purple-300 border-purple-500/30';
         icon = 'fa-circle-dot';
+      } else if (fLow.includes('cassette') || fLow.includes('tape')) {
+        cls = 'bg-teal-500/20 text-teal-300 border-teal-500/30';
+        icon = 'fa-tape';
+      } else if (fLow.includes('minidisc')) {
+        cls = 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/30';
+        icon = 'fa-floppy-disk';
+      } else if (fLow.includes('cd')) {
+        cls = 'bg-sky-500/20 text-sky-300 border-sky-500/30';
+        icon = 'fa-compact-disc';
       }
 
       return `<span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono border ${cls} flex items-center gap-1">
@@ -4414,10 +4445,17 @@
       const terms = getCleanSearchTerms(item.artist, item.title);
       const q = (terms.artist ? `${terms.artist} ${item.catNo || terms.title}` : (item.catNo || terms.title)).trim();
       let url = `https://www.discogs.com/search/?q=${encodeURIComponent(q)}&type=release`;
-      const is7Inch = (item.format || '').includes('7"') || (item.format || '').toLowerCase().includes('single');
-      const isBox = (item.format || '').toLowerCase().includes('box');
-      const isLP = (item.format || '').includes('LP') && !is7Inch;
-      if (is7Inch) {
+      const fLow = (item.format || '').toLowerCase();
+      const is10Inch = fLow.includes('10"');
+      const is12Single = fLow.includes('maxi') || (fLow.includes('12"') && (fLow.includes('single') || fLow.includes('ep')));
+      const is7Inch = fLow.includes('7"') || (fLow.includes('single') && !fLow.includes('12"') && !is10Inch);
+      const isBox = fLow.includes('box');
+      const isLP = fLow.includes('lp') && !is7Inch && !is10Inch && !is12Single;
+      if (is10Inch) {
+        url += `&format_exact=10%22`;
+      } else if (is12Single) {
+        url += `&format_exact=12%22`;
+      } else if (is7Inch) {
         url += `&format_exact=7%22`;
       } else if (isBox) {
         url += `&format_exact=Box+Set`;
@@ -5915,6 +5953,8 @@
       const fmtEl = document.getElementById('formFormat');
       const format = fmtEl ? fmtEl.value : '12" LP (Album)';
       const isSingle = format.includes('7"');
+      const is10Inch = format.includes('10"');
+      const is12Single = format.toLowerCase().includes('maxi') || (format.includes('12"') && format.toLowerCase().includes('single'));
       const isBoxSet = format.toLowerCase().includes('box');
       const singleContainer = document.getElementById('tracksSingleContainer');
       const albumContainer = document.getElementById('tracksAlbumContainer');
@@ -5928,6 +5968,18 @@
         if (speedSelect) speedSelect.value = '45 RPM';
         if (centerHole) centerHole.value = 'Solid (Small 0.28 inch)';
         if (hintText) hintText.innerText = '7-inch single pressing with dual A/B track architecture.';
+      } else if (is10Inch) {
+        if (singleContainer) singleContainer.classList.add('hidden');
+        if (albumContainer) albumContainer.classList.remove('hidden');
+        if (speedSelect) speedSelect.value = '45 RPM';
+        if (centerHole) centerHole.value = 'Solid (Small 0.28 inch)';
+        if (hintText) hintText.innerText = '10-inch vinyl pressing (EP, mini-album, or 10" single).';
+      } else if (is12Single) {
+        if (singleContainer) singleContainer.classList.add('hidden');
+        if (albumContainer) albumContainer.classList.remove('hidden');
+        if (speedSelect) speedSelect.value = '45 RPM';
+        if (centerHole) centerHole.value = 'Solid (Small 0.28 inch)';
+        if (hintText) hintText.innerText = '12-inch maxi / single pressing (45 or 33⅓ RPM extended mixes & B-sides).';
       } else if (isBoxSet) {
         if (singleContainer) singleContainer.classList.add('hidden');
         if (albumContainer) albumContainer.classList.remove('hidden');
@@ -5940,6 +5992,9 @@
         if (speedSelect) speedSelect.value = '33 1/3 RPM';
         if (centerHole) centerHole.value = 'Solid (Small 0.28 inch)';
         if (hintText) hintText.innerText = '12-inch 33⅓ RPM long-playing album with multi-track layout.';
+      }
+      if (typeof refreshDefaultLabelPlaceholders === 'function') {
+        refreshDefaultLabelPlaceholders();
       }
     }
 
@@ -7554,12 +7609,12 @@
         const relTitle = (fullRelease.title || '').toLowerCase();
         if (formatName.includes('box') || relTitle.includes('box set') || (fullRelease.media.length >= 3)) {
           assignedFormat = 'Box Set (Vinyl / Multi-Disc)';
+        } else if (formatName.includes('10"')) {
+          assignedFormat = '10" Vinyl';
         } else if (formatName.includes('7"')) {
           assignedFormat = '7" Single (45 RPM)';
         } else if (fullRelease.media.length >= 2) {
           assignedFormat = '2xLP Gatefold (Album)';
-        } else if (formatName.includes('10"')) {
-          assignedFormat = '10" Vinyl';
         } else if (formatName.includes('cd')) {
           assignedFormat = 'CD / Other';
         } else {
@@ -8100,6 +8155,10 @@
       if (f.includes('3xlp') || f.includes('4xlp') || f.includes('5xlp') || f.includes('6xlp') || f.includes('box set') || f.includes('box') || (f.match(/\blp\b/g) || []).length >= 3) {
         return 'Box Set (Vinyl / Multi-Disc)';
       }
+      // 10" vinyl (checked before 2xLP/gatefold and 7"/single so 10" EPs/singles/gatefolds stay 10" Vinyl)
+      if (f.includes('10"') || f.includes("10'") || f.includes('10 inch')) {
+        return '10" Vinyl';
+      }
       // 2xLP / Gatefold indicators
       if (f.includes('2xlp') || f.includes('gatefold') || f.includes('gat') || (f.match(/\blp\b/g) || []).length === 2 || f.includes('+ lp')) {
         return '2xLP Gatefold (Album)';
@@ -8107,10 +8166,6 @@
       // 7" single
       if (f.includes('7"') || f.includes("7'") || f.includes('7 inch') || (f.includes('single') && !f.includes('12"'))) {
         return '7" Single (45 RPM)';
-      }
-      // 10" vinyl
-      if (f.includes('10"') || f.includes("10'")) {
-        return '10" Vinyl';
       }
       // 12" maxi / single
       if (f.includes('12"') && (f.includes('single') || f.includes('maxi') || f.includes('ep'))) {
