@@ -840,21 +840,26 @@
       </div>
 
       <!-- Navigation Tabs -->
-      <div class="flex border-b border-vinyl-800 px-6 bg-vinyl-900 overflow-x-auto text-xs font-medium">
-        <button type="button" onclick="switchFormTab('tab-general')" id="tabBtn-general" class="form-tab-btn py-3 px-3 border-b-2 border-brass-500 text-brass-400 font-semibold whitespace-nowrap">
-          1. General & Tracks
-        </button>
-        <button type="button" onclick="switchFormTab('tab-pressing')" id="tabBtn-pressing" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
-          2. Pressing & Runout Matrix
-        </button>
-        <button type="button" onclick="switchFormTab('tab-grading')" id="tabBtn-grading" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
-          3. Grading & Market Value
-        </button>
-        <button type="button" onclick="switchFormTab('tab-visuals')" id="tabBtn-visuals" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
-          4. Labels & Artwork
-        </button>
-        <button type="button" onclick="switchFormTab('tab-research')" id="tabBtn-research" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
-          5. Historical & Transfers
+      <div class="flex items-center justify-between border-b border-vinyl-800 px-6 bg-vinyl-900 overflow-x-auto text-xs font-medium">
+        <div class="flex">
+          <button type="button" onclick="switchFormTab('tab-general')" id="tabBtn-general" class="form-tab-btn py-3 px-3 border-b-2 border-brass-500 text-brass-400 font-semibold whitespace-nowrap">
+            1. General & Tracks
+          </button>
+          <button type="button" onclick="switchFormTab('tab-pressing')" id="tabBtn-pressing" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
+            2. Pressing & Runout Matrix
+          </button>
+          <button type="button" onclick="switchFormTab('tab-grading')" id="tabBtn-grading" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
+            3. Grading & Market Value
+          </button>
+          <button type="button" onclick="switchFormTab('tab-visuals')" id="tabBtn-visuals" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
+            4. Labels & Artwork
+          </button>
+          <button type="button" onclick="switchFormTab('tab-research')" id="tabBtn-research" class="form-tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
+            5. Historical & Transfers
+          </button>
+        </div>
+        <button type="button" onclick="openArtworkChooserModal('form')" class="my-auto py-1.5 px-3 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 hover:border-sky-400 text-xs font-semibold flex items-center gap-1.5 transition whitespace-nowrap ml-3" title="Browse and choose sleeve artwork choices">
+          <i class="fa-solid fa-images text-xs"></i> <span>Choose Sleeve</span>
         </button>
       </div>
 
@@ -880,6 +885,34 @@
             </div>
             <div class="text-[11px] text-slate-400" id="formatHintText">
               Standard 12-inch 33⅓ RPM long-playing album.
+            </div>
+          </div>
+
+          <!-- Tab 1 Cover Sleeve Quick Preview & Chooser Widget -->
+          <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-12 h-12 rounded-lg overflow-hidden bg-vinyl-900 border border-vinyl-700 flex-shrink-0 relative group/tab1thumb cursor-pointer" onclick="openArtworkChooserModal('form')" title="Click to choose or change cover sleeve">
+                <img id="tab1CoverImg" src="" alt="Cover" class="w-full h-full object-cover hidden">
+                <div id="tab1PlaceholderCover" class="w-full h-full flex items-center justify-center text-slate-500 bg-vinyl-950">
+                  <i class="fa-solid fa-record-vinyl text-xl text-slate-600"></i>
+                </div>
+                <div class="absolute inset-0 bg-black/60 opacity-0 group-hover/tab1thumb:opacity-100 flex items-center justify-center transition text-sky-400">
+                  <i class="fa-solid fa-images text-xs"></i>
+                </div>
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 mb-0.5">
+                  <span class="text-xs font-bold text-white">Record Sleeve Artwork</span>
+                  <span id="tab1CoverBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-vinyl-800 text-slate-400 border border-vinyl-700">Generic Active</span>
+                </div>
+                <p id="tab1CoverSubtext" class="text-[11px] text-slate-400 truncate">Archival sleeve active. Click "Choose Sleeve" to browse matching artwork.</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <button type="button" onclick="openArtworkChooserModal('form')" class="py-1.5 px-3 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 hover:border-sky-400 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow transition">
+                <i class="fa-solid fa-images text-xs"></i>
+                <span>Choose Sleeve</span>
+              </button>
             </div>
           </div>
 
@@ -2267,6 +2300,10 @@
         artist = document.getElementById('formArtist')?.value.trim() || '';
         title = document.getElementById('formTitle')?.value.trim() || '';
         format = document.getElementById('formFormat')?.value || format;
+        if (!artist && !title) {
+          artist = document.getElementById('searchArtistInput')?.value.trim() || '';
+          title = document.getElementById('searchTitleInput')?.value.trim() || '';
+        }
       }
 
       if (!artist && !title) {
@@ -2355,30 +2392,46 @@
       }
     }
 
+    function updateFormCoverPreview(url) {
+      const cImg = document.getElementById('previewCoverImg');
+      const placeholder = document.getElementById('placeholderCover');
+      const rmBtn = document.getElementById('removeCoverBtn');
+      const t1Img = document.getElementById('tab1CoverImg');
+      const t1Placeholder = document.getElementById('tab1PlaceholderCover');
+      const t1Badge = document.getElementById('tab1CoverBadge');
+      const t1Subtext = document.getElementById('tab1CoverSubtext');
+
+      if (url) {
+        if (cImg) { cImg.src = url; cImg.classList.remove('hidden'); }
+        if (placeholder) placeholder.classList.add('hidden');
+        if (rmBtn) rmBtn.classList.remove('hidden');
+
+        if (t1Img) { t1Img.src = url; t1Img.classList.remove('hidden'); }
+        if (t1Placeholder) t1Placeholder.classList.add('hidden');
+        if (t1Badge) {
+          t1Badge.innerText = 'Online Sleeve Active';
+          t1Badge.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+        }
+        if (t1Subtext) t1Subtext.innerText = 'Custom artwork applied. Click to change or revert.';
+      } else {
+        if (cImg) { cImg.src = ''; cImg.classList.add('hidden'); }
+        if (placeholder) placeholder.classList.remove('hidden');
+        if (rmBtn) rmBtn.classList.add('hidden');
+
+        if (t1Img) { t1Img.src = ''; t1Img.classList.add('hidden'); }
+        if (t1Placeholder) t1Placeholder.classList.remove('hidden');
+        if (t1Badge) {
+          t1Badge.innerText = 'Generic Active';
+          t1Badge.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full bg-vinyl-800 text-slate-400 border border-vinyl-700';
+        }
+        if (t1Subtext) t1Subtext.innerText = 'Archival sleeve active. Click "Choose Sleeve" to browse matching artwork.';
+      }
+    }
+
     function selectSleeveCandidate(url) {
       if (currentChooserTarget.type === 'form') {
-        const cImg = document.getElementById('previewCoverImg');
-        const placeholder = document.getElementById('placeholderCover');
-        const rmBtn = document.getElementById('removeCoverBtn');
-
-        if (url) {
-          if (cImg) {
-            cImg.src = url;
-            cImg.classList.remove('hidden');
-          }
-          if (placeholder) placeholder.classList.add('hidden');
-          if (rmBtn) rmBtn.classList.remove('hidden');
-          showToast("Applied selected cover sleeve to form!");
-        } else {
-          // Revert to generic sleeve
-          if (cImg) {
-            cImg.src = '';
-            cImg.classList.add('hidden');
-          }
-          if (placeholder) placeholder.classList.remove('hidden');
-          if (rmBtn) rmBtn.classList.add('hidden');
-          showToast("Reverted back to generic archival sleeve.");
-        }
+        updateFormCoverPreview(url);
+        showToast(url ? "Applied selected cover sleeve to form!" : "Reverted back to generic archival sleeve.");
       } else if (currentChooserTarget.type === 'record' && currentChooserTarget.recordId) {
         const item = records.find(r => r.id === currentChooserTarget.recordId);
         if (item) {
@@ -2390,7 +2443,10 @@
           }
           renderStats();
           renderRecords();
-          viewRecordDetail(item.id);
+          const detailModal = document.getElementById('detailModal');
+          if (detailModal && !detailModal.classList.contains('hidden')) {
+            viewRecordDetail(item.id);
+          }
           showToast(url ? `Updated cover sleeve for "${item.title}"!` : `Reverted "${item.title}" to generic sleeve.`);
         }
       }
@@ -2399,15 +2455,7 @@
     }
 
     function removeCoverArtFromForm(silent = false) {
-      const cImg = document.getElementById('previewCoverImg');
-      const placeholder = document.getElementById('placeholderCover');
-      const rmBtn = document.getElementById('removeCoverBtn');
-      if (cImg) {
-        cImg.src = '';
-        cImg.classList.add('hidden');
-      }
-      if (placeholder) placeholder.classList.remove('hidden');
-      if (rmBtn) rmBtn.classList.add('hidden');
+      updateFormCoverPreview('');
       if (!silent) showToast("Removed sleeve. Record will use generic archival jacket.");
     }
 
@@ -2425,7 +2473,10 @@
       }
       renderStats();
       renderRecords();
-      viewRecordDetail(recordId);
+      const detailModal = document.getElementById('detailModal');
+      if (detailModal && !detailModal.classList.contains('hidden')) {
+        viewRecordDetail(recordId);
+      }
       showToast(`Removed custom sleeve for "${item.title}". Generic sleeve active.`);
     }
 
@@ -3309,6 +3360,14 @@
             <div class="relative w-full aspect-square bg-vinyl-950 overflow-hidden cursor-pointer" onclick="viewRecordDetail('${item.id}')">
               <img src="${coverSrc}" alt="${escapeHtml(item.title)}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src=getDefaultCover('${encodeURIComponent(item.format || '')}', '${encodeURIComponent(item.artist || '')}', '${encodeURIComponent(item.title || '')}', true)">
               
+              <!-- Direct Choose Sleeve Hover Button -->
+              ${isOwner ? `
+                <button onclick="event.stopPropagation(); openArtworkChooserModal('record', '${item.id}')" class="opacity-0 group-hover:opacity-100 transition-all duration-200 absolute inset-0 m-auto w-max h-max px-3.5 py-1.5 rounded-lg bg-black/85 hover:bg-black text-brass-400 hover:text-white border border-brass-500/50 hover:border-brass-400 text-xs font-semibold backdrop-blur-md flex items-center gap-1.5 shadow-2xl z-20 cursor-pointer pointer-events-auto" title="Choose from online sleeve choices or generic">
+                  <i class="fa-solid fa-images text-xs text-sky-400"></i>
+                  <span>Choose Sleeve</span>
+                </button>
+              ` : ''}
+              
               <!-- Format Indicator Badge -->
               <div class="absolute top-3 left-3 flex flex-col gap-1 items-start">
                 ${getFormatBadge(item.format)}
@@ -3413,6 +3472,9 @@
                   </a>
 
                   ${isOwner ? `
+                    <button onclick="openArtworkChooserModal('record', '${item.id}')" class="p-1 text-slate-400 hover:text-sky-400 transition" title="Choose Cover Sleeve">
+                      <i class="fa-solid fa-images"></i>
+                    </button>
                     <button onclick="editRecord('${item.id}')" class="p-1 hover:text-amber-400 transition" title="Edit Metadata">
                       <i class="fa-solid fa-pen-to-square"></i>
                     </button>
@@ -3472,7 +3534,14 @@
             </td>
             <td class="py-2.5 px-3">
               <div class="flex items-center gap-2.5">
-                <img src="${coverSrc}" alt="" class="w-9 h-9 rounded object-cover border border-vinyl-700 bg-vinyl-950 flex-shrink-0" onerror="this.onerror=null; this.src=getDefaultCover('${encodeURIComponent(item.format || '')}', '${encodeURIComponent(item.artist || '')}', '${encodeURIComponent(item.title || '')}', true)">
+                <div class="relative group/thumb cursor-pointer flex-shrink-0" onclick="${isOwner ? `openArtworkChooserModal('record', '${item.id}')` : `viewRecordDetail('${item.id}')`}" title="${isOwner ? 'Click to choose cover sleeve' : 'View dossier'}">
+                  <img src="${coverSrc}" alt="" class="w-9 h-9 rounded object-cover border border-vinyl-700 bg-vinyl-950 group-hover/thumb:border-brass-400 transition" onerror="this.onerror=null; this.src=getDefaultCover('${encodeURIComponent(item.format || '')}', '${encodeURIComponent(item.artist || '')}', '${encodeURIComponent(item.title || '')}', true)">
+                  ${isOwner ? `
+                    <div class="absolute inset-0 bg-black/60 rounded opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center text-sky-400 transition">
+                      <i class="fa-solid fa-images text-[10px]"></i>
+                    </div>
+                  ` : ''}
+                </div>
                 <div class="min-w-0">
                   <div class="font-bold text-white hover:text-brass-400 cursor-pointer truncate" onclick="viewRecordDetail('${item.id}')">
                     ${item.artist}
@@ -3508,10 +3577,13 @@
                 <i class="fa-solid fa-eye"></i>
               </button>
               ${isOwner ? `
-                <button onclick="editRecord('${item.id}')" class="p-1 hover:text-amber-400 transition ml-1" title="Edit">
+                <button onclick="openArtworkChooserModal('record', '${item.id}')" class="p-1 hover:text-sky-400 text-slate-400 transition ml-1" title="Choose Cover Sleeve">
+                  <i class="fa-solid fa-images"></i>
+                </button>
+                <button onclick="editRecord('${item.id}')" class="p-1 hover:text-amber-400 transition ml-1" title="Edit Metadata">
                   <i class="fa-solid fa-pen"></i>
                 </button>
-                <button onclick="deleteRecordPrompt('${item.id}')" class="p-1 hover:text-red-400 transition ml-1" title="Delete">
+                <button onclick="deleteRecordPrompt('${item.id}')" class="p-1 hover:text-red-400 transition ml-1" title="Delete Entry">
                   <i class="fa-solid fa-trash-can"></i>
                 </button>
               ` : `
@@ -3599,8 +3671,15 @@
           
           <!-- Column 1: Visuals & Center Hole info -->
           <div class="space-y-4">
-            <div class="aspect-square bg-vinyl-950 rounded-xl overflow-hidden border border-vinyl-800 relative group">
-              <img src="${coverSrc}" alt="Cover" class="w-full h-full object-cover" onerror="this.onerror=null; this.src=getDefaultCover('${encodeURIComponent(item.format || '')}', '${encodeURIComponent(item.artist || '')}', '${encodeURIComponent(item.title || '')}', true)">
+            <div class="aspect-square bg-vinyl-950 rounded-xl overflow-hidden border border-vinyl-800 relative group cursor-pointer" onclick="${isOwner ? `openArtworkChooserModal('record', '${item.id}')` : ''}" title="${isOwner ? 'Click to choose cover sleeve' : ''}">
+              <img src="${coverSrc}" alt="Cover" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-102" onerror="this.onerror=null; this.src=getDefaultCover('${encodeURIComponent(item.format || '')}', '${encodeURIComponent(item.artist || '')}', '${encodeURIComponent(item.title || '')}', true)">
+              ${isOwner ? `
+                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                  <span class="px-3 py-1.5 rounded-lg bg-black/85 text-brass-400 border border-brass-500/40 text-xs font-semibold backdrop-blur flex items-center gap-1.5 shadow">
+                    <i class="fa-solid fa-images text-sky-400"></i> Change Sleeve
+                  </span>
+                </div>
+              ` : ''}
             </div>
 
             <div class="flex items-center gap-2">
@@ -3820,6 +3899,9 @@
           </div>
           <div class="flex gap-2">
             ${isOwner ? `
+              <button onclick="openArtworkChooserModal('record', '${item.id}')" class="px-3.5 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-sky-400 border border-sky-500/30 text-xs font-semibold flex items-center gap-1.5 transition shadow">
+                <i class="fa-solid fa-images"></i> Choose Sleeve
+              </button>
               <button onclick="editRecord('${item.id}'); closeDetailModal();" class="px-3.5 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 text-xs font-semibold">
                 Edit Metadata
               </button>
@@ -3965,19 +4047,26 @@
     }
 
     function clearImagePreviews() {
-      ['previewCoverImg', 'previewLabelAImg', 'previewLabelBImg'].forEach(id => {
+      ['previewCoverImg', 'previewLabelAImg', 'previewLabelBImg', 'tab1CoverImg'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
           el.src = '';
           el.classList.add('hidden');
         }
       });
-      ['placeholderCover', 'placeholderLabelA', 'placeholderLabelB'].forEach(id => {
+      ['placeholderCover', 'placeholderLabelA', 'placeholderLabelB', 'tab1PlaceholderCover'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.remove('hidden');
       });
       const rmBtn = document.getElementById('removeCoverBtn');
       if (rmBtn) rmBtn.classList.add('hidden');
+      const t1Badge = document.getElementById('tab1CoverBadge');
+      if (t1Badge) {
+        t1Badge.innerText = 'Generic Active';
+        t1Badge.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full bg-vinyl-800 text-slate-400 border border-vinyl-700';
+      }
+      const t1Subtext = document.getElementById('tab1CoverSubtext');
+      if (t1Subtext) t1Subtext.innerText = 'Archival sleeve active. Click "Choose Sleeve" to browse matching artwork.';
     }
 
     function handleImageUpload(event, imgElementId, placeholderId) {
@@ -3994,6 +4083,17 @@
         if (imgElementId === 'previewCoverImg') {
           const rmBtn = document.getElementById('removeCoverBtn');
           if (rmBtn) rmBtn.classList.remove('hidden');
+          const t1Img = document.getElementById('tab1CoverImg');
+          const t1Placeholder = document.getElementById('tab1PlaceholderCover');
+          const t1Badge = document.getElementById('tab1CoverBadge');
+          const t1Subtext = document.getElementById('tab1CoverSubtext');
+          if (t1Img) { t1Img.src = e.target.result; t1Img.classList.remove('hidden'); }
+          if (t1Placeholder) t1Placeholder.classList.add('hidden');
+          if (t1Badge) {
+            t1Badge.innerText = 'Uploaded Sleeve';
+            t1Badge.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+          }
+          if (t1Subtext) t1Subtext.innerText = 'User photo uploaded. Click "Choose Sleeve" to browse online alternatives.';
         }
       };
       reader.readAsDataURL(file);
@@ -4059,12 +4159,9 @@
 
       clearImagePreviews();
       if (item.coverImage) {
-        const cImg = document.getElementById('previewCoverImg');
-        cImg.src = item.coverImage;
-        cImg.classList.remove('hidden');
-        document.getElementById('placeholderCover').classList.add('hidden');
-        const rmBtn = document.getElementById('removeCoverBtn');
-        if (rmBtn) rmBtn.classList.remove('hidden');
+        updateFormCoverPreview(item.coverImage);
+      } else {
+        updateFormCoverPreview('');
       }
       if (item.labelAImage) {
         const laImg = document.getElementById('previewLabelAImg');
@@ -4924,16 +5021,8 @@
         findOnlineCoverArtwork(releaseArtist, fullRelease.title, fullRelease.id, rgId, assignedFormat)
           .then(coverUrl => {
             if (coverUrl) {
-              const cImg = document.getElementById('previewCoverImg');
-              const placeholder = document.getElementById('placeholderCover');
-              const rmBtn = document.getElementById('removeCoverBtn');
-              if (cImg) {
-                cImg.src = coverUrl;
-                cImg.classList.remove('hidden');
-              }
-              if (placeholder) placeholder.classList.add('hidden');
-              if (rmBtn) rmBtn.classList.remove('hidden');
-              showToast("Loaded album cover! (Use 'Browse' under Media to change)");
+              updateFormCoverPreview(coverUrl);
+              showToast("Loaded album cover! (Use 'Choose Sleeve' to change)");
             }
           })
           .catch(err => console.warn("Auto cover fetch notice:", err));
