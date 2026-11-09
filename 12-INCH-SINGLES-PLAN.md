@@ -1,4 +1,4 @@
-# Implementation Plan for Claude: First-Class 12" Singles, Cassette & MiniDisc Categories, Metadata Refresh, Barcode Scanner, Auto-Minimising UI & Expanded Vinyl Search
+# Implementation Plan for Claude: First-Class 12" Singles, Cassette & MiniDisc Categories, Metadata Refresh, Barcode Scanner, Auto-Minimising UI, Expanded Vinyl Search & Streaming Lookups (Spotify / Apple Music / YouTube / Bandcamp)
 
 **Target File:** `catalogue/index.html`
 
@@ -233,7 +233,52 @@ Many 12" singles, cassettes, or MiniDiscs already in the archive may currently b
 
 ---
 
-## 6. Verification Checklist
+## 6. Multi-Platform Streaming & Listening Lookups: Spotify, Apple Music, YouTube & Bandcamp
+
+When archiving or exploring records, members often want to immediately audition the audio, verify mix versions (album cut vs 12" club mix vs 7" radio edit), or listen while browsing the archive.
+
+### 6.1 Clean Search Terms Helper (`getStreamingSearchQuery(item, trackTitle)`)
+* Clean up titles before building streaming URLs:
+  * Remove release configuration parentheticals such as `(Album)`, `(45 RPM)`, `(Vinyl / Multi-Disc)`, `(Gatefold)`, `[Mono]`, `[Stereo]`.
+  * For 7" and 12" singles where the release title is `"Side A / Side B"`, extract the primary track name for clean single-track streaming match.
+  * If a specific `trackTitle` is passed, format as `${item.artist} ${trackTitle}`.
+
+### 6.2 URL Generation Scheme (`getStreamingLinks(item, trackTitle)`)
+Generate standardized, direct deep-search links for all 4 major listening platforms:
+1. **Spotify**:
+   * Web Search: `https://open.spotify.com/search/${encodeURIComponent(cleanQuery)}`
+   * App URL Scheme (optional fallback): `spotify:search:${encodeURIComponent(cleanQuery)}`
+   * Badge / Button: Green accent (`bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border-emerald-500/30`, icon `fa-brands fa-spotify`)
+2. **Apple Music**:
+   * Web Search: `https://music.apple.com/search?term=${encodeURIComponent(cleanQuery)}`
+   * Badge / Button: Rose/Pink accent (`bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 border-rose-500/30`, icon `fa-brands fa-apple`)
+3. **YouTube / YouTube Music**:
+   * Web Search: `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanQuery)}`
+   * YouTube Music alternative: `https://music.youtube.com/search?q=${encodeURIComponent(cleanQuery)}`
+   * Badge / Button: Red accent (`bg-red-500/15 text-red-400 hover:bg-red-500/25 border-red-500/30`, icon `fa-brands fa-youtube`)
+4. **Bandcamp**:
+   * Web Search: `https://bandcamp.com/search?q=${encodeURIComponent(cleanQuery)}&item_type=a` (and `item_type=t` for singles/tracks)
+   * Badge / Button: Cyan/Sky accent (`bg-cyan-500/15 text-cyan-300 hover:bg-cyan-500/25 border-cyan-500/30`, icon `fa-brands fa-bandcamp`)
+
+### 6.3 Integration Points Across the Application
+1. **Record Full Archival Dossier (`viewRecordDetail`, ~lines 5800–5980)**:
+   * Directly below the **Market Valuation & Realized Pricing** card, add a dedicated **"Listen & Stream Online"** card:
+     * Header: `<i class="fa-solid fa-headphones text-brass-400"></i> Stream & Audition Release`
+     * 4 prominent branded 1-click pills:
+       * **Spotify**: `fa-brands fa-spotify`
+       * **Apple Music**: `fa-brands fa-apple`
+       * **YouTube**: `fa-brands fa-youtube`
+       * **Bandcamp**: `fa-brands fa-bandcamp`
+   * Inside the **Tracklist Architecture** section:
+     * Next to each track in the tracklist, add a compact `▶` or `fa-brands fa-youtube` / `fa-brands fa-spotify` 1-click icon button so the user can listen to that individual track/mix immediately.
+2. **Add / Edit Modal (`#recordModal`)**:
+   * In the top Quick Lookup bar and on Tab 4 (Research & Transfers), add a **"Listen / Test Audition"** link so the cataloguer can listen to mixes while inspecting deadwax etchings and catalog numbers.
+3. **Gallery Card & Table Row Quick Actions**:
+   * In Gallery cards and Table rows, add a compact `fa-headphones` popover or 1-click quick link to open Spotify/YouTube in a new tab.
+
+---
+
+## 7. Verification Checklist
 - [ ] Verify `#statTotalLPs`, `#statTotal12Singles`, and `#statTotalSingles` all render and sum accurately in `renderStats()`.
 - [ ] Confirm `getFormatBadge` renders distinct badges for `12" Maxi / Single` (purple), `Cassette Tape` (teal), and `MiniDisc` (fuchsia) in Gallery cards, Table rows, and the Record Dossier.
 - [ ] Confirm `#filterFormat` in the main toolbar filters `12" Maxi / Single`, `Cassette Tape`, and `MiniDisc` cleanly.
@@ -243,4 +288,8 @@ Many 12" singles, cassettes, or MiniDiscs already in the archive may currently b
 - [ ] Verify `#quickLookupBar` auto-collapses once a search result is applied, when editing an existing record, or when typing manually into `#recordForm`, and can be re-expanded with 1 tap.
 - [ ] Verify `.rec-footer` auto-minimises on new entries / while typing so form fields have maximum vertical screen space.
 - [ ] Verify `executeMusicBrainzSearch` surfaces Vinyl pressings even for albums with dozens of CD/Digital reissues, supports unquoted/fuzzy title matching, and merges Discogs Vinyl matches when a token is configured.
+- [ ] Verify **Streaming & Listening Lookups**:
+  - Test 1-click buttons for **Spotify**, **Apple Music**, **YouTube**, and **Bandcamp** in the Record Dossier.
+  - Test track-level listen buttons in the tracklist.
+  - Verify query cleaner strips format suffixes like `(Album)` or `(45 RPM)` so streaming searches land on the exact song/album.
 - [ ] Run brace and `<div>` balance checks before committing.
