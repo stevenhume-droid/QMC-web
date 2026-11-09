@@ -1630,18 +1630,27 @@
 
       <!-- Action Alternatives Grid -->
       <div class="mt-3 space-y-2">
+        <!-- Hidden container for file-based barcode decoding -->
+        <div id="barcodeFileScannerContainer" class="hidden"></div>
+
         <!-- Alternative 1: Photo Snapshot / File Upload -->
-        <input type="file" id="barcodeFileInput" accept="image/*" capture="environment" onchange="handleBarcodeImageUpload(event)" class="hidden">
+        <input type="file" id="barcodeFileInput" accept="image/*" onchange="handleBarcodeImageUpload(event)" class="hidden">
+        <input type="file" id="barcodeCameraInput" accept="image/*" capture="environment" onchange="handleBarcodeImageUpload(event)" class="hidden">
         
-        <div class="grid grid-cols-2 gap-2">
-          <button type="button" onclick="document.getElementById('barcodeFileInput').click()" class="py-2 px-3 bg-vinyl-850 hover:bg-vinyl-800 text-brass-400 border border-brass-500/30 hover:border-brass-400 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm">
-            <i class="fa-solid fa-camera-retro"></i>
-            <span>Snap Photo / Upload</span>
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" onclick="document.getElementById('barcodeFileInput').click()" class="py-2 px-2 bg-vinyl-850 hover:bg-vinyl-800 text-brass-400 border border-brass-500/30 hover:border-brass-400 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm" title="Upload barcode photo from device or photo library">
+            <i class="fa-solid fa-image"></i>
+            <span>Upload Photo</span>
+          </button>
+
+          <button type="button" onclick="document.getElementById('barcodeCameraInput').click()" class="py-2 px-2 bg-vinyl-850 hover:bg-vinyl-800 text-brass-400 border border-brass-500/30 hover:border-brass-400 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm" title="Snap high-resolution photo with device camera">
+            <i class="fa-solid fa-camera"></i>
+            <span>Snap Photo</span>
           </button>
           
-          <button type="button" onclick="simulateScanSample()" class="py-2 px-3 bg-vinyl-850 hover:bg-vinyl-800 text-slate-300 border border-vinyl-700 hover:border-slate-500 rounded-lg text-xs font-mono flex items-center justify-center gap-1.5 transition">
+          <button type="button" onclick="simulateScanSample()" class="py-2 px-2 bg-vinyl-850 hover:bg-vinyl-800 text-slate-300 border border-vinyl-700 hover:border-slate-500 rounded-lg text-xs font-mono flex items-center justify-center gap-1 transition" title="Test scanner with Dark Side of the Moon barcode">
             <i class="fa-solid fa-bolt text-amber-400"></i>
-            <span>Sample (Dark Side)</span>
+            <span>Sample</span>
           </button>
         </div>
 
@@ -9577,33 +9586,213 @@
       }
     }
 
+    function preprocessBarcodeImage(file, options = {}) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          const maxDim = options.maxDim || 1400;
+          let w = img.width;
+          let h = img.height;
+          
+          const scale = Math.min(1, maxDim / Math.max(w, h));
+          const targetW = Math.max(1, Math.round(w * scale));
+          const targetH = Math.max(1, Math.round(h * scale));
+          
+          const canvas = document.createElement('canvas');
+          if (options.rotate90) {
+            canvas.width = targetH;
+            canvas.height = targetW;
+          } else {
+            canvas.width = targetW;
+            canvas.height = targetH;
+          }
+
+          const ctx = canvas.getContext('2d');
+          if (options.rotate90) {
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate(Math.PI / 2);
+            ctx.drawImage(img, -targetW / 2, -targetH / 2, targetW, targetH);
+          } else {
+            ctx.drawImage(img, 0, 0, targetW, targetH);
+          }
+
+          if (options.enhanceContrast) {
+            try {
+              const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+              const data = imgData.data;
+              for (let i = 0; i < data.length; i += 4) {
+                const gray = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
+                const contrastVal = (gray - 128) * 1.35 + 128;
+                const clamped = Math.max(0, Math.min(255, contrastVal));
+                data[i] = clamped;
+                data[i + 1] = clamped;
+                data[i + 2] = clamped;
+              }
+              ctx.putImageData(imgData, 0, 0);
+            } catch (e) {}
+          }
+
+          canvas.toBlob((blob) => {
+            resolve(blob || file);
+          }, 'image/jpeg', 0.92);
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          resolve(file);
+        };
+        img.src = url;
+      });
+    }
+
     async function handleBarcodeImageUpload(event) {
       const file = event.target.files?.[0];
       if (!file) return;
 
       const feedback = document.getElementById('scanFeedback');
-      if (feedback) feedback.innerText = "Analyzing high-res photo for barcode...";
-      showToast("Scanning uploaded photo for barcode...", "info");
+      if (feedback) {
+        feedback.innerHTML = '<span class="text-brass-400 font-semibold"><i class="fa-solid fa-spinner fa-spin mr-1.5"></i>Analyzing photo for vinyl barcode...</span>';
+      }
+      showToast("Scanning photo for barcode...", "info");
 
+      let wasScanning = false;
+      if (html5QrScanner && html5QrScanner.isScanning) {
+        wasScanning = true;
+        try {
+          await html5QrScanner.stop();
+        } catch (e) {
+          console.warn("Could not pause camera stream:", e);
+        }
+      }
+
+      let detectedCode = null;
+
+      // -------------------------------------------------------------
+      // STRATEGY 1: Native BarcodeDetector API (Hardware Accelerated)
+      // -------------------------------------------------------------
+      if ('BarcodeDetector' in window) {
+        try {
+          const supportedFormats = await BarcodeDetector.getSupportedFormats().catch(() => []);
+          const formatsToUse = ['ean_13', 'upc_a', 'upc_e', 'ean_8', 'code_128', 'code_39', 'code_93', 'itf', 'qr_code']
+            .filter(f => supportedFormats.length === 0 || supportedFormats.includes(f));
+          
+          const detector = new BarcodeDetector({ formats: formatsToUse.length ? formatsToUse : undefined });
+
+          // Pass 1: Direct ImageBitmap
+          const bitmap = await createImageBitmap(file);
+          let barcodes = await detector.detect(bitmap);
+          if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+            detectedCode = barcodes[0].rawValue;
+          }
+
+          // Pass 2: Rotated 90 degrees (for vertical barcode orientations on album covers)
+          if (!detectedCode) {
+            const rotCanvas = document.createElement('canvas');
+            rotCanvas.width = bitmap.height;
+            rotCanvas.height = bitmap.width;
+            const rotCtx = rotCanvas.getContext('2d');
+            rotCtx.translate(rotCanvas.width / 2, rotCanvas.height / 2);
+            rotCtx.rotate(Math.PI / 2);
+            rotCtx.drawImage(bitmap, -bitmap.width / 2, -bitmap.height / 2);
+            barcodes = await detector.detect(rotCanvas);
+            if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+              detectedCode = barcodes[0].rawValue;
+            }
+          }
+        } catch (err) {
+          console.warn("Native BarcodeDetector pass failed:", err);
+        }
+      }
+
+      // -------------------------------------------------------------
+      // STRATEGY 2: Html5Qrcode Library with Full 1D Barcode Formats
+      // -------------------------------------------------------------
+      if (!detectedCode && typeof Html5Qrcode !== 'undefined') {
+        let fileScanner = null;
+        try {
+          let container = document.getElementById('barcodeFileScannerContainer');
+          if (!container) {
+            container = document.createElement('div');
+            container.id = 'barcodeFileScannerContainer';
+            container.style.display = 'none';
+            document.body.appendChild(container);
+          }
+
+          const formats = (typeof Html5QrcodeSupportedFormats !== 'undefined') ? [
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.QR_CODE
+          ] : undefined;
+
+          fileScanner = new Html5Qrcode("barcodeFileScannerContainer", {
+            formatsToSupport: formats,
+            verbose: false
+          });
+
+          // Pass A: Scan original file directly
+          try {
+            const code = await fileScanner.scanFile(file, false);
+            if (code) detectedCode = code;
+          } catch (e) {}
+
+          // Pass B: Scan preprocessed & downscaled image (max 1400px with enhanced contrast)
+          if (!detectedCode) {
+            try {
+              const downscaledBlob = await preprocessBarcodeImage(file, { maxDim: 1400, enhanceContrast: true });
+              if (downscaledBlob) {
+                const code = await fileScanner.scanFile(downscaledBlob, false);
+                if (code) detectedCode = code;
+              }
+            } catch (e) {}
+          }
+
+          // Pass C: Scan rotated 90 degrees image
+          if (!detectedCode) {
+            try {
+              const rotatedBlob = await preprocessBarcodeImage(file, { maxDim: 1400, rotate90: true });
+              if (rotatedBlob) {
+                const code = await fileScanner.scanFile(rotatedBlob, false);
+                if (code) detectedCode = code;
+              }
+            } catch (e) {}
+          }
+        } catch (err) {
+          console.warn("Html5Qrcode file scan error:", err);
+        } finally {
+          if (fileScanner) {
+            try { await fileScanner.clear(); } catch(e) {}
+          }
+        }
+      }
+
+      // -------------------------------------------------------------
+      // Process detection outcome
+      // -------------------------------------------------------------
       try {
-        let scanner = html5QrScanner;
-        if (!scanner) {
-          scanner = new Html5Qrcode("qr-reader");
-        }
-        const decodedText = await scanner.scanFile(file, false);
-        if (decodedText) {
+        if (detectedCode) {
           playScanBeep();
-          showToast(`Detected Barcode: ${decodedText}`);
-          handleBarcodeScanned(decodedText);
+          showToast(`Detected Barcode: ${detectedCode}`, "success");
+          handleBarcodeScanned(detectedCode);
         } else {
-          throw new Error("No barcode pattern decoded");
+          if (feedback) {
+            feedback.innerHTML = '<span class="text-amber-400"><i class="fa-solid fa-circle-exclamation mr-1"></i>No barcode found in that photo. Try manual entry or search below.</span>';
+          }
+          showToast("Barcode not detected in photo. Try manual entry or search.", "info");
+          if (wasScanning) {
+            await startScannerStream(currentScannerCameraId);
+          }
         }
-      } catch (err) {
-        console.warn("File scan error:", err);
-        if (feedback) feedback.innerText = "No barcode found in that image. Try typing digits or searching by title.";
-        showToast("Barcode not detected in photo. Try manual entry or search.", "info");
       } finally {
         event.target.value = '';
+        const camInput = document.getElementById('barcodeCameraInput');
+        if (camInput) camInput.value = '';
+        const fileInput = document.getElementById('barcodeFileInput');
+        if (fileInput) fileInput.value = '';
       }
     }
 
