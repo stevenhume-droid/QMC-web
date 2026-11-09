@@ -1087,43 +1087,115 @@
   </div>
 
   <!-- ============================================== -->
-  <!-- MODAL: BARCODE SCANNER VIA WEBCAM / CAM-STREAM -->
   <!-- ============================================== -->
-  <div id="scannerModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-lg p-6 flex flex-col shadow-2xl relative">
-      <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-barcode text-brass-400 text-lg"></i>
-          <h3 class="text-sm font-bold text-white uppercase tracking-wider">Optical Barcode Scanner</h3>
+  <!-- MODAL: OPTIMIZED BARCODE SCANNER & ALTERNATIVES -->
+  <!-- ============================================== -->
+  <div id="scannerModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden overflow-y-auto">
+    <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-lg p-5 sm:p-6 flex flex-col shadow-2xl relative my-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-brass-500/10 border border-brass-500/30 flex items-center justify-center text-brass-400">
+            <i class="fa-solid fa-barcode text-base"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Barcode & Archival Identifier</h3>
+            <p class="text-[11px] text-slate-400">Hardware-accelerated camera stream, photo upload & laser wedge</p>
+          </div>
         </div>
-        <button onclick="closeScannerModal()" class="text-slate-400 hover:text-white">
-          <i class="fa-solid fa-xmark text-lg"></i>
+        <button onclick="closeScannerModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-base"></i>
         </button>
       </div>
 
-      <div class="relative w-full aspect-square bg-black rounded-xl overflow-hidden border border-vinyl-700 flex items-center justify-center">
-        <div id="qr-reader" class="w-full h-full"></div>
-        <div id="scannerOverlay" class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-4">
-          <div class="w-64 h-32 border-2 border-brass-400/80 rounded-lg relative">
-            <div class="absolute inset-x-0 top-1/2 h-0.5 bg-red-500/70 animate-pulse"></div>
+      <!-- Vintage Vinyl Notice / Alternative Tip -->
+      <div class="mb-3 p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-start gap-2.5 text-xs">
+        <i class="fa-solid fa-lightbulb text-amber-400 text-sm mt-0.5 flex-shrink-0"></i>
+        <div class="flex-1">
+          <span class="text-amber-300 font-semibold">Vinyl pressed before ~1979 has no barcode:</span>
+          <span class="text-slate-300 ml-1">Commercial vinyl barcodes were only introduced in 1979. For 60s/70s originals, use Cat # or Artist & Title lookup instead.</span>
+          <div class="mt-1.5 flex gap-2">
+            <button type="button" onclick="closeScannerModal(); openAddEditModal();" class="text-[11px] font-bold text-brass-400 hover:text-brass-300 underline flex items-center gap-1">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Switch to Artist & Title Quick Lookup
+            </button>
           </div>
-          <span class="text-[11px] text-slate-300 mt-3 bg-black/70 px-2 py-1 rounded">Position record barcode in viewfinder</span>
         </div>
       </div>
 
-      <div class="mt-4 flex flex-col gap-2">
-        <p id="scanFeedback" class="text-xs text-center text-slate-400">Initializing camera feed...</p>
+      <!-- Controls Row: Camera Selector & Torch Toggle -->
+      <div class="flex items-center justify-between gap-2 mb-2">
+        <div class="flex items-center gap-1.5 flex-1 min-w-0">
+          <i class="fa-solid fa-camera text-slate-400 text-xs"></i>
+          <select id="scannerCameraSelect" onchange="switchScannerCamera(this.value)" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-brass-500 flex-1 truncate">
+            <option value="">Auto-Detect Back Camera</option>
+          </select>
+        </div>
+        <button type="button" id="scannerTorchBtn" onclick="toggleScannerTorch()" class="hidden px-2.5 py-1 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border border-vinyl-700 rounded-lg text-xs items-center gap-1 transition" title="Toggle camera flashlight">
+          <i class="fa-solid fa-bolt text-xs text-amber-400"></i>
+          <span>Torch</span>
+        </button>
+      </div>
+
+      <!-- Viewfinder Stream -->
+      <div class="relative w-full aspect-[4/3] bg-black rounded-xl overflow-hidden border border-vinyl-700 flex items-center justify-center">
+        <div id="qr-reader" class="w-full h-full"></div>
+        <div id="scannerOverlay" class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-4">
+          <!-- Laser Viewfinder Box (Wide horizontal aspect matching vinyl 1D barcodes) -->
+          <div class="w-[82%] h-36 border-2 border-brass-400/80 rounded-xl relative shadow-[0_0_15px_rgba(212,175,55,0.25)] flex items-center justify-center">
+            <!-- Corner Reticles -->
+            <span class="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-brass-400"></span>
+            <span class="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-brass-400"></span>
+            <span class="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-brass-400"></span>
+            <span class="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-brass-400"></span>
+            <!-- Red Laser Scanline -->
+            <div class="absolute inset-x-2 h-0.5 bg-red-500/90 shadow-[0_0_8px_rgba(239,68,68,0.9)] animate-pulse"></div>
+          </div>
+          <span class="text-[11px] font-medium text-slate-200 mt-2.5 bg-black/80 px-2.5 py-1 rounded-full border border-white/10 backdrop-blur">
+            Align 1D Barcode (EAN-13 / UPC-A) horizontally
+          </span>
+        </div>
+      </div>
+
+      <p id="scanFeedback" class="text-xs text-center text-slate-400 mt-2">Starting high-resolution camera stream...</p>
+
+      <!-- Action Alternatives Grid -->
+      <div class="mt-3 space-y-2">
+        <!-- Alternative 1: Photo Snapshot / File Upload -->
+        <input type="file" id="barcodeFileInput" accept="image/*" capture="environment" onchange="handleBarcodeImageUpload(event)" class="hidden">
         
-        <div class="flex gap-2">
-          <input type="text" id="manualBarcodeInput" placeholder="Or type Barcode / UPC manually" class="flex-1 bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs text-white">
-          <button onclick="handleManualBarcode()" class="px-3 py-1.5 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold rounded-lg text-xs">
-            Lookup
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" onclick="document.getElementById('barcodeFileInput').click()" class="py-2 px-3 bg-vinyl-850 hover:bg-vinyl-800 text-brass-400 border border-brass-500/30 hover:border-brass-400 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm">
+            <i class="fa-solid fa-camera-retro"></i>
+            <span>Snap Photo / Upload</span>
+          </button>
+          
+          <button type="button" onclick="simulateScanSample()" class="py-2 px-3 bg-vinyl-850 hover:bg-vinyl-800 text-slate-300 border border-vinyl-700 hover:border-slate-500 rounded-lg text-xs font-mono flex items-center justify-center gap-1.5 transition">
+            <i class="fa-solid fa-bolt text-amber-400"></i>
+            <span>Sample (Dark Side)</span>
           </button>
         </div>
 
-        <button onclick="simulateScanSample()" class="w-full mt-2 py-1.5 bg-vinyl-800 hover:bg-vinyl-700 border border-vinyl-700 text-brass-400 rounded-lg text-xs font-mono">
-          ⚡ Test with Sample Barcode (5099902894512)
-        </button>
+        <!-- Alternative 2: Manual Barcode / Cat # Type-in with instant Enter -->
+        <div class="flex gap-2 pt-1">
+          <input 
+            type="text" 
+            id="manualBarcodeInput" 
+            onkeydown="if(event.key==='Enter'){ event.preventDefault(); handleManualBarcode(); }"
+            placeholder="Type Barcode or Cat # (e.g. 5099902894512 or SHVL 804)" 
+            class="flex-1 bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brass-500"
+          >
+          <button onclick="handleManualBarcode()" class="px-4 py-2 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold rounded-lg text-xs transition shadow flex items-center gap-1">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span>Lookup</span>
+          </button>
+        </div>
+
+        <!-- Laser Scanner Wedge Indicator -->
+        <div class="flex items-center justify-center gap-1.5 text-[10px] text-slate-500 pt-1">
+          <i class="fa-solid fa-wifi text-[9px] text-emerald-400"></i>
+          <span>Handheld USB / Bluetooth laser scanner wedge listener active</span>
+        </div>
       </div>
     </div>
   </div>
@@ -1629,8 +1701,8 @@
       let svg = '';
 
       if (isSingle) {
-        // Authentic Full-Bleed 7" Single 45 RPM Generic Company Sleeve (Same 500x500 size as LP)
-        svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+        // Authentic Full-Bleed 7" Single 45 RPM Generic Company Sleeve (500x500 explicit scale)
+        svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500" preserveAspectRatio="xMidYMid slice">
           <defs>
             <linearGradient id="singlePaper" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stop-color="#231b15"/>
@@ -1638,9 +1710,9 @@
               <stop offset="100%" stop-color="#0a0807"/>
             </linearGradient>
             <radialGradient id="label45" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#f8e392"/>
-              <stop offset="45%" stop-color="#d4af37"/>
-              <stop offset="85%" stop-color="#aa8620"/>
+              <stop offset="0%" stop-color="#fceda2"/>
+              <stop offset="35%" stop-color="#d4af37"/>
+              <stop offset="80%" stop-color="#aa8620"/>
               <stop offset="100%" stop-color="#72580f"/>
             </radialGradient>
             <radialGradient id="vinyl45" cx="50%" cy="50%" r="50%">
@@ -1649,45 +1721,41 @@
               <stop offset="100%" stop-color="#080706"/>
             </radialGradient>
           </defs>
+          <!-- Full-Bleed 500x500 Paper Sleeve -->
           <rect width="500" height="500" fill="url(#singlePaper)"/>
           
-          <!-- Retro 7" Company Sleeve Graphic Bands -->
-          <rect x="0" y="0" width="500" height="40" fill="#d4af37" fill-opacity="0.12"/>
-          <line x1="0" y1="40" x2="500" y2="40" stroke="#d4af37" stroke-opacity="0.4" stroke-width="2"/>
-          <text x="24" y="25" fill="#d4af37" font-family="monospace" font-size="11" font-weight="800" letter-spacing="2">ARCHIVAL 45 RPM SINGLE</text>
-          <text x="476" y="25" text-anchor="end" fill="#94a3b8" font-family="monospace" font-size="10" font-weight="700">7" VINYL</text>
+          <!-- Retro Company Sleeve Upper Graphic Bands -->
+          <rect x="0" y="0" width="500" height="42" fill="#d4af37" fill-opacity="0.12"/>
+          <line x1="0" y1="42" x2="500" y2="42" stroke="#d4af37" stroke-opacity="0.4" stroke-width="2"/>
+          <text x="24" y="27" fill="#d4af37" font-family="monospace" font-size="11" font-weight="800" letter-spacing="2">ARCHIVAL 45 RPM SINGLE</text>
+          <text x="476" y="27" text-anchor="end" fill="#94a3b8" font-family="monospace" font-size="10" font-weight="700">7" VINYL</text>
 
           <!-- Outer Sleeve Circular Ringwear Impression -->
-          <circle cx="250" cy="245" r="215" fill="none" stroke="#332a24" stroke-width="1.5" stroke-dasharray="14 4" opacity="0.5"/>
+          <circle cx="250" cy="245" r="225" fill="none" stroke="#332a24" stroke-width="1.5" stroke-dasharray="14 4" opacity="0.5"/>
           
           <!-- Die-cut Window Cutout (Revealing Black 45 Vinyl) -->
-          <circle cx="250" cy="245" r="180" fill="url(#vinyl45)" stroke="#3e332a" stroke-width="3"/>
-          <circle cx="250" cy="245" r="162" fill="none" stroke="#251f1a" stroke-width="1.2" opacity="0.8"/>
-          <circle cx="250" cy="245" r="144" fill="none" stroke="#322922" stroke-width="1.5" stroke-dasharray="10 3" opacity="0.6"/>
+          <circle cx="250" cy="245" r="190" fill="url(#vinyl45)" stroke="#3e332a" stroke-width="3"/>
+          <circle cx="250" cy="245" r="172" fill="none" stroke="#251f1a" stroke-width="1.2" opacity="0.8"/>
+          <circle cx="250" cy="245" r="154" fill="none" stroke="#322922" stroke-width="1.5" stroke-dasharray="10 3" opacity="0.6"/>
           
           <!-- Authentic 7" 45 RPM Center Label -->
-          <circle cx="250" cy="245" r="95" fill="url(#label45)" stroke="#55420d" stroke-width="3"/>
-          <circle cx="250" cy="245" r="88" fill="none" stroke="#755b13" stroke-width="1.2" stroke-dasharray="3 2"/>
+          <circle cx="250" cy="245" r="105" fill="url(#label45)" stroke="#55420d" stroke-width="3"/>
+          <circle cx="250" cy="245" r="98" fill="none" stroke="#755b13" stroke-width="1.2" stroke-dasharray="3 2"/>
           <circle cx="250" cy="245" r="28" fill="#0d1017" stroke="#48370b" stroke-width="2.5"/>
           
           <!-- 45 RPM Center Spider Adaptor Graphic -->
-          <path d="M 232 245 L 222 245 M 268 245 L 278 245 M 250 227 L 250 217 M 250 263 L 250 273" stroke="#d4af37" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M 230 245 L 218 245 M 270 245 L 282 245 M 250 225 L 250 213 M 250 265 L 250 277" stroke="#d4af37" stroke-width="2.5" stroke-linecap="round"/>
           <circle cx="250" cy="245" r="9" fill="#d4af37" fill-opacity="0.2" stroke="#d4af37" stroke-width="1.5"/>
 
-          <text x="250" y="185" text-anchor="middle" fill="#2d2203" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="900" letter-spacing="1.5">QUEENSFERRY</text>
-          <text x="250" y="198" text-anchor="middle" fill="#4d3b07" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="800" letter-spacing="1">MUSIC COLLECTIVE</text>
-          <text x="250" y="302" text-anchor="middle" fill="#2d2203" font-family="monospace" font-size="13" font-weight="900" letter-spacing="2">45 RPM</text>
-
-          <!-- Lower Metadata Title Placard -->
-          <rect x="0" y="430" width="500" height="70" fill="#0c0a09" fill-opacity="0.95"/>
-          <line x1="0" y1="430" x2="500" y2="430" stroke="#332a24" stroke-width="1.5"/>
-          <text x="24" y="456" fill="#f8fafc" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="800">${cleanArtist.substring(0, 36)}</text>
-          <text x="24" y="479" fill="#d4af37" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600">${cleanTitle.substring(0, 42)}</text>
-          <text x="476" y="468" text-anchor="end" fill="#94a3b8" font-family="monospace" font-size="11" font-weight="700">7" SINGLE</text>
+          <!-- Label Typography Centered Away From Bottom Corners -->
+          <text x="250" y="172" text-anchor="middle" fill="#2d2203" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="900" letter-spacing="1.5">QUEENSFERRY ARCHIVE</text>
+          <text x="250" y="196" text-anchor="middle" fill="#17120e" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="900">${cleanArtist.substring(0, 26)}</text>
+          <text x="250" y="214" text-anchor="middle" fill="#4d3b07" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="800">${cleanTitle.substring(0, 30)}</text>
+          <text x="250" y="318" text-anchor="middle" fill="#2d2203" font-family="monospace" font-size="12" font-weight="900" letter-spacing="2">45 RPM · 7" SINGLE</text>
         </svg>`;
       } else if (isBoxSet) {
-        // Deluxe Archival Multi-Disc Box Set Rigid Slipcase (500x500 matching scale)
-        svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+        // Deluxe Archival Multi-Disc Box Set Rigid Slipcase (500x500 explicit scale)
+        svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500" preserveAspectRatio="xMidYMid slice">
           <defs>
             <linearGradient id="boxBg" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stop-color="#141824"/>
@@ -1724,45 +1792,40 @@
           <path d="M 466 452 L 466 464 L 454 464" fill="none" stroke="#d4af37" stroke-width="2"/>
 
           <!-- Header Ribbon -->
-          <rect x="74" y="50" width="376" height="28" rx="3" fill="#d4af37" fill-opacity="0.12" stroke="#d4af37" stroke-opacity="0.3" stroke-width="1"/>
-          <text x="262" y="68" text-anchor="middle" fill="#d4af37" font-family="monospace" font-size="10" font-weight="800" letter-spacing="2.5">★ DELUXE ARCHIVAL VINYL BOX SET ★</text>
+          <rect x="74" y="46" width="376" height="28" rx="3" fill="#d4af37" fill-opacity="0.12" stroke="#d4af37" stroke-opacity="0.3" stroke-width="1"/>
+          <text x="262" y="64" text-anchor="middle" fill="#d4af37" font-family="monospace" font-size="10" font-weight="800" letter-spacing="2.5">★ DELUXE ARCHIVAL VINYL BOX SET ★</text>
 
           <!-- Multi-Disc Stack Graphic -->
-          <g transform="translate(182, 108)">
+          <g transform="translate(182, 95)">
             <!-- Disc 3 -->
-            <rect x="36" y="8" width="86" height="110" rx="3" fill="#0d1117" stroke="#334155" stroke-width="1.2"/>
-            <circle cx="110" cy="63" r="42" fill="#141820" stroke="#252c38" stroke-width="1.5"/>
-            <circle cx="110" cy="63" r="16" fill="#a8841a" stroke="#48370b" stroke-width="1"/>
+            <rect x="36" y="8" width="86" height="95" rx="3" fill="#0d1117" stroke="#334155" stroke-width="1.2"/>
+            <circle cx="110" cy="55" r="38" fill="#141820" stroke="#252c38" stroke-width="1.5"/>
+            <circle cx="110" cy="55" r="14" fill="#a8841a" stroke="#48370b" stroke-width="1"/>
             
             <!-- Disc 2 -->
-            <rect x="18" y="16" width="86" height="110" rx="3" fill="#111622" stroke="#475569" stroke-width="1.2"/>
-            <circle cx="92" cy="71" r="42" fill="#1a202c" stroke="#2e3846" stroke-width="1.5"/>
-            <circle cx="92" cy="71" r="16" fill="#c99f2b" stroke="#55420d" stroke-width="1"/>
+            <rect x="18" y="16" width="86" height="95" rx="3" fill="#111622" stroke="#475569" stroke-width="1.2"/>
+            <circle cx="92" cy="63" r="38" fill="#1a202c" stroke="#2e3846" stroke-width="1.5"/>
+            <circle cx="92" cy="63" r="14" fill="#c99f2b" stroke="#55420d" stroke-width="1"/>
 
             <!-- Disc 1 -->
-            <rect x="0" y="24" width="86" height="110" rx="3" fill="#151b2a" stroke="#d4af37" stroke-opacity="0.6" stroke-width="1.5"/>
-            <circle cx="74" cy="79" r="42" fill="#202738" stroke="#3d495c" stroke-width="1.5"/>
-            <circle cx="74" cy="79" r="16" fill="url(#boxGold)" stroke="#695311" stroke-width="1.2"/>
-            <circle cx="74" cy="79" r="3" fill="#0c0e14"/>
+            <rect x="0" y="24" width="86" height="95" rx="3" fill="#151b2a" stroke="#d4af37" stroke-opacity="0.6" stroke-width="1.5"/>
+            <circle cx="74" cy="71" r="38" fill="#202738" stroke="#3d495c" stroke-width="1.5"/>
+            <circle cx="74" cy="71" r="14" fill="url(#boxGold)" stroke="#695311" stroke-width="1.2"/>
+            <circle cx="74" cy="71" r="3" fill="#0c0e14"/>
           </g>
 
-          <!-- Central Debossed Plaque for Artist & Title -->
-          <rect x="80" y="278" width="364" height="112" rx="6" fill="#0a0d14" fill-opacity="0.9" stroke="#d4af37" stroke-opacity="0.5" stroke-width="1.5"/>
-          <rect x="84" y="282" width="356" height="104" rx="4" fill="none" stroke="#d4af37" stroke-opacity="0.2" stroke-width="1"/>
+          <!-- Central Debossed Plaque for Artist & Title (Centered at y=225 to 350) -->
+          <rect x="74" y="225" width="376" height="125" rx="6" fill="#0a0d14" fill-opacity="0.95" stroke="#d4af37" stroke-opacity="0.6" stroke-width="1.5"/>
+          <rect x="78" y="229" width="368" height="117" rx="4" fill="none" stroke="#d4af37" stroke-opacity="0.25" stroke-width="1"/>
           
-          <text x="262" y="304" text-anchor="middle" fill="#94a3b8" font-family="monospace" font-size="9" font-weight="700" letter-spacing="1.5">QUEENSFERRY ARCHIVAL VAULT</text>
-          <text x="262" y="334" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="800">${cleanArtist.substring(0, 34)}</text>
-          <text x="262" y="358" text-anchor="middle" fill="#d4af37" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600">${cleanTitle.substring(0, 38)}</text>
-          <text x="262" y="378" text-anchor="middle" fill="#cbd5e1" font-family="monospace" font-size="9" font-weight="700" letter-spacing="1.5">MULTI-DISC COLLECTOR'S EDITION</text>
-
-          <!-- Bottom Archival Stamp -->
-          <line x1="120" y1="416" x2="404" y2="416" stroke="#d4af37" stroke-opacity="0.3" stroke-width="1"/>
-          <text x="262" y="438" text-anchor="middle" fill="#d4af37" font-family="monospace" font-size="10" font-weight="700" letter-spacing="2">HIGH-FIDELITY VINYL PRESSINGS</text>
-          <text x="262" y="454" text-anchor="middle" fill="#64748b" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="500">LIMITED ARCHIVAL EDITION · RIGID SLIPCASE</text>
+          <text x="262" y="254" text-anchor="middle" fill="#94a3b8" font-family="monospace" font-size="9" font-weight="700" letter-spacing="1.5">QUEENSFERRY ARCHIVAL VAULT</text>
+          <text x="262" y="284" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="900">${cleanArtist.substring(0, 32)}</text>
+          <text x="262" y="308" text-anchor="middle" fill="#d4af37" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700">${cleanTitle.substring(0, 36)}</text>
+          <text x="262" y="332" text-anchor="middle" fill="#cbd5e1" font-family="monospace" font-size="9" font-weight="700" letter-spacing="1.5">MULTI-DISC COLLECTOR'S EDITION</text>
         </svg>`;
       } else {
-        // Authentic Full-Bleed 12" LP Album Jacket (500x500 matching scale)
-        svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+        // Authentic Full-Bleed 12" LP Album Jacket (500x500 explicit scale)
+        svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500" preserveAspectRatio="xMidYMid slice">
           <defs>
             <radialGradient id="ringwear" cx="50%" cy="50%" r="50%">
               <stop offset="68%" stop-color="#ffffff" stop-opacity="0"/>
@@ -1778,13 +1841,13 @@
             </linearGradient>
             <radialGradient id="centerLabel" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stop-color="#fceda2"/>
-              <stop offset="35%" stop-color="#d4af37"/>
-              <stop offset="85%" stop-color="#997b1e"/>
+              <stop offset="30%" stop-color="#d4af37"/>
+              <stop offset="75%" stop-color="#997b1e"/>
               <stop offset="100%" stop-color="#695311"/>
             </radialGradient>
             <radialGradient id="grooveGrad" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#212734"/>
-              <stop offset="70%" stop-color="#11141c"/>
+              <stop offset="0%" stop-color="#242c3b"/>
+              <stop offset="70%" stop-color="#131720"/>
               <stop offset="100%" stop-color="#07090c"/>
             </radialGradient>
           </defs>
@@ -1793,38 +1856,35 @@
           <rect width="500" height="500" fill="url(#sleeveBg)"/>
           
           <!-- Vintage Record Ring Impression -->
-          <circle cx="250" cy="245" r="236" fill="none" stroke="#2c3647" stroke-width="1.5" opacity="0.4"/>
-          <circle cx="250" cy="245" r="230" fill="url(#ringwear)"/>
+          <circle cx="250" cy="245" r="238" fill="none" stroke="#2c3647" stroke-width="1.5" opacity="0.4"/>
+          <circle cx="250" cy="245" r="232" fill="url(#ringwear)"/>
           
-          <!-- Outer Vinyl Disc Grooves -->
-          <circle cx="250" cy="245" r="195" fill="url(#grooveGrad)" stroke="#1a202c" stroke-width="2"/>
-          <circle cx="250" cy="245" r="180" fill="none" stroke="#2c3545" stroke-width="1" stroke-dasharray="6 2" opacity="0.6"/>
-          <circle cx="250" cy="245" r="165" fill="none" stroke="#232b38" stroke-width="1" opacity="0.7"/>
-          <circle cx="250" cy="245" r="150" fill="none" stroke="#2c3545" stroke-width="1.2" stroke-dasharray="12 4" opacity="0.5"/>
-          <circle cx="250" cy="245" r="135" fill="none" stroke="#1f2632" stroke-width="1" opacity="0.8"/>
-          
-          <!-- Archival Center Label -->
-          <circle cx="250" cy="245" r="92" fill="url(#centerLabel)" stroke="#4e3d09" stroke-width="2.5"/>
-          <circle cx="250" cy="245" r="85" fill="none" stroke="#705912" stroke-width="1.2" stroke-dasharray="3 2"/>
-          <circle cx="250" cy="245" r="76" fill="none" stroke="#876d1a" stroke-width="0.8"/>
-          <circle cx="250" cy="245" r="16" fill="#0d1017" stroke="#423409" stroke-width="2.5"/>
-          
-          <!-- Label Typography -->
-          <text x="250" y="190" text-anchor="middle" fill="#2d2203" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="900" letter-spacing="2">QUEENSFERRY</text>
-          <text x="250" y="205" text-anchor="middle" fill="#4d3b07" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="700" letter-spacing="1">MUSIC COLLECTIVE</text>
-          <text x="250" y="295" text-anchor="middle" fill="#382a04" font-family="monospace" font-size="10" font-weight="800" letter-spacing="1.5">33⅓ RPM · LP</text>
-          
-          <!-- Upper & Lower Archival Typography on Sleeve Header/Footer -->
-          <rect x="0" y="0" width="500" height="40" fill="#0b0e14" fill-opacity="0.6"/>
-          <line x1="0" y1="40" x2="500" y2="40" stroke="#252c3a" stroke-width="1"/>
-          <text x="24" y="25" fill="#94a3b8" font-family="monospace" font-size="11" font-weight="700" letter-spacing="1">QMC ARCHIVAL PRESSING</text>
-          <text x="476" y="25" text-anchor="end" fill="#d4af37" font-family="monospace" font-size="11" font-weight="700">12" LONG PLAY</text>
+          <!-- Outer Vinyl Disc Grooves Expanding Full Bleed -->
+          <circle cx="250" cy="245" r="215" fill="url(#grooveGrad)" stroke="#1a202c" stroke-width="2"/>
+          <circle cx="250" cy="245" r="195" fill="none" stroke="#2c3545" stroke-width="1" stroke-dasharray="6 2" opacity="0.6"/>
+          <circle cx="250" cy="245" r="178" fill="none" stroke="#232b38" stroke-width="1" opacity="0.7"/>
+          <circle cx="250" cy="245" r="160" fill="none" stroke="#2c3545" stroke-width="1.2" stroke-dasharray="12 4" opacity="0.5"/>
+          <circle cx="250" cy="245" r="142" fill="none" stroke="#1f2632" stroke-width="1" opacity="0.8"/>
+          <circle cx="250" cy="245" r="126" fill="none" stroke="#2a3342" stroke-width="0.8" opacity="0.6"/>
 
-          <rect x="0" y="430" width="500" height="70" fill="#0b0e14" fill-opacity="0.9"/>
-          <line x1="0" y1="430" x2="500" y2="430" stroke="#252c3a" stroke-width="1"/>
-          <text x="24" y="456" fill="#f8fafc" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="800">${cleanArtist.substring(0, 36)}</text>
-          <text x="24" y="479" fill="#d4af37" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600">${cleanTitle.substring(0, 42)}</text>
-          <text x="476" y="468" text-anchor="end" fill="#94a3b8" font-family="monospace" font-size="11" font-weight="700">12" LP</text>
+          <!-- Archival Center Label (Radius 112) -->
+          <circle cx="250" cy="245" r="112" fill="url(#centerLabel)" stroke="#4e3d09" stroke-width="3"/>
+          <circle cx="250" cy="245" r="104" fill="none" stroke="#705912" stroke-width="1.2" stroke-dasharray="3 2"/>
+          <circle cx="250" cy="245" r="92" fill="none" stroke="#876d1a" stroke-width="0.8"/>
+          
+          <!-- Center Spindle Hole -->
+          <circle cx="250" cy="245" r="16" fill="#0d1017" stroke="#423409" stroke-width="2.5"/>
+          <circle cx="250" cy="245" r="3" fill="#d4af37" fill-opacity="0.5"/>
+
+          <!-- Centered Center Label Typography -->
+          <text x="250" y="168" text-anchor="middle" fill="#2d2203" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="900" letter-spacing="2">QUEENSFERRY ARCHIVE</text>
+          <text x="250" y="196" text-anchor="middle" fill="#17120e" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="900">${cleanArtist.substring(0, 26)}</text>
+          <text x="250" y="215" text-anchor="middle" fill="#382a04" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="800">${cleanTitle.substring(0, 30)}</text>
+          <text x="250" y="324" text-anchor="middle" fill="#2d2203" font-family="monospace" font-size="11" font-weight="800" letter-spacing="1.5">33⅓ RPM · LP STEREO</text>
+          
+          <!-- Upper Header Line -->
+          <text x="24" y="25" fill="#94a3b8" font-family="monospace" font-size="10" font-weight="700" letter-spacing="1">QMC ARCHIVAL PRESSING</text>
+          <text x="476" y="25" text-anchor="end" fill="#d4af37" font-family="monospace" font-size="10" font-weight="700">12" LONG PLAY</text>
         </svg>`;
       }
 
@@ -3102,12 +3162,15 @@
                 ${getGradeBadge(item.mediaGrade)}
               </div>
 
+              <!-- Subtle Bottom Dark Vignette to keep overlays readable -->
+              <div class="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none"></div>
+
               <!-- Speed and Label Pill -->
-              <div class="absolute bottom-3 inset-x-3 flex items-center justify-between text-[11px] text-white/90">
-                <span class="bg-black/80 backdrop-blur px-2.5 py-0.5 rounded-md border border-white/10 font-mono">
+              <div class="absolute bottom-2.5 inset-x-2.5 flex items-center justify-between text-[10px] text-white/90">
+                <span class="bg-black/85 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/15 font-mono shadow-sm">
                   ${item.speed || (isAlbum ? '33 1/3 RPM' : '45 RPM')}
                 </span>
-                <span class="bg-black/80 backdrop-blur px-2.5 py-0.5 rounded-md border border-white/10 truncate max-w-[140px]">
+                <span class="bg-black/85 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/15 truncate max-w-[130px] font-medium text-brass-400 shadow-sm" title="${escapeHtml(item.label || 'Unknown Label')}">
                   ${item.label || 'Unknown Label'}
                 </span>
               </div>
@@ -4726,58 +4789,264 @@
     }
 
     /* =========================================================
-       BARCODE SCANNER & LOOKUP
+       BARCODE SCANNER, PHOTO DECODER & HARDWARE WEDGE
        ========================================================= */
-    function openScannerModal() {
-      document.getElementById('scannerModal').classList.remove('hidden');
-      document.getElementById('scanFeedback').innerText = "Starting camera...";
+    let currentScannerCameraId = null;
+    let isScannerTorchOn = false;
+    let scannerAvailableCameras = [];
 
+    // Synthesize an authentic cash register / retail confirmation beep
+    function playScanBeep() {
       try {
-        if (!html5QrScanner) {
-          html5QrScanner = new Html5Qrcode("qr-reader");
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1850, ctx.currentTime);
+        gain.gain.setValueAtTime(0.18, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.12);
+      } catch (e) {}
+    }
+
+    async function populateScannerCameras() {
+      const select = document.getElementById('scannerCameraSelect');
+      if (!select) return;
+      try {
+        if (typeof Html5Qrcode !== 'undefined' && Html5Qrcode.getCameras) {
+          const cams = await Html5Qrcode.getCameras();
+          scannerAvailableCameras = cams || [];
+          if (scannerAvailableCameras.length > 0) {
+            select.innerHTML = '<option value="">Auto-Detect (Back / Main Camera)</option>' +
+              scannerAvailableCameras.map(c => `<option value="${escapeXml(c.id)}">${escapeXml(c.label || 'Camera ' + c.id)}</option>`).join('');
+            if (currentScannerCameraId) {
+              select.value = currentScannerCameraId;
+            }
+          }
         }
-
-        const config = { fps: 10, qrbox: { width: 250, height: 160 } };
-
-        html5QrScanner.start(
-          { facingMode: "environment" },
-          config,
-          (decodedText) => {
-            handleBarcodeScanned(decodedText);
-          },
-          () => {}
-        ).catch(err => {
-          console.warn("Camera failed:", err);
-          document.getElementById('scanFeedback').innerText = "Camera feed not available. You can enter barcode below or test with sample.";
-        });
       } catch (err) {
-        document.getElementById('scanFeedback').innerText = "Scanner unavailable in this browser environment.";
+        console.warn("Could not list video devices:", err);
       }
     }
 
-    function closeScannerModal() {
-      if (html5QrScanner) {
-        html5QrScanner.stop().then(() => html5QrScanner.clear()).catch(err => console.log(err));
+    async function startScannerStream(cameraId = null) {
+      const feedback = document.getElementById('scanFeedback');
+      if (feedback) feedback.innerText = "Connecting high-resolution camera stream...";
+
+      try {
+        if (html5QrScanner && html5QrScanner.isScanning) {
+          try {
+            await html5QrScanner.stop();
+          } catch (e) {}
+        }
+
+        if (!html5QrScanner) {
+          const formats = (typeof Html5QrcodeSupportedFormats !== 'undefined') ? [
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.QR_CODE
+          ] : undefined;
+
+          html5QrScanner = new Html5Qrcode("qr-reader", {
+            formatsToSupport: formats,
+            verbose: false,
+            experimentalFeatures: {
+              useBarCodeDetectorIfSupported: true
+            }
+          });
+        }
+
+        const cameraChoice = cameraId ? { deviceId: { exact: cameraId } } : { facingMode: "environment" };
+
+        const scanConfig = {
+          fps: 22,
+          qrbox: (w, h) => {
+            const boxW = Math.min(Math.floor(w * 0.85), 360);
+            const boxH = Math.min(Math.floor(h * 0.45), 180);
+            return { width: Math.max(boxW, 200), height: Math.max(boxH, 90) };
+          },
+          aspectRatio: 1.333333,
+          videoConstraints: {
+            facingMode: { ideal: "environment" },
+            focusMode: { ideal: "continuous" },
+            width: { min: 640, ideal: 1280, max: 1920 },
+            height: { min: 480, ideal: 720, max: 1080 }
+          }
+        };
+
+        await html5QrScanner.start(
+          cameraChoice,
+          scanConfig,
+          (decodedText) => {
+            playScanBeep();
+            handleBarcodeScanned(decodedText);
+          },
+          () => {}
+        );
+
+        if (feedback) feedback.innerText = "Camera active. Center the record barcode inside the red laser viewfinder.";
+
+        // Check if flashlight / torch capability exists
+        const torchBtn = document.getElementById('scannerTorchBtn');
+        if (torchBtn) {
+          try {
+            const caps = html5QrScanner.getRunningTrackCapabilities();
+            if (caps && caps.torch) {
+              torchBtn.classList.remove('hidden');
+              torchBtn.classList.add('flex');
+            } else {
+              torchBtn.classList.add('hidden');
+            }
+          } catch (e) {
+            torchBtn.classList.add('hidden');
+          }
+        }
+      } catch (err) {
+        console.warn("Live camera startup error:", err);
+        if (feedback) feedback.innerText = "Camera stream blocked or unavailable. You can snap/upload a photo or type digits below.";
       }
+    }
+
+    function switchScannerCamera(camId) {
+      currentScannerCameraId = camId;
+      startScannerStream(camId);
+    }
+
+    async function toggleScannerTorch() {
+      if (!html5QrScanner || !html5QrScanner.isScanning) return;
+      try {
+        isScannerTorchOn = !isScannerTorchOn;
+        await html5QrScanner.applyVideoConstraints({
+          advanced: [{ torch: isScannerTorchOn }]
+        });
+        const torchBtn = document.getElementById('scannerTorchBtn');
+        if (torchBtn) {
+          torchBtn.classList.toggle('bg-amber-500/30', isScannerTorchOn);
+          torchBtn.classList.toggle('border-amber-400', isScannerTorchOn);
+          torchBtn.classList.toggle('text-amber-200', isScannerTorchOn);
+        }
+      } catch (e) {
+        console.warn("Torch failed:", e);
+      }
+    }
+
+    async function handleBarcodeImageUpload(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const feedback = document.getElementById('scanFeedback');
+      if (feedback) feedback.innerText = "Analyzing high-res photo for barcode...";
+      showToast("Scanning uploaded photo for barcode...", "info");
+
+      try {
+        let scanner = html5QrScanner;
+        if (!scanner) {
+          scanner = new Html5Qrcode("qr-reader");
+        }
+        const decodedText = await scanner.scanFile(file, false);
+        if (decodedText) {
+          playScanBeep();
+          showToast(`Detected Barcode: ${decodedText}`);
+          handleBarcodeScanned(decodedText);
+        } else {
+          throw new Error("No barcode pattern decoded");
+        }
+      } catch (err) {
+        console.warn("File scan error:", err);
+        if (feedback) feedback.innerText = "No barcode found in that image. Try typing digits or searching by title.";
+        showToast("Barcode not detected in photo. Try manual entry or search.", "info");
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    async function openScannerModal() {
+      document.getElementById('scannerModal').classList.remove('hidden');
+      await populateScannerCameras();
+      await startScannerStream(currentScannerCameraId);
+      setTimeout(() => {
+        document.getElementById('manualBarcodeInput')?.focus();
+      }, 250);
+    }
+
+    function closeScannerModal() {
+      if (html5QrScanner && html5QrScanner.isScanning) {
+        html5QrScanner.stop().catch(() => {}).finally(() => {
+          try { html5QrScanner.clear(); } catch(e) {}
+        });
+      }
+      isScannerTorchOn = false;
       document.getElementById('scannerModal').classList.add('hidden');
     }
 
     function handleBarcodeScanned(code) {
+      const cleanCode = String(code || '').trim();
       closeScannerModal();
       openAddEditModal();
-      document.getElementById('formBarcode').value = code;
-      executeMusicBrainzSearch(code, true);
+      document.getElementById('formBarcode').value = cleanCode;
+      executeMusicBrainzSearch(cleanCode, true);
     }
 
     function handleManualBarcode() {
-      const code = document.getElementById('manualBarcodeInput').value.trim();
-      if (!code) return;
-      handleBarcodeScanned(code);
+      const input = document.getElementById('manualBarcodeInput');
+      const val = input ? input.value.trim() : '';
+      if (!val) return;
+      closeScannerModal();
+      openAddEditModal();
+      if (/^\d{8,14}$/.test(val)) {
+        document.getElementById('formBarcode').value = val;
+        executeMusicBrainzSearch(val, true);
+      } else {
+        // User provided a catalog number or release title
+        document.getElementById('formCatNo').value = val;
+        executeMusicBrainzSearch({ title: val }, false);
+      }
     }
 
     function simulateScanSample() {
+      playScanBeep();
       handleBarcodeScanned("5099902894512");
     }
+
+    /* ---------------------------------------------------------
+       HARDWARE LASER BARCODE SCANNER WEDGE (USB / BLUETOOTH)
+       --------------------------------------------------------- */
+    let globalBarcodeBuffer = '';
+    let globalLastKeyTime = 0;
+
+    window.addEventListener('keydown', (e) => {
+      const activeEl = document.activeElement;
+      const isInput = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable);
+      const now = Date.now();
+
+      // Hardware laser scanner guns type rapidly with interval <50ms
+      if (now - globalLastKeyTime > 140) {
+        globalBarcodeBuffer = '';
+      }
+      globalLastKeyTime = now;
+
+      if (e.key === 'Enter') {
+        const candidate = globalBarcodeBuffer.trim();
+        if (candidate.length >= 8 && /^\d{8,14}$/.test(candidate) && !isInput) {
+          e.preventDefault();
+          playScanBeep();
+          showToast(`Laser Scanner Read: ${candidate}`);
+          handleBarcodeScanned(candidate);
+          globalBarcodeBuffer = '';
+        }
+      } else if (/^[0-9]$/.test(e.key)) {
+        globalBarcodeBuffer += e.key;
+      }
+    });
 
     /* =========================================================
        BATCH EXCEL (.XLSX) & CSV UPLOAD ENGINE
