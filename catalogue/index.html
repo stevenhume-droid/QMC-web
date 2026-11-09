@@ -1260,93 +1260,70 @@
         </div>
 
         <!-- Expanded Content View -->
-        <div id="quickLookupExpandedContent" class="px-4 sm:px-6 py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5">
-          <div class="flex items-center gap-2 flex-1 flex-wrap">
-            <div class="flex items-center gap-1.5 text-xs text-brass-400 font-semibold whitespace-nowrap">
-              <i class="fa-solid fa-wand-magic-sparkles"></i>
-              <span>Quick Lookup:</span>
-            </div>
-            
-            <!-- Format Filter Dropdown -->
-            <select id="autofillFormatFilter" class="bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-brass-400 font-semibold focus:outline-none focus:border-brass-500" title="Narrow search by release format">
-              <option value="ALL">Any Format</option>
-              <option value="12">12" Vinyl / LP</option>
-              <option value="12S">12" Single / Maxi</option>
-              <option value="BOX">Vinyl Box Set</option>
-              <option value="7">7" Single (45 RPM)</option>
-              <option value="10">10" Vinyl</option>
-              <option value="CASSETTE">Cassette Tape</option>
-              <option value="MINIDISC">MiniDisc</option>
-              <option value="CD">CD / Other</option>
-            </select>
-
-            <!-- Artist Input -->
-            <div class="relative flex-1 min-w-[130px]">
+        <div id="quickLookupExpandedContent" class="px-3 sm:px-6 py-2.5 space-y-2 border-b border-vinyl-800">
+          <!-- Row 1: Search inputs & Action buttons -->
+          <div class="grid grid-cols-12 gap-1.5 sm:gap-2 items-center">
+            <div class="col-span-12 sm:col-span-5 relative">
               <input 
                 type="text" 
                 id="searchArtistInput" 
                 onkeydown="if(event.key === 'Enter'){ event.preventDefault(); lookupMusicBrainzManual(); }"
-                placeholder="Artist (e.g. The Damned)" 
+                placeholder="Artist (e.g. The Doors)" 
                 class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brass-500"
               >
             </div>
-
-            <!-- Title Input -->
-            <div class="relative flex-1 min-w-[150px]">
+            <div class="col-span-12 sm:col-span-4 relative">
               <input 
                 type="text" 
                 id="searchTitleInput" 
                 onkeydown="if(event.key === 'Enter'){ event.preventDefault(); lookupMusicBrainzManual(); }"
-                placeholder="Title / Track (e.g. New Rose)" 
+                placeholder="Title / Track (e.g. People Are Strange)" 
                 class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brass-500"
               >
             </div>
-
-            <!-- Clear Search Button -->
-            <button 
-              type="button" 
-              onclick="clearAutofillSearch()" 
-              id="clearSearchQueryBtn" 
-              class="px-2 py-1.5 bg-vinyl-850 hover:bg-vinyl-700 border border-vinyl-700 text-slate-400 hover:text-white rounded-lg text-xs transition" 
-              title="Clear artist and title search boxes"
-            >
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-
-            <!-- Search Button -->
-            <button type="button" onclick="lookupMusicBrainzManual()" id="musicBrainzFetchBtn" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 transition flex items-center gap-1.5 shadow whitespace-nowrap">
-              <i class="fa-solid fa-magnifying-glass"></i>
-              <span>Search</span>
-            </button>
-
-            <!-- Scan Barcode Button -->
-            <button type="button" onclick="openScannerModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-vinyl-850 hover:bg-vinyl-700 border border-brass-500/40 text-brass-400 transition flex items-center gap-1.5 shadow whitespace-nowrap" title="Scan Barcode via Camera">
-              <i class="fa-solid fa-barcode"></i>
-              <span>Scan</span>
-            </button>
+            <div class="col-span-12 sm:col-span-3 flex items-center gap-1.5">
+              <button type="button" onclick="lookupMusicBrainzManual()" id="musicBrainzFetchBtn" class="flex-1 py-1.5 px-3 text-xs font-bold rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 transition flex items-center justify-center gap-1.5 shadow whitespace-nowrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>Search</span>
+              </button>
+              <button type="button" onclick="openScannerModal()" class="py-1.5 px-2.5 text-xs font-semibold rounded-lg bg-vinyl-850 hover:bg-vinyl-750 border border-brass-500/40 text-brass-400 transition flex items-center justify-center shadow" title="Scan Barcode via Camera">
+                <i class="fa-solid fa-barcode text-sm"></i>
+              </button>
+              <button type="button" onclick="clearAutofillSearch()" class="py-1.5 px-2 bg-vinyl-850 hover:bg-vinyl-700 border border-vinyl-700 text-slate-400 hover:text-white rounded-lg text-xs transition" title="Clear search boxes">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
           </div>
 
-          <!-- Controls: Collapse & Clear -->
-          <div class="flex items-center gap-2 self-end md:self-auto">
-            <button type="button" onclick="setQuickLookupCollapsed(true)" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-vinyl-850 hover:bg-vinyl-700 text-slate-400 hover:text-slate-200 border border-vinyl-700 transition flex items-center gap-1" title="Hide Quick Lookup bar">
-              <i class="fa-solid fa-chevron-up text-[10px]"></i>
-              <span class="hidden sm:inline">Hide</span>
-            </button>
-            <button type="button" onclick="confirmClearForm()" class="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-vinyl-850 hover:bg-red-950/50 hover:text-red-300 text-slate-400 border border-vinyl-700 hover:border-red-800 transition flex items-center gap-1.5 whitespace-nowrap" title="Clear all entry fields back to empty">
-              <i class="fa-solid fa-eraser text-xs"></i>
-              <span>Clear Entry</span>
-            </button>
+          <!-- Row 2: Format Filter & Quick Controls -->
+          <div class="flex items-center justify-between text-xs text-slate-400 gap-2 flex-wrap pt-0.5">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span class="text-[11px] font-semibold text-brass-400 whitespace-nowrap flex items-center gap-1">
+                <i class="fa-solid fa-filter text-[9px]"></i> Format:
+              </span>
+              <select id="autofillFormatFilter" class="bg-vinyl-850 border border-vinyl-700 rounded-md px-2 py-0.5 text-xs text-brass-400 font-semibold focus:outline-none focus:border-brass-500 truncate max-w-[150px] sm:max-w-none">
+                <option value="ALL">All Formats</option>
+                <option value="7">7" Single (45 RPM)</option>
+                <option value="12">12" Vinyl / LP</option>
+                <option value="12S">12" Single / Maxi</option>
+                <option value="BOX">Vinyl Box Set</option>
+                <option value="10">10" Vinyl</option>
+                <option value="CASSETTE">Cassette Tape</option>
+                <option value="MINIDISC">MiniDisc</option>
+                <option value="CD">CD / Other</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <button type="button" onclick="setQuickLookupCollapsed(true)" class="hover:text-slate-200 transition flex items-center gap-1 text-[11px]" title="Hide Quick Lookup bar">
+                <i class="fa-solid fa-chevron-up text-[9px]"></i> Hide Search
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Multiple Releases Match Selector Drawer -->
-      <div id="autofillResultsContainer" class="hidden bg-vinyl-900 border-b border-vinyl-800 p-4 max-h-80 overflow-y-auto space-y-2.5">
-        <!-- Populated dynamically via renderAutofillResults() -->
-      </div>
-
       <!-- Navigation Tabs -->
-      <div class="flex items-center justify-between border-b border-vinyl-800 px-2 sm:px-6 bg-vinyl-900 overflow-x-auto no-scrollbar text-xs font-medium">
+      <div id="formTabsContainer" class="flex items-center justify-between border-b border-vinyl-800 px-2 sm:px-6 bg-vinyl-900 overflow-x-auto no-scrollbar text-xs font-medium">
         <div class="flex">
           <button type="button" onclick="switchFormTab('tab-general')" id="tabBtn-general" class="form-tab-btn py-3 px-3 border-b-2 border-brass-500 text-brass-400 font-semibold whitespace-nowrap">
             1. Record
@@ -1852,6 +1829,11 @@
           </div>
         </div>
       </form>
+
+      <!-- Multiple Releases Match Selector Drawer (Takes full body when active) -->
+      <div id="autofillResultsContainer" class="hidden flex-1 overflow-y-auto bg-vinyl-900 p-3 sm:p-5 space-y-3 z-30" style="-webkit-overflow-scrolling: touch;">
+        <!-- Populated dynamically via renderAutofillResults() -->
+      </div>
     </div>
   </div>
 
@@ -4773,7 +4755,11 @@
 
         const data = res.data;
         if (data && data.length > 0) {
-          records = data.map(mapDbToRecord);
+          const cloudRecords = data.map(mapDbToRecord);
+          // Preserve any local records that haven't synced to cloud yet
+          const cloudIds = new Set(cloudRecords.map(r => r.id));
+          const localOnly = records.filter(r => !cloudIds.has(r.id));
+          records = [...cloudRecords, ...localOnly];
           saveRecordsToStorage();
           renderStats();
           renderRecords();
@@ -7400,6 +7386,8 @@
         container.classList.add('hidden');
         container.innerHTML = '';
       }
+      document.getElementById('formTabsContainer')?.classList.remove('hidden');
+      document.getElementById('recordForm')?.classList.remove('hidden');
       stagedOnlineReleases = [];
     }
 
@@ -7468,6 +7456,8 @@
 
     function closeAddEditModal() {
       closeAutofillResults();
+      const idField = document.getElementById('recordId');
+      if (idField) idField.value = '';
       const modal = document.getElementById('recordModal');
       if (modal) modal.classList.add('hidden');
     }
@@ -7718,6 +7708,29 @@
       document.getElementById('recordModal').classList.remove('hidden');
     }
 
+    function calculateFormatBaselineValue(format = '', year = null) {
+      const f = (format || '').toLowerCase();
+      let base = 15.0;
+      if (f.includes('box')) base = 45.0;
+      else if (f.includes('2xlp') || f.includes('gatefold')) base = 25.0;
+      else if (f.includes('12" maxi') || f.includes('12" single') || f.includes('maxi')) base = 12.0;
+      else if (f.includes('10"')) base = 14.0;
+      else if (f.includes('7"')) base = 8.5;
+      else if (f.includes('cassette') || f.includes('tape')) base = 10.0;
+      else if (f.includes('minidisc')) base = 20.0;
+      else if (f.includes('cd')) base = 6.0;
+
+      const y = parseInt(year);
+      if (!isNaN(y) && y > 1920 && y < 1980) base *= 1.35;
+      base = Math.round(base * 2) / 2;
+      return {
+        val: base,
+        low: Math.round(base * 0.6 * 100) / 100,
+        median: base,
+        high: Math.round(base * 1.5 * 100) / 100
+      };
+    }
+
     function saveRecordForm(e, andAddNext = false) {
       if (e) e.preventDefault();
 
@@ -7768,11 +7781,21 @@
       }
 
       const valRaw = document.getElementById('formEstimatedValue').value;
-      const estValue = valRaw !== '' ? parseFloat(valRaw) : null;
-      const pLowRaw = document.getElementById('formPriceLow')?.value;
-      const pMedRaw = document.getElementById('formPriceMedian')?.value;
-      const pHighRaw = document.getElementById('formPriceHigh')?.value;
-      const pSource = document.getElementById('formPriceSource')?.value;
+      let estValue = valRaw !== '' ? parseFloat(valRaw) : null;
+      let pLowRaw = document.getElementById('formPriceLow')?.value;
+      let pMedRaw = document.getElementById('formPriceMedian')?.value;
+      let pHighRaw = document.getElementById('formPriceHigh')?.value;
+      let pSource = document.getElementById('formPriceSource')?.value;
+
+      // Ensure every newly catalogued record has a baseline market valuation if left empty
+      if ((estValue === null || isNaN(estValue)) && isNew) {
+        const fallback = calculateFormatBaselineValue(format, parseInt(document.getElementById('formYear')?.value));
+        estValue = fallback.val;
+        if (!pLowRaw) pLowRaw = fallback.low;
+        if (!pMedRaw) pMedRaw = fallback.median;
+        if (!pHighRaw) pHighRaw = fallback.high;
+        if (!pSource) pSource = 'Format Market Benchmark';
+      }
 
       const recordObj = {
         id: newId,
@@ -7855,6 +7878,9 @@
         if (index !== -1) {
           records[index] = recordObj;
           showToast(`Updated "${recordObj.title}"`);
+        } else {
+          records.unshift(recordObj);
+          showToast(`Catalogued "${recordObj.title}" successfully!`);
         }
       }
 
@@ -7896,6 +7922,8 @@
         setTimeout(() => document.getElementById('formArtist').focus(), 100);
       } else {
         closeAddEditModal();
+        const idField = document.getElementById('recordId');
+        if (idField) idField.value = '';
         const detailModal = document.getElementById('detailModal');
         if (detailModal && !detailModal.classList.contains('hidden')) {
           viewRecordDetail(recordObj.id);
@@ -9193,6 +9221,25 @@
       let artist = document.getElementById('searchArtistInput')?.value.trim() || '';
       let title = document.getElementById('searchTitleInput')?.value.trim() || '';
 
+      // Smart parsing: If user pasted "Artist - Title" in either box
+      if (artist && !title && (artist.includes(' - ') || artist.includes(' – ') || artist.includes(' : '))) {
+        const parts = artist.split(/\s*[-–:]\s*/);
+        if (parts.length >= 2) {
+          artist = parts[0].trim();
+          title = parts.slice(1).join(' - ').trim();
+          if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = artist;
+          if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = title;
+        }
+      } else if (!artist && title && (title.includes(' - ') || title.includes(' – ') || title.includes(' : '))) {
+        const parts = title.split(/\s*[-–:]\s*/);
+        if (parts.length >= 2) {
+          artist = parts[0].trim();
+          title = parts.slice(1).join(' - ').trim();
+          if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = artist;
+          if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = title;
+        }
+      }
+
       // If search bar is blank, fallback to form fields
       if (!artist && !title) {
         artist = document.getElementById('formArtist')?.value.trim() || '';
@@ -9477,90 +9524,171 @@
       }
     }
 
+    let currentAutofillFilter = 'ALL';
+
+    function filterAutofillResults(formatFilter) {
+      currentAutofillFilter = formatFilter;
+      renderAutofillFilteredList();
+    }
+
     function renderAutofillResults(releases, query) {
       const container = document.getElementById('autofillResultsContainer');
       if (!container) return;
 
+      stagedOnlineReleases = releases || [];
+      currentAutofillFilter = 'ALL';
+
+      // Hide tabs and form body so results take full modal height
+      document.getElementById('formTabsContainer')?.classList.add('hidden');
+      document.getElementById('recordForm')?.classList.add('hidden');
+      container.classList.remove('hidden');
+
       if (!releases || releases.length === 0) {
-        container.classList.remove('hidden');
         container.innerHTML = `
-          <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 text-center text-xs text-slate-400">
-            <i class="fa-solid fa-circle-question text-slate-500 text-base mb-1 block"></i>
-            No discography releases found matching <strong class="text-white">"${escapeHtml(query)}"</strong>.
-            <div class="mt-1 text-[11px] text-slate-500">Try searching with just "Artist Title" or check the barcode.</div>
+          <div class="p-8 bg-vinyl-850 rounded-2xl border border-vinyl-800 text-center text-xs text-slate-400 space-y-3 my-auto">
+            <i class="fa-solid fa-circle-question text-slate-500 text-3xl mb-1 block"></i>
+            <div class="text-sm font-bold text-white">No discography releases found for "${escapeHtml(query)}"</div>
+            <div class="text-xs text-slate-400 max-w-sm mx-auto">
+              Check spelling, try searching with just the artist name, or enter the release details manually.
+            </div>
+            <div class="pt-2">
+              <button type="button" onclick="closeAutofillResults()" class="px-4 py-2 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold rounded-lg text-xs transition shadow">
+                <i class="fa-solid fa-pen mr-1"></i> Enter Record Manually
+              </button>
+            </div>
           </div>
         `;
         return;
       }
 
-      stagedOnlineReleases = releases;
+      renderAutofillFilteredList(query);
+    }
+
+    function renderAutofillFilteredList(queryDisplay = '') {
+      const container = document.getElementById('autofillResultsContainer');
+      if (!container || !stagedOnlineReleases) return;
+
+      const totalMatches = stagedOnlineReleases.length;
+
+      const filtered = stagedOnlineReleases.filter(r => {
+        if (currentAutofillFilter === 'ALL') return true;
+        const fmt = (r.media?.[0]?.format || (Array.isArray(r.format) ? r.format[0] : (r.format || 'Vinyl'))).toLowerCase();
+        if (currentAutofillFilter === '7') return fmt.includes('7"');
+        if (currentAutofillFilter === '12') return fmt.includes('12"') || fmt.includes('lp') || fmt.includes('album');
+        if (currentAutofillFilter === 'CD') return fmt.includes('cd');
+        if (currentAutofillFilter === 'CASSETTE') return fmt.includes('cassette') || fmt.includes('tape');
+        return true;
+      });
 
       let html = `
-        <div class="p-3 bg-vinyl-850 rounded-xl border border-brass-500/40 space-y-2.5 shadow-xl">
-          <div class="flex items-center justify-between border-b border-vinyl-800 pb-2">
-            <div class="flex items-center gap-2">
-              <i class="fa-solid fa-list-check text-brass-400 text-xs"></i>
-              <span class="text-xs font-bold text-white tracking-tight">Found ${releases.length} Release Matches</span>
-              <span class="text-[11px] text-slate-400 hidden sm:inline">— Select your pressing:</span>
+        <div class="space-y-3 pb-8">
+          <!-- Sticky Header inside results -->
+          <div class="sticky top-0 z-20 bg-vinyl-900/95 backdrop-blur-md pt-1 pb-3 border-b border-vinyl-800 flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-full bg-brass-500/20 text-brass-400 text-xs font-bold border border-brass-500/30">
+                  ${totalMatches} Pressings Found
+                </span>
+                <span class="text-xs font-semibold text-white truncate hidden sm:inline">Select your pressing to autofill:</span>
+              </div>
+              <div class="text-[11px] text-slate-400 mt-0.5 truncate">
+                Tap anywhere on a pressing card below to choose it
+              </div>
             </div>
-            <button type="button" onclick="closeAutofillResults()" class="text-xs text-slate-400 hover:text-white px-2 py-0.5 rounded bg-vinyl-800 hover:bg-vinyl-700 transition">
-              <i class="fa-solid fa-xmark mr-1"></i> Dismiss
+            <button type="button" onclick="closeAutofillResults()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 hover:text-white border border-vinyl-700 text-xs font-bold transition flex items-center gap-1.5 shadow flex-shrink-0">
+              <i class="fa-solid fa-xmark"></i>
+              <span>Enter Manually</span>
             </button>
           </div>
 
-          <div class="space-y-1.5 max-h-60 overflow-y-auto pr-1">
+          <!-- Format Quick Filter Pills -->
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+            <button type="button" onclick="filterAutofillResults('ALL')" class="px-3 py-1 rounded-full text-xs font-semibold transition border ${currentAutofillFilter === 'ALL' ? 'bg-brass-500 text-vinyl-950 border-brass-500 shadow' : 'bg-vinyl-850 text-slate-300 border-vinyl-700 hover:border-slate-500'}">
+              All (${totalMatches})
+            </button>
+            <button type="button" onclick="filterAutofillResults('7')" class="px-3 py-1 rounded-full text-xs font-semibold transition border ${currentAutofillFilter === '7' ? 'bg-cyan-500 text-vinyl-950 border-cyan-500 shadow' : 'bg-vinyl-850 text-cyan-300 border-vinyl-700 hover:border-cyan-500/50'}">
+              7" Singles
+            </button>
+            <button type="button" onclick="filterAutofillResults('12')" class="px-3 py-1 rounded-full text-xs font-semibold transition border ${currentAutofillFilter === '12' ? 'bg-amber-500 text-vinyl-950 border-amber-500 shadow' : 'bg-vinyl-850 text-amber-300 border-vinyl-700 hover:border-amber-500/50'}">
+              12" LPs / Singles
+            </button>
+            <button type="button" onclick="filterAutofillResults('CD')" class="px-3 py-1 rounded-full text-xs font-semibold transition border ${currentAutofillFilter === 'CD' ? 'bg-blue-500 text-vinyl-950 border-blue-500 shadow' : 'bg-vinyl-850 text-blue-300 border-vinyl-700 hover:border-blue-500/50'}">
+              CD
+            </button>
+          </div>
+
+          <!-- Pressing List Cards -->
+          <div class="space-y-2">
       `;
 
-      releases.forEach((rel, idx) => {
-        const artist = rel['artist-credit']?.[0]?.name || 'Unknown Artist';
-        const title = rel.title || 'Untitled';
-        const date = rel.date || 'Year Unknown';
-        const country = rel.country || 'Global';
-        const labelInfo = rel['label-info']?.[0];
-        const label = labelInfo?.label?.name || 'Label Unlisted';
-        const catNo = labelInfo?.['catalog-number'] || 'No Cat #';
-        const media = rel.media?.[0];
-        const mediaFmt = media?.format || (media?.['track-count'] ? `${media['track-count']} Tracks` : 'Vinyl');
-        const trackCount = media?.['track-count'] || (media?.tracks?.length || 0);
-
-        let badgeClass = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
-        let badgeIcon = 'fa-compact-disc';
-        if (mediaFmt.includes('7"')) {
-          badgeClass = 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
-          badgeIcon = 'fa-record-vinyl';
-        } else if (mediaFmt.includes('CD')) {
-          badgeClass = 'bg-blue-500/20 text-blue-300 border-blue-500/30';
-          badgeIcon = 'fa-circle-dot';
-        }
-
+      if (filtered.length === 0) {
         html += `
-          <div class="p-2.5 bg-vinyl-900 hover:bg-vinyl-800/90 rounded-lg border border-vinyl-800 hover:border-brass-500/50 transition flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 group">
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 flex-wrap mb-1">
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${badgeClass} flex items-center gap-1">
-                  <i class="fa-solid ${badgeIcon} text-[9px]"></i>
-                  <span>${escapeHtml(mediaFmt)}</span>
-                </span>
-                <span class="text-xs font-bold text-white group-hover:text-brass-400 transition truncate">${escapeHtml(artist)}</span>
-                <span class="text-xs text-slate-300 font-medium truncate">— ${escapeHtml(title)}</span>
-              </div>
-              <div class="text-[11px] text-slate-400 flex items-center gap-2 flex-wrap font-mono">
-                <span class="text-brass-400/90">${escapeHtml(label)} (${escapeHtml(catNo)})</span>
-                <span>•</span>
-                <span>${escapeHtml(country)}</span>
-                <span>•</span>
-                <span>${escapeHtml(date)}</span>
-                ${trackCount ? `<span>•</span><span>${trackCount} tracks</span>` : ''}
-                ${rel.barcode ? `<span>•</span><span>UPC: ${escapeHtml(rel.barcode)}</span>` : ''}
-              </div>
-            </div>
-            <button type="button" onclick="applySelectedRelease(${idx})" class="px-3 py-1.5 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold rounded-lg text-xs transition flex items-center justify-center gap-1.5 shadow whitespace-nowrap self-start sm:self-auto">
-              <i class="fa-solid fa-check text-xs"></i>
-              <span>Use This Pressing</span>
+          <div class="p-8 text-center text-xs text-slate-400 bg-vinyl-850 rounded-xl border border-vinyl-800">
+            No pressings matched this format filter.
+            <button type="button" onclick="filterAutofillResults('ALL')" class="text-brass-400 hover:underline block mx-auto mt-2 font-bold">
+              View all ${totalMatches} pressings
             </button>
           </div>
         `;
-      });
+      } else {
+        filtered.forEach(rel => {
+          const idx = stagedOnlineReleases.indexOf(rel);
+          const artist = rel['artist-credit']?.[0]?.name || 'Unknown Artist';
+          const title = rel.title || 'Untitled';
+          const date = rel.date || 'Year Unknown';
+          const country = rel.country || 'Global';
+          const labelInfo = rel['label-info']?.[0];
+          const label = labelInfo?.label?.name || 'Label Unlisted';
+          const catNo = labelInfo?.['catalog-number'] || '';
+          const media = rel.media?.[0];
+          const mediaFmt = media?.format || (Array.isArray(rel.format) ? rel.format[0] : (rel.format || (media?.['track-count'] ? `${media['track-count']} Tracks` : 'Vinyl')));
+          const trackCount = media?.['track-count'] || (media?.tracks?.length || 0);
+
+          let badgeClass = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+          let badgeIcon = 'fa-compact-disc';
+          const fmtLower = String(mediaFmt).toLowerCase();
+          if (fmtLower.includes('7"')) {
+            badgeClass = 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
+            badgeIcon = 'fa-record-vinyl';
+          } else if (fmtLower.includes('cd')) {
+            badgeClass = 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+            badgeIcon = 'fa-circle-dot';
+          }
+
+          html += `
+            <div onclick="applySelectedRelease(${idx})" class="p-3 bg-vinyl-850 hover:bg-vinyl-800 active:bg-vinyl-750 border border-vinyl-750 hover:border-brass-500/60 rounded-xl transition cursor-pointer shadow-sm flex items-center justify-between gap-3 group">
+              <div class="min-w-0 flex-1 space-y-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${badgeClass} flex items-center gap-1">
+                    <i class="fa-solid ${badgeIcon} text-[9px]"></i>
+                    <span>${escapeHtml(mediaFmt)}</span>
+                  </span>
+                  <span class="text-xs font-mono font-bold text-brass-400">${escapeHtml(date)}</span>
+                  <span class="text-xs font-mono text-slate-300 font-medium">${escapeHtml(country)}</span>
+                  ${trackCount ? `<span class="text-[10px] font-mono text-slate-500">• ${trackCount} tracks</span>` : ''}
+                </div>
+                <div class="text-sm font-bold text-white group-hover:text-brass-300 transition truncate">
+                  ${escapeHtml(artist)} — ${escapeHtml(title)}
+                </div>
+                <div class="text-xs text-slate-400 font-mono flex items-center gap-2 truncate">
+                  <span class="text-brass-400/90 font-medium">${escapeHtml(label)}</span>
+                  ${catNo ? `<span>(${escapeHtml(catNo)})</span>` : ''}
+                  ${rel.barcode ? `<span class="text-slate-500">• UPC: ${escapeHtml(rel.barcode)}</span>` : ''}
+                </div>
+              </div>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <span class="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-brass-500/10 group-hover:bg-brass-500 group-hover:text-vinyl-950 text-brass-400 text-xs font-bold border border-brass-500/30 transition items-center gap-1">
+                  <span>Use Pressing</span>
+                  <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                </span>
+                <span class="sm:hidden w-8 h-8 rounded-full bg-brass-500/20 group-hover:bg-brass-500 group-hover:text-vinyl-950 text-brass-400 flex items-center justify-center transition">
+                  <i class="fa-solid fa-chevron-right text-xs"></i>
+                </span>
+              </div>
+            </div>
+          `;
+        });
+      }
 
       html += `
           </div>
@@ -9568,7 +9696,7 @@
       `;
 
       container.innerHTML = html;
-      container.classList.remove('hidden');
+      container.scrollTop = 0;
     }
 
     async function applySelectedRelease(index) {
@@ -9878,6 +10006,30 @@
           .catch(err => console.warn("Auto cover fetch notice:", err));
       } else {
         removeCoverArtFromForm(true);
+      }
+
+      // Auto-estimate market valuation for newly catalogued release so archive totals immediately add up
+      const valArtist = (artistName || document.getElementById('formArtist')?.value || '').trim();
+      const valTitle = (titleName || document.getElementById('formTitle')?.value || '').trim();
+      const valCatNo = (releaseCatNo || document.getElementById('formCatNo')?.value || '').trim();
+      if (valArtist && valTitle) {
+        queryEbayMarketValue(valArtist, valTitle, valCatNo, 'VG+', assignedFormat, releaseYear).then(res => {
+          if (res && res.value && !document.getElementById('formEstimatedValue')?.value) {
+            document.getElementById('formEstimatedValue').value = res.value.toFixed(2);
+            if (document.getElementById('formPriceLow')) document.getElementById('formPriceLow').value = res.low || '';
+            if (document.getElementById('formPriceMedian')) document.getElementById('formPriceMedian').value = res.median || '';
+            if (document.getElementById('formPriceHigh')) document.getElementById('formPriceHigh').value = res.high || '';
+            if (document.getElementById('formPriceSource')) document.getElementById('formPriceSource').value = res.source || 'eBay Benchmark';
+            updateFormPriceRangeBadges(res.low, res.median, res.high, res.currency);
+          }
+        }).catch(() => {});
+      }
+
+      // If user is adding a new record, guarantee recordId is blank so it never overwrites a previous record
+      const modalTitleEl = document.getElementById('modalTitle');
+      if (modalTitleEl && modalTitleEl.innerText.includes('Catalogue Record')) {
+        const idField = document.getElementById('recordId');
+        if (idField) idField.value = '';
       }
 
       closeAutofillResults();
