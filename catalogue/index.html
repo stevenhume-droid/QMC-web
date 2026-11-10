@@ -11,7 +11,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>QMC Music Collection Archive</title>
+  <title>QMC Music Media Archive</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
@@ -202,7 +202,7 @@
             QMC <span class="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-brass-500/20 text-brass-400 font-mono font-medium border border-brass-500/30 truncate">Archive</span>
           </h1>
         </div>
-        <p class="hidden sm:block text-xs text-slate-400 truncate">LPs, Albums, 12" &amp; 7" Singles Archival Station</p>
+        <p class="hidden sm:block text-xs text-slate-400 truncate">Music Media Archive · Vinyl, CDs, Tapes &amp; Rarities</p>
       </div>
     </div>
 
@@ -2059,7 +2059,7 @@
           </div>
           <div>
             <h2 id="authModalTitle" class="text-base font-bold text-white tracking-tight">QMC Member Portal</h2>
-            <p class="text-[11px] text-slate-400">Multi-User Vinyl Archive & Cloud Crates</p>
+            <p class="text-[11px] text-slate-400">Multi-User Music Media Archive &amp; Cloud Crates</p>
           </div>
         </div>
         <button type="button" onclick="closeAuthModal()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm">
@@ -2073,17 +2073,50 @@
         
         <!-- Logged In State Box -->
         <div id="authLoggedInState" class="hidden space-y-4 text-xs text-slate-300">
-          <div class="p-4 bg-vinyl-850 rounded-xl border border-vinyl-800 flex items-center gap-3">
-            <div id="authProfileAvatar" class="w-12 h-12 rounded-full bg-brass-500 text-vinyl-950 font-black text-lg flex items-center justify-center">
-              ?
+          <div class="p-4 bg-vinyl-850 rounded-xl border border-vinyl-800 space-y-3">
+            <div class="flex items-center gap-3">
+              <div id="authProfileAvatar" class="w-12 h-12 rounded-full bg-brass-500 text-vinyl-950 font-black text-lg flex items-center justify-center shrink-0 shadow">
+                ?
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between gap-2">
+                  <div id="authProfileName" class="font-bold text-white text-sm truncate">Member</div>
+                  <button type="button" onclick="toggleEditProfileForm()" class="text-xs text-brass-400 hover:text-brass-300 font-semibold flex items-center gap-1 transition">
+                    <i class="fa-solid fa-pen-to-square text-[11px]"></i>
+                    <span id="authEditProfileToggleText">Edit Profile</span>
+                  </button>
+                </div>
+                <div id="authProfileEmail" class="text-slate-400 font-mono text-[11px] truncate">user@example.com</div>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="inline-block px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px] border border-emerald-500/30">
+                    Connected to Cloud
+                  </span>
+                  <span id="authProfileCityBadge" class="text-[10px] font-mono text-slate-400"></span>
+                </div>
+              </div>
             </div>
-            <div class="flex-1">
-              <div id="authProfileName" class="font-bold text-white text-sm">Member</div>
-              <div id="authProfileEmail" class="text-slate-400 font-mono text-[11px]">user@example.com</div>
-              <span class="inline-block mt-1 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px] border border-emerald-500/30">
-                Connected to Supabase Cloud
-              </span>
-            </div>
+
+            <!-- Profile Edit Form (Collapsible) -->
+            <form id="authProfileEditForm" onsubmit="handleUpdateProfile(event)" class="space-y-3 pt-3 border-t border-vinyl-800 hidden">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Display Name</label>
+                <input type="text" id="authEditDisplayName" required placeholder="e.g. Steven Hume" maxlength="50" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brass-500">
+                <p class="text-[10px] text-slate-400 mt-1">This name appears on your shared links, archive badge, and crates.</p>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">City / Hometown</label>
+                <input type="text" id="authEditCity" placeholder="e.g. South Queensferry" maxlength="60" class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brass-500">
+              </div>
+              <div class="flex items-center gap-2">
+                <button type="submit" id="authSaveProfileBtn" class="flex-1 py-2 px-3 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold rounded-lg text-xs transition shadow flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-floppy-disk"></i>
+                  <span>Save Profile</span>
+                </button>
+                <button type="button" onclick="toggleEditProfileForm(false)" class="py-2 px-3 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 rounded-lg text-xs border border-vinyl-700 transition">
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
 
           <!-- Cloud Sync Options -->
@@ -2182,7 +2215,7 @@
             <i class="fa-solid fa-share-nodes text-sm"></i>
           </div>
           <div>
-            <h2 class="text-base font-bold text-white tracking-tight">Share Your Vinyl Archive</h2>
+            <h2 class="text-base font-bold text-white tracking-tight">Share Your Music Media Archive</h2>
             <p class="text-[11px] text-slate-400">Private Read-Only Link (No Editing / Deleting)</p>
           </div>
         </div>
@@ -4457,7 +4490,7 @@
           applyReadOnlyMode(ownerProfileName);
           renderStats();
           renderRecords();
-          showToast(`Viewing ${ownerProfileName}'s shared vinyl archive`, "info");
+          showToast(`Viewing ${ownerProfileName}'s shared music media archive`, "info");
         } else {
           records = [];
           applyReadOnlyRevokedState();
@@ -4484,7 +4517,7 @@
         <div class="flex items-center gap-2.5">
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
           <i class="fa-solid fa-lock text-sky-400"></i>
-          <span>Viewing <strong>${escapeHtml(ownerName)}'s Vinyl Archive</strong> 
+          <span>Viewing <strong>${escapeHtml(ownerName)}'s Music Media Archive</strong> 
             <span class="bg-sky-500/20 text-sky-300 border border-sky-500/40 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ml-1">Read-Only</span>
             ${isShareViewValuesHidden ? `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ml-1"><i class="fa-solid fa-eye-slash mr-1"></i>Values Hidden</span>` : ''}
           </span>
@@ -4539,10 +4572,10 @@
             </div>
             <h3 class="text-lg font-bold text-white mb-2">Archive Is Private</h3>
             <p class="text-xs text-slate-400 mb-6 leading-relaxed">
-              This vinyl collection is currently private or access has been rescinded by the owner.
+              This music media archive is currently private or access has been rescinded by the owner.
             </p>
             <a href="index.html" class="px-5 py-2.5 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold text-xs rounded-lg transition inline-flex items-center gap-2 shadow">
-              <i class="fa-solid fa-house"></i> Return to QMC Archive
+              <i class="fa-solid fa-house"></i> Return to QMC Media Archive
             </a>
           </div>
         `;
@@ -4851,9 +4884,21 @@
         loggedOutBox.classList.add('hidden');
 
         const name = currentUserProfile?.display_name || currentUser.user_metadata?.display_name || currentUser.email.split('@')[0];
+        const city = currentUserProfile?.city || currentUser.user_metadata?.city || 'South Queensferry';
         document.getElementById('authProfileName').innerText = name;
         document.getElementById('authProfileEmail').innerText = currentUser.email;
         document.getElementById('authProfileAvatar').innerText = (name.charAt(0) || 'M').toUpperCase();
+
+        const cityBadge = document.getElementById('authProfileCityBadge');
+        if (cityBadge) cityBadge.innerText = city ? `· ${city}` : '';
+
+        // Prepopulate edit fields
+        const editNameInput = document.getElementById('authEditDisplayName');
+        if (editNameInput) editNameInput.value = name;
+        const editCityInput = document.getElementById('authEditCity');
+        if (editCityInput) editCityInput.value = city;
+
+        toggleEditProfileForm(false);
       } else {
         loggedInBox.classList.add('hidden');
         loggedOutBox.classList.remove('hidden');
@@ -4861,6 +4906,116 @@
       }
 
       modal.classList.remove('hidden');
+    }
+
+    function toggleEditProfileForm(forceState) {
+      const form = document.getElementById('authProfileEditForm');
+      const toggleText = document.getElementById('authEditProfileToggleText');
+      if (!form) return;
+      const willShow = typeof forceState === 'boolean' ? forceState : form.classList.contains('hidden');
+      if (willShow) {
+        form.classList.remove('hidden');
+        if (toggleText) toggleText.innerText = 'Close Edit';
+        const nameInput = document.getElementById('authEditDisplayName');
+        if (nameInput) {
+          nameInput.value = currentUserProfile?.display_name || currentUser?.user_metadata?.display_name || (currentUser?.email ? currentUser.email.split('@')[0] : '');
+          nameInput.focus();
+        }
+        const cityInput = document.getElementById('authEditCity');
+        if (cityInput) {
+          cityInput.value = currentUserProfile?.city || currentUser?.user_metadata?.city || '';
+        }
+      } else {
+        form.classList.add('hidden');
+        if (toggleText) toggleText.innerText = 'Edit Profile';
+      }
+    }
+
+    async function handleUpdateProfile(e) {
+      if (e) e.preventDefault();
+      if (!currentUser || !supabaseClient) return;
+
+      const nameInput = document.getElementById('authEditDisplayName');
+      const cityInput = document.getElementById('authEditCity');
+      const btn = document.getElementById('authSaveProfileBtn');
+      const newName = (nameInput ? nameInput.value : '').trim();
+      const newCity = (cityInput ? cityInput.value : '').trim();
+
+      if (!newName) {
+        showToast("Please enter a valid display name", "error");
+        return;
+      }
+
+      const origBtnHtml = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Saving...</span>`;
+      }
+
+      try {
+        // 1. Update public.profiles row
+        const { error: profileError } = await supabaseClient
+          .from('profiles')
+          .upsert({
+            id: currentUser.id,
+            display_name: newName,
+            city: newCity || 'South Queensferry'
+          }, { onConflict: 'id' });
+
+        if (profileError) {
+          console.warn("Profiles table update error:", profileError);
+        }
+
+        // 2. Update Supabase Auth user metadata
+        try {
+          await supabaseClient.auth.updateUser({
+            data: { display_name: newName, city: newCity }
+          });
+        } catch (authErr) {
+          console.warn("Auth updateUser notice:", authErr);
+        }
+
+        // 3. Update in-memory user objects
+        currentUserProfile = {
+          ...(currentUserProfile || {}),
+          display_name: newName,
+          city: newCity
+        };
+        if (currentUser.user_metadata) {
+          currentUser.user_metadata.display_name = newName;
+          currentUser.user_metadata.city = newCity;
+        }
+
+        // 4. Update in-memory record owner names for current user
+        if (Array.isArray(records)) {
+          records.forEach(r => {
+            if (r.userId === currentUser.id) {
+              r.ownerName = newName;
+            }
+          });
+        }
+
+        // 5. Update UI
+        updateAuthUI();
+        document.getElementById('authProfileName').innerText = newName;
+        document.getElementById('authProfileAvatar').innerText = (newName.charAt(0) || 'M').toUpperCase();
+        const cityBadge = document.getElementById('authProfileCityBadge');
+        if (cityBadge) cityBadge.innerText = newCity ? `· ${newCity}` : '';
+
+        toggleEditProfileForm(false);
+        renderStats();
+        renderRecords();
+
+        showToast(`Profile updated! Display name set to "${newName}"`, "success");
+      } catch (err) {
+        console.error("Profile update failed:", err);
+        showToast("Could not update profile: " + (err.message || err), "error");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origBtnHtml;
+        }
+      }
     }
 
     function closeAuthModal() {
@@ -6294,7 +6449,7 @@
         const actions = document.getElementById('emptyStateActions');
 
         if (records.length === 0) {
-          if (heading) heading.innerText = 'Your Vinyl Archive is Empty';
+          if (heading) heading.innerText = 'Your Music Media Archive is Empty';
           if (subtext) subtext.innerText = 'You can add your own records, batch upload from Excel/CSV, or reload the sample records anytime.';
           if (actions) {
             actions.innerHTML = `
