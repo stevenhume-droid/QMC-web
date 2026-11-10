@@ -216,8 +216,8 @@
         </button>
       </div>
 
-      <!-- Estimated Archive Value Pill (Positioned right next to username) with On-Demand Recalculate Trigger -->
-      <div class="flex items-stretch rounded-lg bg-vinyl-850 border border-emerald-500/30 shadow-sm overflow-hidden group">
+      <!-- Estimated Archive Value Pill (Positioned right next to username) with On-Demand Recalculate Trigger & Visibility Toggle -->
+      <div id="topValuationContainer" class="flex items-stretch rounded-lg bg-vinyl-850 border border-emerald-500/30 shadow-sm overflow-hidden group">
         <div onclick="switchView('analytics')" class="px-2 sm:px-3 py-1 sm:py-1.5 hover:bg-vinyl-800 cursor-pointer transition flex items-center gap-1 sm:gap-2" title="Estimated Archive Value — Click to view Valuation Analytics">
           <i class="fa-solid fa-coins text-[11px] sm:text-xs text-emerald-400"></i>
           <div class="leading-tight">
@@ -228,6 +228,9 @@
             <div id="statAvgValue" class="hidden">Avg: £0.00 / disc</div>
           </div>
         </div>
+        <button type="button" onclick="event.stopPropagation(); toggleGlobalValueVisibility()" id="btnToggleValueVisibility" class="px-1.5 sm:px-2 py-1 sm:py-1.5 hover:bg-emerald-500/20 text-emerald-400/80 hover:text-emerald-300 border-l border-emerald-500/20 transition flex items-center justify-center" title="Toggle valuation visibility (Show/Hide monetary amounts)">
+          <i id="iconToggleValueVisibility" class="fa-solid fa-eye text-[10px] sm:text-[11px]"></i>
+        </button>
         <button type="button" onclick="event.stopPropagation(); recalculateArchiveTotals(true)" class="px-1.5 sm:px-2 py-1 sm:py-1.5 hover:bg-emerald-500/20 text-emerald-400/80 hover:text-emerald-300 border-l border-emerald-500/20 transition flex items-center justify-center" title="Recalculate &amp; sum archive totals on demand">
           <i class="fa-solid fa-arrows-rotate text-[10px] sm:text-[11px]"></i>
         </button>
@@ -462,6 +465,12 @@
         <button type="button" id="gridDensityBtn" onclick="toggleGridDensity()" class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-brass-500/50 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-slate-300 font-semibold flex items-center gap-1 sm:gap-1.5 transition shadow-sm" title="Toggle Compact 2-Column Grid / Detailed Cards">
           <i id="gridDensityIcon" class="fa-solid fa-table-cells text-xs text-brass-400"></i>
           <span id="gridDensityLabel" class="text-[11px] font-mono hidden sm:inline">Compact</span>
+        </button>
+
+        <!-- Value Visibility Overall Toggle Button -->
+        <button type="button" id="toggleValueBtn" onclick="toggleGlobalValueVisibility()" class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-emerald-500/50 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-slate-300 font-semibold flex items-center gap-1 sm:gap-1.5 transition shadow-sm" title="Toggle Est. Value Visibility across catalog">
+          <i id="toggleValueBtnIcon" class="fa-solid fa-eye text-xs text-emerald-400"></i>
+          <span id="toggleValueBtnLabel" class="text-[11px] font-mono hidden sm:inline">Values: On</span>
         </button>
 
         <!-- Mobile-only filters toggle -->
@@ -2207,15 +2216,34 @@
           </div>
 
           <!-- Share Link Display (when enabled) -->
-          <div id="shareLinkContainer" class="space-y-2 hidden">
-            <label class="block text-xs font-semibold text-slate-300">Your Private Read-Only Link</label>
-            <div class="flex gap-2">
-              <input type="text" id="shareUrlInput" readonly class="flex-1 bg-vinyl-950 border border-vinyl-700 rounded-lg px-3 py-2 text-xs font-mono text-sky-300 select-all focus:outline-none focus:border-sky-500">
-              <button onclick="copyShareLink()" class="px-3.5 py-2 bg-sky-500 hover:bg-sky-400 text-vinyl-950 font-bold text-xs rounded-lg transition flex items-center gap-1.5 shadow">
-                <i class="fa-solid fa-copy"></i>
-                <span id="copyShareBtnText">Copy</span>
-              </button>
+          <div id="shareLinkContainer" class="space-y-3 hidden">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Your Private Read-Only Link</label>
+              <div class="flex gap-2">
+                <input type="text" id="shareUrlInput" readonly class="flex-1 bg-vinyl-950 border border-vinyl-700 rounded-lg px-3 py-2 text-xs font-mono text-sky-300 select-all focus:outline-none focus:border-sky-500">
+                <button onclick="copyShareLink()" class="px-3.5 py-2 bg-sky-500 hover:bg-sky-400 text-vinyl-950 font-bold text-xs rounded-lg transition flex items-center gap-1.5 shadow">
+                  <i class="fa-solid fa-copy"></i>
+                  <span id="copyShareBtnText">Copy</span>
+                </button>
+              </div>
             </div>
+
+            <!-- Share Estimated Values Option -->
+            <div class="p-3 bg-vinyl-900 rounded-xl border border-vinyl-800">
+              <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                <input type="checkbox" id="shareIncludeValuesCheckbox" onchange="handleShareIncludeValuesChange()" class="mt-0.5 w-4 h-4 rounded bg-vinyl-950 border-vinyl-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-vinyl-900">
+                <div>
+                  <span class="text-xs text-white font-semibold flex items-center gap-1.5">
+                    <i class="fa-solid fa-coins text-emerald-400 text-xs"></i>
+                    Include Estimated Market Values in link
+                  </span>
+                  <p class="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+                    Uncheck to keep all valuations, price tags, and financial totals strictly private. Visitors will see sleeves, formats, tracklists, and notes without prices.
+                  </p>
+                </div>
+              </label>
+            </div>
+
             <p class="text-[11px] text-slate-500 leading-relaxed">
               Anyone with this link can view your sleeves, tracklists, research notes, and collection analytics. They <strong>cannot</strong> make any changes.
             </p>
@@ -2975,8 +3003,11 @@
     let isCloudActive = false;
     let realtimeChannel = null;
 
-    // Read-Only Sharing State
+    // Read-Only Sharing & Value Visibility State
     let isReadOnlyShareView = false;
+    let isShareViewValuesHidden = false;
+    let areValuesVisible = localStorage.getItem('qmc_show_values') !== 'false';
+    let currentDetailRecordId = null;
     let shareOwnerId = null;
     let shareOwnerName = '';
 
@@ -4381,6 +4412,10 @@
       if (share) {
         shareOwnerId = share.trim();
         isReadOnlyShareView = true;
+        if (params.get('hideValues') === '1' || params.get('hideValues') === 'true') {
+          isShareViewValuesHidden = true;
+          areValuesVisible = false;
+        }
       }
     }
 
@@ -4440,7 +4475,10 @@
         <div class="flex items-center gap-2.5">
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
           <i class="fa-solid fa-lock text-sky-400"></i>
-          <span>Viewing <strong>${escapeHtml(ownerName)}'s Vinyl Archive</strong> <span class="bg-sky-500/20 text-sky-300 border border-sky-500/40 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ml-1">Read-Only</span></span>
+          <span>Viewing <strong>${escapeHtml(ownerName)}'s Vinyl Archive</strong> 
+            <span class="bg-sky-500/20 text-sky-300 border border-sky-500/40 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ml-1">Read-Only</span>
+            ${isShareViewValuesHidden ? `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ml-1"><i class="fa-solid fa-eye-slash mr-1"></i>Values Hidden</span>` : ''}
+          </span>
         </div>
         <div class="flex items-center gap-2 sm:gap-3">
           <span class="text-slate-400 text-[11px] font-mono hidden sm:inline"><i class="fa-solid fa-record-vinyl mr-1"></i>${records.length} records in archive</span>
@@ -4452,6 +4490,14 @@
           </a>
         </div>
       `;
+
+      // If values hidden in share view, hide the top valuation container and filter toggle button
+      if (isShareViewValuesHidden) {
+        const topVal = document.getElementById('topValuationContainer');
+        if (topVal) topVal.classList.add('hidden');
+        const filterToggleBtn = document.getElementById('toggleValueBtn');
+        if (filterToggleBtn) filterToggleBtn.classList.add('hidden');
+      }
 
       // 2. Hide / disable management buttons
       const buttonsToHide = [
@@ -4527,12 +4573,19 @@
 
       const isEnabled = (localStorage.getItem('qmc_share_enabled_' + currentUser.id) === 'true') || (currentUser.user_metadata?.share_enabled === true);
       const shareKey = localStorage.getItem('qmc_share_key_' + currentUser.id) || currentUser.user_metadata?.share_key || ('sh_' + currentUser.id.substring(0, 8));
+      const includeValues = localStorage.getItem('qmc_share_include_values_' + currentUser.id) !== 'false';
+
+      const checkbox = document.getElementById('shareIncludeValuesCheckbox');
+      if (checkbox) checkbox.checked = includeValues;
 
       let baseUrl = window.location.origin + window.location.pathname;
       if (!baseUrl.startsWith('http')) {
         baseUrl = 'https://www.queensferrymusiccollective.co.uk/catalogue/';
       }
-      const fullShareUrl = `${baseUrl}?share=${currentUser.id}&key=${shareKey}`;
+      let fullShareUrl = `${baseUrl}?share=${currentUser.id}&key=${shareKey}`;
+      if (!includeValues) {
+        fullShareUrl += '&hideValues=1';
+      }
 
       if (isEnabled) {
         statusCard.className = "p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 flex items-start gap-3";
@@ -4665,6 +4718,26 @@
       if (input && input.value) {
         window.open(input.value, '_blank');
       }
+    }
+
+    function handleShareIncludeValuesChange() {
+      if (!currentUser) return;
+      const checkbox = document.getElementById('shareIncludeValuesCheckbox');
+      const includeValues = checkbox ? checkbox.checked : true;
+      localStorage.setItem('qmc_share_include_values_' + currentUser.id, includeValues ? 'true' : 'false');
+
+      const shareKey = localStorage.getItem('qmc_share_key_' + currentUser.id) || currentUser.user_metadata?.share_key || ('sh_' + currentUser.id.substring(0, 8));
+      let baseUrl = window.location.origin + window.location.pathname;
+      if (!baseUrl.startsWith('http')) {
+        baseUrl = 'https://www.queensferrymusiccollective.co.uk/catalogue/';
+      }
+      let fullShareUrl = `${baseUrl}?share=${currentUser.id}&key=${shareKey}`;
+      if (!includeValues) {
+        fullShareUrl += '&hideValues=1';
+      }
+      const urlInput = document.getElementById('shareUrlInput');
+      if (urlInput) urlInput.value = fullShareUrl;
+      showToast(includeValues ? "Share link updated: Valuations included" : "Share link updated: Valuations excluded (Hidden)", "info");
     }
 
     /* =========================================================
@@ -5070,6 +5143,7 @@
       backfillMissingValuations();
       populateMemberFilter(records);
       updateGridDensityUI();
+      updateValueVisibilityUI();
       renderStats();
       renderRecords();
       initSupabase();
@@ -5466,15 +5540,31 @@
 
       const sym = getCurrencySymbol();
       const totalValEl = document.getElementById('statTotalValue');
-      if (totalValEl) totalValEl.innerText = `${sym}${totalVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      if (totalValEl) {
+        if (!areValuesVisible) {
+          totalValEl.innerText = '••••••';
+        } else {
+          totalValEl.innerText = `${sym}${totalVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+      }
       
       const avgVal = valuedCount > 0 ? (totalVal / valuedCount).toFixed(2) : '0.00';
       const avgValEl = document.getElementById('statAvgValue');
-      if (avgValEl) avgValEl.innerText = `Avg: ${sym}${avgVal} · Spread: ${sym}${Math.round(totalLow).toLocaleString()} - ${sym}${Math.round(totalHigh).toLocaleString()}`;
+      if (avgValEl) {
+        if (!areValuesVisible) {
+          avgValEl.innerText = 'Values hidden';
+        } else {
+          avgValEl.innerText = `Avg: ${sym}${avgVal} · Spread: ${sym}${Math.round(totalLow).toLocaleString()} - ${sym}${Math.round(totalHigh).toLocaleString()}`;
+        }
+      }
       
       const modalSum = document.getElementById('modalValuationSummary');
       if (modalSum) {
-        modalSum.innerHTML = `${sym}${totalVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span class="text-xs text-slate-400 font-normal block mt-0.5">Range: ${sym}${Math.round(totalLow).toLocaleString()} Low — ${sym}${Math.round(totalHigh).toLocaleString()} High</span>`;
+        if (!areValuesVisible) {
+          modalSum.innerHTML = `•••••• <span class="text-xs text-slate-400 font-normal block mt-0.5">Valuation Hidden</span>`;
+        } else {
+          modalSum.innerHTML = `${sym}${totalVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span class="text-xs text-slate-400 font-normal block mt-0.5">Range: ${sym}${Math.round(totalLow).toLocaleString()} Low — ${sym}${Math.round(totalHigh).toLocaleString()} High</span>`;
+        }
       }
 
       // Digitized count
@@ -5784,6 +5874,60 @@
         icon.className = 'fa-solid fa-square text-xs text-slate-400';
         if (label) label.innerText = 'Detailed';
         btn.setAttribute('title', 'Switch to Compact 2-Column Grid');
+      }
+    }
+
+    function toggleGlobalValueVisibility(forceState) {
+      if (isReadOnlyShareView && isShareViewValuesHidden) {
+        showToast("Market valuations are set to private by the collection owner.", "info");
+        return;
+      }
+      if (typeof forceState === 'boolean') {
+        areValuesVisible = forceState;
+      } else {
+        areValuesVisible = !areValuesVisible;
+      }
+      localStorage.setItem('qmc_show_values', areValuesVisible ? 'true' : 'false');
+      updateValueVisibilityUI();
+      renderStats();
+      renderRecords();
+      if (currentDetailRecordId) {
+        const detailModal = document.getElementById('detailModal');
+        if (detailModal && !detailModal.classList.contains('hidden')) {
+          viewRecordDetail(currentDetailRecordId);
+        }
+      }
+      showToast(areValuesVisible ? "Market valuations visible" : "Market valuations hidden", "info");
+    }
+
+    function updateValueVisibilityUI() {
+      // Top header toggle button
+      const icon = document.getElementById('iconToggleValueVisibility');
+      const btn = document.getElementById('btnToggleValueVisibility');
+      if (icon) {
+        icon.className = areValuesVisible ? "fa-solid fa-eye text-[10px] sm:text-[11px]" : "fa-solid fa-eye-slash text-[10px] sm:text-[11px] text-amber-400";
+      }
+      if (btn) {
+        btn.title = areValuesVisible ? "Hide valuations across catalog" : "Show valuations across catalog";
+      }
+
+      // Filter toolbar toggle button
+      const filterBtnIcon = document.getElementById('toggleValueBtnIcon');
+      const filterBtnLabel = document.getElementById('toggleValueBtnLabel');
+      const filterBtn = document.getElementById('toggleValueBtn');
+      if (filterBtnIcon) {
+        filterBtnIcon.className = areValuesVisible ? "fa-solid fa-eye text-xs text-emerald-400" : "fa-solid fa-eye-slash text-xs text-amber-400";
+      }
+      if (filterBtnLabel) {
+        filterBtnLabel.innerText = areValuesVisible ? "Values: On" : "Values: Off";
+      }
+      if (filterBtn) {
+        filterBtn.title = areValuesVisible ? "Hide valuations across catalog" : "Show valuations across catalog";
+        if (isReadOnlyShareView && isShareViewValuesHidden) {
+          filterBtn.classList.add('hidden');
+        } else {
+          filterBtn.classList.remove('hidden');
+        }
       }
     }
 
@@ -6188,17 +6332,27 @@
       });
 
       const ribbonTotalEl = document.getElementById('ribbonViewTotal');
-      if (ribbonTotalEl) ribbonTotalEl.innerText = `${sym}${viewVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      if (ribbonTotalEl) {
+        if (!areValuesVisible) {
+          ribbonTotalEl.innerText = '••••••';
+        } else {
+          ribbonTotalEl.innerText = `${sym}${viewVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+      }
       const ribbonCountEl = document.getElementById('ribbonViewCount');
       if (ribbonCountEl) ribbonCountEl.innerText = `${filtered.length} release${filtered.length === 1 ? '' : 's'}`;
       const ribbonArchiveEl = document.getElementById('ribbonArchiveTotal');
       if (ribbonArchiveEl) {
-        let archVal = 0;
-        records.forEach(r => {
-          let num = parseFloat(String(r.estimatedValue || '').replace(/[^0-9.-]/g, ''));
-          if (!isNaN(num) && num > 0) archVal += num;
-        });
-        ribbonArchiveEl.innerText = `(Archive Total: ${sym}${archVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} across ${records.length} records)`;
+        if (!areValuesVisible) {
+          ribbonArchiveEl.innerText = `(Archive Total: •••••• across ${records.length} records)`;
+        } else {
+          let archVal = 0;
+          records.forEach(r => {
+            let num = parseFloat(String(r.estimatedValue || '').replace(/[^0-9.-]/g, ''));
+            if (!isNaN(num) && num > 0) archVal += num;
+          });
+          ribbonArchiveEl.innerText = `(Archive Total: ${sym}${archVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} across ${records.length} records)`;
+        }
       }
 
       if (currentView === 'grid') {
@@ -6219,7 +6373,7 @@
         list.forEach(item => {
           const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
           const isAlbum = item.format && item.format.includes('LP');
-          const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
+          const hasVal = areValuesVisible && item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
           const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
 
           html += `
@@ -6304,7 +6458,7 @@
       list.forEach(item => {
         const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
         const isAlbum = item.format && item.format.includes('LP');
-        const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
+        const hasVal = areValuesVisible && item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
         const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
 
         html += `
@@ -6503,7 +6657,7 @@
 
       list.forEach(item => {
         const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
-        const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
+        const hasVal = areValuesVisible && item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
         const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
         const streamLinks = getStreamingLinks(item);
 
@@ -6545,7 +6699,7 @@
             <td class="py-2.5 px-3 font-mono">${item.year || '--'}</td>
             <td class="py-2.5 px-3 whitespace-nowrap">${getGradeBadge(item.mediaGrade)}</td>
             <td class="py-2.5 px-3 whitespace-nowrap font-mono font-bold text-emerald-400">
-              ${hasVal ? `${sym}${parseFloat(item.estimatedValue).toFixed(2)}` : '<span class="text-slate-600 font-normal">--</span>'}
+              ${!areValuesVisible ? '<span class="text-slate-500 font-normal">••••••</span>' : (hasVal ? `${sym}${parseFloat(item.estimatedValue).toFixed(2)}` : '<span class="text-slate-600 font-normal">--</span>')}
             </td>
             <td class="py-2.5 px-3 font-mono text-brass-400/90 whitespace-nowrap">
               ${item.catNo || 'S/N'}
@@ -6602,13 +6756,13 @@
                   </div>
                 </td>
                 <td class="py-3 px-3 text-[11px] text-slate-400 font-normal">
-                  ${tableValuedCount}/${list.length} Valued
+                  ${!areValuesVisible ? 'Hidden' : `${tableValuedCount}/${list.length} Valued`}
                 </td>
                 <td class="py-3 px-3 text-slate-500 font-normal">--</td>
                 <td class="py-3 px-3 text-slate-500 font-normal">--</td>
                 <td class="py-3 px-3 whitespace-nowrap font-mono font-extrabold text-sm text-emerald-400 bg-emerald-950/40 border-x border-emerald-500/30">
-                  <div>${sym}${tableTotalVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                  <div class="text-[10px] text-emerald-300/70 font-normal">Avg: ${sym}${tableAvgVal}</div>
+                  <div>${!areValuesVisible ? '••••••' : `${sym}${tableTotalVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</div>
+                  <div class="text-[10px] text-emerald-300/70 font-normal">${!areValuesVisible ? 'Values hidden' : `Avg: ${sym}${tableAvgVal}`}</div>
                 </td>
                 <td colspan="3" class="py-3 px-3 text-[11px] text-slate-400 font-sans font-normal">
                   <div class="flex items-center gap-2 text-slate-400">
@@ -6974,19 +7128,19 @@
               <div>
                 <div class="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">
                   <span class="flex items-center gap-1.5"><i class="fa-solid fa-scale-balanced text-brass-400"></i> Archive Valuation</span>
-                  <span class="text-[10px] text-emerald-400 font-mono">${valuedPct}% Priced</span>
+                  <span class="text-[10px] text-emerald-400 font-mono">${!areValuesVisible ? 'Hidden' : `${valuedPct}% Priced`}</span>
                 </div>
                 <div class="text-2xl font-black font-mono text-brass-400">
-                  ${sym}${totalMedian.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ${!areValuesVisible ? '••••••' : `${sym}${totalMedian.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 </div>
                 <div class="text-[11px] text-slate-400 mt-1">
-                  Median market estimate (${valuedCount} of ${total} records)
+                  ${!areValuesVisible ? 'Valuations hidden' : `Median market estimate (${valuedCount} of ${total} records)`}
                 </div>
               </div>
               <div class="mt-4 pt-3 border-t border-vinyl-800/80 flex items-center justify-between text-[11px] font-mono">
-                <span class="text-slate-400">Low: <strong class="text-slate-200">${sym}${Math.round(totalLow).toLocaleString()}</strong></span>
+                <span class="text-slate-400">Low: <strong class="text-slate-200">${!areValuesVisible ? '••••••' : `${sym}${Math.round(totalLow).toLocaleString()}`}</strong></span>
                 <span class="text-slate-500">|</span>
-                <span class="text-slate-400">High: <strong class="text-emerald-300">${sym}${Math.round(totalHigh).toLocaleString()}</strong></span>
+                <span class="text-slate-400">High: <strong class="text-emerald-300">${!areValuesVisible ? '••••••' : `${sym}${Math.round(totalHigh).toLocaleString()}`}</strong></span>
               </div>
             </div>
 
@@ -6998,10 +7152,10 @@
                   <span class="text-[10px] text-sky-300 font-mono">Per Record</span>
                 </div>
                 <div class="text-2xl font-black font-mono text-white">
-                  ${sym}${avgVal}
+                  ${!areValuesVisible ? '••••••' : `${sym}${avgVal}`}
                 </div>
                 <div class="text-[11px] text-slate-400 mt-1 truncate">
-                  ${highestValueItem ? `Peak: <strong class="text-brass-300">${escapeHtml(highestValueItem.artist)}</strong> (${sym}${parseFloat(highestValueItem.estimatedValue).toFixed(2)})` : 'No priced records yet'}
+                  ${!areValuesVisible ? 'Valuations hidden' : (highestValueItem ? `Peak: <strong class="text-brass-300">${escapeHtml(highestValueItem.artist)}</strong> (${sym}${parseFloat(highestValueItem.estimatedValue).toFixed(2)})` : 'No priced records yet')}
                 </div>
               </div>
               <div class="mt-4 pt-3 border-t border-vinyl-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
@@ -7175,7 +7329,7 @@
                           </div>
                         </div>
                         <div class="text-right">
-                          <div class="font-mono font-bold text-slate-300">${sym}${fmt.val.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+                          <div class="font-mono font-bold text-slate-300">${!areValuesVisible ? '••••••' : `${sym}${fmt.val.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}</div>
                           <div class="text-[10px] text-slate-500">Valuation</div>
                         </div>
                       </div>
@@ -7346,7 +7500,12 @@
               <span class="text-xs text-slate-400 font-mono hidden sm:inline">Discogs & eBay Market Median</span>
             </div>
 
-            ${rankedGems.length > 0 ? `
+            ${!areValuesVisible ? `
+              <div class="p-8 text-center text-slate-400 text-xs bg-vinyl-950/50 rounded-xl border border-vinyl-800 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-eye-slash text-amber-400"></i>
+                <span>Valuation metrics are currently hidden. Toggle values ON to inspect crate gems.</span>
+              </div>
+            ` : (rankedGems.length > 0 ? `
               <div class="grid grid-cols-1 md:grid-cols-5 gap-3.5">
                 ${rankedGems.map((gem, index) => {
                   const rankBadges = ['bg-amber-500/20 text-amber-300 border-amber-500/40', 'bg-slate-500/20 text-slate-300 border-slate-500/40', 'bg-amber-700/20 text-amber-500 border-amber-700/40', 'bg-vinyl-800 text-slate-400 border-vinyl-700', 'bg-vinyl-800 text-slate-400 border-vinyl-700'];
@@ -7404,7 +7563,7 @@
               <div class="p-6 text-center text-slate-400 text-xs italic bg-vinyl-950/50 rounded-xl border border-vinyl-800">
                 No valued items available in current filter. Use "Valuate Archive" to estimate record values.
               </div>
-            `}
+            `)}
           </div>
 
         </div>
@@ -7417,6 +7576,7 @@
        DETAIL MODAL (FULL ARCHIVAL DOSSIER WITH MARKET INTELLIGENCE)
        ========================================================= */
     function viewRecordDetail(id) {
+      currentDetailRecordId = id;
       const item = records.find(r => r.id === id);
       if (!item) return;
 
@@ -7638,7 +7798,66 @@
           <!-- Column 2 & 3: Detailed Dossier & Valuation -->
           <div class="md:col-span-2 space-y-4">
             
-            <!-- MARKET VALUATION & LIVE PRICING CARD -->
+            <!-- MARKET VALUATION CARD (HIDDEN OR VISIBLE) -->
+            ${!areValuesVisible ? `
+              <div class="bg-gradient-to-r from-vinyl-850 to-vinyl-800 p-4 rounded-xl border border-vinyl-700/60 space-y-3">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center justify-center text-xs">
+                      <i class="fa-solid fa-eye-slash"></i>
+                    </span>
+                    <div>
+                      <h4 class="text-xs uppercase font-bold text-slate-300 tracking-wider">Market Valuation Hidden</h4>
+                      <p class="text-[10px] text-slate-400 mt-0.5">
+                        ${isReadOnlyShareView && isShareViewValuesHidden ? 'Market valuations have been made private by the collection owner.' : 'Valuation numbers are currently hidden across your archive.'}
+                      </p>
+                    </div>
+                  </div>
+                  ${(!isReadOnlyShareView || !isShareViewValuesHidden) ? `
+                    <button type="button" onclick="toggleGlobalValueVisibility()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-brass-400 hover:text-brass-300 border border-brass-500/30 transition flex items-center gap-1.5 text-xs font-semibold shadow-sm">
+                      <i class="fa-solid fa-eye text-xs"></i>
+                      <span>Show Values</span>
+                    </button>
+                  ` : ''}
+                </div>
+
+                <!-- 1-Click External Market Lookups remain accessible -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-vinyl-800">
+                  <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener" class="p-2.5 bg-vinyl-900 hover:bg-vinyl-850 border border-vinyl-700 hover:border-blue-400/50 rounded-lg text-xs flex items-center justify-between transition group">
+                    <div class="flex items-center gap-2 text-slate-200">
+                      <i class="fa-brands fa-ebay text-blue-400 text-base"></i>
+                      <div>
+                        <div class="font-bold text-[11px]">eBay Sold</div>
+                        <div class="text-[9px] text-slate-400">90-day sales</div>
+                      </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-slate-500 group-hover:text-blue-400 text-[10px]"></i>
+                  </a>
+
+                  <a href="${getEbayActiveUrl(item)}" target="_blank" rel="noopener" class="p-2.5 bg-vinyl-900 hover:bg-vinyl-850 border border-vinyl-700 hover:border-sky-400/50 rounded-lg text-xs flex items-center justify-between transition group" title="Check live active auctions & Buy It Now copies currently on eBay">
+                    <div class="flex items-center gap-2 text-slate-200">
+                      <i class="fa-brands fa-ebay text-sky-400 text-base"></i>
+                      <div>
+                        <div class="font-bold text-[11px]">eBay Active</div>
+                        <div class="text-[9px] text-slate-400">Live for sale</div>
+                      </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-slate-500 group-hover:text-sky-400 text-[10px]"></i>
+                  </a>
+
+                  <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener" class="p-2.5 bg-vinyl-900 hover:bg-vinyl-850 border border-vinyl-700 hover:border-amber-400/50 rounded-lg text-xs flex items-center justify-between transition group">
+                    <div class="flex items-center gap-2 text-slate-200">
+                      <i class="fa-solid fa-compact-disc text-amber-400 text-base"></i>
+                      <div>
+                        <div class="font-bold text-[11px]">Discogs Market</div>
+                        <div class="text-[9px] text-slate-400">Sales &amp; medians</div>
+                      </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-slate-500 group-hover:text-amber-400 text-[10px]"></i>
+                  </a>
+                </div>
+              </div>
+            ` : `
             <div class="bg-gradient-to-r from-vinyl-850 to-vinyl-800 p-4 rounded-xl border border-brass-500/30 space-y-3">
               <div class="flex items-center justify-between">
                 <div>
@@ -7739,6 +7958,7 @@
                 </div>
               </div>
             </div>
+            `}
 
             <!-- STREAM & AUDITION RELEASE CARD -->
             <div class="bg-gradient-to-r from-vinyl-850 to-vinyl-800 p-4 rounded-xl border border-brass-500/30 space-y-3">
@@ -7898,6 +8118,7 @@
     }
 
     function closeDetailModal() {
+      currentDetailRecordId = null;
       document.getElementById('detailModal').classList.add('hidden');
     }
 
@@ -8369,7 +8590,11 @@
       renderRecords();
 
       if (notify) {
-        showToast(`Totals recalculated: ${sym}${totalVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} across ${records.length} records!`, "success");
+        if (!areValuesVisible) {
+          showToast(`Archive totals recalculated across ${records.length} records!`, "success");
+        } else {
+          showToast(`Totals recalculated: ${sym}${totalVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} across ${records.length} records!`, "success");
+        }
       }
 
       return { totalVal, valuedCount, changedCount };
