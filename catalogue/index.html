@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -4826,6 +4826,7 @@
           const cloudIds = new Set(cloudRecords.map(r => r.id));
           const localOnly = records.filter(r => !cloudIds.has(r.id));
           records = [...cloudRecords, ...localOnly];
+          backfillMissingValuations();
           saveRecordsToStorage();
           renderStats();
           renderRecords();
@@ -4923,6 +4924,7 @@
       if (curSelect) curSelect.value = globalCurrency;
 
       loadRecordsFromStorage();
+      backfillMissingValuations();
       populateMemberFilter(records);
       renderStats();
       renderRecords();
@@ -7893,6 +7895,44 @@
       document.getElementById('recordModal').classList.remove('hidden');
     }
 
+    let formValuationSeq = 0;
+
+    // Background re-valuation of a saved record: updates memory, local/IndexedDB, cloud and the archive totals
+    async function refineRecordValuation(id) {
+      const rec = records.find(r => r.id === id);
+      if (!rec || !rec.artist || !rec.title) return;
+      try {
+        const res = await queryEbayMarketValue(rec.artist, rec.title, rec.catNo || '', rec.mediaGrade || 'VG+', rec.format, rec.year);
+        const cur = records.find(r => r.id === id);
+        if (!cur || !res || !res.value) return;
+        cur.estimatedValue = res.value;
+        cur.priceLow = res.low || null;
+        cur.priceMedian = res.median || res.value;
+        cur.priceHigh = res.high || null;
+        cur.priceSource = res.source || 'eBay Benchmark';
+        saveRecordsToStorage();
+        if (currentUser && supabaseClient) {
+          supabaseClient.from('records').upsert(mapRecordToDb(cur, currentUser.id)).then(() => {});
+        }
+        renderStats();
+        renderRecords();
+      } catch (e) { console.warn('Valuation refine failed', e); }
+    }
+
+    // Give any record that has no value a baseline so archive totals always add up
+    function backfillMissingValuations() {
+      let changed = false;
+      records.forEach(r => {
+        if (!r.estimatedValue || isNaN(r.estimatedValue) || r.estimatedValue <= 0) {
+          const b = calculateFormatBaselineValue(r.format, r.year);
+          r.estimatedValue = b.val; r.priceLow = b.low; r.priceMedian = b.median; r.priceHigh = b.high;
+          r.priceSource = r.priceSource || 'Format Market Baseline';
+          changed = true;
+        }
+      });
+      if (changed) { saveRecordsToStorage(); renderStats(); }
+    }
+
     function calculateFormatBaselineValue(format = '', year = null) {
       const f = (format || '').toLowerCase();
       let base = 15.0;
@@ -7973,7 +8013,9 @@
       let pSource = document.getElementById('formPriceSource')?.value;
 
       // Ensure every newly catalogued record has a baseline market valuation if left empty
-      if ((estValue === null || isNaN(estValue)) && isNew) {
+      formValuationSeq++; // invalidate any in-flight lookup so it can't leak into the next record
+      if (estValue === null || isNaN(estValue) || estValue <= 0) {
+        estValue = null; pLowRaw = ''; pMedRaw = ''; pHighRaw = '';
         const fallback = calculateFormatBaselineValue(format, parseInt(document.getElementById('formYear')?.value));
         estValue = fallback.val;
         if (!pLowRaw) pLowRaw = fallback.low;
@@ -8073,6 +8115,11 @@
       populateMemberFilter(records);
       renderStats();
       renderRecords();
+
+      // If only a baseline estimate was stored, refine it in the background and update totals when it lands
+      if (/baseline|benchmark/i.test(recordObj.priceSource || '')) {
+        refineRecordValuation(recordObj.id);
+      }
 
       if (andAddNext) {
         document.getElementById('recordId').value = '';
@@ -10027,7 +10074,9 @@
       } else {
         // Source: MusicBrainz
         try {
-          const detailRes = await fetch(`https://musicbrainz.org/ws/2/release/${match.id}?inc=recordings+artist-credits+labels+genres+tags+release-groups+artist-rels+recording-rels&fmt=json`);
+          const detailUrl = `https://musicbrainz.org/ws/2/release/${match.id}?inc=recordings+artist-credits+labels+genres+tags+release-groups&fmt=json`;
+          let detailRes = await fetch(detailUrl);
+          if (!detailRes.ok) { await new Promise(r => setTimeout(r, 1200)); detailRes = await fetch(detailUrl); } // MusicBrainz rate-limit retry
           if (detailRes.ok) {
             fullRelease = await detailRes.json();
           }
@@ -10133,6 +10182,10 @@
       const is7Inch = assignedFormat.includes('7"');
       const is12Maxi = assignedFormat.includes('12" Maxi');
       const isVinyl = !assignedFormat.includes('CD') && !assignedFormat.includes('Cassette') && !assignedFormat.includes('MiniDisc');
+
+      // Reset release-derived fields so nothing stale from a previous pick survives
+      ['formLabel','formCatNo','formYear','formCountry','formBarcode','formSideATitle','formSideADuration','formSideBTitle','formSideBDuration','formAlbumTracks','formMatrixA','formMatrixB','formMastering','formPressingPlant','formProducer','formGenres','formResearchNotes','formDiscogsId','formEstimatedValue','formPriceLow','formPriceMedian','formPriceHigh','formPriceSource']
+        .forEach(fid => { const el = document.getElementById(fid); if (el) el.value = ''; });
 
       // Populate TAB 1: General Info
       if (artistName) document.getElementById('formArtist').value = artistName;
@@ -10351,9 +10404,11 @@
           .catch(err => console.warn("Auto cover fetch notice:", err));
       }
 
-      // Query live eBay Sold market valuation asynchronously
+      // Query live eBay Sold market valuation asynchronously (guarded against stale/cross-record writes)
+      const valSession = ++formValuationSeq;
       if (artistName && titleName) {
         queryEbayMarketValue(artistName, titleName, releaseCatNo, 'VG+', assignedFormat, releaseYear).then(res => {
+          if (valSession !== formValuationSeq) return;
           if (res && res.value) {
             document.getElementById('formEstimatedValue').value = res.value.toFixed(2);
             if (document.getElementById('formPriceLow')) document.getElementById('formPriceLow').value = res.low || '';
