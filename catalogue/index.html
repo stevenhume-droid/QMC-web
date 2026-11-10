@@ -558,7 +558,7 @@
   <!-- ============================================== -->
   <!-- MODAL: MARKET VALUATION & DISCOGS API SETTINGS -->
   <!-- ============================================== -->
-  <div id="valuationModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden overflow-y-auto">
+  <div id="valuationModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[75] flex items-center justify-center p-3 sm:p-4 hidden overflow-y-auto" style="z-index: 75;">
     <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-xl flex flex-col shadow-2xl overflow-hidden my-auto">
       
       <div class="px-6 py-4 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850">
@@ -1262,7 +1262,7 @@
   <!-- ============================================== -->
   <!-- MODAL: ADD / EDIT RECORD (Albums & Singles)    -->
   <!-- ============================================== -->
-  <div id="recordModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto">
+  <div id="recordModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto" style="z-index: 70;">
     <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
       
       <!-- Modal Header -->
@@ -2570,7 +2570,7 @@
   <!-- ============================================== -->
   <!-- MODAL: RECORD FULL ARCHIVAL DETAIL VIEW        -->
   <!-- ============================================== -->
-  <div id="detailModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto">
+  <div id="detailModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[60] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto" style="z-index: 60;">
     <div id="detailModalContent" class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 shadow-2xl relative my-auto">
       <!-- Populated dynamically via viewRecordDetail() -->
     </div>
@@ -7567,11 +7567,12 @@
                   </div>
                 </div>
                 <div class="text-right flex items-center gap-2">
-                  <div class="text-xs font-mono font-bold ${hasVal ? 'text-emerald-400 bg-emerald-950/80 border-emerald-500/30' : 'text-amber-400 bg-amber-950/80 border-amber-500/30'} px-3 py-1 rounded-lg border inline-block">
-                    ${hasVal ? `${sym}${parseFloat(item.estimatedValue).toFixed(2)}` : 'Valuation Pending'}
-                  </div>
+                  <button type="button" onclick="promptQuickValuation('${item.id}')" class="text-xs font-mono font-bold ${hasVal ? 'text-emerald-400 bg-emerald-950/80 border-emerald-500/30 hover:border-emerald-400' : 'text-amber-400 bg-amber-950/80 border-amber-500/30 hover:border-amber-400'} px-2.5 sm:px-3 py-1 rounded-lg border inline-flex items-center gap-1.5 transition shadow-sm" title="Click to quick-set assessed valuation">
+                    <span>${hasVal ? `${sym}${parseFloat(item.estimatedValue).toFixed(2)}` : 'Set Value'}</span>
+                    <i class="fa-solid fa-pen-to-square text-[9px] opacity-70"></i>
+                  </button>
                   ${isOwner ? `
-                    <button type="button" onclick="editRecord('${item.id}')" class="px-2.5 py-1 text-[11px] rounded bg-brass-500/10 hover:bg-brass-500/20 text-brass-400 border border-brass-500/30 transition flex items-center gap-1 font-medium" title="Edit record &amp; valuation">
+                    <button type="button" onclick="closeDetailModal(); editRecord('${item.id}');" class="px-2.5 py-1 text-[11px] rounded bg-brass-500/10 hover:bg-brass-500/20 text-brass-400 border border-brass-500/30 transition flex items-center gap-1 font-medium" title="Edit record &amp; valuation">
                       <i class="fa-solid fa-pen text-[10px]"></i> Edit
                     </button>
                   ` : ''}
@@ -8089,6 +8090,7 @@
     }
 
     function editRecord(id) {
+      if (typeof closeDetailModal === 'function') closeDetailModal();
       const item = records.find(r => r.id === id);
       if (!item) return;
 
@@ -8667,36 +8669,124 @@
       }
     }
 
+    function promptQuickValuation(id) {
+      const rec = records.find(r => r.id === id);
+      if (!rec) return;
+      const sym = getCurrencySymbol(rec.currency);
+      const currentVal = (rec.estimatedValue !== undefined && rec.estimatedValue !== null && !isNaN(rec.estimatedValue)) ? parseFloat(rec.estimatedValue).toFixed(2) : '';
+      const input = prompt(`Update Assessed Market Value for "${rec.title}" (${sym}):`, currentVal || '15.00');
+      if (input === null) return;
+      const num = parseFloat(input.replace(/[^0-9.-]/g, ''));
+      if (isNaN(num) || num < 0) {
+        showToast("Please enter a valid numeric value", "error");
+        return;
+      }
+      rec.estimatedValue = Math.round(num * 100) / 100;
+      rec.priceLow = Math.round(num * 0.65 * 100) / 100;
+      rec.priceMedian = rec.estimatedValue;
+      rec.priceHigh = Math.round(num * 1.5 * 100) / 100;
+      rec.priceSource = 'Collector Assessed Value';
+      saveRecordsToStorage();
+      if (isCloudActive && currentUser && supabaseClient) {
+        const dbRow = mapRecordToDb(rec, currentUser.id);
+        supabaseClient.from('records').upsert(dbRow).catch(e => console.warn(e));
+      }
+      renderStats();
+      renderRecords();
+      viewRecordDetail(id);
+      showToast(`Valuation updated to ${sym}${rec.estimatedValue.toFixed(2)}`, "success");
+    }
+
     async function fetchDiscogsPriceForRecord(recordId) {
       const record = records.find(r => r.id === recordId);
       if (!record) return;
 
       const token = localStorage.getItem(TOKEN_KEY) || '';
-      showToast(`Querying Discogs price for ${record.title}...`);
+      const sym = getCurrencySymbol(record.currency);
 
-      const priceResult = await queryDiscogsMarketValue(record.artist, record.title, record.catNo, record.mediaGrade, record.discogsId, token, record.format, record.year);
-      if (priceResult) {
-        record.estimatedValue = priceResult.value;
-        record.priceLow = priceResult.low;
-        record.priceMedian = priceResult.median;
-        record.priceHigh = priceResult.high;
-        record.priceSource = priceResult.source || 'Discogs Marketplace';
-        record.currency = priceResult.currency || record.currency || globalCurrency;
-        if (priceResult.releaseId) record.discogsId = priceResult.releaseId;
-        if (priceResult.genres && !record.genres) {
-          record.genres = priceResult.genres;
+      // 1. Direct release check if discogsId is saved
+      if (record.discogsId) {
+        showToast(`Checking Discogs release #${record.discogsId}...`);
+        try {
+          let relUrl = `https://api.discogs.com/releases/${encodeURIComponent(record.discogsId)}`;
+          if (token) relUrl += `?token=${encodeURIComponent(token)}`;
+          const relRes = await fetch(relUrl);
+          if (relRes.ok) {
+            const relData = await relRes.json();
+            if (relData.lowest_price && !isNaN(parseFloat(relData.lowest_price))) {
+              const base = parseFloat(relData.lowest_price);
+              record.estimatedValue = Math.round(base * 1.25 * 100) / 100;
+              record.priceLow = Math.round(base * 100) / 100;
+              record.priceMedian = record.estimatedValue;
+              record.priceHigh = Math.round(base * 1.75 * 100) / 100;
+              record.priceSource = `Discogs Market (Lowest: ${sym}${base.toFixed(2)})`;
+              if (Array.isArray(relData.genres) && !record.genres) record.genres = relData.genres.join(', ');
+              saveRecordsToStorage();
+              if (isCloudActive && currentUser && supabaseClient) {
+                supabaseClient.from('records').upsert(mapRecordToDb(record, currentUser.id)).catch(e => console.warn(e));
+              }
+              renderStats();
+              renderRecords();
+              viewRecordDetail(recordId);
+              showToast(`Updated from Discogs Market: ${sym}${record.estimatedValue.toFixed(2)} (Lowest for sale: ${sym}${base.toFixed(2)})`, "success");
+              return;
+            }
+          }
+        } catch (e) {
+          console.warn("Direct Discogs fetch failed", e);
         }
-        
-        saveRecordsToStorage();
-        if (isCloudActive && currentUser && supabaseClient) {
-          const dbRow = mapRecordToDb(record, currentUser.id);
-          supabaseClient.from('records').upsert(dbRow).catch(e => console.warn("Discogs cloud save error:", e));
+      }
+
+      // 2. Query Discogs Market suggestions if token exists
+      if (token) {
+        showToast(`Querying Discogs price suggestions for "${record.title}"...`);
+        const priceResult = await queryDiscogsMarketValue(record.artist, record.title, record.catNo, record.mediaGrade, record.discogsId, token, record.format, record.year);
+        if (priceResult && priceResult.value) {
+          record.estimatedValue = priceResult.value;
+          record.priceLow = priceResult.low;
+          record.priceMedian = priceResult.median;
+          record.priceHigh = priceResult.high;
+          record.priceSource = priceResult.source || 'Discogs Marketplace';
+          record.currency = priceResult.currency || record.currency || globalCurrency;
+          if (priceResult.releaseId) record.discogsId = priceResult.releaseId;
+          if (priceResult.genres && !record.genres) record.genres = priceResult.genres;
+          saveRecordsToStorage();
+          if (isCloudActive && currentUser && supabaseClient) {
+            const dbRow = mapRecordToDb(record, currentUser.id);
+            supabaseClient.from('records').upsert(dbRow).catch(e => console.warn("Discogs cloud save error:", e));
+          }
+          renderStats();
+          renderRecords();
+          viewRecordDetail(recordId);
+          showToast(`Updated Discogs value: ${sym}${record.estimatedValue.toFixed(2)} (Range: ${sym}${record.priceLow.toFixed(2)} - ${sym}${record.priceHigh.toFixed(2)})`, "success");
+          return;
         }
-        renderStats();
-        renderRecords();
-        viewRecordDetail(recordId);
-        const sym = getCurrencySymbol(record.currency);
-        showToast(`Updated value: ${sym}${record.estimatedValue.toFixed(2)} (Range: ${sym}${record.priceLow.toFixed(2)} - ${sym}${record.priceHigh.toFixed(2)})`);
+      }
+
+      // 3. If token is not configured or Discogs returned no suggestions, prompt user or open Market Values
+      const answer = prompt(
+        `Discogs Market Valuation for "${record.title}":\n\n• For automated Discogs pricing, add your free token in "Market Values".\n• Or enter the price found on Discogs Market (${sym}) to save now:`,
+        record.estimatedValue ? parseFloat(record.estimatedValue).toFixed(2) : '15.00'
+      );
+      if (answer !== null) {
+        const num = parseFloat(answer.replace(/[^0-9.-]/g, ''));
+        if (!isNaN(num) && num > 0) {
+          record.estimatedValue = Math.round(num * 100) / 100;
+          record.priceLow = Math.round(num * 0.65 * 100) / 100;
+          record.priceMedian = record.estimatedValue;
+          record.priceHigh = Math.round(num * 1.5 * 100) / 100;
+          record.priceSource = 'Discogs Marketplace';
+          saveRecordsToStorage();
+          if (isCloudActive && currentUser && supabaseClient) {
+            supabaseClient.from('records').upsert(mapRecordToDb(record, currentUser.id)).catch(e => console.warn(e));
+          }
+          renderStats();
+          renderRecords();
+          viewRecordDetail(recordId);
+          showToast(`Updated Discogs value to ${sym}${record.estimatedValue.toFixed(2)}`, "success");
+        } else if (!token) {
+          openValuationModal();
+        }
       }
     }
 
@@ -9107,9 +9197,12 @@
       const record = records.find(r => r.id === recordId);
       if (!record) return;
 
-      showToast(`Querying eBay sold market for "${record.title}"...`);
+      const sym = getCurrencySymbol(record.currency);
+      showToast(`Checking eBay sold market for "${record.title}"...`);
       const priceResult = await queryEbayMarketValue(record.artist, record.title, record.catNo, record.mediaGrade, record.format, record.year);
-      if (priceResult && priceResult.value) {
+      
+      // If live scraped sales were found from eBay RSS
+      if (priceResult && priceResult.value && priceResult.source && priceResult.source.includes('eBay Sold (')) {
         record.estimatedValue = priceResult.value;
         record.priceLow = priceResult.low;
         record.priceMedian = priceResult.median;
@@ -9118,14 +9211,40 @@
         record.currency = priceResult.currency || globalCurrency;
         saveRecordsToStorage();
         if (isCloudActive && currentUser && supabaseClient) {
-          const dbRow = mapRecordToDb(record, currentUser.id);
-          supabaseClient.from('records').upsert(dbRow).catch(e => console.warn(e));
+          supabaseClient.from('records').upsert(mapRecordToDb(record, currentUser.id)).catch(e => console.warn(e));
         }
         renderStats();
         renderRecords();
         viewRecordDetail(recordId);
-        const sym = getCurrencySymbol(record.currency);
-        showToast(`Updated "${record.title}" to ${sym}${record.estimatedValue.toFixed(2)} (Range: ${sym}${record.priceLow.toFixed(2)} - ${sym}${record.priceHigh.toFixed(2)})`);
+        showToast(`Updated "${record.title}" to ${sym}${record.estimatedValue.toFixed(2)} (${priceResult.source})`, "success");
+        return;
+      }
+
+      // If live scraper is bot-gated by eBay/CORS proxies, provide the user with the direct prompt to confirm or enter realized price:
+      const benchVal = priceResult?.value ? priceResult.value.toFixed(2) : (record.estimatedValue ? parseFloat(record.estimatedValue).toFixed(2) : '15.00');
+      const answer = prompt(
+        `eBay Sold Valuation for "${record.title}":\n\nAssessed Benchmark: ${sym}${benchVal} (${record.mediaGrade || 'VG+'})\n\n• Tap "eBay Sold" above to inspect real 90-day sales.\n• Enter realized sold price to save:`,
+        benchVal
+      );
+
+      if (answer !== null) {
+        const num = parseFloat(answer.replace(/[^0-9.-]/g, ''));
+        if (!isNaN(num) && num > 0) {
+          record.estimatedValue = Math.round(num * 100) / 100;
+          record.priceLow = Math.round(num * 0.65 * 100) / 100;
+          record.priceMedian = record.estimatedValue;
+          record.priceHigh = Math.round(num * 1.5 * 100) / 100;
+          record.priceSource = 'eBay Realized Sales';
+          record.currency = globalCurrency;
+          saveRecordsToStorage();
+          if (isCloudActive && currentUser && supabaseClient) {
+            supabaseClient.from('records').upsert(mapRecordToDb(record, currentUser.id)).catch(e => console.warn(e));
+          }
+          renderStats();
+          renderRecords();
+          viewRecordDetail(recordId);
+          showToast(`Updated "${record.title}" to ${sym}${record.estimatedValue.toFixed(2)} via eBay`, "success");
+        }
       }
     }
 
