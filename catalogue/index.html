@@ -8832,10 +8832,15 @@
           });
 
           if (!searchRes.ok) {
-            if (searchRes.status === 401 || searchRes.status === 403) {
-              promptForTokenHelp();
+            if (searchRes.status === 429) {
+              console.warn("Discogs API rate limit reached (60/min) — throttling back to benchmark");
               return null;
             }
+            if (!token && (searchRes.status === 401 || searchRes.status === 403)) {
+              if (!isBatchMetadataRefreshRunning) promptForTokenHelp();
+              return null;
+            }
+            return null;
           }
 
           let searchData = null;
@@ -8948,18 +8953,21 @@
           }
         }
 
-        showToast("No pricing data currently listed for this release", "info");
+        if (!isBatchMetadataRefreshRunning) {
+          showToast("No pricing data currently listed for this release", "info");
+        }
         return null;
       } catch (err) {
         console.warn("Discogs API error:", err);
-        promptForTokenHelp();
         return null;
       }
     }
 
     function promptForTokenHelp() {
-      showToast("To fetch live Discogs market averages, add your free token in 'Market Values'", "info");
-      setTimeout(() => openValuationModal(), 1000);
+      const token = localStorage.getItem(TOKEN_KEY) || '';
+      if (!token && !isBatchMetadataRefreshRunning) {
+        showToast("To fetch live Discogs market averages, add your free token in 'Market Values'", "info");
+      }
     }
 
     async function runBatchDiscogsValuation() {
@@ -9671,6 +9679,7 @@
       let reclassifiedCount = 0;
       let enrichedCount = 0;
       let valuatedCount = 0;
+      let discogsThrottled = false;
       const updatedRecords = [];
 
       const discogsToken = localStorage.getItem('qmc_discogs_user_token') || localStorage.getItem('QMC_DISCOGS_TOKEN');
@@ -9761,10 +9770,13 @@
         if (optValuate && (changed || !rec.estimatedValue || rec.estimatedValue === '0' || rec.estimatedValue === 0)) {
           try {
             let val = null;
-            if (discogsToken) {
+            if (discogsToken && !discogsThrottled) {
               val = await queryDiscogsMarketValue(rec.artist, rec.title, rec.catNo, rec.mediaGrade || 'VG+', rec.discogsId, discogsToken, rec.format, rec.year);
-            }
-            if (!val) {
+              if (!val) {
+                // If Discogs returned null or hit rate limits, fall back to eBay benchmark
+                val = await queryEbayMarketValue(rec.artist, rec.title, rec.catNo, rec.mediaGrade || 'VG+', rec.format, rec.year);
+              }
+            } else {
               val = await queryEbayMarketValue(rec.artist, rec.title, rec.catNo, rec.mediaGrade || 'VG+', rec.format, rec.year);
             }
             if (val && val.median) {
