@@ -11355,10 +11355,36 @@
           }).catch(() => null);
 
           let matchedItem = null;
+          let labelName = '';
+          let catNoVal = '';
+          let releaseYear = '';
+          let releaseCountry = '';
+          let assignedFormat = '12" LP (Album)';
+          let coverArtUrl = '';
+          let discogsReleaseId = null;
+
           if (res && res.ok) {
             const data = await res.json().catch(() => null);
             if (data && data.results && data.results.length > 0) {
-              matchedItem = data.results[0];
+              const dItem = data.results[0];
+              matchedItem = dItem;
+              discogsReleaseId = dItem.id || null;
+              if (Array.isArray(dItem.label) && dItem.label.length > 0) {
+                labelName = dItem.label[0];
+              } else if (typeof dItem.label === 'string') {
+                labelName = dItem.label;
+              }
+              catNoVal = dItem.catno || '';
+              releaseYear = dItem.year ? String(dItem.year) : '';
+              releaseCountry = dItem.country || '';
+              if (typeof parseDiscogsFormat === 'function' && dItem.format) {
+                try { assignedFormat = parseDiscogsFormat(dItem.format) || assignedFormat; } catch(e) {}
+              }
+              if (dItem.cover_image && !dItem.cover_image.includes('spacer.gif')) {
+                coverArtUrl = dItem.cover_image;
+              } else if (dItem.thumb && !dItem.thumb.includes('spacer.gif')) {
+                coverArtUrl = dItem.thumb;
+              }
             }
           }
 
@@ -11370,42 +11396,78 @@
               const mbData = await mbRes.json().catch(() => null);
               if (mbData && mbData.releases && mbData.releases.length > 0) {
                 const mbRel = mbData.releases[0];
-                matchedItem = {
-                  title: (mbRel['artist-credit']?.[0]?.name ? mbRel['artist-credit'][0].name + ' - ' : '') + mbRel.title,
-                  year: mbRel.date ? mbRel.date.substring(0, 4) : '',
-                  catno: mbRel['label-info']?.[0]?.['catalog-number'] || '',
-                  format: ['Vinyl']
-                };
+                matchedItem = mbRel;
+                labelName = mbRel['label-info']?.[0]?.label?.name || '';
+                catNoVal = mbRel['label-info']?.[0]?.['catalog-number'] || '';
+                releaseYear = mbRel.date ? mbRel.date.substring(0, 4) : '';
+                releaseCountry = mbRel.country || '';
+                const mbFmt = mbRel.media?.[0]?.format || '';
+                if (mbFmt) {
+                  if (mbFmt.includes('7"')) assignedFormat = '7" Single (45 RPM)';
+                  else if (mbFmt.includes('10"')) assignedFormat = '10" Vinyl';
+                  else if (mbFmt.includes('12"') && (mbFmt.includes('Single') || mbFmt.includes('Maxi'))) assignedFormat = '12" Maxi-Single / EP';
+                  else if (mbFmt.includes('CD')) assignedFormat = 'CD';
+                  else if (mbFmt.includes('Cassette')) assignedFormat = 'Cassette';
+                  else assignedFormat = '12" LP (Album)';
+                }
               }
             }
           }
 
           if (matchedItem) {
-            if (feedback) {
-              feedback.innerHTML = `<span class="text-emerald-300 font-bold"><i class="fa-solid fa-circle-check mr-1"></i>Catalogued: "${escapeHtml(matchedItem.title)}"</span><br><span class="text-slate-400 text-[10px]">Hold next record in view to scan again...</span>`;
-            }
-            showToast(`Catalogued "${matchedItem.title}"! Ready for next.`, "success");
             const titleParts = (matchedItem.title || '').split(' - ');
-            const artist = titleParts.length > 1 ? titleParts[0].trim() : 'Artist';
-            const title = titleParts.length > 1 ? titleParts.slice(1).join(' - ').trim() : matchedItem.title;
+            let artist = titleParts.length > 1 ? titleParts[0].trim() : 'Artist';
+            let title = titleParts.length > 1 ? titleParts.slice(1).join(' - ').trim() : matchedItem.title;
+            if (matchedItem['artist-credit']?.[0]?.name) {
+              artist = matchedItem['artist-credit'][0].name;
+              title = matchedItem.title;
+            }
+
+            if (feedback) {
+              feedback.innerHTML = `<span class="text-emerald-300 font-bold"><i class="fa-solid fa-circle-check mr-1"></i>Catalogued: "${escapeHtml(artist)} – ${escapeHtml(title)}"${labelName ? ' (' + escapeHtml(labelName) + ')' : ''}</span><br><span class="text-slate-400 text-[10px]">Hold next record in view to scan again...</span>`;
+            }
+            showToast(`Catalogued "${title}" by ${artist}!`, "success");
+
+            const baselineVal = typeof getFormatBaseline === 'function' ? getFormatBaseline(assignedFormat) : 10.00;
+
             const newRec = {
               id: 'rec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
               artist: artist,
               title: title,
-              format: '12" LP (Album)',
+              format: assignedFormat,
+              label: labelName,
+              catNo: catNoVal,
+              year: releaseYear,
+              country: releaseCountry,
               barcode: cleanCode,
-              year: matchedItem.year || '',
-              catNo: matchedItem.catno || '',
-              mediaGrade: 'VG+',
-              sleeveGrade: 'VG+',
-              estimatedValue: 10.00,
+              coverImage: coverArtUrl,
+              discogsId: discogsReleaseId,
+              mediaGrade: (sessionDefaults && sessionDefaults.mediaGrade) || 'VG+',
+              sleeveGrade: (sessionDefaults && sessionDefaults.sleeveGrade) || 'VG+',
+              estimatedValue: baselineVal,
+              priceLow: Math.round(baselineVal * 0.6 * 100) / 100,
+              priceMedian: baselineVal,
+              priceHigh: Math.round(baselineVal * 1.5 * 100) / 100,
+              priceSource: 'Baseline Valuation (Format Calibrated)',
               currency: globalCurrency || 'GBP',
               dateAdded: new Date().toISOString()
             };
+
+            // Associate current user crate if signed in
+            if (currentUser) {
+              newRec.userId = currentUser.id;
+              newRec.ownerName = currentUserProfile?.display_name || currentUser.user_metadata?.display_name || currentUser.email.split('@')[0];
+            }
+
             records.unshift(newRec);
             saveRecordsToStorage();
             populateMemberFilter(records);
             recalculateArchiveTotals(false);
+
+            // Refine valuation in background if online
+            if (typeof refineRecordValuation === 'function') {
+              refineRecordValuation(newRec.id);
+            }
           } else {
             if (feedback) {
               feedback.innerHTML = `<span class="text-amber-400 font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Barcode ${cleanCode} detected.</span><br><span class="text-slate-400 text-[10px]">Hold next record in view to scan again...</span>`;
