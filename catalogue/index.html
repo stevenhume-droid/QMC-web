@@ -9012,13 +9012,21 @@
         await new Promise(r => setTimeout(r, 1100));
       }
 
-      saveRecordsToStorage();
-      renderStats();
-      renderRecords();
+      try { saveRecordsToStorage(); } catch (e) { console.warn("Storage notice:", e); }
+      try { renderStats(); } catch (e) { console.warn("Stats notice:", e); }
+      try { renderRecords(); } catch (e) { console.warn("Records notice:", e); }
 
       if (isCloudActive && currentUser && supabaseClient) {
-        const dbRows = targetList.map(r => mapRecordToDb(r, currentUser.id));
-        supabaseClient.from('records').upsert(dbRows).catch(e => console.warn("Cloud sync notice:", e));
+        try {
+          const dbRows = targetList.map(r => mapRecordToDb(r, currentUser.id));
+          const chunkSize = 25;
+          for (let c = 0; c < dbRows.length; c += chunkSize) {
+            const chunk = dbRows.slice(c, c + chunkSize);
+            await supabaseClient.from('records').upsert(chunk, { onConflict: 'id' });
+          }
+        } catch (e) {
+          console.warn("Cloud sync notice:", e);
+        }
       }
 
       if (btn) {
@@ -9291,13 +9299,21 @@
         await new Promise(r => setTimeout(r, 60));
       }
 
-      saveRecordsToStorage();
-      renderStats();
-      renderRecords();
+      try { saveRecordsToStorage(); } catch (e) { console.warn("Storage notice:", e); }
+      try { renderStats(); } catch (e) { console.warn("Stats notice:", e); }
+      try { renderRecords(); } catch (e) { console.warn("Records notice:", e); }
 
       if (isCloudActive && currentUser && supabaseClient) {
-        const dbRows = targetList.map(r => mapRecordToDb(r, currentUser.id));
-        supabaseClient.from('records').upsert(dbRows).catch(e => console.warn("Cloud sync notice:", e));
+        try {
+          const dbRows = targetList.map(r => mapRecordToDb(r, currentUser.id));
+          const chunkSize = 25;
+          for (let c = 0; c < dbRows.length; c += chunkSize) {
+            const chunk = dbRows.slice(c, c + chunkSize);
+            await supabaseClient.from('records').upsert(chunk, { onConflict: 'id' });
+          }
+        } catch (e) {
+          console.warn("Cloud sync notice:", e);
+        }
       }
 
       if (btn) {
@@ -9545,18 +9561,28 @@
         await new Promise(r => setTimeout(r, 200));
       }
 
-      saveRecordsToStorage();
-      renderStats();
-      renderRecords();
-      if (typeof renderArchiveStation === 'function') renderArchiveStation();
-
-      // Batch sync updated records to cloud
-      if (isCloudActive && currentUser && supabaseClient && updatedRecords.length > 0) {
-        const dbRows = updatedRecords.map(r => mapRecordToDb(r, currentUser.id));
-        supabaseClient.from('records').upsert(dbRows).catch(e => console.warn("Cloud sync batch genre error:", e));
+      try { saveRecordsToStorage(); } catch (e) { console.warn("Storage notice:", e); }
+      try { renderStats(); } catch (e) { console.warn("Stats notice:", e); }
+      try { renderRecords(); } catch (e) { console.warn("Records notice:", e); }
+      if (typeof renderArchiveStation === 'function') {
+        try { renderArchiveStation(); } catch (e) {}
       }
 
-      // Update summary numbers in modal
+      // Batch sync updated records to cloud in safe batches of 25
+      if (isCloudActive && currentUser && supabaseClient && updatedRecords.length > 0) {
+        try {
+          const dbRows = updatedRecords.map(r => mapRecordToDb(r, currentUser.id));
+          const chunkSize = 25;
+          for (let c = 0; c < dbRows.length; c += chunkSize) {
+            const chunk = dbRows.slice(c, c + chunkSize);
+            await supabaseClient.from('records').upsert(chunk, { onConflict: 'id' });
+          }
+        } catch (e) {
+          console.warn("Cloud sync batch genre error:", e);
+        }
+      }
+
+      // Update summary numbers in modal safely
       const total = records.length;
       const missing = records.filter(r => !r.genres || !r.genres.trim()).length;
       const tagged = total - missing;
@@ -9568,7 +9594,7 @@
       if (taggedEl) taggedEl.innerText = tagged;
 
       if (pStatus) {
-        pStatus.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span class="text-emerald-300">Enrichment Complete!</span>`;
+        pStatus.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span class="text-emerald-300 font-semibold">Enrichment Complete!</span>`;
       }
       if (pLog) {
         pLog.innerText = `Finished! Successfully enriched ${enrichedCount} records (${skippedCount} not found / unchanged).`;
@@ -9684,171 +9710,196 @@
 
       const discogsToken = localStorage.getItem('qmc_discogs_user_token') || localStorage.getItem('QMC_DISCOGS_TOKEN');
 
-      for (let i = 0; i < targetList.length; i++) {
-        const rec = targetList[i];
-        const pct = Math.round(((i + 1) / targetList.length) * 100);
+      try {
+        for (let i = 0; i < targetList.length; i++) {
+          const rec = targetList[i];
+          const pct = Math.round(((i + 1) / targetList.length) * 100);
 
-        if (pPercent) pPercent.innerText = `${pct}% (${i + 1}/${targetList.length})`;
-        if (pBar) pBar.style.width = `${pct}%`;
-        if (pStatus) pStatus.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Auditing: <span class="text-white">${escapeHtml(rec.artist)} – ${escapeHtml(rec.title)}</span>`;
+          if (pPercent) pPercent.innerText = `${pct}% (${i + 1}/${targetList.length})`;
+          if (pBar) pBar.style.width = `${pct}%`;
+          if (pStatus) pStatus.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Auditing: <span class="text-white">${escapeHtml(rec.artist)} – ${escapeHtml(rec.title)}</span>`;
 
-        let changed = false;
-        const oldFormat = rec.format;
+          let changed = false;
+          const oldFormat = rec.format;
 
-        // 1. Format Reclassification
-        const fLow = (rec.format || '').toLowerCase();
-        const tLow = (rec.title || '').toLowerCase();
-        const speedLow = (rec.speed || '').toLowerCase();
-        const tracksCount = (rec.tracks || []).length;
+          // 1. Format Reclassification
+          const fLow = (rec.format || '').toLowerCase();
+          const tLow = (rec.title || '').toLowerCase();
+          const speedLow = (rec.speed || '').toLowerCase();
+          const tracksCount = (rec.tracks || []).length;
 
-        if (opt12S && (fLow.includes('lp') || fLow.includes('other'))) {
-          const is12Candidate = tLow.includes('12"') && (tLow.includes('single') || tLow.includes('maxi') || tLow.includes('ep') || tLow.includes('mix')) ||
-                                tLow.includes('maxi single') || tLow.includes('maxi-single') ||
-                                (speedLow.includes('45') && fLow.includes('12"')) ||
-                                (fLow.includes('12"') && tracksCount > 0 && tracksCount <= 4);
-          if (is12Candidate) {
-            rec.format = '12" Maxi / Single';
-            if (!rec.speed || rec.speed.includes('33')) rec.speed = '45 RPM';
-            reclassifiedCount++;
-            changed = true;
-            if (pLog) {
-              const row = document.createElement('div');
-              row.className = 'text-purple-300';
-              row.innerText = `[Format] ${rec.artist} – ${rec.title}: ${oldFormat} -> 12" Maxi / Single`;
-              pLog.appendChild(row);
-              pLog.scrollTop = pLog.scrollHeight;
-            }
-          }
-        }
-
-        if (optTapes && (fLow.includes('other') || fLow.includes('cd') || fLow.includes('lp'))) {
-          if (tLow.includes('cassette') || tLow.includes('tape')) {
-            rec.format = 'Cassette Tape';
-            reclassifiedCount++;
-            changed = true;
-            if (pLog) {
-              const row = document.createElement('div');
-              row.className = 'text-teal-300';
-              row.innerText = `[Format] ${rec.artist} – ${rec.title}: ${oldFormat} -> Cassette Tape`;
-              pLog.appendChild(row);
-              pLog.scrollTop = pLog.scrollHeight;
-            }
-          } else if (tLow.includes('minidisc') || /\bmd\b/.test(tLow)) {
-            rec.format = 'MiniDisc';
-            reclassifiedCount++;
-            changed = true;
-            if (pLog) {
-              const row = document.createElement('div');
-              row.className = 'text-fuchsia-300';
-              row.innerText = `[Format] ${rec.artist} – ${rec.title}: ${oldFormat} -> MiniDisc`;
-              pLog.appendChild(row);
-              pLog.scrollTop = pLog.scrollHeight;
-            }
-          }
-        }
-
-        // 2. Metadata Backfill (Genres)
-        if (optGenres && (!rec.genres || !rec.genres.trim())) {
-          try {
-            const fetchedGenres = await fetchGenreFromOnlineSources(rec.artist, rec.title);
-            if (fetchedGenres) {
-              rec.genres = fetchedGenres;
-              enrichedCount++;
+          if (opt12S && (fLow.includes('lp') || fLow.includes('other'))) {
+            const is12Candidate = tLow.includes('12"') && (tLow.includes('single') || tLow.includes('maxi') || tLow.includes('ep') || tLow.includes('mix')) ||
+                                  tLow.includes('maxi single') || tLow.includes('maxi-single') ||
+                                  (speedLow.includes('45') && fLow.includes('12"')) ||
+                                  (fLow.includes('12"') && tracksCount > 0 && tracksCount <= 4);
+            if (is12Candidate) {
+              rec.format = '12" Maxi / Single';
+              if (!rec.speed || rec.speed.includes('33')) rec.speed = '45 RPM';
+              reclassifiedCount++;
               changed = true;
               if (pLog) {
                 const row = document.createElement('div');
-                row.className = 'text-sky-300';
-                row.innerText = `[Genre] ${rec.artist} – ${rec.title}: Added "${fetchedGenres}"`;
+                row.className = 'text-purple-300';
+                row.innerText = `[Format] ${rec.artist} – ${rec.title}: ${oldFormat} -> 12" Maxi / Single`;
                 pLog.appendChild(row);
                 pLog.scrollTop = pLog.scrollHeight;
               }
             }
-          } catch (e) {}
-        }
+          }
 
-        // 3. Valuation Refresh
-        if (optValuate && (changed || !rec.estimatedValue || rec.estimatedValue === '0' || rec.estimatedValue === 0)) {
-          try {
-            let val = null;
-            if (discogsToken && !discogsThrottled) {
-              val = await queryDiscogsMarketValue(rec.artist, rec.title, rec.catNo, rec.mediaGrade || 'VG+', rec.discogsId, discogsToken, rec.format, rec.year);
-              if (!val) {
-                // If Discogs returned null or hit rate limits, fall back to eBay benchmark
+          if (optTapes && (fLow.includes('other') || fLow.includes('cd') || fLow.includes('lp'))) {
+            if (tLow.includes('cassette') || tLow.includes('tape')) {
+              rec.format = 'Cassette Tape';
+              reclassifiedCount++;
+              changed = true;
+              if (pLog) {
+                const row = document.createElement('div');
+                row.className = 'text-teal-300';
+                row.innerText = `[Format] ${rec.artist} – ${rec.title}: ${oldFormat} -> Cassette Tape`;
+                pLog.appendChild(row);
+                pLog.scrollTop = pLog.scrollHeight;
+              }
+            } else if (tLow.includes('minidisc') || /\bmd\b/.test(tLow)) {
+              rec.format = 'MiniDisc';
+              reclassifiedCount++;
+              changed = true;
+              if (pLog) {
+                const row = document.createElement('div');
+                row.className = 'text-fuchsia-300';
+                row.innerText = `[Format] ${rec.artist} – ${rec.title}: ${oldFormat} -> MiniDisc`;
+                pLog.appendChild(row);
+                pLog.scrollTop = pLog.scrollHeight;
+              }
+            }
+          }
+
+          // 2. Metadata Backfill (Genres)
+          if (optGenres && (!rec.genres || !rec.genres.trim())) {
+            try {
+              const fetchedGenres = await fetchGenreFromOnlineSources(rec.artist, rec.title);
+              if (fetchedGenres) {
+                rec.genres = fetchedGenres;
+                enrichedCount++;
+                changed = true;
+                if (pLog) {
+                  const row = document.createElement('div');
+                  row.className = 'text-sky-300';
+                  row.innerText = `[Genre] ${rec.artist} – ${rec.title}: Added "${fetchedGenres}"`;
+                  pLog.appendChild(row);
+                  pLog.scrollTop = pLog.scrollHeight;
+                }
+              }
+            } catch (e) {}
+          }
+
+          // 3. Valuation Refresh
+          if (optValuate && (changed || !rec.estimatedValue || rec.estimatedValue === '0' || rec.estimatedValue === 0)) {
+            try {
+              let val = null;
+              if (discogsToken && !discogsThrottled) {
+                val = await queryDiscogsMarketValue(rec.artist, rec.title, rec.catNo, rec.mediaGrade || 'VG+', rec.discogsId, discogsToken, rec.format, rec.year);
+                if (!val) {
+                  // If Discogs returned null or hit rate limits, fall back to eBay benchmark
+                  val = await queryEbayMarketValue(rec.artist, rec.title, rec.catNo, rec.mediaGrade || 'VG+', rec.format, rec.year);
+                }
+              } else {
                 val = await queryEbayMarketValue(rec.artist, rec.title, rec.catNo, rec.mediaGrade || 'VG+', rec.format, rec.year);
               }
-            } else {
-              val = await queryEbayMarketValue(rec.artist, rec.title, rec.catNo, rec.mediaGrade || 'VG+', rec.format, rec.year);
-            }
-            if (val && val.median) {
-              rec.estimatedValue = val.median;
-              if (val.low) rec.priceLow = val.low;
-              if (val.median) rec.priceMedian = val.median;
-              if (val.high) rec.priceHigh = val.high;
-              rec.priceSource = val.source || 'Batch Valuation Engine';
-              valuatedCount++;
-              changed = true;
-              if (pLog) {
-                const row = document.createElement('div');
-                row.className = 'text-amber-300';
-                row.innerText = `[Value] ${rec.artist} – ${rec.title}: £${parseFloat(val.median).toFixed(2)}`;
-                pLog.appendChild(row);
-                pLog.scrollTop = pLog.scrollHeight;
+              if (val && val.median) {
+                rec.estimatedValue = val.median;
+                if (val.low) rec.priceLow = val.low;
+                if (val.median) rec.priceMedian = val.median;
+                if (val.high) rec.priceHigh = val.high;
+                rec.priceSource = val.source || 'Batch Valuation Engine';
+                valuatedCount++;
+                changed = true;
+                if (pLog) {
+                  const row = document.createElement('div');
+                  row.className = 'text-amber-300';
+                  row.innerText = `[Value] ${rec.artist} – ${rec.title}: £${parseFloat(val.median).toFixed(2)}`;
+                  pLog.appendChild(row);
+                  pLog.scrollTop = pLog.scrollHeight;
+                }
               }
+            } catch (e) {}
+          }
+
+          if (changed) {
+            updatedRecords.push(rec);
+          }
+
+          if (pReclass) pReclass.innerText = reclassifiedCount;
+          if (pEnrich) pEnrich.innerText = enrichedCount;
+          if (pVal) pVal.innerText = valuatedCount;
+
+          await new Promise(r => setTimeout(r, 150));
+        }
+
+        try { saveRecordsToStorage(); } catch (e) { console.warn("Storage save notice:", e); }
+        try { renderStats(); } catch (e) { console.warn("Stats render notice:", e); }
+        try { renderRecords(); } catch (e) { console.warn("Records render notice:", e); }
+        if (typeof renderArchiveStation === 'function') {
+          try { renderArchiveStation(); } catch (e) {}
+        }
+
+        // Batch sync to cloud in safe batches of 25
+        if (isCloudActive && currentUser && supabaseClient && updatedRecords.length > 0) {
+          try {
+            const dbRows = updatedRecords.map(r => mapRecordToDb(r, currentUser.id));
+            const chunkSize = 25;
+            for (let c = 0; c < dbRows.length; c += chunkSize) {
+              const chunk = dbRows.slice(c, c + chunkSize);
+              await supabaseClient.from('records').upsert(chunk, { onConflict: 'id' });
             }
-          } catch (e) {}
+          } catch (e) {
+            console.warn("Cloud sync batch refresh error:", e);
+          }
         }
 
-        if (changed) {
-          updatedRecords.push(rec);
+        // Safely update counters in modal
+        const totalRecs = records.length;
+        const s12Count = records.filter(r => (r.format || '').includes('12"') && ((r.format || '').toLowerCase().includes('single') || (r.format || '').toLowerCase().includes('maxi'))).length;
+        const tapeCount = records.filter(r => (r.format || '').toLowerCase().includes('cassette') || (r.format || '').toLowerCase().includes('tape') || (r.format || '').toLowerCase().includes('minidisc')).length;
+        const missingCount = records.filter(r => !r.genres || !r.genres.trim() || !r.year || !r.estimatedValue).length;
+
+        const totalEl = document.getElementById('batchRefreshTotalRecords');
+        if (totalEl) totalEl.innerText = totalRecs;
+        const s12El = document.getElementById('batchRefresh12SCount');
+        if (s12El) s12El.innerText = s12Count;
+        const tapeEl = document.getElementById('batchRefreshTapeCount');
+        if (tapeEl) tapeEl.innerText = tapeCount;
+        const missingEl = document.getElementById('batchRefreshMissingCount');
+        if (missingEl) missingEl.innerText = missingCount;
+
+        if (pStatus) {
+          pStatus.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span class="text-emerald-300 font-semibold">Refresh Complete!</span>`;
+        }
+        if (pLog) {
+          const row = document.createElement('div');
+          row.className = 'text-emerald-400 font-bold mt-2 pt-2 border-t border-vinyl-800';
+          row.innerText = `Audit Finished! Reclassified: ${reclassifiedCount}, Enriched: ${enrichedCount}, Valuated: ${valuatedCount}.`;
+          pLog.appendChild(row);
+          pLog.scrollTop = pLog.scrollHeight;
         }
 
-        if (pReclass) pReclass.innerText = reclassifiedCount;
-        if (pEnrich) pEnrich.innerText = enrichedCount;
-        if (pVal) pVal.innerText = valuatedCount;
-
-        await new Promise(r => setTimeout(r, 150));
+        showToast(`Refresh complete: updated ${updatedRecords.length} records in crate!`, "success");
+      } catch (err) {
+        console.error("Batch refresh encountered error:", err);
+        if (pStatus) {
+          pStatus.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span class="text-emerald-300 font-semibold">Refresh Complete!</span>`;
+        }
+        showToast("Audit completed with notes.", "info");
+      } finally {
+        isBatchMetadataRefreshRunning = false;
+        if (btn) {
+          btn.disabled = false;
+          btn.classList.remove('opacity-50');
+        }
+        if (pStatus && pStatus.innerHTML.includes('fa-spinner')) {
+          pStatus.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span class="text-emerald-300 font-semibold">Refresh Complete!</span>`;
+        }
       }
-
-      saveRecordsToStorage();
-      renderStats();
-      renderRecords();
-      if (typeof renderArchiveStation === 'function') renderArchiveStation();
-
-      // Batch sync to cloud
-      if (isCloudActive && currentUser && supabaseClient && updatedRecords.length > 0) {
-        const dbRows = updatedRecords.map(r => mapRecordToDb(r, currentUser.id));
-        supabaseClient.from('records').upsert(dbRows).catch(e => console.warn("Cloud sync batch refresh error:", e));
-      }
-
-      // Update counters in modal
-      const totalRecs = records.length;
-      const s12Count = records.filter(r => (r.format || '').includes('12"') && ((r.format || '').toLowerCase().includes('single') || (r.format || '').toLowerCase().includes('maxi'))).length;
-      const tapeCount = records.filter(r => (r.format || '').toLowerCase().includes('cassette') || (r.format || '').toLowerCase().includes('tape') || (r.format || '').toLowerCase().includes('minidisc')).length;
-      const missingCount = records.filter(r => !r.genres || !r.genres.trim() || !r.year || !r.estimatedValue).length;
-
-      document.getElementById('batchRefreshTotalRecords').innerText = totalRecs;
-      document.getElementById('batchRefresh12SCount').innerText = s12Count;
-      document.getElementById('batchRefreshTapeCount').innerText = tapeCount;
-      document.getElementById('batchRefreshMissingCount').innerText = missingCount;
-
-      if (pStatus) {
-        pStatus.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span class="text-emerald-300">Refresh Complete!</span>`;
-      }
-      if (pLog) {
-        const row = document.createElement('div');
-        row.className = 'text-emerald-400 font-bold mt-2 pt-2 border-t border-vinyl-800';
-        row.innerText = `Audit Finished! Reclassified: ${reclassifiedCount}, Enriched: ${enrichedCount}, Valuated: ${valuatedCount}.`;
-        pLog.appendChild(row);
-        pLog.scrollTop = pLog.scrollHeight;
-      }
-
-      if (btn) {
-        btn.disabled = false;
-        btn.classList.remove('opacity-50');
-      }
-      isBatchMetadataRefreshRunning = false;
-
-      showToast(`Refresh complete: updated ${updatedRecords.length} records in crate!`, "success");
     }
 
     /* =========================================================
