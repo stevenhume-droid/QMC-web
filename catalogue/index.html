@@ -3082,8 +3082,17 @@
       const isCassette = format && (format.toLowerCase().includes('cassette') || format.toLowerCase().includes('tape'));
       const isMiniDisc = format && format.toLowerCase().includes('minidisc');
       const isCD = format && (format.toLowerCase().includes('cd') || format.toLowerCase().includes('compact disc'));
+      let defaultFormatTitle = '12" LP ALBUM';
+      if (isSingle) defaultFormatTitle = '7" SINGLE PRESSING';
+      else if (isBoxSet) defaultFormatTitle = 'ARCHIVAL VINYL BOX SET';
+      else if (is10Inch) defaultFormatTitle = '10" VINYL PRESSING';
+      else if (is12Single) defaultFormatTitle = '12" SINGLE / MAXI';
+      else if (isCassette) defaultFormatTitle = 'CASSETTE TAPE';
+      else if (isMiniDisc) defaultFormatTitle = 'MINIDISC RELEASE';
+      else if (isCD) defaultFormatTitle = 'COMPACT DISC ALBUM';
+
       const cleanArtist = escapeXml((artist || 'QUEENSFERRY ARCHIVE').trim());
-      const cleanTitle = escapeXml((title || (isSingle ? '7" SINGLE PRESSING' : (isBoxSet ? 'ARCHIVAL VINYL BOX SET' : (is10Inch ? '10" VINYL PRESSING' : (is12Single ? '12" SINGLE / MAXI' : (isCassette ? 'CASSETTE TAPE' : (isMiniDisc ? 'MINIDISC RELEASE' : (isCD ? 'COMPACT DISC ALBUM' : '12" LP ALBUM'))))))).trim());
+      const cleanTitle = escapeXml((title || defaultFormatTitle).trim());
 
       let svg = '';
 
