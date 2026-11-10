@@ -1263,22 +1263,32 @@
         <div id="quickLookupExpandedContent" class="px-3 sm:px-6 py-2.5 space-y-2 border-b border-vinyl-800">
           <!-- Row 1: Search inputs & Action buttons -->
           <div class="grid grid-cols-12 gap-1.5 sm:gap-2 items-center">
-            <div class="col-span-12 sm:col-span-5 relative">
+            <div class="col-span-12 sm:col-span-4 relative">
               <input 
                 type="text" 
                 id="searchArtistInput" 
                 onkeydown="if(event.key === 'Enter'){ event.preventDefault(); lookupMusicBrainzManual(); }"
-                placeholder="Artist (e.g. The Doors)" 
+                placeholder="Artist (e.g. The Bar-Kays)" 
                 class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brass-500"
               >
             </div>
-            <div class="col-span-12 sm:col-span-4 relative">
+            <div class="col-span-12 sm:col-span-3 relative">
               <input 
                 type="text" 
                 id="searchTitleInput" 
                 onkeydown="if(event.key === 'Enter'){ event.preventDefault(); lookupMusicBrainzManual(); }"
-                placeholder="Title / Track (e.g. People Are Strange)" 
+                placeholder="Title / Track (e.g. Soul Finger)" 
                 class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brass-500"
+              >
+            </div>
+            <div class="col-span-12 sm:col-span-2 relative">
+              <input 
+                type="text" 
+                id="searchCatNoInput" 
+                onkeydown="if(event.key === 'Enter'){ event.preventDefault(); lookupMusicBrainzManual(); }"
+                placeholder="Cat # (e.g. 601014)" 
+                class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brass-500 font-mono"
+                title="Catalog number, matrix stamp, or Discogs Release ID"
               >
             </div>
             <div class="col-span-12 sm:col-span-3 flex items-center gap-1.5">
@@ -9385,8 +9395,10 @@
     function clearAutofillSearch() {
       const a = document.getElementById('searchArtistInput');
       const t = document.getElementById('searchTitleInput');
+      const c = document.getElementById('searchCatNoInput');
       if (a) a.value = '';
       if (t) t.value = '';
+      if (c) c.value = '';
       closeAutofillResults();
       if (a) a.focus();
     }
@@ -9427,6 +9439,7 @@
       document.getElementById('formResearchNotes').value = '';
       if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = '';
       if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = '';
+      if (document.getElementById('searchCatNoInput')) document.getElementById('searchCatNoInput').value = '';
       closeAutofillResults();
       clearImagePreviews();
       switchFormTab('tab-general');
@@ -9452,6 +9465,20 @@
     async function lookupMusicBrainzManual() {
       let artist = document.getElementById('searchArtistInput')?.value.trim() || '';
       let title = document.getElementById('searchTitleInput')?.value.trim() || '';
+      let catno = document.getElementById('searchCatNoInput')?.value.trim() || '';
+
+      // Direct Discogs Release ID or URL detection: e.g. "13184010", "r13184010", or full Discogs URL
+      let directDiscogsId = null;
+      const combinedInput = `${title} ${catno} ${artist}`.trim();
+      const discogsUrlMatch = combinedInput.match(/(?:discogs\.com\/(?:[a-z]+\/)?release\/|r)?(\d{6,10})/i);
+
+      if (/^\d{6,10}$/.test(catno)) {
+        directDiscogsId = catno;
+      } else if (/^\d{6,10}$/.test(title) && !artist) {
+        directDiscogsId = title;
+      } else if (discogsUrlMatch && (/discogs\.com/i.test(combinedInput) || /^r\d+$/i.test(catno) || /^r\d+$/i.test(title))) {
+        directDiscogsId = discogsUrlMatch[1];
+      }
 
       // Smart parsing: If user pasted "Artist - Title" in either box
       if (artist && !title && (/\s[-–:\/]\s/.test(artist))) {
@@ -9473,20 +9500,22 @@
       }
 
       // If search bar is blank, fallback to form fields
-      if (!artist && !title) {
+      if (!artist && !title && !catno) {
         artist = document.getElementById('formArtist')?.value.trim() || '';
         title = document.getElementById('formTitle')?.value.trim() || '';
+        catno = document.getElementById('formCatNo')?.value.trim() || '';
         if (artist && document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = artist;
         if (title && document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = title;
+        if (catno && document.getElementById('searchCatNoInput')) document.getElementById('searchCatNoInput').value = catno;
       }
 
-      if (!artist && !title) {
-        showToast("Enter an Artist and/or Title to search", "error");
+      if (!artist && !title && !catno && !directDiscogsId) {
+        showToast("Enter Artist, Title, or Cat # to search", "error");
         document.getElementById('searchArtistInput')?.focus();
         return;
       }
 
-      await executeMusicBrainzSearch({ artist, title });
+      await executeMusicBrainzSearch({ artist, title, catno, discogsId: directDiscogsId });
     }
 
     async function lookupMusicBrainzByBarcodeField() {
@@ -9508,9 +9537,11 @@
       const cleanLucene = (s = '') => s.replace(/[\"\[\]\(\)\{\}\^\~\*\?\:\\\/]/g, ' ').replace(/\s+/g, ' ').trim();
       const artist = typeof searchParams === 'string' ? '' : (searchParams.artist || '');
       const title = typeof searchParams === 'string' ? searchParams : (searchParams.title || '');
+      const catno = typeof searchParams === 'string' ? '' : (searchParams.catno || '');
       const barcode = typeof searchParams === 'string' ? '' : (searchParams.barcode || '');
+      const directDiscogsId = typeof searchParams === 'string' ? '' : (searchParams.discogsId || '');
 
-      let queryDisplay = artist && title ? `${artist} - ${title}` : (title || artist || barcode);
+      let queryDisplay = [artist, title, catno].filter(Boolean).join(' · ') || barcode || (directDiscogsId ? `Discogs #${directDiscogsId}` : 'Release');
       showToast(`Searching open discography for "${queryDisplay}"...`);
 
       const fmtChoice = document.getElementById('autofillFormatFilter')?.value || 'ALL';
@@ -9518,7 +9549,48 @@
 
       try {
         let releases = [];
+        const seenIds = new Set();
 
+        // Mode 0: Direct Discogs Release ID lookup
+        if (directDiscogsId) {
+          try {
+            let dcRelUrl = `https://api.discogs.com/releases/${encodeURIComponent(directDiscogsId)}`;
+            if (discogsToken) dcRelUrl += `?token=${encodeURIComponent(discogsToken)}`;
+            const relRes = await fetch(dcRelUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } });
+            if (relRes.ok) {
+              const relData = await relRes.json();
+              const titleParts = (relData.title || '').split(' - ');
+              const itemArtist = (relData.artists && relData.artists[0]?.name) ? relData.artists[0].name.replace(/\s\(\d+\)$/, '') : (titleParts.length > 1 ? titleParts[0].trim() : 'Artist');
+              const itemTitle = relData.title || (titleParts.length > 1 ? titleParts.slice(1).join(' - ').trim() : 'Untitled');
+              const catNo = (relData.labels && relData.labels[0]?.catno) || catno || '';
+              const label = (relData.labels && relData.labels[0]?.name) || '';
+              const year = relData.year ? String(relData.year) : '';
+              const country = relData.country || '';
+              const formatStr = parseDiscogsFormat(relData.formats || []);
+              const pImg = (relData.images && (relData.images.find(img => img.type === 'primary') || relData.images[0])) || null;
+              const coverImg = pImg?.uri || pImg?.resource_url || '';
+
+              const id = 'dc_' + relData.id;
+              seenIds.add(id);
+              releases.push({
+                id: id,
+                discogsId: relData.id,
+                source: 'discogs',
+                title: itemTitle,
+                'artist-credit': [{ name: itemArtist }],
+                date: year,
+                country: country,
+                'label-info': [{ label: { name: label }, 'catalog-number': catNo }],
+                media: [{ format: formatStr, 'track-count': (relData.tracklist || []).length }],
+                coverImage: coverImg
+              });
+            }
+          } catch (e) {
+            console.warn("Direct Discogs release fetch notice:", e);
+          }
+        }
+
+        // Mode 1: Barcode Search
         if (barcode || /^\d{8,14}$/.test(title)) {
           const bc = barcode || title;
           // Step 1: MusicBrainz Barcode Search
@@ -9526,55 +9598,66 @@
             const mbRes = await fetch(`https://musicbrainz.org/ws/2/release/?query=barcode:${encodeURIComponent(bc)}&fmt=json&limit=25`);
             if (mbRes.ok) {
               const mbData = await mbRes.json();
-              releases = mbData.releases || [];
+              (mbData.releases || []).forEach(rel => {
+                if (!seenIds.has(rel.id)) {
+                  seenIds.add(rel.id);
+                  releases.push(rel);
+                }
+              });
             }
           } catch (e) {}
 
-          // Step 2: Fallback to Discogs Barcode Search if MusicBrainz returned 0
-          if (releases.length === 0) {
+          // Step 2: Fallback to Discogs Barcode Search
+          if (discogsToken) {
             try {
-              let dcUrl = `https://api.discogs.com/database/search?barcode=${encodeURIComponent(bc)}&type=release`;
-              if (discogsToken) dcUrl += `&token=${encodeURIComponent(discogsToken)}`;
+              let dcUrl = `https://api.discogs.com/database/search?barcode=${encodeURIComponent(bc)}&type=release&token=${encodeURIComponent(discogsToken)}`;
               const dcRes = await fetch(dcUrl, {
-                headers: discogsToken ? { 'User-Agent': 'QMCVinylArchive/2.0' } : {}
+                headers: { 'User-Agent': 'QMCVinylArchive/2.0' }
               });
               if (dcRes.ok) {
                 const dcData = await dcRes.json();
                 const dcItems = dcData.results || [];
                 dcItems.forEach(item => {
-                  const titleParts = (item.title || '').split(' - ');
-                  const itemArtist = titleParts.length > 1 ? titleParts[0].trim() : '';
-                  const itemTitle = titleParts.length > 1 ? titleParts.slice(1).join(' - ').trim() : item.title;
-                  const catNo = item.catno || '';
-                  const label = (item.label && item.label[0]) || '';
-                  const year = item.year ? String(item.year) : '';
-                  const country = item.country || '';
-                  const formatStr = Array.isArray(item.format) ? item.format.join(', ') : (item.format || 'Vinyl');
+                  const id = 'dc_' + item.id;
+                  if (!seenIds.has(id)) {
+                    seenIds.add(id);
+                    const titleParts = (item.title || '').split(' - ');
+                    const itemArtist = titleParts.length > 1 ? titleParts[0].trim() : '';
+                    const itemTitle = titleParts.length > 1 ? titleParts.slice(1).join(' - ').trim() : item.title;
+                    const catNo = item.catno || '';
+                    const label = (item.label && item.label[0]) || '';
+                    const year = item.year ? String(item.year) : '';
+                    const country = item.country || '';
+                    const formatStr = Array.isArray(item.format) ? item.format.join(', ') : (item.format || 'Vinyl');
 
-                  releases.push({
-                    id: 'dc_' + item.id,
-                    discogsId: item.id,
-                    source: 'discogs',
-                    title: itemTitle,
-                    'artist-credit': [{ name: itemArtist }],
-                    date: year,
-                    country: country,
-                    barcode: bc,
-                    'label-info': [{ label: { name: label }, 'catalog-number': catNo }],
-                    media: [{ format: formatStr, 'track-count': 0 }],
-                    coverImage: item.cover_image || item.thumb || ''
-                  });
+                    releases.push({
+                      id: id,
+                      discogsId: item.id,
+                      source: 'discogs',
+                      title: itemTitle,
+                      'artist-credit': [{ name: itemArtist }],
+                      date: year,
+                      country: country,
+                      barcode: bc,
+                      'label-info': [{ label: { name: label }, 'catalog-number': catNo }],
+                      media: [{ format: formatStr, 'track-count': 0 }],
+                      coverImage: item.cover_image || item.thumb || ''
+                    });
+                  }
                 });
               }
             } catch (e) {
               console.warn("Discogs barcode fallback check:", e);
             }
           }
-        } else if (artist && title) {
+        } else {
+          // Mode 2: Multi-field Search (Artist, Title, Cat #)
           const cleanA = cleanLucene(artist);
           const cleanT = cleanLucene(title);
+          const cleanCat = cleanLucene(catno);
+          const strippedA = cleanA.replace(/^(the|a|an)\s+/i, '');
 
-          // Build format filter Lucene clause
+          // Build format filter Lucene clause for MusicBrainz
           let fmtClause = '';
           if (fmtChoice === '12') {
             fmtClause = ' AND (format:"12\\" Vinyl" OR format:"Vinyl" OR format:"LP")';
@@ -9597,54 +9680,114 @@
             fmtClause = ' AND (format:"Vinyl" OR format:"12\\" Vinyl" OR format:"7\\" Vinyl" OR format:"10\\" Vinyl" OR format:"LP")';
           }
 
-          // Parallel Query A (Targeted with format) & Query B (Broad unquoted)
-          const targetedLucene = `artist:"${cleanA}" AND (release:"${cleanT}" OR releaseaccent:"${cleanT}")${fmtClause}`;
-          const broadLucene = `artist:(${cleanA}) AND release:(${cleanT})`;
+          // Build MusicBrainz Lucene queries
+          let targetedLucene = '';
+          let broadLucene = '';
 
-          const queryPromises = [
-            fetch(`https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(targetedLucene)}&fmt=json&limit=25`).then(r => r.ok ? r.json() : null),
-            fetch(`https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(broadLucene)}&fmt=json&limit=25`).then(r => r.ok ? r.json() : null)
-          ];
+          if (cleanA && cleanT && cleanCat) {
+            targetedLucene = `artist:"${cleanA}" AND (release:"${cleanT}" OR releaseaccent:"${cleanT}") AND catno:"${cleanCat}"${fmtClause}`;
+            broadLucene = `artist:(${cleanA}) AND (release:(${cleanT}) OR catno:(${cleanCat}))`;
+          } else if (cleanA && cleanT) {
+            targetedLucene = `artist:"${cleanA}" AND (release:"${cleanT}" OR releaseaccent:"${cleanT}")${fmtClause}`;
+            broadLucene = `artist:(${cleanA}) AND release:(${cleanT})`;
+          } else if (cleanA && cleanCat) {
+            targetedLucene = `artist:"${cleanA}" AND catno:"${cleanCat}"${fmtClause}`;
+            broadLucene = `artist:(${cleanA}) AND catno:(${cleanCat})`;
+          } else if (cleanT && cleanCat) {
+            targetedLucene = `release:"${cleanT}" AND catno:"${cleanCat}"${fmtClause}`;
+            broadLucene = `release:(${cleanT}) AND catno:(${cleanCat})`;
+          } else if (cleanCat) {
+            targetedLucene = `catno:"${cleanCat}"${fmtClause}`;
+            broadLucene = `catno:(${cleanCat})`;
+          } else if (cleanA) {
+            targetedLucene = `artist:"${cleanA}"${fmtClause}`;
+            broadLucene = `artist:(${cleanA})`;
+          } else {
+            targetedLucene = `release:"${cleanT}"${fmtClause}`;
+            broadLucene = `release:(${cleanT})`;
+          }
 
-          // If Discogs token available, run parallel Discogs database search
-          if (discogsToken) {
-            let dcSearchUrl = `https://api.discogs.com/database/search?artist=${encodeURIComponent(cleanA)}&release_title=${encodeURIComponent(cleanT)}&type=release&per_page=10&token=${encodeURIComponent(discogsToken)}`;
-            if (fmtChoice === '7') dcSearchUrl += '&format=7%22';
-            else if (fmtChoice === '12' || fmtChoice === '12S') dcSearchUrl += '&format=12%22';
-            else if (fmtChoice === '10') dcSearchUrl += '&format=10%22';
-            else if (fmtChoice === 'CASSETTE') dcSearchUrl += '&format=Cassette';
-            else if (fmtChoice === 'MINIDISC') dcSearchUrl += '&format=MiniDisc';
-            else if (fmtChoice === 'ALL') dcSearchUrl += '&format=Vinyl';
-
+          const queryPromises = [];
+          if (targetedLucene) {
             queryPromises.push(
-              fetch(dcSearchUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
+              fetch(`https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(targetedLucene)}&fmt=json&limit=25`)
+                .then(r => r.ok ? r.json() : null)
+                .catch(() => null)
+            );
+          }
+          if (broadLucene && broadLucene !== targetedLucene) {
+            queryPromises.push(
+              fetch(`https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(broadLucene)}&fmt=json&limit=25`)
                 .then(r => r.ok ? r.json() : null)
                 .catch(() => null)
             );
           }
 
+          // If Discogs token available, run parallel Discogs database search queries
+          if (discogsToken) {
+            let fmtParam = '';
+            if (fmtChoice === '7') fmtParam = '&format=7%22';
+            else if (fmtChoice === '12' || fmtChoice === '12S') fmtParam = '&format=12%22';
+            else if (fmtChoice === '10') fmtParam = '&format=10%22';
+            else if (fmtChoice === 'CASSETTE') fmtParam = '&format=Cassette';
+            else if (fmtChoice === 'MINIDISC') fmtParam = '&format=MiniDisc';
+            else if (fmtChoice === 'ALL') fmtParam = '&format=Vinyl';
+
+            // Query 1: Exact Catalog Number lookup on Discogs (most accurate for vinyl pressings!)
+            if (cleanCat) {
+              let dcCatUrl = `https://api.discogs.com/database/search?catno=${encodeURIComponent(cleanCat)}&type=release&per_page=30&token=${encodeURIComponent(discogsToken)}${fmtParam}`;
+              if (strippedA) dcCatUrl += `&artist=${encodeURIComponent(strippedA)}`;
+              queryPromises.push(
+                fetch(dcCatUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
+                  .then(r => r.ok ? r.json() : null)
+                  .catch(() => null)
+              );
+            }
+
+            // Query 2: Normalized Artist + Title on Discogs
+            if (cleanA && cleanT) {
+              const dcSearchUrl = `https://api.discogs.com/database/search?artist=${encodeURIComponent(strippedA || cleanA)}&release_title=${encodeURIComponent(cleanT)}&type=release&per_page=30&token=${encodeURIComponent(discogsToken)}${fmtParam}`;
+              queryPromises.push(
+                fetch(dcSearchUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
+                  .then(r => r.ok ? r.json() : null)
+                  .catch(() => null)
+              );
+            }
+
+            // Query 3: Free-text broad search on Discogs (finds dual-title singles like "Soul Finger / Knucklehead")
+            const qTokens = [cleanA, cleanT, cleanCat].filter(Boolean).join(' ');
+            if (qTokens) {
+              const dcQUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(qTokens)}&type=release&per_page=30&token=${encodeURIComponent(discogsToken)}${fmtParam}`;
+              queryPromises.push(
+                fetch(dcQUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
+                  .then(r => r.ok ? r.json() : null)
+                  .catch(() => null)
+              );
+            }
+          }
+
           const results = await Promise.allSettled(queryPromises);
 
-          const seenIds = new Set();
-          results.forEach((res, rIdx) => {
+          results.forEach((res) => {
             if (res.status === 'fulfilled' && res.value) {
-              if (rIdx < 2 && res.value.releases) {
+              if (res.value.releases) {
+                // MusicBrainz results
                 res.value.releases.forEach(rel => {
                   if (!seenIds.has(rel.id)) {
                     seenIds.add(rel.id);
                     releases.push(rel);
                   }
                 });
-              } else if (rIdx === 2 && res.value.results) {
-                // Discogs releases
+              } else if (res.value.results) {
+                // Discogs results
                 res.value.results.forEach(item => {
                   const id = 'dc_' + item.id;
                   if (!seenIds.has(id)) {
                     seenIds.add(id);
                     const titleParts = (item.title || '').split(' - ');
-                    const itemArtist = titleParts.length > 1 ? titleParts[0].trim() : cleanA;
+                    const itemArtist = titleParts.length > 1 ? titleParts[0].trim() : (cleanA || 'Artist');
                     const itemTitle = titleParts.length > 1 ? titleParts.slice(1).join(' - ').trim() : item.title;
-                    const catNo = item.catno || '';
+                    const catNo = item.catno || cleanCat || '';
                     const label = (item.label && item.label[0]) || '';
                     const year = item.year ? String(item.year) : '';
                     const country = item.country || '';
@@ -9669,7 +9812,7 @@
           });
 
           // Step 3: Release-group expansion fallback if fewer than 2 results found
-          if (releases.length < 2) {
+          if (releases.length < 2 && cleanA && cleanT) {
             try {
               const rgUrl = `https://musicbrainz.org/ws/2/release-group/?query=artist:(${encodeURIComponent(cleanA)}) AND releasegroup:(${encodeURIComponent(cleanT)})&fmt=json&limit=2`;
               const rgRes = await fetch(rgUrl);
@@ -9691,20 +9834,6 @@
                 }
               }
             } catch (e) {}
-          }
-        } else if (artist) {
-          const cleanA = cleanLucene(artist);
-          const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=artist:"${encodeURIComponent(cleanA)}"&fmt=json&limit=25`);
-          if (res.ok) {
-            const data = await res.json();
-            releases = data.releases || [];
-          }
-        } else {
-          const cleanT = cleanLucene(title);
-          const res = await fetch(`https://musicbrainz.org/ws/2/release/?query=release:"${encodeURIComponent(cleanT)}"&fmt=json&limit=25`);
-          if (res.ok) {
-            const data = await res.json();
-            releases = data.releases || [];
           }
         }
 
@@ -10008,8 +10137,10 @@
             releaseCountry = dData.country || match.country || '';
             releaseBarcode = (dData.identifiers?.find(i => i.type === 'Barcode')?.value || match.barcode || '').replace(/\D/g, '');
             if (dData.labels && dData.labels.length > 0) {
-              releaseLabel = dData.labels[0].name || '';
-              releaseCatNo = dData.labels[0].catno || '';
+              const dLab = dData.labels[0].name;
+              const dCat = dData.labels[0].catno;
+              if (dLab) releaseLabel = dLab;
+              if (dCat && dCat.toLowerCase() !== 'none') releaseCatNo = dCat;
             }
             if (Array.isArray(dData.genres)) releaseGenres.push(...dData.genres);
             if (Array.isArray(dData.styles)) releaseGenres.push(...dData.styles);
@@ -10237,8 +10368,33 @@
       if (releaseLabel) document.getElementById('formLabel').value = releaseLabel;
       if (releaseCatNo) document.getElementById('formCatNo').value = releaseCatNo;
 
-      document.getElementById('formFormat').value = assignedFormat;
-      handleFormatChange();
+      // Format selection with fuzzy fallback
+      const fmtSelect = document.getElementById('formFormat');
+      if (fmtSelect) {
+        let matchedOpt = Array.from(fmtSelect.options).find(o => o.value === assignedFormat);
+        if (!matchedOpt) {
+          const afLower = assignedFormat.toLowerCase();
+          matchedOpt = Array.from(fmtSelect.options).find(o => {
+            const ov = o.value.toLowerCase();
+            if (afLower.includes('7"') && ov.includes('7"')) return true;
+            if (afLower.includes('maxi') && ov.includes('maxi')) return true;
+            if (afLower.includes('box') && ov.includes('box')) return true;
+            if (afLower.includes('2xlp') && ov.includes('2xlp')) return true;
+            if (afLower.includes('10"') && ov.includes('10"')) return true;
+            if (afLower.includes('cassette') && ov.includes('cassette')) return true;
+            if (afLower.includes('minidisc') && ov.includes('minidisc')) return true;
+            if (afLower.includes('cd') && ov.includes('cd')) return true;
+            return false;
+          });
+        }
+        if (matchedOpt) {
+          fmtSelect.value = matchedOpt.value;
+          assignedFormat = matchedOpt.value;
+        } else {
+          fmtSelect.value = '12" LP (Album)';
+        }
+        handleFormatChange();
+      }
 
       // Populate TAB 2: Condition, Value & Identifiers
       if (discogsReleaseId) {
@@ -10270,8 +10426,17 @@
         }
       }
       const centerHoleEl = document.getElementById('formCenterHole');
-      if (centerHoleEl && !centerHoleEl.value) {
-        centerHoleEl.value = 'Solid (Small 0.28 inch)';
+      if (centerHoleEl) {
+        const rawFmtAll = JSON.stringify(fullRelease.formats || match.media || []).toLowerCase();
+        if (/3-prong|tri-cent|three-prong/.test(rawFmtAll)) {
+          centerHoleEl.value = 'Tri-Center (Knockout)';
+        } else if (/4-prong|four-prong|spider/.test(rawFmtAll)) {
+          centerHoleEl.value = 'Four-Prong (Spider)';
+        } else if (/dinked|large center|large hole/.test(rawFmtAll)) {
+          centerHoleEl.value = 'Dinked (Large 1.5 inch)';
+        } else if (!centerHoleEl.value) {
+          centerHoleEl.value = 'Solid (Small 0.28 inch)';
+        }
       }
       const colorEl = document.getElementById('formVinylColor');
       if (colorEl && !colorEl.value && isVinyl) {
@@ -11068,7 +11233,27 @@
     // Parse Discogs-specific format strings (e.g. 'LP, Album, RE', '2xLP, Comp, TP', '3xLP, Comp, Dlx', '7", Single', '10", EP', '12", Single', 'CD, Album')
     function parseDiscogsFormat(rawFmt) {
       if (!rawFmt) return '12" LP (Album)';
-      const f = rawFmt.toLowerCase();
+      let str = '';
+      if (Array.isArray(rawFmt)) {
+        str = rawFmt.map(item => {
+          if (typeof item === 'string') return item;
+          if (item && typeof item === 'object') {
+            const parts = [item.name || ''];
+            if (Array.isArray(item.descriptions)) parts.push(...item.descriptions);
+            if (item.text) parts.push(item.text);
+            return parts.join(' ');
+          }
+          return String(item || '');
+        }).join(' ');
+      } else if (typeof rawFmt === 'object') {
+        const parts = [rawFmt.name || ''];
+        if (Array.isArray(rawFmt.descriptions)) parts.push(...rawFmt.descriptions);
+        if (rawFmt.text) parts.push(rawFmt.text);
+        str = parts.join(' ');
+      } else {
+        str = String(rawFmt);
+      }
+      const f = str.toLowerCase();
 
       // Box set indicators
       if (f.includes('3xlp') || f.includes('4xlp') || f.includes('5xlp') || f.includes('6xlp') || f.includes('box set') || f.includes('box') || (f.match(/\blp\b/g) || []).length >= 3) {
@@ -11090,13 +11275,13 @@
       if (f.includes('minidisc') || /\bmd\b/.test(f)) {
         return 'MiniDisc';
       }
+      // 7" single (check 7" BEFORE 12" maxi to avoid false matching)
+      if (f.includes('7"') || f.includes("7'") || f.includes('7 inch') || (f.includes('single') && !f.includes('12"'))) {
+        return '7" Single (45 RPM)';
+      }
       // 12" maxi / single
       if (f.includes('12"') && (f.includes('single') || f.includes('maxi') || f.includes('ep') || f.includes('45 rpm') || f.includes('promo') || (!f.includes('lp') && !f.includes('album')))) {
         return '12" Maxi / Single';
-      }
-      // 7" single
-      if (f.includes('7"') || f.includes("7'") || f.includes('7 inch') || (f.includes('single') && !f.includes('12"'))) {
-        return '7" Single (45 RPM)';
       }
       // CD / Other
       if (f.includes('cd') || f.includes('file') || f.includes('sacd') || f.includes('dvd')) {
