@@ -9973,6 +9973,24 @@
       let matrixBVal = '';
       let discogsReleaseId = '';
 
+      // Seed everything from the search-result card first, so what the user saw is always copied
+      // even if the detail request fails or comes back sparse (rate limits, missing fields)
+      {
+        const sLabel = match['label-info']?.find(li => li.label?.name);
+        const sCat = match['label-info']?.find(li => li['catalog-number']);
+        artistName = match['artist-credit']?.[0]?.name || '';
+        if (match.date) { const y = parseInt(String(match.date).slice(0, 4)); if (!isNaN(y)) releaseYear = y; }
+        releaseCountry = match.country || '';
+        releaseBarcode = String(match.barcode || '').replace(/\D/g, '');
+        releaseLabel = sLabel?.label?.name || '';
+        releaseCatNo = sCat?.['catalog-number'] || '';
+        if (match.coverImage && !String(match.coverImage).includes('spacer.gif')) discogsCoverUrl = match.coverImage;
+        const sFmt = match.media?.[0]?.format;
+        if (sFmt && match.source === 'discogs' && typeof parseDiscogsFormat === 'function') {
+          try { assignedFormat = parseDiscogsFormat(sFmt.split(',').map(n => ({ name: n.trim(), descriptions: [] }))) || assignedFormat; } catch (e) {}
+        }
+      }
+
       if (match.source === 'discogs' && match.discogsId) {
         discogsReleaseId = String(match.discogsId);
         // Source: Discogs Database
@@ -10097,7 +10115,7 @@
         releaseBarcode = (fullRelease.barcode || match.barcode || '').replace(/\D/g, '');
 
         // Robust multi-label & catalog number scanning
-        const labelList = fullRelease['label-info'] || match['label-info'] || [];
+        const labelList = [...(fullRelease['label-info'] || []), ...(match['label-info'] || [])];
         for (const li of labelList) {
           if (!releaseLabel && li.label && li.label.name) {
             releaseLabel = li.label.name;
