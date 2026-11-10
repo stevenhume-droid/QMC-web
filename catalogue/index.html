@@ -205,16 +205,21 @@
         </button>
       </div>
 
-      <!-- Estimated Archive Value Pill (Positioned right next to username) -->
-      <div onclick="switchView('analytics')" class="px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg bg-vinyl-850 hover:bg-vinyl-800 border border-emerald-500/30 hover:border-emerald-400/60 cursor-pointer transition flex items-center gap-1.5 sm:gap-2 shadow-sm" title="Estimated Archive Value — Click to view Valuation Analytics">
-        <i class="fa-solid fa-coins text-xs text-emerald-400"></i>
-        <div class="leading-tight">
-          <div class="flex items-baseline gap-1.5">
-            <span class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold hidden lg:inline">Est. Value</span>
-            <span id="statTotalValue" class="text-xs sm:text-sm font-bold font-mono text-emerald-400">£0.00</span>
+      <!-- Estimated Archive Value Pill (Positioned right next to username) with On-Demand Recalculate Trigger -->
+      <div class="flex items-stretch rounded-lg bg-vinyl-850 border border-emerald-500/30 shadow-sm overflow-hidden group">
+        <div onclick="switchView('analytics')" class="px-2.5 py-1.5 sm:px-3 sm:py-1.5 hover:bg-vinyl-800 cursor-pointer transition flex items-center gap-1.5 sm:gap-2" title="Estimated Archive Value — Click to view Valuation Analytics">
+          <i class="fa-solid fa-coins text-xs text-emerald-400"></i>
+          <div class="leading-tight">
+            <div class="flex items-baseline gap-1.5">
+              <span class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold hidden lg:inline">Est. Value</span>
+              <span id="statTotalValue" class="text-xs sm:text-sm font-bold font-mono text-emerald-400">£0.00</span>
+            </div>
+            <div id="statAvgValue" class="hidden">Avg: £0.00 / disc</div>
           </div>
-          <div id="statAvgValue" class="hidden">Avg: £0.00 / disc</div>
         </div>
+        <button type="button" onclick="event.stopPropagation(); recalculateArchiveTotals(true)" class="px-2 py-1.5 hover:bg-emerald-500/20 text-emerald-400/80 hover:text-emerald-300 border-l border-emerald-500/20 transition flex items-center justify-center" title="Recalculate & sum archive totals on demand">
+          <i class="fa-solid fa-arrows-rotate text-[11px]"></i>
+        </button>
       </div>
 
       <!-- Mobile Add to Home Screen, Barcode Scan & Exit WebApp Buttons -->
@@ -483,6 +488,21 @@
 
     <!-- Active Tag & Filter Indicators -->
     <div id="filterPillsContainer" class="flex flex-wrap items-center gap-1.5 empty:hidden text-xs text-slate-400"></div>
+
+    <!-- Active View Subtotal Ribbon (Always shows visible table/grid count & value sum with instant recalculate button) -->
+    <div id="viewSubtotalRibbon" class="flex flex-wrap items-center justify-between gap-2 p-2 px-3 bg-vinyl-900 border border-vinyl-800 rounded-xl text-xs font-mono mb-2 shadow-sm">
+      <div class="flex items-center gap-2 flex-wrap text-slate-300">
+        <span class="text-slate-400 font-sans text-[11px] uppercase tracking-wider font-semibold">In View:</span>
+        <span id="ribbonViewTotal" class="font-bold text-emerald-400 text-sm">£0.00</span>
+        <span class="text-slate-600">·</span>
+        <span id="ribbonViewCount" class="text-slate-300 font-sans font-medium">0 releases</span>
+        <span id="ribbonArchiveTotal" class="text-slate-500 text-[11px]">(Archive Total: £0.00 across 0 records)</span>
+      </div>
+      <button type="button" onclick="recalculateArchiveTotals(true)" class="px-2.5 py-1 text-[11px] font-sans font-bold bg-vinyl-800 hover:bg-vinyl-750 text-brass-400 hover:text-brass-300 rounded-lg border border-brass-500/30 transition flex items-center gap-1.5 shadow-sm active:scale-95" title="Recalculate and sum archive totals on demand">
+        <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
+        <span>Recalculate Totals</span>
+      </button>
+    </div>
 
     <!-- MAIN RECORDS CONTAINER -->
     <div id="recordsViewContainer" class="w-full">
@@ -5312,8 +5332,12 @@
       let totalHigh = 0;
       let valuedCount = 0;
       records.forEach(r => {
-        if (r.estimatedValue && !isNaN(r.estimatedValue)) {
-          const val = parseFloat(r.estimatedValue);
+        let val = null;
+        if (r.estimatedValue !== undefined && r.estimatedValue !== null && r.estimatedValue !== '') {
+          const num = parseFloat(String(r.estimatedValue).replace(/[^0-9.-]/g, ''));
+          if (!isNaN(num) && num > 0) val = num;
+        }
+        if (val !== null) {
           totalVal += val;
           totalLow += (r.priceLow && !isNaN(r.priceLow)) ? parseFloat(r.priceLow) : (val * 0.6);
           totalHigh += (r.priceHigh && !isNaN(r.priceHigh)) ? parseFloat(r.priceHigh) : (val * 1.5);
@@ -5322,10 +5346,12 @@
       });
 
       const sym = getCurrencySymbol();
-      document.getElementById('statTotalValue').innerText = `${sym}${totalVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      const totalValEl = document.getElementById('statTotalValue');
+      if (totalValEl) totalValEl.innerText = `${sym}${totalVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       
       const avgVal = valuedCount > 0 ? (totalVal / valuedCount).toFixed(2) : '0.00';
-      document.getElementById('statAvgValue').innerText = `Avg: ${sym}${avgVal} · Spread: ${sym}${Math.round(totalLow).toLocaleString()} - ${sym}${Math.round(totalHigh).toLocaleString()}`;
+      const avgValEl = document.getElementById('statAvgValue');
+      if (avgValEl) avgValEl.innerText = `Avg: ${sym}${avgVal} · Spread: ${sym}${Math.round(totalLow).toLocaleString()} - ${sym}${Math.round(totalHigh).toLocaleString()}`;
       
       const modalSum = document.getElementById('modalValuationSummary');
       if (modalSum) {
@@ -5983,6 +6009,31 @@
       emptyState.classList.add('hidden');
       emptyState.classList.remove('flex');
 
+      // Update View Subtotal Ribbon directly with live sums
+      const sym = getCurrencySymbol();
+      let viewVal = 0;
+      filtered.forEach(item => {
+        let raw = item.estimatedValue;
+        if (raw !== undefined && raw !== null && raw !== '') {
+          let num = parseFloat(String(raw).replace(/[^0-9.-]/g, ''));
+          if (!isNaN(num) && num > 0) viewVal += num;
+        }
+      });
+
+      const ribbonTotalEl = document.getElementById('ribbonViewTotal');
+      if (ribbonTotalEl) ribbonTotalEl.innerText = `${sym}${viewVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      const ribbonCountEl = document.getElementById('ribbonViewCount');
+      if (ribbonCountEl) ribbonCountEl.innerText = `${filtered.length} release${filtered.length === 1 ? '' : 's'}`;
+      const ribbonArchiveEl = document.getElementById('ribbonArchiveTotal');
+      if (ribbonArchiveEl) {
+        let archVal = 0;
+        records.forEach(r => {
+          let num = parseFloat(String(r.estimatedValue || '').replace(/[^0-9.-]/g, ''));
+          if (!isNaN(num) && num > 0) archVal += num;
+        });
+        ribbonArchiveEl.innerText = `(Archive Total: ${sym}${archVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} across ${records.length} records)`;
+      }
+
       if (currentView === 'grid') {
         renderGridView(filtered, container);
       } else if (currentView === 'analytics') {
@@ -6161,6 +6212,20 @@
 
     function renderListView(list, container) {
       const sym = getCurrencySymbol();
+      let tableTotalVal = 0;
+      let tableValuedCount = 0;
+      list.forEach(item => {
+        const raw = item.estimatedValue;
+        if (raw !== undefined && raw !== null && raw !== '') {
+          const num = parseFloat(String(raw).replace(/[^0-9.-]/g, ''));
+          if (!isNaN(num) && num > 0) {
+            tableTotalVal += num;
+            tableValuedCount++;
+          }
+        }
+      });
+      const tableAvgVal = tableValuedCount > 0 ? (tableTotalVal / tableValuedCount).toFixed(2) : '0.00';
+
       let html = `
         <div class="bg-vinyl-900 rounded-xl border border-vinyl-800 overflow-x-auto shadow-xl">
           <table class="w-full text-left text-xs text-slate-300">
@@ -6272,6 +6337,37 @@
 
       html += `
             </tbody>
+            <tfoot class="bg-vinyl-850/95 border-t-2 border-brass-500/40 text-xs font-mono font-bold text-slate-200 sticky bottom-0 backdrop-blur-md z-10 shadow-lg">
+              <tr>
+                <td class="py-3 px-3">
+                  <div class="flex items-center gap-2">
+                    <span class="text-brass-400 uppercase tracking-wider text-[11px] font-bold">Table Total:</span>
+                    <span class="text-white text-xs font-sans font-bold bg-vinyl-800 px-2 py-0.5 rounded border border-vinyl-700">${list.length} in table</span>
+                  </div>
+                </td>
+                <td class="py-3 px-3 text-[11px] text-slate-400 font-normal">
+                  ${tableValuedCount}/${list.length} Valued
+                </td>
+                <td class="py-3 px-3 text-slate-500 font-normal">--</td>
+                <td class="py-3 px-3 text-slate-500 font-normal">--</td>
+                <td class="py-3 px-3 whitespace-nowrap font-mono font-extrabold text-sm text-emerald-400 bg-emerald-950/40 border-x border-emerald-500/30">
+                  <div>${sym}${tableTotalVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                  <div class="text-[10px] text-emerald-300/70 font-normal">Avg: ${sym}${tableAvgVal}</div>
+                </td>
+                <td colspan="3" class="py-3 px-3 text-[11px] text-slate-400 font-sans font-normal">
+                  <div class="flex items-center gap-2 text-slate-400">
+                    <i class="fa-solid fa-calculator text-brass-400"></i>
+                    <span>Live sum of all releases currently visible in table</span>
+                  </div>
+                </td>
+                <td class="py-3 px-3 text-right">
+                  <button type="button" onclick="recalculateArchiveTotals(true)" class="px-2.5 py-1 text-[11px] bg-brass-500 hover:bg-brass-400 active:scale-95 text-vinyl-950 rounded font-bold transition flex items-center gap-1.5 ml-auto shadow" title="Recalculate and backfill any missing valuations now">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                    <span>Recalculate</span>
+                  </button>
+                </td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       `;
@@ -7929,19 +8025,82 @@
       } catch (e) { console.warn('Valuation refine failed', e); }
     }
 
-    // Give any record that has no value a baseline so archive totals always add up
-    function backfillMissingValuations() {
-      let changed = false;
+    // Recalculates and backfills archive totals on demand or on schedule across the entire collection
+    async function recalculateArchiveTotals(notify = true) {
+      const sym = getCurrencySymbol();
+      let changedCount = 0;
+      const changedRecords = [];
+      let totalVal = 0;
+      let totalLow = 0;
+      let totalHigh = 0;
+      let valuedCount = 0;
+
       records.forEach(r => {
-        if (!r.estimatedValue || isNaN(r.estimatedValue) || r.estimatedValue <= 0) {
-          const b = calculateFormatBaselineValue(r.format, r.year);
-          r.estimatedValue = b.val; r.priceLow = b.low; r.priceMedian = b.median; r.priceHigh = b.high;
-          r.priceSource = r.priceSource || 'Format Market Baseline';
-          changed = true;
+        let val = null;
+        if (r.estimatedValue !== undefined && r.estimatedValue !== null && r.estimatedValue !== '') {
+          const parsed = parseFloat(String(r.estimatedValue).replace(/[^0-9.-]/g, ''));
+          if (!isNaN(parsed) && parsed > 0) val = parsed;
         }
+
+        if (val === null) {
+          const base = calculateFormatBaselineValue(r.format, r.year);
+          val = base.val;
+          r.estimatedValue = val;
+          r.priceLow = r.priceLow || base.low;
+          r.priceMedian = r.priceMedian || base.median;
+          r.priceHigh = r.priceHigh || base.high;
+          r.priceSource = r.priceSource || 'Format Market Baseline';
+          changedCount++;
+          changedRecords.push(r);
+        } else {
+          r.estimatedValue = val;
+          if (!r.priceLow) r.priceLow = Math.round(val * 0.6 * 100) / 100;
+          if (!r.priceMedian) r.priceMedian = val;
+          if (!r.priceHigh) r.priceHigh = Math.round(val * 1.5 * 100) / 100;
+        }
+
+        totalVal += val;
+        totalLow += (r.priceLow && !isNaN(r.priceLow)) ? parseFloat(r.priceLow) : (val * 0.6);
+        totalHigh += (r.priceHigh && !isNaN(r.priceHigh)) ? parseFloat(r.priceHigh) : (val * 1.5);
+        valuedCount++;
       });
-      if (changed) { saveRecordsToStorage(); renderStats(); }
+
+      // Save to local storage & IndexedDB
+      saveRecordsToStorage();
+
+      // Persist any updated valuations back to Supabase Cloud so cloud sync doesn't overwrite them with null
+      if (currentUser && supabaseClient && changedRecords.length > 0) {
+        try {
+          const dbRows = changedRecords.map(r => mapRecordToDb(r, currentUser.id));
+          supabaseClient.from('records').upsert(dbRows).then(({ error }) => {
+            if (error) console.warn("Notice syncing backfilled valuations to cloud:", error);
+          });
+        } catch (e) {
+          console.warn("Cloud backfill push notice:", e);
+        }
+      }
+
+      // Update stats and views
+      renderStats();
+      renderRecords();
+
+      if (notify) {
+        showToast(`Totals recalculated: ${sym}${totalVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} across ${records.length} records!`, "success");
+      }
+
+      return { totalVal, valuedCount, changedCount };
     }
+
+    function backfillMissingValuations() {
+      return recalculateArchiveTotals(false);
+    }
+
+    // Periodic auto-recalculation every 60 seconds to keep all views & cloud stores in perfect sync
+    setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible' && Array.isArray(records) && records.length > 0) {
+        recalculateArchiveTotals(false);
+      }
+    }, 60000);
 
     function calculateFormatBaselineValue(format = '', year = null) {
       const f = (format || '').toLowerCase();
@@ -8123,8 +8282,7 @@
 
       saveRecordsToStorage();
       populateMemberFilter(records);
-      renderStats();
-      renderRecords();
+      recalculateArchiveTotals(false);
 
       // If only a baseline estimate was stored, refine it in the background and update totals when it lands
       if (/baseline|benchmark/i.test(recordObj.priceSource || '')) {
@@ -11465,8 +11623,7 @@
 
       saveRecordsToStorage();
       populateMemberFilter(records);
-      renderStats();
-      renderRecords();
+      recalculateArchiveTotals(false);
       closeBatchUploadModal();
       showToast(`Imported ${stagedBatchRecords.length} records successfully!`);
 
@@ -11714,8 +11871,7 @@
 
       saveRecordsToStorage();
       populateMemberFilter(records);
-      renderStats();
-      renderRecords();
+      recalculateArchiveTotals(false);
       closeDiscogsImportModal();
       showToast(`Imported ${stagedDiscogsRecords.length} records from Discogs successfully!`);
 
@@ -11999,8 +12155,7 @@
 
       saveRecordsToStorage();
       populateMemberFilter(records);
-      renderStats();
-      renderRecords();
+      recalculateArchiveTotals(false);
       showToast(`Removed ${removedCount} sample records. Custom records preserved!`);
     }
 
