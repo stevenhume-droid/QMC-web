@@ -10197,6 +10197,29 @@
       else if (searchFormatChoice === 'CASSETTE') assignedFormat = 'Cassette Tape';
       else if (searchFormatChoice === 'MINIDISC') assignedFormat = 'MiniDisc';
 
+      // The pressing the user actually picked wins over the quick-lookup format filter
+      {
+        const parts = [];
+        (match.media || []).forEach(m => m.format && parts.push(m.format));
+        (Array.isArray(fullRelease.formats) ? fullRelease.formats : []).forEach(f => {
+          parts.push(f.name || '');
+          (f.descriptions || []).forEach(d => parts.push(d));
+        });
+        (Array.isArray(fullRelease.media) ? fullRelease.media : []).forEach(m => m.format && parts.push(m.format));
+        const cf = parts.join(' ').toLowerCase();
+        const isVinylCard = /vinyl|\blp\b|12"|10"|7"/.test(cf);
+        if (/\bbox\b/.test(cf)) assignedFormat = 'Box Set (Vinyl / Multi-Disc)';
+        else if (/7"|7 inch/.test(cf)) assignedFormat = '7" Single (45 RPM)';
+        else if (/10"/.test(cf)) assignedFormat = '10" Vinyl';
+        else if (/cassette/.test(cf)) assignedFormat = 'Cassette Tape';
+        else if (/minidisc/.test(cf)) assignedFormat = 'MiniDisc';
+        else if (/\bcd\b/.test(cf) && !isVinylCard) assignedFormat = 'CD / Other';
+        else if (/12"|\blp\b|vinyl/.test(cf)) {
+          if (/single|maxi|\bep\b/.test(cf)) assignedFormat = '12" Maxi / Single';
+          else if (!/12" (maxi|lp)|2xlp|box|10"|7"/i.test(assignedFormat)) assignedFormat = '12" LP (Album)';
+        }
+      }
+
       const is7Inch = assignedFormat.includes('7"');
       const is12Maxi = assignedFormat.includes('12" Maxi');
       const isVinyl = !assignedFormat.includes('CD') && !assignedFormat.includes('Cassette') && !assignedFormat.includes('MiniDisc');
