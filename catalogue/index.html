@@ -9776,48 +9776,46 @@
             }
           } catch (e) {}
 
-          // Step 2: Fallback to Discogs Barcode Search
-          if (discogsToken) {
-            try {
-              let dcUrl = `https://api.discogs.com/database/search?barcode=${encodeURIComponent(bc)}&type=release&token=${encodeURIComponent(discogsToken)}`;
-              const dcRes = await fetch(dcUrl, {
-                headers: { 'User-Agent': 'QMCVinylArchive/2.0' }
-              });
-              if (dcRes.ok) {
-                const dcData = await dcRes.json();
-                const dcItems = dcData.results || [];
-                dcItems.forEach(item => {
-                  const id = 'dc_' + item.id;
-                  if (!seenIds.has(id)) {
-                    seenIds.add(id);
-                    const titleParts = (item.title || '').split(' - ');
-                    const itemArtist = titleParts.length > 1 ? titleParts[0].trim() : '';
-                    const itemTitle = titleParts.length > 1 ? titleParts.slice(1).join(' - ').trim() : item.title;
-                    const catNo = item.catno || '';
-                    const label = (item.label && item.label[0]) || '';
-                    const year = item.year ? String(item.year) : '';
-                    const country = item.country || '';
-                    const formatStr = Array.isArray(item.format) ? item.format.join(', ') : (item.format || 'Vinyl');
+          // Step 2: Fallback to Discogs Barcode Search (runs with or without user token)
+          try {
+            let dcUrl = `https://api.discogs.com/database/search?barcode=${encodeURIComponent(bc)}&type=release${discogsToken ? '&token=' + encodeURIComponent(discogsToken) : ''}`;
+            const dcRes = await fetch(dcUrl, {
+              headers: { 'User-Agent': 'QMCVinylArchive/2.0' }
+            });
+            if (dcRes.ok) {
+              const dcData = await dcRes.json();
+              const dcItems = dcData.results || [];
+              dcItems.forEach(item => {
+                const id = 'dc_' + item.id;
+                if (!seenIds.has(id)) {
+                  seenIds.add(id);
+                  const titleParts = (item.title || '').split(' - ');
+                  const itemArtist = titleParts.length > 1 ? titleParts[0].trim() : '';
+                  const itemTitle = titleParts.length > 1 ? titleParts.slice(1).join(' - ').trim() : item.title;
+                  const catNo = item.catno || '';
+                  const label = (item.label && item.label[0]) || '';
+                  const year = item.year ? String(item.year) : '';
+                  const country = item.country || '';
+                  const formatStr = Array.isArray(item.format) ? item.format.join(', ') : (item.format || 'Vinyl');
 
-                    releases.push({
-                      id: id,
-                      discogsId: item.id,
-                      source: 'discogs',
-                      title: itemTitle,
-                      'artist-credit': [{ name: itemArtist }],
-                      date: year,
-                      country: country,
-                      barcode: bc,
-                      'label-info': [{ label: { name: label }, 'catalog-number': catNo }],
-                      media: [{ format: formatStr, 'track-count': 0 }],
-                      coverImage: item.cover_image || item.thumb || ''
-                    });
-                  }
-                });
-              }
-            } catch (e) {
-              console.warn("Discogs barcode fallback check:", e);
+                  releases.push({
+                    id: id,
+                    discogsId: item.id,
+                    source: 'discogs',
+                    title: itemTitle,
+                    'artist-credit': [{ name: itemArtist }],
+                    date: year,
+                    country: country,
+                    barcode: bc,
+                    'label-info': [{ label: { name: label }, 'catalog-number': catNo }],
+                    media: [{ format: formatStr, 'track-count': 0 }],
+                    coverImage: item.cover_image || item.thumb || ''
+                  });
+                }
+              });
             }
+          } catch (e) {
+            console.warn("Discogs barcode fallback check:", e);
           }
         } else {
           // Mode 2: Multi-field Search (Artist, Title, Cat #)
@@ -9887,57 +9885,61 @@
             );
           }
 
-          // If Discogs token available, run parallel Discogs database search queries
-          if (discogsToken) {
-            let fmtParam = '';
-            if (fmtChoice === '7') fmtParam = '&format=7%22';
-            else if (fmtChoice === '12' || fmtChoice === '12S') fmtParam = '&format=12%22';
-            else if (fmtChoice === '10') fmtParam = '&format=10%22';
-            else if (fmtChoice === 'CASSETTE') fmtParam = '&format=Cassette';
-            else if (fmtChoice === 'MINIDISC') fmtParam = '&format=MiniDisc';
-            else if (fmtChoice === 'ALL') fmtParam = '&format=Vinyl';
+          // Parallel Discogs database search queries (always active; adds user token if configured)
+          const tokenParam = discogsToken ? `&token=${encodeURIComponent(discogsToken)}` : '';
+          let fmtParam = '';
+          if (fmtChoice === '7') fmtParam = '&format=7%22';
+          else if (fmtChoice === '12' || fmtChoice === '12S') fmtParam = '&format=12%22';
+          else if (fmtChoice === '10') fmtParam = '&format=10%22';
+          else if (fmtChoice === 'CASSETTE') fmtParam = '&format=Cassette';
+          else if (fmtChoice === 'MINIDISC') fmtParam = '&format=MiniDisc';
+          else if (fmtChoice === 'ALL') fmtParam = '&format=Vinyl';
 
-            // Query 1: Exact Catalog Number lookup on Discogs (most accurate for vinyl pressings!)
-            if (cleanCat) {
-              let dcCatUrl = `https://api.discogs.com/database/search?catno=${encodeURIComponent(cleanCat)}&type=release&per_page=50&token=${encodeURIComponent(discogsToken)}${fmtParam}`;
-              if (strippedA) dcCatUrl += `&artist=${encodeURIComponent(strippedA)}`;
-              queryPromises.push(
-                fetch(dcCatUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
-                  .then(r => r.ok ? r.json() : null)
-                  .catch(() => null)
-              );
-            }
+          // Query 1: Exact Catalog Number lookup on Discogs (most accurate for vinyl pressings!)
+          const catCandidates = new Set();
+          if (cleanCat) catCandidates.add(cleanCat);
+          if (!cleanCat && cleanA && /\d/.test(cleanA)) catCandidates.add(cleanA);
+          if (!cleanCat && cleanT && /\d/.test(cleanT)) catCandidates.add(cleanT);
 
-            // Query 2: Normalized Artist + Title on Discogs
-            if (cleanA && cleanT) {
-              const dcSearchUrl = `https://api.discogs.com/database/search?artist=${encodeURIComponent(strippedA || cleanA)}&release_title=${encodeURIComponent(cleanT)}&type=release&per_page=50&token=${encodeURIComponent(discogsToken)}${fmtParam}`;
-              queryPromises.push(
-                fetch(dcSearchUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
-                  .then(r => r.ok ? r.json() : null)
-                  .catch(() => null)
-              );
-            }
+          catCandidates.forEach(cand => {
+            let dcCatUrl = `https://api.discogs.com/database/search?catno=${encodeURIComponent(cand)}&type=release&per_page=50${tokenParam}${fmtParam}`;
+            if (strippedA && cand !== cleanA) dcCatUrl += `&artist=${encodeURIComponent(strippedA)}`;
+            queryPromises.push(
+              fetch(dcCatUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
+                .then(r => r.ok ? r.json() : null)
+                .catch(() => null)
+            );
+          });
 
-            // Query 3: Free-text broad search on Discogs (finds dual-title singles like "Soul Finger / Knucklehead")
-            const qTokens = [cleanA, cleanT, cleanCat].filter(Boolean).join(' ');
-            if (qTokens) {
-              const dcQUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(qTokens)}&type=release&per_page=50&token=${encodeURIComponent(discogsToken)}${fmtParam}`;
-              queryPromises.push(
-                fetch(dcQUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
-                  .then(r => r.ok ? r.json() : null)
-                  .catch(() => null)
-              );
-            }
+          // Query 2: Normalized Artist + Title on Discogs
+          if (cleanA && cleanT) {
+            const dcSearchUrl = `https://api.discogs.com/database/search?artist=${encodeURIComponent(strippedA || cleanA)}&release_title=${encodeURIComponent(cleanT)}&type=release&per_page=50${tokenParam}${fmtParam}`;
+            queryPromises.push(
+              fetch(dcSearchUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
+                .then(r => r.ok ? r.json() : null)
+                .catch(() => null)
+            );
+          }
 
-            // Query 4: Track-level search on Discogs (locates singles where title is track A like "Soul Finger / Knucklehead")
-            if (cleanA && cleanT) {
-              const dcTrackUrl = `https://api.discogs.com/database/search?artist=${encodeURIComponent(strippedA || cleanA)}&track=${encodeURIComponent(cleanT)}&type=release&per_page=50&token=${encodeURIComponent(discogsToken)}${fmtParam}`;
-              queryPromises.push(
-                fetch(dcTrackUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
-                  .then(r => r.ok ? r.json() : null)
-                  .catch(() => null)
-              );
-            }
+          // Query 3: Free-text broad search on Discogs (finds releases when query is single string like "beg 199" or "s cbs 6333")
+          const qTokens = [cleanA, cleanT, cleanCat].filter(Boolean).join(' ');
+          if (qTokens) {
+            const dcQUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(qTokens)}&type=release&per_page=50${tokenParam}${fmtParam}`;
+            queryPromises.push(
+              fetch(dcQUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
+                .then(r => r.ok ? r.json() : null)
+                .catch(() => null)
+            );
+          }
+
+          // Query 4: Track-level search on Discogs (locates singles where title is track A like "Soul Finger / Knucklehead")
+          if (cleanA && cleanT) {
+            const dcTrackUrl = `https://api.discogs.com/database/search?artist=${encodeURIComponent(strippedA || cleanA)}&track=${encodeURIComponent(cleanT)}&type=release&per_page=50${tokenParam}${fmtParam}`;
+            queryPromises.push(
+              fetch(dcTrackUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
+                .then(r => r.ok ? r.json() : null)
+                .catch(() => null)
+            );
           }
 
           const results = await Promise.allSettled(queryPromises);
