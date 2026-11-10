@@ -229,9 +229,8 @@
       <button type="button" onclick="openScannerModal()" class="md:hidden p-2 text-xs rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 transition flex items-center justify-center shadow-sm" title="Scan Barcode via Camera">
         <i class="fa-solid fa-barcode text-sm"></i>
       </button>
-      <button type="button" onclick="exitWebApp()" class="md:hidden px-2.5 py-1.5 text-xs font-bold rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 hover:border-red-800/60 transition flex items-center gap-1 shadow-sm" title="Exit current view or return to QMC Home">
-        <i class="fa-solid fa-right-from-bracket text-xs text-rose-400"></i>
-        <span>Exit</span>
+      <button type="button" onclick="exitWebApp()" class="md:hidden p-2 text-xs rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-rose-400 hover:text-rose-300 border border-vinyl-700 hover:border-red-800/60 transition flex items-center justify-center shadow-sm" title="Exit current view or return to QMC Home">
+        <i class="fa-solid fa-right-from-bracket text-sm"></i>
       </button>
 
       <!-- Share Read-Only Link Quick Trigger -->
@@ -1253,7 +1252,7 @@
           </button>
           <button type="button" onclick="closeAddEditModal()" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm">
             <i class="fa-solid fa-xmark"></i>
-            <span>Exit</span>
+            <span class="hidden sm:inline">Exit</span>
           </button>
         </div>
       </div>
@@ -7691,6 +7690,8 @@
         if (aInput) aInput.value = '';
         const tInput = document.getElementById('searchTitleInput');
         if (tInput) tInput.value = '';
+        const cInput = document.getElementById('searchCatNoInput');
+        if (cInput) cInput.value = '';
         
         closeAutofillResults();
         setQuickLookupCollapsed(false, 'Quick Lookup & Barcode Scanner');
@@ -7743,6 +7744,9 @@
       closeAutofillResults();
       const idField = document.getElementById('recordId');
       if (idField) idField.value = '';
+      if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = '';
+      if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = '';
+      if (document.getElementById('searchCatNoInput')) document.getElementById('searchCatNoInput').value = '';
       const modal = document.getElementById('recordModal');
       if (modal) modal.classList.add('hidden');
     }
@@ -7918,6 +7922,7 @@
       document.getElementById('recordId').value = item.id;
       if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = item.artist || '';
       if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = item.title || '';
+      if (document.getElementById('searchCatNoInput')) document.getElementById('searchCatNoInput').value = item.catNo || '';
       closeAutofillResults();
       setQuickLookupCollapsed(true, `Editing: ${item.artist} – ${item.title}`);
 
@@ -8315,6 +8320,7 @@
         if (rangeBadges) rangeBadges.classList.add('hidden');
         if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = '';
         if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = '';
+        if (document.getElementById('searchCatNoInput')) document.getElementById('searchCatNoInput').value = '';
         closeAutofillResults();
         clearImagePreviews();
         switchFormTab('tab-general');
@@ -9893,7 +9899,7 @@
 
             // Query 1: Exact Catalog Number lookup on Discogs (most accurate for vinyl pressings!)
             if (cleanCat) {
-              let dcCatUrl = `https://api.discogs.com/database/search?catno=${encodeURIComponent(cleanCat)}&type=release&per_page=30&token=${encodeURIComponent(discogsToken)}${fmtParam}`;
+              let dcCatUrl = `https://api.discogs.com/database/search?catno=${encodeURIComponent(cleanCat)}&type=release&per_page=50&token=${encodeURIComponent(discogsToken)}${fmtParam}`;
               if (strippedA) dcCatUrl += `&artist=${encodeURIComponent(strippedA)}`;
               queryPromises.push(
                 fetch(dcCatUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
@@ -9904,7 +9910,7 @@
 
             // Query 2: Normalized Artist + Title on Discogs
             if (cleanA && cleanT) {
-              const dcSearchUrl = `https://api.discogs.com/database/search?artist=${encodeURIComponent(strippedA || cleanA)}&release_title=${encodeURIComponent(cleanT)}&type=release&per_page=30&token=${encodeURIComponent(discogsToken)}${fmtParam}`;
+              const dcSearchUrl = `https://api.discogs.com/database/search?artist=${encodeURIComponent(strippedA || cleanA)}&release_title=${encodeURIComponent(cleanT)}&type=release&per_page=50&token=${encodeURIComponent(discogsToken)}${fmtParam}`;
               queryPromises.push(
                 fetch(dcSearchUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
                   .then(r => r.ok ? r.json() : null)
@@ -9915,9 +9921,19 @@
             // Query 3: Free-text broad search on Discogs (finds dual-title singles like "Soul Finger / Knucklehead")
             const qTokens = [cleanA, cleanT, cleanCat].filter(Boolean).join(' ');
             if (qTokens) {
-              const dcQUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(qTokens)}&type=release&per_page=30&token=${encodeURIComponent(discogsToken)}${fmtParam}`;
+              const dcQUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(qTokens)}&type=release&per_page=50&token=${encodeURIComponent(discogsToken)}${fmtParam}`;
               queryPromises.push(
                 fetch(dcQUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
+                  .then(r => r.ok ? r.json() : null)
+                  .catch(() => null)
+              );
+            }
+
+            // Query 4: Track-level search on Discogs (locates singles where title is track A like "Soul Finger / Knucklehead")
+            if (cleanA && cleanT) {
+              const dcTrackUrl = `https://api.discogs.com/database/search?artist=${encodeURIComponent(strippedA || cleanA)}&track=${encodeURIComponent(cleanT)}&type=release&per_page=50&token=${encodeURIComponent(discogsToken)}${fmtParam}`;
+              queryPromises.push(
+                fetch(dcTrackUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
                   .then(r => r.ok ? r.json() : null)
                   .catch(() => null)
               );
@@ -10014,8 +10030,17 @@
           }
         }
 
-        // Smart Vinyl-First Sorting
+        // Smart Vinyl-First & Exact Cat # Sorting
         releases.sort((a, b) => {
+          if (cleanCat) {
+            const aCat = (a['label-info']?.[0]?.['catalog-number'] || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const bCat = (b['label-info']?.[0]?.['catalog-number'] || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const targetCat = cleanCat.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const aMatch = aCat.includes(targetCat);
+            const bMatch = bCat.includes(targetCat);
+            if (aMatch && !bMatch) return -1;
+            if (!aMatch && bMatch) return 1;
+          }
           const aFmt = (a.media?.[0]?.format || '').toLowerCase();
           const bFmt = (b.media?.[0]?.format || '').toLowerCase();
           const aIsVinyl = aFmt.includes('vinyl') || aFmt.includes('lp') || aFmt.includes('12"') || aFmt.includes('7"') || aFmt.includes('10"');
@@ -10789,6 +10814,10 @@
       if (modalTitleEl && modalTitleEl.innerText.includes('Catalogue Record')) {
         const idField = document.getElementById('recordId');
         if (idField) idField.value = '';
+      }
+
+      if (document.getElementById('searchCatNoInput')) {
+        document.getElementById('searchCatNoInput').value = releaseCatNo || '';
       }
 
       closeAutofillResults();
