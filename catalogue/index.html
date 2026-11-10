@@ -9705,6 +9705,11 @@
       const barcode = typeof searchParams === 'string' ? '' : (searchParams.barcode || '');
       const directDiscogsId = typeof searchParams === 'string' ? '' : (searchParams.discogsId || '');
 
+      const cleanA = cleanLucene(artist);
+      const cleanT = cleanLucene(title);
+      const cleanCat = cleanLucene(catno);
+      const strippedA = cleanA.replace(/^(the|a|an)\s+/i, '');
+
       let queryDisplay = [artist, title, catno].filter(Boolean).join(' · ') || barcode || (directDiscogsId ? `Discogs #${directDiscogsId}` : 'Release');
       showToast(`Searching open discography for "${queryDisplay}"...`);
 
@@ -9816,11 +9821,6 @@
           }
         } else {
           // Mode 2: Multi-field Search (Artist, Title, Cat #)
-          const cleanA = cleanLucene(artist);
-          const cleanT = cleanLucene(title);
-          const cleanCat = cleanLucene(catno);
-          const strippedA = cleanA.replace(/^(the|a|an)\s+/i, '');
-
           // Build format filter Lucene clause for MusicBrainz
           let fmtClause = '';
           if (fmtChoice === '12') {
@@ -10031,18 +10031,18 @@
         }
 
         // Smart Vinyl-First & Exact Cat # Sorting
+        const targetCat = (cleanCat || catno || '').toLowerCase().replace(/[^a-z0-9]/g, '');
         releases.sort((a, b) => {
-          if (cleanCat) {
-            const aCat = (a['label-info']?.[0]?.['catalog-number'] || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-            const bCat = (b['label-info']?.[0]?.['catalog-number'] || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-            const targetCat = cleanCat.toLowerCase().replace(/[^a-z0-9]/g, '');
-            const aMatch = aCat.includes(targetCat);
-            const bMatch = bCat.includes(targetCat);
+          if (targetCat) {
+            const aCat = ((a && a['label-info'] && a['label-info'][0] && a['label-info'][0]['catalog-number']) || a.catno || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const bCat = ((b && b['label-info'] && b['label-info'][0] && b['label-info'][0]['catalog-number']) || b.catno || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const aMatch = aCat && aCat.includes(targetCat);
+            const bMatch = bCat && bCat.includes(targetCat);
             if (aMatch && !bMatch) return -1;
             if (!aMatch && bMatch) return 1;
           }
-          const aFmt = (a.media?.[0]?.format || '').toLowerCase();
-          const bFmt = (b.media?.[0]?.format || '').toLowerCase();
+          const aFmt = ((a && a.media && a.media[0] && a.media[0].format) || '').toLowerCase();
+          const bFmt = ((b && b.media && b.media[0] && b.media[0].format) || '').toLowerCase();
           const aIsVinyl = aFmt.includes('vinyl') || aFmt.includes('lp') || aFmt.includes('12"') || aFmt.includes('7"') || aFmt.includes('10"');
           const bIsVinyl = bFmt.includes('vinyl') || bFmt.includes('lp') || bFmt.includes('12"') || bFmt.includes('7"') || bFmt.includes('10"');
           if (aIsVinyl && !bIsVinyl) return -1;
