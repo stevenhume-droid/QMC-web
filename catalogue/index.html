@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -9454,16 +9454,16 @@
       let title = document.getElementById('searchTitleInput')?.value.trim() || '';
 
       // Smart parsing: If user pasted "Artist - Title" in either box
-      if (artist && !title && (artist.includes(' - ') || artist.includes(' – ') || artist.includes(' : '))) {
-        const parts = artist.split(/\s*[-–:]\s*/);
+      if (artist && !title && (/\s[-–:\/]\s/.test(artist))) {
+        const parts = artist.split(/\s+[-–:\/]\s+/);
         if (parts.length >= 2) {
           artist = parts[0].trim();
           title = parts.slice(1).join(' - ').trim();
           if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = artist;
           if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = title;
         }
-      } else if (!artist && title && (title.includes(' - ') || title.includes(' – ') || title.includes(' : '))) {
-        const parts = title.split(/\s*[-–:]\s*/);
+      } else if (!artist && title && (/\s[-–:\/]\s/.test(title))) {
+        const parts = title.split(/\s+[-–:\/]\s+/);
         if (parts.length >= 2) {
           artist = parts[0].trim();
           title = parts.slice(1).join(' - ').trim();
