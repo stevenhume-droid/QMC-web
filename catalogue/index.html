@@ -1904,7 +1904,7 @@
         </div>
       </div>
 
-      <!-- Controls Row: Camera Selector & Torch Toggle -->
+      <!-- Controls Row: Camera Selector, Continuous Mode & Torch Toggle -->
       <div class="flex items-center justify-between gap-2 mb-2">
         <div class="flex items-center gap-1.5 flex-1 min-w-0">
           <i class="fa-solid fa-camera text-slate-400 text-xs"></i>
@@ -1912,10 +1912,16 @@
             <option value="">Auto-Detect Back Camera</option>
           </select>
         </div>
-        <button type="button" id="scannerTorchBtn" onclick="toggleScannerTorch()" class="hidden px-2.5 py-1 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border border-vinyl-700 rounded-lg text-xs items-center gap-1 transition" title="Toggle camera flashlight">
-          <i class="fa-solid fa-bolt text-xs text-amber-400"></i>
-          <span>Torch</span>
-        </button>
+        <div class="flex items-center gap-1.5 flex-shrink-0">
+          <button type="button" id="scannerContinuousBtn" onclick="toggleContinuousScanMode()" class="px-2 py-1 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border border-vinyl-700 rounded-lg text-xs flex items-center gap-1 transition" title="Continuous Scanning: scan multiple records consecutively without closing the camera stream">
+            <i class="fa-solid fa-arrows-rotate text-xs text-brass-400"></i>
+            <span id="continuousBtnLabel" class="text-[11px]">Continuous</span>
+          </button>
+          <button type="button" id="scannerTorchBtn" onclick="toggleScannerTorch()" class="hidden px-2.5 py-1 bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border border-vinyl-700 rounded-lg text-xs items-center gap-1 transition" title="Toggle camera flashlight">
+            <i class="fa-solid fa-bolt text-xs text-amber-400"></i>
+            <span>Torch</span>
+          </button>
+        </div>
       </div>
 
       <!-- Viewfinder Stream -->
@@ -10837,6 +10843,9 @@
        ========================================================= */
     let currentScannerCameraId = null;
     let isScannerTorchOn = false;
+    let isContinuousScanMode = false;
+    let isBarcodeScanningPaused = false;
+    let webKitVideoObserver = null;
     let scannerAvailableCameras = [];
 
     // Synthesize an authentic cash register / retail confirmation beep
@@ -10856,6 +10865,101 @@
         osc.start();
         osc.stop(ctx.currentTime + 0.12);
       } catch (e) {}
+    }
+
+    function toggleContinuousScanMode() {
+      isContinuousScanMode = !isContinuousScanMode;
+      const btn = document.getElementById('scannerContinuousBtn');
+      const label = document.getElementById('continuousBtnLabel');
+      if (btn) {
+        btn.classList.toggle('bg-emerald-500/20', isContinuousScanMode);
+        btn.classList.toggle('border-emerald-500/50', isContinuousScanMode);
+        btn.classList.toggle('text-emerald-300', isContinuousScanMode);
+      }
+      if (label) {
+        label.innerText = isContinuousScanMode ? 'Continuous: ON' : 'Continuous';
+      }
+      const feedback = document.getElementById('scanFeedback');
+      if (feedback) {
+        feedback.innerText = isContinuousScanMode 
+          ? 'Continuous Mode Active: Hold record barcodes in view to scan repeatedly without closing camera.' 
+          : 'Standard Mode: Camera active. Center record barcode in viewfinder.';
+      }
+      showToast(isContinuousScanMode ? 'Continuous scan active. Camera stays live between items!' : 'Switched to standard single-scan mode.');
+    }
+
+    // Monitor DOM injection to enforce iOS WebKit inline playback (prevents black screen)
+    function ensureWebKitVideoInline(containerId = 'qr-reader') {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      if (webKitVideoObserver) {
+        webKitVideoObserver.disconnect();
+        webKitVideoObserver = null;
+      }
+
+      const applyVideoProps = (video) => {
+        if (!video) return;
+        video.setAttribute('playsinline', 'true');
+        video.setAttribute('webkit-playsinline', 'true');
+        video.setAttribute('muted', 'true');
+        video.muted = true;
+        video.playsInline = true;
+        video.style.objectFit = 'cover';
+        if (video.paused) {
+          video.play().catch(err => {
+            console.warn("Autoplay attempt handled:", err);
+          });
+        }
+      };
+
+      const existingVideo = container.querySelector('video');
+      if (existingVideo) applyVideoProps(existingVideo);
+
+      webKitVideoObserver = new MutationObserver(() => {
+        const v = container.querySelector('video');
+        if (v) applyVideoProps(v);
+      });
+
+      webKitVideoObserver.observe(container, { childList: true, subtree: true });
+    }
+
+    // Robust Hardware Stream Cleanup on Exit or Re-entry (kills zombie MediaStreamTracks)
+    async function terminateCameraStream(containerSelector = '#qr-reader') {
+      if (webKitVideoObserver) {
+        webKitVideoObserver.disconnect();
+        webKitVideoObserver = null;
+      }
+
+      try {
+        if (html5QrScanner) {
+          if (html5QrScanner.isScanning) {
+            await html5QrScanner.stop().catch(() => {});
+          }
+          try {
+            await html5QrScanner.clear().catch(() => {});
+          } catch (e) {}
+        }
+      } catch (err) {
+        console.warn("Html5Qrcode stop notice:", err);
+      } finally {
+        html5QrScanner = null;
+      }
+
+      // Explicitly kill every active MediaStreamTrack in the video element & reset srcObject
+      const container = document.querySelector(containerSelector);
+      if (container) {
+        const videoElements = container.querySelectorAll('video');
+        videoElements.forEach(video => {
+          if (video.srcObject && video.srcObject instanceof MediaStream) {
+            const tracks = video.srcObject.getTracks();
+            tracks.forEach(track => {
+              try { track.stop(); } catch (e) {}
+            });
+            video.srcObject = null;
+          }
+        });
+      }
     }
 
     async function populateScannerCameras() {
@@ -10882,48 +10986,46 @@
       const feedback = document.getElementById('scanFeedback');
       if (feedback) feedback.innerText = "Connecting high-resolution camera stream...";
 
+      // Pre-emptively kill any residual / zombie tracks from previous runs
+      await terminateCameraStream('#qr-reader');
+
       try {
-        if (html5QrScanner && html5QrScanner.isScanning) {
-          try {
-            await html5QrScanner.stop();
-          } catch (e) {}
-        }
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-        if (!html5QrScanner) {
-          const formats = (typeof Html5QrcodeSupportedFormats !== 'undefined') ? [
-            Html5QrcodeSupportedFormats.EAN_13,
-            Html5QrcodeSupportedFormats.UPC_A,
-            Html5QrcodeSupportedFormats.UPC_E,
-            Html5QrcodeSupportedFormats.EAN_8,
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.CODE_39,
-            Html5QrcodeSupportedFormats.QR_CODE
-          ] : undefined;
+        const formats = (typeof Html5QrcodeSupportedFormats !== 'undefined') ? [
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.QR_CODE
+        ] : undefined;
 
-          html5QrScanner = new Html5Qrcode("qr-reader", {
-            formatsToSupport: formats,
-            verbose: false,
-            experimentalFeatures: {
-              useBarCodeDetectorIfSupported: true
-            }
-          });
-        }
+        html5QrScanner = new Html5Qrcode("qr-reader", {
+          formatsToSupport: formats,
+          verbose: false,
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true
+          }
+        });
 
-        const cameraChoice = cameraId ? { deviceId: { exact: cameraId } } : { facingMode: "environment" };
+        // Ensure iOS WebKit doesn't pause or black-out the injected video element
+        ensureWebKitVideoInline('qr-reader');
+
+        // Preferred camera configuration: ideal environment lens for iOS Safari
+        const cameraChoice = (cameraId && !isIOS) ? { deviceId: { exact: cameraId } } : { facingMode: { ideal: "environment" } };
 
         const scanConfig = {
-          fps: 22,
+          fps: isIOS ? 14 : 20,
           qrbox: (w, h) => {
-            const boxW = Math.min(Math.floor(w * 0.85), 360);
-            const boxH = Math.min(Math.floor(h * 0.45), 180);
+            const boxW = Math.min(Math.floor(w * 0.85), 340);
+            const boxH = Math.min(Math.floor(h * 0.45), 150);
             return { width: Math.max(boxW, 200), height: Math.max(boxH, 90) };
           },
           aspectRatio: 1.333333,
           videoConstraints: {
-            facingMode: { ideal: "environment" },
-            focusMode: { ideal: "continuous" },
-            width: { min: 640, ideal: 1280, max: 1920 },
-            height: { min: 480, ideal: 720, max: 1080 }
+            facingMode: { ideal: "environment" }
           }
         };
 
@@ -10931,13 +11033,28 @@
           cameraChoice,
           scanConfig,
           (decodedText) => {
+            if (isBarcodeScanningPaused) return;
+            isBarcodeScanningPaused = true;
+
             playScanBeep();
+            if (navigator.vibrate) {
+              try { navigator.vibrate(120); } catch (e) {}
+            }
+
             handleBarcodeScanned(decodedText);
+
+            setTimeout(() => {
+              isBarcodeScanningPaused = false;
+            }, 2000);
           },
           () => {}
         );
 
-        if (feedback) feedback.innerText = "Camera active. Center the record barcode inside the red laser viewfinder.";
+        if (feedback) {
+          feedback.innerText = isContinuousScanMode
+            ? "Continuous Mode Active: Hold record barcode in view."
+            : "Camera active. Center the record barcode inside the red laser viewfinder.";
+        }
 
         // Check if flashlight / torch capability exists
         const torchBtn = document.getElementById('scannerTorchBtn');
@@ -10956,7 +11073,15 @@
         }
       } catch (err) {
         console.warn("Live camera startup error:", err);
-        if (feedback) feedback.innerText = "Camera stream blocked or unavailable. You can snap/upload a photo or type digits below.";
+        // Attempt fallback to default facingMode if a specific deviceId constraint failed
+        if (cameraId) {
+          console.log("Retrying camera stream with generic environment facing mode...");
+          currentScannerCameraId = null;
+          return startScannerStream(null);
+        }
+        if (feedback) {
+          feedback.innerText = "Camera stream blocked or unavailable. You can snap/upload a photo or type digits below.";
+        }
       }
     }
 
@@ -11195,6 +11320,7 @@
 
     async function openScannerModal() {
       document.getElementById('scannerModal').classList.remove('hidden');
+      isBarcodeScanningPaused = false;
       await startScannerStream(currentScannerCameraId);
       await populateScannerCameras();
       if (window.innerWidth >= 640) {
@@ -11204,33 +11330,110 @@
       }
     }
 
-    function closeScannerModal() {
-      if (html5QrScanner && html5QrScanner.isScanning) {
-        html5QrScanner.stop().catch(() => {}).finally(() => {
-          try { html5QrScanner.clear(); } catch(e) {}
-        });
-      }
+    async function closeScannerModal() {
+      await terminateCameraStream('#qr-reader');
       isScannerTorchOn = false;
       document.getElementById('scannerModal').classList.add('hidden');
     }
 
-    function handleBarcodeScanned(code) {
+    async function handleBarcodeScanned(code) {
       const cleanCode = String(code || '').trim();
-      closeScannerModal();
+      if (!cleanCode) return;
+
+      if (isContinuousScanMode) {
+        // Continuous Mode: Keep stream alive, show feedback, trigger background lookup/import
+        const feedback = document.getElementById('scanFeedback');
+        if (feedback) {
+          feedback.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Found barcode ${cleanCode}! Looking up release...</span>`;
+        }
+        showToast(`Scanned ${cleanCode} — Looking up release...`, "info");
+
+        try {
+          const discogsToken = localStorage.getItem('qmc_discogs_user_token') || localStorage.getItem('QMC_DISCOGS_TOKEN');
+          const res = await fetch(`https://api.discogs.com/database/search?barcode=${encodeURIComponent(cleanCode)}&type=release${discogsToken ? '&token=' + encodeURIComponent(discogsToken) : ''}`, {
+            headers: { 'User-Agent': 'QMCVinylArchive/2.0' }
+          }).catch(() => null);
+
+          let matchedItem = null;
+          if (res && res.ok) {
+            const data = await res.json().catch(() => null);
+            if (data && data.results && data.results.length > 0) {
+              matchedItem = data.results[0];
+            }
+          }
+
+          if (!matchedItem) {
+            const mbRes = await fetch(`https://musicbrainz.org/ws/2/release/?query=barcode:${encodeURIComponent(cleanCode)}&fmt=json&limit=1`, {
+              headers: { 'User-Agent': 'QMCVinylArchive/2.0 (contact@example.com)' }
+            }).catch(() => null);
+            if (mbRes && mbRes.ok) {
+              const mbData = await mbRes.json().catch(() => null);
+              if (mbData && mbData.releases && mbData.releases.length > 0) {
+                const mbRel = mbData.releases[0];
+                matchedItem = {
+                  title: (mbRel['artist-credit']?.[0]?.name ? mbRel['artist-credit'][0].name + ' - ' : '') + mbRel.title,
+                  year: mbRel.date ? mbRel.date.substring(0, 4) : '',
+                  catno: mbRel['label-info']?.[0]?.['catalog-number'] || '',
+                  format: ['Vinyl']
+                };
+              }
+            }
+          }
+
+          if (matchedItem) {
+            if (feedback) {
+              feedback.innerHTML = `<span class="text-emerald-300 font-bold"><i class="fa-solid fa-circle-check mr-1"></i>Catalogued: "${escapeHtml(matchedItem.title)}"</span><br><span class="text-slate-400 text-[10px]">Hold next record in view to scan again...</span>`;
+            }
+            showToast(`Catalogued "${matchedItem.title}"! Ready for next.`, "success");
+            const titleParts = (matchedItem.title || '').split(' - ');
+            const artist = titleParts.length > 1 ? titleParts[0].trim() : 'Artist';
+            const title = titleParts.length > 1 ? titleParts.slice(1).join(' - ').trim() : matchedItem.title;
+            const newRec = {
+              id: 'rec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+              artist: artist,
+              title: title,
+              format: '12" LP (Album)',
+              barcode: cleanCode,
+              year: matchedItem.year || '',
+              catNo: matchedItem.catno || '',
+              mediaGrade: 'VG+',
+              sleeveGrade: 'VG+',
+              estimatedValue: 10.00,
+              currency: globalCurrency || 'GBP',
+              dateAdded: new Date().toISOString()
+            };
+            records.unshift(newRec);
+            saveRecordsToStorage();
+            populateMemberFilter(records);
+            recalculateArchiveTotals(false);
+          } else {
+            if (feedback) {
+              feedback.innerHTML = `<span class="text-amber-400 font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Barcode ${cleanCode} detected.</span><br><span class="text-slate-400 text-[10px]">Hold next record in view to scan again...</span>`;
+            }
+            showToast(`Barcode ${cleanCode} detected. Ready for next.`, "info");
+          }
+        } catch (err) {
+          console.warn("Continuous scan lookup notice:", err);
+        }
+        return;
+      }
+
+      // Standard Mode: Cleanly terminate camera tracks and open record form
+      await closeScannerModal();
       openAddEditModal();
       document.getElementById('formBarcode').value = cleanCode;
-      executeMusicBrainzSearch(cleanCode, true);
+      executeMusicBrainzSearch({ barcode: cleanCode });
     }
 
-    function handleManualBarcode() {
+    async function handleManualBarcode() {
       const input = document.getElementById('manualBarcodeInput');
       const val = input ? input.value.trim() : '';
       if (!val) return;
-      closeScannerModal();
+      await closeScannerModal();
       openAddEditModal();
       if (/^\d{8,14}$/.test(val)) {
         document.getElementById('formBarcode').value = val;
-        executeMusicBrainzSearch(val, true);
+        executeMusicBrainzSearch({ barcode: val });
       } else {
         // User provided a catalog number or release title
         document.getElementById('formCatNo').value = val;
