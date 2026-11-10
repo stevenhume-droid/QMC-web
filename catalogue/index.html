@@ -1670,14 +1670,16 @@
                 <option value="Dinked (Large 1.5 inch)">Dinked (Large 1.5" Jukebox / US standard)</option>
                 <option value="Four-Prong (Spider)">Four-Prong Knockout / Spider</option>
                 <option value="Tri-Center (Knockout)">Tri-Center Knockout</option>
+                <option value="">N/A (Non-Vinyl / CD / Tape)</option>
               </select>
             </div>
-            <div>
+            <div id="speedContainer">
               <label class="block text-xs font-semibold text-slate-300 mb-1">Playback Speed (RPM)</label>
               <select id="formSpeed" class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brass-500">
                 <option value="33 1/3 RPM">33 1/3 RPM (Standard LP / Album)</option>
                 <option value="45 RPM">45 RPM (Standard Single / Audiophile LP)</option>
                 <option value="78 RPM">78 RPM (Shellac / Vintage 10")</option>
+                <option value="">N/A (CD / Tape / Digital)</option>
               </select>
             </div>
           </div>
@@ -3048,8 +3050,9 @@
       const isBoxSet = format && format.toLowerCase().includes('box');
       const isCassette = format && (format.toLowerCase().includes('cassette') || format.toLowerCase().includes('tape'));
       const isMiniDisc = format && format.toLowerCase().includes('minidisc');
+      const isCD = format && (format.toLowerCase().includes('cd') || format.toLowerCase().includes('compact disc'));
       const cleanArtist = escapeXml((artist || 'QUEENSFERRY ARCHIVE').trim());
-      const cleanTitle = escapeXml((title || (isSingle ? '7" SINGLE PRESSING' : (isBoxSet ? 'ARCHIVAL VINYL BOX SET' : (is10Inch ? '10" VINYL PRESSING' : (is12Single ? '12" SINGLE / MAXI' : (isCassette ? 'CASSETTE TAPE' : (isMiniDisc ? 'MINIDISC RELEASE' : '12" LP ALBUM'))))))).trim());
+      const cleanTitle = escapeXml((title || (isSingle ? '7" SINGLE PRESSING' : (isBoxSet ? 'ARCHIVAL VINYL BOX SET' : (is10Inch ? '10" VINYL PRESSING' : (is12Single ? '12" SINGLE / MAXI' : (isCassette ? 'CASSETTE TAPE' : (isMiniDisc ? 'MINIDISC RELEASE' : (isCD ? 'COMPACT DISC ALBUM' : '12" LP ALBUM'))))))).trim());
 
       let svg = '';
 
@@ -3309,6 +3312,69 @@
           <text x="24" y="27" fill="#f472b6" font-family="monospace" font-size="10" font-weight="800" letter-spacing="2">ARCHIVAL MINIDISC</text>
           <text x="476" y="27" text-anchor="end" fill="#94a3b8" font-family="monospace" font-size="10" font-weight="700">MAGNETO-OPTICAL</text>
         </svg>`;
+      } else if (isCD) {
+        // Authentic Compact Disc Jewel Case & Iridescent Optical Disc (500x500 explicit scale)
+        svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="cdCaseBg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#1e293b"/>
+              <stop offset="45%" stop-color="#0f172a"/>
+              <stop offset="100%" stop-color="#020617"/>
+            </linearGradient>
+            <radialGradient id="cdShine" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#cbd5e1"/>
+              <stop offset="28%" stop-color="#94a3b8"/>
+              <stop offset="38%" stop-color="#38bdf8" stop-opacity="0.9"/>
+              <stop offset="52%" stop-color="#a855f7" stop-opacity="0.9"/>
+              <stop offset="65%" stop-color="#34d399" stop-opacity="0.9"/>
+              <stop offset="80%" stop-color="#f59e0b" stop-opacity="0.8"/>
+              <stop offset="92%" stop-color="#e2e8f0"/>
+              <stop offset="100%" stop-color="#64748b"/>
+            </radialGradient>
+            <linearGradient id="jewelSpine" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#334155"/>
+              <stop offset="50%" stop-color="#64748b"/>
+              <stop offset="100%" stop-color="#1e293b"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Jewel Case Outer Body -->
+          <rect width="500" height="500" fill="url(#cdCaseBg)"/>
+
+          <!-- Clear Acrylic Case Bevel & Spine -->
+          <rect x="18" y="18" width="464" height="464" rx="8" fill="none" stroke="#38bdf8" stroke-opacity="0.3" stroke-width="2"/>
+          <rect x="22" y="22" width="28" height="456" fill="url(#jewelSpine)" opacity="0.75"/>
+          <line x1="50" y1="22" x2="50" y2="478" stroke="#0ea5e9" stroke-opacity="0.4" stroke-width="1.5"/>
+
+          <!-- 120mm Compact Disc Circular Body -->
+          <circle cx="265" cy="250" r="210" fill="url(#cdShine)" stroke="#475569" stroke-width="2"/>
+
+          <!-- Optical Data Spiral Grooves -->
+          <circle cx="265" cy="250" r="195" fill="none" stroke="#f8fafc" stroke-width="0.8" opacity="0.4"/>
+          <circle cx="265" cy="250" r="170" fill="none" stroke="#38bdf8" stroke-width="0.7" opacity="0.5"/>
+          <circle cx="265" cy="250" r="140" fill="none" stroke="#c084fc" stroke-width="0.7" opacity="0.5"/>
+          <circle cx="265" cy="250" r="110" fill="none" stroke="#34d399" stroke-width="0.6" opacity="0.4"/>
+
+          <!-- Mirror Transition Band -->
+          <circle cx="265" cy="250" r="80" fill="#0f172a" stroke="#64748b" stroke-width="1.5" opacity="0.95"/>
+          <!-- Clear Polycarbonate Inner Clamping Ring -->
+          <circle cx="265" cy="250" r="58" fill="#1e293b" stroke="#94a3b8" stroke-width="2" opacity="0.9"/>
+          <!-- Center 15mm Spindle Hole -->
+          <circle cx="265" cy="250" r="26" fill="#020617" stroke="#38bdf8" stroke-width="2"/>
+          <!-- Jewel Case Tray Hub Teeth -->
+          <circle cx="265" cy="250" r="34" fill="none" stroke="#64748b" stroke-width="2.5" stroke-dasharray="10 8"/>
+
+          <!-- Compact Disc Label Typography -->
+          <text x="265" y="130" text-anchor="middle" fill="#020617" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="900" letter-spacing="2">COMPACT DISC DIGITAL AUDIO</text>
+          <text x="265" y="152" text-anchor="middle" fill="#0f172a" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="900">${cleanArtist.substring(0, 26)}</text>
+          <text x="265" y="170" text-anchor="middle" fill="#0369a1" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="800">${cleanTitle.substring(0, 30)}</text>
+
+          <text x="265" y="348" text-anchor="middle" fill="#0f172a" font-family="monospace" font-size="11" font-weight="900" letter-spacing="2">STEREO · ARCHIVAL CD</text>
+
+          <!-- Header Ribbon -->
+          <text x="62" y="38" fill="#38bdf8" font-family="monospace" font-size="10" font-weight="800" letter-spacing="1.5">QUEENSFERRY ARCHIVE</text>
+          <text x="466" y="38" text-anchor="end" fill="#94a3b8" font-family="monospace" font-size="10" font-weight="700">CD-DA 120mm</text>
+        </svg>`;
       } else {
         // Authentic Full-Bleed 12" LP Album Jacket (500x500 explicit scale)
         svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500" preserveAspectRatio="xMidYMid slice">
@@ -3387,10 +3453,14 @@
       const cleanLabel = escapeXml((item.label || 'QMC ARCHIVAL PRESSING').toUpperCase());
       const cleanCat = escapeXml((item.catNo || 'CAT # UNLISTED').toUpperCase());
       const fmt = item.format || '12" LP (Album)';
+      const fLow = fmt.toLowerCase();
+      const isVinyl = !fLow.includes('cd') && !fLow.includes('compact disc') && !fLow.includes('cassette') && !fLow.includes('tape') && !fLow.includes('minidisc');
       const is45 = fmt.includes('7"') || (item.speed && item.speed.includes('45'));
-      const cleanSpeed = escapeXml(item.speed || (is45 ? '45 RPM' : '33⅓ RPM'));
-      const isLargeHole = (item.centerHole && (item.centerHole.includes('Large') || item.centerHole.includes('Jukebox')));
-      const holeRadius = isLargeHole ? 36 : 14;
+      const cleanSpeed = isVinyl
+        ? escapeXml(item.speed || (is45 ? '45 RPM' : '33⅓ RPM'))
+        : (fLow.includes('cd') ? 'COMPACT DISC' : (fLow.includes('tape') ? 'CASSETTE' : 'DIGITAL'));
+      const isLargeHole = isVinyl && (item.centerHole && (item.centerHole.includes('Large') || item.centerHole.includes('Jukebox')));
+      const holeRadius = isVinyl ? (isLargeHole ? 36 : 14) : 10;
 
       const gradStops = s === 'A'
         ? `<stop offset="0%" stop-color="#fceda2"/><stop offset="35%" stop-color="#d4af37"/><stop offset="80%" stop-color="#997b1e"/><stop offset="100%" stop-color="#5e4a0e"/>`
@@ -4159,6 +4229,12 @@
       if (input) input.value = val;
     }
 
+    function isSpeedApplicable(format) {
+      if (!format) return true;
+      const f = format.toLowerCase();
+      return !f.includes('cd') && !f.includes('compact disc') && !f.includes('cassette') && !f.includes('tape') && !f.includes('minidisc') && !f.includes('digital');
+    }
+
     function mapRecordToDb(rec, userId) {
       let rNotes = rec.researchNotes || '';
       // Pack extra vinyl specs and price spreads into metadata comment inside research_notes for lossless cloud sync
@@ -4270,10 +4346,10 @@
         tracks: Array.isArray(row.tracks) ? row.tracks : undefined,
         barcode: row.barcode || '',
         country: row.country || '',
-        centerHole: row.center_hole || '',
-        speed: row.speed || '',
-        vinylColor: vinylColor,
-        vinylWeight: vinylWeight,
+        centerHole: (row.format && !isSpeedApplicable(row.format)) ? '' : (row.center_hole || ''),
+        speed: (row.format && !isSpeedApplicable(row.format)) ? '' : (row.speed || ''),
+        vinylColor: (row.format && !isSpeedApplicable(row.format)) ? '' : vinylColor,
+        vinylWeight: (row.format && !isSpeedApplicable(row.format)) ? '' : vinylWeight,
         matrixA: row.matrix_a || '',
         matrixB: row.matrix_b || '',
         mastering: row.mastering || '',
@@ -5062,6 +5138,9 @@
       if (!Array.isArray(arr)) return [];
       arr.forEach(r => {
         if (!r.format) r.format = '7" Single (45 RPM)';
+        if (!isSpeedApplicable(r.format)) {
+          r.speed = '';
+        }
         if (r.estimatedValue !== undefined && r.estimatedValue !== null && r.estimatedValue !== '') {
           r.estimatedValue = parseFloat(r.estimatedValue);
           if (isNaN(r.estimatedValue)) r.estimatedValue = null;
@@ -6170,9 +6249,11 @@
 
                 <!-- Speed, Weight, Label / Year Pill Overlay -->
                 <div class="absolute bottom-1.5 inset-x-1.5 flex items-center justify-between text-[9px] text-white/90 gap-1 pointer-events-none">
-                  <span class="bg-black/80 backdrop-blur-sm px-1.5 py-0.2 rounded border border-white/10 font-mono">
-                    ${item.speed || (isAlbum ? '33 RPM' : '45 RPM')}
-                  </span>
+                  ${isSpeedApplicable(item.format) ? `
+                    <span class="bg-black/80 backdrop-blur-sm px-1.5 py-0.2 rounded border border-white/10 font-mono">
+                      ${item.speed || (isAlbum ? '33 RPM' : '45 RPM')}
+                    </span>
+                  ` : `<span></span>`}
                   <span class="bg-black/80 backdrop-blur-sm px-1.5 py-0.2 rounded border border-white/10 font-mono text-brass-400 font-bold">
                     ${item.year || '--'}
                   </span>
@@ -6262,15 +6343,17 @@
               <!-- Speed, Vinyl Weight, Colour and Label Pill -->
               <div class="absolute bottom-2.5 inset-x-2.5 flex items-center justify-between text-[10px] text-white/90 gap-1.5">
                 <div class="flex items-center gap-1 min-w-0 flex-wrap">
-                  <span class="bg-black/85 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/15 font-mono shadow-sm">
-                    ${item.speed || (isAlbum ? '33 1/3 RPM' : '45 RPM')}
-                  </span>
-                  ${item.vinylWeight ? `
+                  ${isSpeedApplicable(item.format) ? `
+                    <span class="bg-black/85 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/15 font-mono shadow-sm">
+                      ${item.speed || (isAlbum ? '33 1/3 RPM' : '45 RPM')}
+                    </span>
+                  ` : ''}
+                  ${(isSpeedApplicable(item.format) && item.vinylWeight) ? `
                     <span class="bg-black/85 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-emerald-500/30 font-mono text-[9px] text-emerald-400 font-bold shadow-sm whitespace-nowrap" title="Vinyl Weight: ${escapeHtml(item.vinylWeight)}">
                       ${escapeHtml(item.vinylWeight.match(/\d+g/i)?.[0] || item.vinylWeight)}
                     </span>
                   ` : ''}
-                  ${(item.vinylColor && !item.vinylColor.toLowerCase().includes('black')) ? `
+                  ${(isSpeedApplicable(item.format) && item.vinylColor && !item.vinylColor.toLowerCase().includes('black')) ? `
                     <span class="bg-black/85 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-pink-500/40 text-[9px] text-pink-300 font-semibold shadow-sm truncate max-w-[85px]" title="Vinyl Colour: ${escapeHtml(item.vinylColor)}">
                       <i class="fa-solid fa-palette text-[8px] mr-0.5"></i>${escapeHtml(item.vinylColor)}
                     </span>
@@ -7479,10 +7562,11 @@
                 <span class="text-slate-400">Format:</span>
                 <span class="font-semibold text-slate-200">${item.format || '12" LP'}</span>
               </div>
+              ${isSpeedApplicable(item.format) ? `
               <div class="flex justify-between items-center">
                 <span class="text-slate-400">Speed:</span>
                 <span class="font-semibold text-slate-200">${item.speed || (isAlbum ? '33 1/3 RPM' : '45 RPM')}</span>
-              </div>
+              </div>` : ''}
               <div class="flex justify-between items-center">
                 <span class="text-slate-400">Record Label:</span>
                 <span class="font-semibold text-brass-400">${item.label || '--'}</span>
@@ -7504,7 +7588,7 @@
                   ${item.ownerName}
                 </span>
               </div>` : ''}
-              ${item.vinylColor ? `
+              ${(isSpeedApplicable(item.format) && item.vinylColor) ? `
               <div class="flex justify-between items-center">
                 <span class="text-slate-400">Vinyl Colour:</span>
                 <span class="font-semibold text-pink-300 flex items-center gap-1.5">
@@ -7512,7 +7596,7 @@
                   ${escapeHtml(item.vinylColor)}
                 </span>
               </div>` : ''}
-              ${item.vinylWeight ? `
+              ${(isSpeedApplicable(item.format) && item.vinylWeight) ? `
               <div class="flex justify-between items-center font-mono">
                 <span class="text-slate-400">Vinyl Weight:</span>
                 <span class="font-bold text-emerald-400 flex items-center gap-1.5">
@@ -7520,7 +7604,7 @@
                   ${escapeHtml(item.vinylWeight)}
                 </span>
               </div>` : ''}
-              ${item.centerHole ? `
+              ${(isSpeedApplicable(item.format) && item.centerHole) ? `
               <div class="flex justify-between items-center">
                 <span class="text-slate-400">Center Hole:</span>
                 <span class="text-slate-300">${item.centerHole}</span>
@@ -7935,13 +8019,32 @@
       const isBoxSet = format.toLowerCase().includes('box');
       const isCassette = format.toLowerCase().includes('cassette') || format.toLowerCase().includes('tape');
       const isMiniDisc = format.toLowerCase().includes('minidisc');
+      const isCD = format.toLowerCase().includes('cd');
+      const isVinyl = isSpeedApplicable(format);
       const singleContainer = document.getElementById('tracksSingleContainer');
       const albumContainer = document.getElementById('tracksAlbumContainer');
       const speedSelect = document.getElementById('formSpeed');
       const hintText = document.getElementById('formatHintText');
       const centerHole = document.getElementById('formCenterHole');
+      const speedContainer = document.getElementById('speedContainer');
+      const centerHoleContainer = document.getElementById('centerHoleContainer');
 
-      if (isSingle) {
+      if (speedContainer) {
+        if (isVinyl) speedContainer.classList.remove('hidden');
+        else speedContainer.classList.add('hidden');
+      }
+      if (centerHoleContainer) {
+        if (isVinyl) centerHoleContainer.classList.remove('hidden');
+        else centerHoleContainer.classList.add('hidden');
+      }
+
+      if (isCD) {
+        if (singleContainer) singleContainer.classList.add('hidden');
+        if (albumContainer) albumContainer.classList.remove('hidden');
+        if (speedSelect) speedSelect.value = '';
+        if (centerHole) centerHole.value = '';
+        if (hintText) hintText.innerText = 'Compact Disc (CD) digital release with multi-track layout.';
+      } else if (isSingle) {
         if (singleContainer) singleContainer.classList.remove('hidden');
         if (albumContainer) albumContainer.classList.add('hidden');
         if (speedSelect) speedSelect.value = '45 RPM';
@@ -7968,14 +8071,14 @@
       } else if (isCassette) {
         if (singleContainer) singleContainer.classList.add('hidden');
         if (albumContainer) albumContainer.classList.remove('hidden');
-        if (speedSelect) speedSelect.value = '33 1/3 RPM';
-        if (centerHole) centerHole.value = 'Solid (Small 0.28 inch)';
+        if (speedSelect) speedSelect.value = '';
+        if (centerHole) centerHole.value = '';
         if (hintText) hintText.innerText = 'Compact audio cassette tape (Side A / Side B program).';
       } else if (isMiniDisc) {
         if (singleContainer) singleContainer.classList.add('hidden');
         if (albumContainer) albumContainer.classList.remove('hidden');
-        if (speedSelect) speedSelect.value = '33 1/3 RPM';
-        if (centerHole) centerHole.value = 'Solid (Small 0.28 inch)';
+        if (speedSelect) speedSelect.value = '';
+        if (centerHole) centerHole.value = '';
         if (hintText) hintText.innerText = 'Magneto-optical MiniDisc release with digital track markers.';
       } else {
         if (singleContainer) singleContainer.classList.add('hidden');
@@ -7986,7 +8089,6 @@
       }
 
       const vinylSpecs = document.getElementById('vinylSpecsContainer');
-      const isVinyl = !isCassette && !isMiniDisc && !format.toLowerCase().includes('cd');
       if (vinylSpecs) {
         if (isVinyl) vinylSpecs.classList.remove('hidden');
         else vinylSpecs.classList.add('hidden');
@@ -8140,8 +8242,9 @@
         document.getElementById('formAlbumTracks').value = '';
       }
 
-      document.getElementById('formCenterHole').value = item.centerHole || 'Solid (Small 0.28 inch)';
-      document.getElementById('formSpeed').value = item.speed || '33 1/3 RPM';
+      const isVinyl = isSpeedApplicable(item.format);
+      document.getElementById('formCenterHole').value = isVinyl ? (item.centerHole || 'Solid (Small 0.28 inch)') : '';
+      document.getElementById('formSpeed').value = isVinyl ? (item.speed || '33 1/3 RPM') : '';
       document.getElementById('formMatrixA').value = item.matrixA || '';
       document.getElementById('formMatrixB').value = item.matrixB || '';
       document.getElementById('formMastering').value = item.mastering || '';
@@ -8396,11 +8499,11 @@
         tracks: parsedTracks.length > 0 ? parsedTracks : undefined,
         barcode: document.getElementById('formBarcode').value.trim(),
         country: document.getElementById('formCountry').value.trim(),
-        vinylColor: document.getElementById('formVinylColor')?.value.trim() || '',
-        vinylWeight: document.getElementById('formVinylWeight')?.value.trim() || '',
+        vinylColor: isSpeedApplicable(format) ? (document.getElementById('formVinylColor')?.value.trim() || '') : '',
+        vinylWeight: isSpeedApplicable(format) ? (document.getElementById('formVinylWeight')?.value.trim() || '') : '',
 
-        centerHole: document.getElementById('formCenterHole').value,
-        speed: document.getElementById('formSpeed').value,
+        centerHole: isSpeedApplicable(format) ? (document.getElementById('formCenterHole').value || 'Solid (Small 0.28 inch)') : '',
+        speed: isSpeedApplicable(format) ? (document.getElementById('formSpeed').value || '33 1/3 RPM') : '',
         matrixA: document.getElementById('formMatrixA').value.trim(),
         matrixB: document.getElementById('formMatrixB').value.trim(),
         mastering: document.getElementById('formMastering').value.trim(),
@@ -10960,7 +11063,9 @@
       // Populate TAB 3: Pressing & Technical Specs
       const speedSelect = document.getElementById('formSpeed');
       if (speedSelect) {
-        if (is7Inch || is12Maxi || assignedFormat.includes('10"')) {
+        if (!isSpeedApplicable(assignedFormat)) {
+          speedSelect.value = '';
+        } else if (is7Inch || is12Maxi || assignedFormat.includes('10"')) {
           speedSelect.value = '45 RPM';
         } else {
           speedSelect.value = '33 1/3 RPM';
@@ -10968,15 +11073,19 @@
       }
       const centerHoleEl = document.getElementById('formCenterHole');
       if (centerHoleEl) {
-        const rawFmtAll = JSON.stringify(fullRelease.formats || match.media || []).toLowerCase();
-        if (/3-prong|tri-cent|three-prong/.test(rawFmtAll)) {
-          centerHoleEl.value = 'Tri-Center (Knockout)';
-        } else if (/4-prong|four-prong|spider/.test(rawFmtAll)) {
-          centerHoleEl.value = 'Four-Prong (Spider)';
-        } else if (/dinked|large center|large hole/.test(rawFmtAll)) {
-          centerHoleEl.value = 'Dinked (Large 1.5 inch)';
-        } else if (!centerHoleEl.value) {
-          centerHoleEl.value = 'Solid (Small 0.28 inch)';
+        if (!isSpeedApplicable(assignedFormat)) {
+          centerHoleEl.value = '';
+        } else {
+          const rawFmtAll = JSON.stringify(fullRelease.formats || match.media || []).toLowerCase();
+          if (/3-prong|tri-cent|three-prong/.test(rawFmtAll)) {
+            centerHoleEl.value = 'Tri-Center (Knockout)';
+          } else if (/4-prong|four-prong|spider/.test(rawFmtAll)) {
+            centerHoleEl.value = 'Four-Prong (Spider)';
+          } else if (/dinked|large center|large hole/.test(rawFmtAll)) {
+            centerHoleEl.value = 'Dinked (Large 1.5 inch)';
+          } else if (!centerHoleEl.value) {
+            centerHoleEl.value = 'Solid (Small 0.28 inch)';
+          }
         }
       }
       const colorEl = document.getElementById('formVinylColor');
@@ -12209,8 +12318,8 @@
           genres,
           barcode,
           country: getVal('country') || 'UK',
-          speed: format.includes('7"') ? '45 RPM' : '33 1/3 RPM',
-          centerHole: 'Solid (Small 0.28 inch)',
+          speed: isSpeedApplicable(format) ? (format.includes('7"') ? '45 RPM' : '33 1/3 RPM') : '',
+          centerHole: isSpeedApplicable(format) ? 'Solid (Small 0.28 inch)' : '',
           researchNotes: notes ? (notes.startsWith('Discogs') ? notes : `Notes: ${notes}`) : '',
           provenance: discogsId ? `Imported via Discogs (Release #${discogsId})` : 'Batch Upload File',
           transferStatus: 'Not Digitized',
@@ -12421,9 +12530,10 @@
           }
         }
 
-        let speed = '33 1/3 RPM';
-        if (format.includes('7"')) speed = '45 RPM';
-        else if (format.includes('12" Maxi / Single')) speed = '45 RPM';
+        let speed = '';
+        if (isSpeedApplicable(format)) {
+          speed = (format.includes('7"') || format.includes('12" Maxi / Single')) ? '45 RPM' : '33 1/3 RPM';
+        }
 
         stagedDiscogsRecords.push({
           id: `rec_discogs_${discogsId || Date.now()}_${idx}_${Math.random().toString(36).substring(2, 6)}`,
@@ -12442,7 +12552,7 @@
           barcode: '',
           country: 'UK',
           speed,
-          centerHole: 'Solid (Small 0.28 inch)',
+          centerHole: isSpeedApplicable(format) ? 'Solid (Small 0.28 inch)' : '',
           researchNotes: notes ? (notes.startsWith('Discogs') ? notes : `Discogs Notes: ${notes}`) : '',
           provenance: discogsId ? `Imported from Discogs Collection (Release #${discogsId})` : 'Discogs CSV Export',
           transferStatus: 'Not Digitized',
