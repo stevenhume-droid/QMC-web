@@ -159,10 +159,21 @@
 
       /* Header: compact with safe-area top clearance for phone WebApps */
       #appHeader {
-        gap: .5rem;
-        padding-top: max(0.65rem, calc(env(safe-area-inset-top, 0px) + 0.4rem));
-        padding-bottom: .5rem;
-        position: static;
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        gap: .35rem;
+        padding-top: max(0.55rem, calc(env(safe-area-inset-top, 0px) + 0.35rem));
+        padding-bottom: .45rem;
+        background-color: rgba(14, 16, 21, 0.96);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+
+      /* In View subtotal ribbon: sleek 1-line on phones */
+      #viewSubtotalRibbon {
+        padding: 0.375rem 0.625rem;
+        font-size: 11px;
       }
 
       /* Filters collapse behind a toggle */
@@ -177,59 +188,56 @@
 <body class="bg-vinyl-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-brass-500 selection:text-black">
 
   <!-- TOP APP BAR -->
-  <header id="appHeader" class="border-b border-vinyl-800 bg-vinyl-900/95 backdrop-blur sticky top-0 z-40 px-4 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
+  <header id="appHeader" class="border-b border-vinyl-800 bg-vinyl-900/95 backdrop-blur sticky top-0 z-40 px-3 sm:px-4 lg:px-8 py-2 sm:py-3 flex items-center justify-between gap-2 sm:gap-4">
+    <div class="flex items-center gap-2 sm:gap-3 min-w-0">
       <!-- Vinyl Logo Badge -->
-      <a href="../index.html" class="w-10 h-10 rounded-full vinyl-grooves flex items-center justify-center border border-brass-500/40 shadow-inner group hover:scale-105 transition" title="Back to QMC Home">
-        <div class="w-3.5 h-3.5 rounded-full bg-brass-500 border border-black flex items-center justify-center group-hover:bg-amber-400">
-          <div class="w-1.5 h-1.5 rounded-full bg-black"></div>
+      <a href="../index.html" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full vinyl-grooves flex-shrink-0 flex items-center justify-center border border-brass-500/40 shadow-inner group hover:scale-105 transition" title="Back to QMC Home">
+        <div class="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 rounded-full bg-brass-500 border border-black flex items-center justify-center group-hover:bg-amber-400">
+          <div class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-black"></div>
         </div>
       </a>
-      <div>
-        <div class="flex items-center gap-2">
-          <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            QMC <span class="text-xs px-2 py-0.5 rounded-full bg-brass-500/20 text-brass-400 font-mono font-medium border border-brass-500/30">Music Collection Archive</span>
+      <div class="min-w-0">
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <h1 class="text-base sm:text-xl font-bold tracking-tight text-white flex items-center gap-1.5 truncate">
+            QMC <span class="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-brass-500/20 text-brass-400 font-mono font-medium border border-brass-500/30 truncate">Archive</span>
           </h1>
         </div>
-        <p class="hidden sm:block text-xs text-slate-400">LPs, Albums, 12" & 7" Singles Archival Research & Valuation Station</p>
+        <p class="hidden sm:block text-xs text-slate-400 truncate">LPs, Albums, 12" &amp; 7" Singles Archival Station</p>
       </div>
     </div>
 
     <!-- Global Actions -->
-    <div class="flex items-center flex-wrap gap-2 sm:gap-2.5">
+    <div class="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
       <!-- Member Sign-In / User Profile Button -->
       <div id="memberAuthContainer">
-        <button onclick="openAuthModal()" id="authNavBtn" class="px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 hover:border-brass-400 transition flex items-center gap-1.5 sm:gap-2 shadow-sm">
-          <i class="fa-solid fa-circle-user text-sm text-brass-400"></i>
-          <span id="authNavText">Member Sign In</span>
+        <button onclick="openAuthModal()" id="authNavBtn" class="px-2 sm:px-3.5 py-1.5 sm:py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 hover:border-brass-400 transition flex items-center gap-1 sm:gap-2 shadow-sm">
+          <i class="fa-solid fa-circle-user text-xs sm:text-sm text-brass-400"></i>
+          <span id="authNavText" class="max-w-[70px] sm:max-w-none truncate text-[11px] sm:text-xs">Sign In</span>
         </button>
       </div>
 
       <!-- Estimated Archive Value Pill (Positioned right next to username) with On-Demand Recalculate Trigger -->
       <div class="flex items-stretch rounded-lg bg-vinyl-850 border border-emerald-500/30 shadow-sm overflow-hidden group">
-        <div onclick="switchView('analytics')" class="px-2.5 py-1.5 sm:px-3 sm:py-1.5 hover:bg-vinyl-800 cursor-pointer transition flex items-center gap-1.5 sm:gap-2" title="Estimated Archive Value — Click to view Valuation Analytics">
-          <i class="fa-solid fa-coins text-xs text-emerald-400"></i>
+        <div onclick="switchView('analytics')" class="px-2 sm:px-3 py-1 sm:py-1.5 hover:bg-vinyl-800 cursor-pointer transition flex items-center gap-1 sm:gap-2" title="Estimated Archive Value — Click to view Valuation Analytics">
+          <i class="fa-solid fa-coins text-[11px] sm:text-xs text-emerald-400"></i>
           <div class="leading-tight">
-            <div class="flex items-baseline gap-1.5">
+            <div class="flex items-baseline gap-1 sm:gap-1.5">
               <span class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold hidden lg:inline">Est. Value</span>
-              <span id="statTotalValue" class="text-xs sm:text-sm font-bold font-mono text-emerald-400">£0.00</span>
+              <span id="statTotalValue" class="text-[11px] sm:text-sm font-bold font-mono text-emerald-400 whitespace-nowrap">£0.00</span>
             </div>
             <div id="statAvgValue" class="hidden">Avg: £0.00 / disc</div>
           </div>
         </div>
-        <button type="button" onclick="event.stopPropagation(); recalculateArchiveTotals(true)" class="px-2 py-1.5 hover:bg-emerald-500/20 text-emerald-400/80 hover:text-emerald-300 border-l border-emerald-500/20 transition flex items-center justify-center" title="Recalculate & sum archive totals on demand">
-          <i class="fa-solid fa-arrows-rotate text-[11px]"></i>
+        <button type="button" onclick="event.stopPropagation(); recalculateArchiveTotals(true)" class="px-1.5 sm:px-2 py-1 sm:py-1.5 hover:bg-emerald-500/20 text-emerald-400/80 hover:text-emerald-300 border-l border-emerald-500/20 transition flex items-center justify-center" title="Recalculate &amp; sum archive totals on demand">
+          <i class="fa-solid fa-arrows-rotate text-[10px] sm:text-[11px]"></i>
         </button>
       </div>
 
-      <!-- Mobile Add to Home Screen, Barcode Scan & Exit WebApp Buttons -->
-      <button type="button" onclick="openAddToHomeScreenModal()" class="md:hidden p-2 text-xs rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 transition flex items-center justify-center shadow-sm" title="Add to Home Screen">
-        <i class="fa-solid fa-mobile-screen-button text-sm"></i>
-      </button>
-      <button type="button" onclick="openScannerModal()" class="md:hidden p-2 text-xs rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 transition flex items-center justify-center shadow-sm" title="Scan Barcode via Camera">
+      <!-- Mobile Barcode Scan & Exit WebApp Buttons -->
+      <button type="button" onclick="openScannerModal()" class="md:hidden p-1.5 sm:p-2 text-xs rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 transition flex items-center justify-center shadow-sm" title="Scan Barcode via Camera">
         <i class="fa-solid fa-barcode text-sm"></i>
       </button>
-      <button type="button" onclick="exitWebApp()" class="md:hidden p-2 text-xs rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-rose-400 hover:text-rose-300 border border-vinyl-700 hover:border-red-800/60 transition flex items-center justify-center shadow-sm" title="Exit current view or return to QMC Home">
+      <button type="button" onclick="exitWebApp()" class="md:hidden p-1.5 sm:p-2 text-xs rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-rose-400 hover:text-rose-300 border border-vinyl-700 hover:border-red-800/60 transition flex items-center justify-center shadow-sm" title="Exit current view or return to QMC Home">
         <i class="fa-solid fa-right-from-bracket text-sm"></i>
       </button>
 
@@ -355,21 +363,37 @@
   </header>
 
   <!-- COMPACT COLLECTION SUMMARY STRIP (Collection + Interactive Decades Filter) -->
-  <section class="bg-vinyl-900 border-b border-vinyl-800 px-3 sm:px-4 lg:px-8 py-2.5">
+  <section class="bg-vinyl-900 border-b border-vinyl-800 px-3 sm:px-4 lg:px-8 py-2 sm:py-2.5">
+    <!-- Mobile-Only Quick Metrics Bar with Toggle -->
+    <div class="sm:hidden flex items-center justify-between pb-1.5 text-xs">
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="toggleFormatFilter('ALL')" class="font-bold font-mono text-brass-400 text-sm flex items-center gap-1">
+          <span id="mobileStatTotalItems">0</span> <span class="text-[11px] font-normal text-slate-400">Releases</span>
+        </button>
+        <span class="text-slate-600">·</span>
+        <span class="text-slate-300 text-[11px]"><span class="text-slate-500">Grade:</span> <strong id="mobileStatAvgGrade" class="text-emerald-400 font-mono">VG+</strong></span>
+      </div>
+      <button type="button" onclick="toggleMobileStatsStrip()" id="mobileStatsToggleBtn" class="text-[11px] text-brass-400 hover:text-brass-300 flex items-center gap-1.5 py-0.5 px-2 rounded bg-vinyl-800 border border-vinyl-700 shadow-sm">
+        <i class="fa-solid fa-layer-group text-[10px] text-brass-400"></i>
+        <span id="mobileStatsToggleLabel">Formats &amp; Decades</span>
+        <i id="mobileStatsChevron" class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200"></i>
+      </button>
+    </div>
+
     <div id="statsStrip" class="grid grid-cols-1 md:grid-cols-5 gap-2 sm:gap-3">
       
       <!-- 1. Total Collection & Format Breakdown (All Formats) -->
-      <div class="md:col-span-2 bg-vinyl-850/80 px-3 py-2 rounded-lg border border-vinyl-800 flex items-center justify-between min-w-0">
+      <div class="md:col-span-2 bg-vinyl-850/80 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-vinyl-800 flex items-center justify-between min-w-0">
         <div class="min-w-0 flex-1">
-          <div class="flex items-center justify-between gap-1 mb-1">
+          <div class="hidden sm:flex items-center justify-between gap-1 mb-1">
             <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400 block">Collection Formats</span>
             <button type="button" onclick="toggleFormatFilter('ALL')" class="text-[9px] font-mono text-slate-400 hover:text-brass-300 transition" title="Reset filter to show all formats">All Formats</button>
           </div>
-          <div class="flex items-center gap-2.5 flex-wrap">
-            <button type="button" onclick="toggleFormatFilter('ALL')" class="text-lg sm:text-xl font-bold font-mono text-brass-400 hover:text-brass-300 transition cursor-pointer flex-shrink-0" title="Click to view all records in collection">
+          <div class="flex items-center gap-2 min-w-0">
+            <button type="button" onclick="toggleFormatFilter('ALL')" class="hidden sm:block text-lg sm:text-xl font-bold font-mono text-brass-400 hover:text-brass-300 transition cursor-pointer flex-shrink-0" title="Click to view all records in collection">
               <span id="statTotalItems">0</span>
             </button>
-            <div id="statFormatBreakdown" class="flex items-center gap-1.5 flex-wrap text-[10px] sm:text-[11px] font-mono">
+            <div id="statFormatBreakdown" class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none py-0.5 text-[10px] sm:text-[11px] font-mono" style="scrollbar-width: none;">
               <!-- Dynamically populated format chips for ALL formats -->
             </div>
           </div>
@@ -381,18 +405,18 @@
         <i class="fa-solid fa-layer-group text-vinyl-700 text-lg sm:text-xl hidden sm:block ml-2 flex-shrink-0"></i>
       </div>
 
-      <!-- 2. Expanded Condition & Tappable Decades Filter (Spans 3 columns on desktop, full width on mobile) -->
-      <div class="md:col-span-3 bg-vinyl-850/80 px-3 py-2 rounded-lg border border-vinyl-800 flex flex-col justify-center min-w-0 gap-1.5">
-        <div class="flex justify-between items-center text-[10px] uppercase tracking-wider font-semibold text-slate-400 gap-2">
+      <!-- 2. Expanded Condition & Tappable Decades Filter -->
+      <div class="md:col-span-3 bg-vinyl-850/80 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-vinyl-800 flex flex-col justify-center min-w-0 gap-1">
+        <div class="hidden sm:flex justify-between items-center text-[10px] uppercase tracking-wider font-semibold text-slate-400 gap-2">
           <span class="flex items-center gap-1.5 truncate">
             <span>Avg Grade:</span>
             <span id="statAvgGrade" class="font-bold font-mono text-emerald-400">VG+</span>
           </span>
           <button type="button" onclick="switchView('analytics')" id="statDecadesSummary" class="text-brass-400 hover:text-brass-300 font-mono text-[10px] font-semibold truncate flex items-center gap-1 transition" title="Open Full Collection Analytics">--</button>
         </div>
-        <div id="decadeDistributionBar" class="w-full bg-vinyl-800 h-2 rounded-full overflow-hidden flex shadow-inner"></div>
+        <div id="decadeDistributionBar" class="hidden sm:flex w-full bg-vinyl-800 h-2 rounded-full overflow-hidden shadow-inner"></div>
         <!-- Mobile & Desktop Tappable Decade Filter Pills -->
-        <div id="decadeQuickChips" class="flex items-center gap-1.5 overflow-x-auto pt-0.5 pb-0.5" style="scrollbar-width: none;"></div>
+        <div id="decadeQuickChips" class="flex items-center gap-1.5 overflow-x-auto py-0.5" style="scrollbar-width: none;"></div>
         <span id="statTransfers" class="hidden">0</span>
       </div>
 
@@ -400,43 +424,49 @@
   </section>
 
   <!-- CONTROLS, SEARCH, AND VIEW TOGGLES -->
-  <main class="flex-1 p-4 lg:p-8 max-w-[1600px] w-full mx-auto flex flex-col gap-4">
+  <main class="flex-1 p-3 sm:p-4 lg:p-8 max-w-[1600px] w-full mx-auto flex flex-col gap-3 sm:gap-4">
     
-    <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-vinyl-900/60 p-3 rounded-xl border border-vinyl-800">
+    <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3 bg-vinyl-900/60 p-2.5 sm:p-3 rounded-xl border border-vinyl-800">
       
       <!-- Search Input -->
       <div class="relative flex-1">
-        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
         <input 
           type="text" 
           id="globalSearch" 
           oninput="handleSearchFilterChange()"
-          placeholder="Search by Artist, Album / Single Title, Label, Catalog #, Format, Genre, Producer, Matrix..." 
-          class="w-full pl-9 pr-4 py-2 bg-vinyl-850 border border-vinyl-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brass-500 focus:ring-1 focus:ring-brass-500"
+          placeholder="Search Artist, Album, Title, Label, Cat #, Matrix..." 
+          class="w-full pl-8 pr-4 py-2 bg-vinyl-850 border border-vinyl-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brass-500 focus:ring-1 focus:ring-brass-500"
         >
       </div>
 
       <!-- View Switcher & Filters Row -->
-      <div id="filtersRow" class="flex flex-wrap items-center justify-between sm:justify-start gap-2">
+      <div id="filtersRow" class="flex flex-wrap items-center justify-between sm:justify-start gap-1.5 sm:gap-2">
         <!-- Prominent View Switcher (Gallery, Table, Analytics) -->
         <div class="flex items-center bg-vinyl-850 border border-vinyl-700 rounded-lg p-0.5">
-          <button id="viewGridBtn" onclick="switchView('grid')" class="px-2.5 py-1.5 rounded text-xs bg-vinyl-700 text-brass-400 font-medium transition flex items-center gap-1.5 shadow-sm" title="Gallery Sleeve View">
+          <button id="viewGridBtn" onclick="switchView('grid')" class="px-2 sm:px-2.5 py-1.5 rounded text-xs bg-vinyl-700 text-brass-400 font-medium transition flex items-center gap-1 sm:gap-1.5 shadow-sm" title="Gallery Sleeve View">
             <i class="fa-solid fa-grip"></i>
             <span>Gallery</span>
           </button>
-          <button id="viewListBtn" onclick="switchView('list')" class="px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5" title="Table List View">
+          <button id="viewListBtn" onclick="switchView('list')" class="px-2 sm:px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1 sm:gap-1.5" title="Table List View">
             <i class="fa-solid fa-table-list"></i>
             <span>Table</span>
           </button>
-          <button id="viewAnalyticsBtn" onclick="switchView('analytics')" class="px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5" title="Collection Analytics & Graphs">
+          <button id="viewAnalyticsBtn" onclick="switchView('analytics')" class="px-2 sm:px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1 sm:gap-1.5" title="Collection Analytics & Graphs">
             <i class="fa-solid fa-chart-pie text-xs"></i>
             <span>Analytics</span>
           </button>
         </div>
 
+        <!-- Grid Density Toggle Button (2-Col Compact Grid vs 1-Col Detailed Cards) -->
+        <button type="button" id="gridDensityBtn" onclick="toggleGridDensity()" class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-brass-500/50 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-slate-300 font-semibold flex items-center gap-1 sm:gap-1.5 transition shadow-sm" title="Toggle Compact 2-Column Grid / Detailed Cards">
+          <i id="gridDensityIcon" class="fa-solid fa-table-cells text-xs text-brass-400"></i>
+          <span id="gridDensityLabel" class="text-[11px] font-mono hidden sm:inline">Compact</span>
+        </button>
+
         <!-- Mobile-only filters toggle -->
-        <button type="button" onclick="document.getElementById('filtersRow').classList.toggle('filters-open')" class="sm:hidden bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-xs text-slate-200 font-semibold flex items-center gap-1.5">
-          <i class="fa-solid fa-sliders text-xs text-brass-400"></i><span>Filters &amp; Sort</span>
+        <button type="button" onclick="document.getElementById('filtersRow').classList.toggle('filters-open')" class="sm:hidden bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-semibold flex items-center gap-1.5 shadow-sm">
+          <i class="fa-solid fa-sliders text-xs text-brass-400"></i><span>Filters</span>
         </button>
         <!-- Share Link Trigger in Filters -->
         <button type="button" onclick="openShareModal()" id="filterShareBtn" class="mf bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-sky-500/50 rounded-lg px-2.5 py-2 text-xs text-sky-400 font-semibold transition flex items-center gap-1.5 shadow-sm" title="Share private read-only link with others">
@@ -495,11 +525,13 @@
         <span id="ribbonViewTotal" class="font-bold text-emerald-400 text-sm">£0.00</span>
         <span class="text-slate-600">·</span>
         <span id="ribbonViewCount" class="text-slate-300 font-sans font-medium">0 releases</span>
-        <span id="ribbonArchiveTotal" class="text-slate-500 text-[11px]">(Archive Total: £0.00 across 0 records)</span>
+        <span id="ribbonArchiveTotal" class="text-slate-500 text-[11px] hidden sm:inline">(Archive Total: £0.00 across 0 records)</span>
       </div>
       <button type="button" onclick="recalculateArchiveTotals(true)" class="px-2.5 py-1 text-[11px] font-sans font-bold bg-vinyl-800 hover:bg-vinyl-750 text-brass-400 hover:text-brass-300 rounded-lg border border-brass-500/30 transition flex items-center gap-1.5 shadow-sm active:scale-95" title="Recalculate and sum archive totals on demand">
         <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
         <span>Recalculate Totals</span>
+      </button>
+    </div>
       </button>
     </div>
 
@@ -4961,6 +4993,7 @@
       loadRecordsFromStorage();
       backfillMissingValuations();
       populateMemberFilter(records);
+      updateGridDensityUI();
       renderStats();
       renderRecords();
       initSupabase();
@@ -5149,6 +5182,8 @@
       const total = records.length;
       const totalEl = document.getElementById('statTotalItems');
       if (totalEl) totalEl.innerText = total;
+      const mobileTotalEl = document.getElementById('mobileStatTotalItems');
+      if (mobileTotalEl) mobileTotalEl.innerText = total;
 
       const currentFormatFilter = document.getElementById('filterFormat')?.value || 'ALL';
 
@@ -5380,6 +5415,8 @@
       const avgScore = gradedCount ? Math.round(sumGrades / gradedCount) : 6;
       const reverseGrade = Object.keys(gradeRanks).find(k => gradeRanks[k] === avgScore) || 'VG+';
       document.getElementById('statAvgGrade').innerText = reverseGrade;
+      const mobileAvgGrade = document.getElementById('mobileStatAvgGrade');
+      if (mobileAvgGrade) mobileAvgGrade.innerText = reverseGrade;
 
       // Decades distribution
       const decadeMap = {};
@@ -5628,20 +5665,66 @@
       renderStats();
     }
 
+    let isMobileStatsExpanded = true;
+    function toggleMobileStatsStrip() {
+      isMobileStatsExpanded = !isMobileStatsExpanded;
+      const strip = document.getElementById('statsStrip');
+      const chevron = document.getElementById('mobileStatsChevron');
+      const label = document.getElementById('mobileStatsToggleLabel');
+      if (!strip) return;
+      if (isMobileStatsExpanded) {
+        strip.classList.remove('hidden');
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+        if (label) label.innerText = 'Hide Formats';
+      } else {
+        strip.classList.add('hidden');
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+        if (label) label.innerText = 'Formats & Decades';
+      }
+    }
+
+    let currentGridDensity = localStorage.getItem('qmc_grid_density') || (window.innerWidth < 640 ? 'compact' : 'detailed');
+
+    function toggleGridDensity() {
+      currentGridDensity = (currentGridDensity === 'compact') ? 'detailed' : 'compact';
+      localStorage.setItem('qmc_grid_density', currentGridDensity);
+      updateGridDensityUI();
+      if (currentView === 'grid') renderRecords();
+    }
+
+    function updateGridDensityUI() {
+      const btn = document.getElementById('gridDensityBtn');
+      const icon = document.getElementById('gridDensityIcon');
+      const label = document.getElementById('gridDensityLabel');
+      if (!btn || !icon) return;
+      if (currentGridDensity === 'compact') {
+        icon.className = 'fa-solid fa-table-cells text-xs text-brass-400';
+        if (label) label.innerText = 'Compact';
+        btn.setAttribute('title', 'Switch to Detailed 1-Column Cards');
+      } else {
+        icon.className = 'fa-solid fa-square text-xs text-slate-400';
+        if (label) label.innerText = 'Detailed';
+        btn.setAttribute('title', 'Switch to Compact 2-Column Grid');
+      }
+    }
+
     function switchView(mode) {
       currentView = mode;
       const gridBtn = document.getElementById('viewGridBtn');
       const listBtn = document.getElementById('viewListBtn');
       const analyticsBtn = document.getElementById('viewAnalyticsBtn');
+      const densityBtn = document.getElementById('gridDensityBtn');
 
-      const activeClasses = "px-2.5 py-1.5 rounded text-xs bg-vinyl-700 text-brass-400 font-medium transition flex items-center gap-1.5 shadow-sm";
-      const inactiveClasses = "px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5";
+      const activeClasses = "px-2 sm:px-2.5 py-1.5 rounded text-xs bg-vinyl-700 text-brass-400 font-medium transition flex items-center gap-1 sm:gap-1.5 shadow-sm";
+      const inactiveClasses = "px-2 sm:px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1 sm:gap-1.5";
 
       if (gridBtn) gridBtn.className = (mode === 'grid') ? activeClasses : inactiveClasses;
       if (listBtn) listBtn.className = (mode === 'list') ? activeClasses : inactiveClasses;
       if (analyticsBtn) analyticsBtn.className = (mode === 'analytics') ? activeClasses : inactiveClasses;
+      if (densityBtn) densityBtn.classList.toggle('hidden', mode !== 'grid');
 
       if (typeof updateMobileNavActive === 'function') updateMobileNavActive(mode);
+      updateGridDensityUI();
       renderRecords();
     }
 
@@ -6049,8 +6132,93 @@
     }
 
     function renderGridView(list, container) {
-      let html = '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">';
       const sym = getCurrencySymbol();
+
+      // Compact Mode: 2-column mobile grid maximizing screen real estate (4-6 albums visible simultaneously)
+      if (currentGridDensity === 'compact') {
+        let html = '<div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-4">';
+        list.forEach(item => {
+          const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
+          const isAlbum = item.format && item.format.includes('LP');
+          const hasVal = item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
+          const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
+
+          html += `
+            <div class="bg-vinyl-900 rounded-xl border border-vinyl-800 hover:border-brass-500/50 transition-all duration-200 overflow-hidden shadow-md flex flex-col group cursor-pointer" onclick="viewRecordDetail('${item.id}')">
+              
+              <!-- Sleeve Visual Cover -->
+              <div class="relative w-full aspect-square bg-vinyl-950 overflow-hidden">
+                <img src="${coverSrc}" alt="${escapeHtml(item.title)}" loading="lazy" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" onerror="this.onerror=null; this.src=getDefaultCover('${encodeURIComponent(item.format || '')}', '${encodeURIComponent(item.artist || '')}', '${encodeURIComponent(item.title || '')}', true)">
+                
+                <!-- Format Indicator & Price Badge -->
+                <div class="absolute top-1.5 left-1.5 flex flex-col gap-0.5 items-start z-10 pointer-events-none">
+                  ${getFormatBadge(item.format)}
+                  ${hasVal ? `
+                    <span class="bg-emerald-950/90 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold shadow backdrop-blur">
+                      ${sym}${parseFloat(item.estimatedValue).toFixed(2)}
+                    </span>
+                  ` : ''}
+                </div>
+
+                <!-- Media Grade Badge -->
+                <div class="absolute top-1.5 right-1.5 z-10 pointer-events-none">
+                  ${getGradeBadge(item.mediaGrade)}
+                </div>
+
+                <!-- Bottom Vignette -->
+                <div class="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none"></div>
+
+                <!-- Speed, Weight, Label / Year Pill Overlay -->
+                <div class="absolute bottom-1.5 inset-x-1.5 flex items-center justify-between text-[9px] text-white/90 gap-1 pointer-events-none">
+                  <span class="bg-black/80 backdrop-blur-sm px-1.5 py-0.2 rounded border border-white/10 font-mono">
+                    ${item.speed || (isAlbum ? '33 RPM' : '45 RPM')}
+                  </span>
+                  <span class="bg-black/80 backdrop-blur-sm px-1.5 py-0.2 rounded border border-white/10 font-mono text-brass-400 font-bold">
+                    ${item.year || '--'}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Card Body -->
+              <div class="p-2 sm:p-2.5 flex-1 flex flex-col justify-between gap-1">
+                <div>
+                  <h3 class="text-xs font-bold text-white tracking-tight truncate group-hover:text-brass-400 transition" onclick="event.stopPropagation(); filterByArtist('${escapeJsString(item.artist)}')" title="${escapeHtml(item.artist)}">
+                    ${item.artist}
+                  </h3>
+                  <h4 class="text-[11px] font-medium text-slate-300 truncate" title="${escapeHtml(item.title)}">
+                    ${item.title}
+                  </h4>
+                  <div class="flex items-center justify-between text-[10px] text-slate-500 font-mono truncate mt-0.5">
+                    <span class="truncate text-brass-400/80">${item.label || ''}</span>
+                    <span class="text-slate-400 text-[9px] flex-shrink-0">${item.country || ''}</span>
+                  </div>
+                </div>
+
+                <!-- Quick Action Bar -->
+                <div class="pt-1.5 border-t border-vinyl-800 flex items-center justify-between text-[10px] text-slate-400" onclick="event.stopPropagation()">
+                  <span class="text-brass-400 hover:text-brass-300 flex items-center gap-1 font-semibold cursor-pointer" onclick="viewRecordDetail('${item.id}')">
+                    <i class="fa-solid fa-file-lines text-[9px]"></i> Dossier
+                  </span>
+                  <div class="flex items-center gap-1.5">
+                    <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener" class="p-0.5 hover:text-blue-400 transition" title="eBay Sold"><i class="fa-brands fa-ebay text-xs"></i></a>
+                    <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener" class="p-0.5 hover:text-amber-400 transition" title="Discogs"><i class="fa-solid fa-compact-disc text-[10px]"></i></a>
+                    ${isOwner ? `
+                      <button onclick="editRecord('${item.id}')" class="p-0.5 hover:text-amber-400 transition" title="Edit"><i class="fa-solid fa-pen-to-square text-[10px]"></i></button>
+                    ` : ''}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+        return;
+      }
+
+      // Detailed Mode: 1-column on mobile, 2-4 on larger displays
+      let html = '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">';
 
       list.forEach(item => {
         const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
