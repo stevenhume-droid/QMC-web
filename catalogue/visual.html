@@ -489,11 +489,26 @@
     return canvas.toDataURL('image/jpeg', 0.85);
   }
 
-  // --- STAGE 1: Gemini Vision Extraction (Gemini 3.8 Flash) ---
-  async function extractVisualCluesWithGemini(apiKey, base64Jpg) {
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
-    
-    const prompt = `Inspect this album cover, vinyl sleeve back, or CD insert closely. Extract all release-identifying details:
+  // --- STAGE 0: Native Barcode Pre-Scan (bypasses LLM on crisp barcode shots) ---
+  async function detectBarcodeFromImage(sourceEl) {
+    if (typeof window === 'undefined' || !('BarcodeDetector' in window)) return '';
+    try {
+      const detector = new window.BarcodeDetector({
+        formats: ['ean_13', 'upc_a', 'ean_8', 'upc_e', 'code_128', 'code_39']
+      });
+      const codes = await detector.detect(sourceEl);
+      if (Array.isArray(codes) && codes.length > 0) {
+        const best = codes.find(c => /^\d{8,14}$/.test(String(c.rawValue || '').trim())) || codes[0];
+        return String(best?.rawValue || '').trim();
+      }
+    } catch (e) {
+      console.warn('BarcodeDetector notice:', e);
+    }
+    return '';
+  }
+
+  // --- STAGE 1: Gemini Vision Extraction with 503/429 Backoff & Model Fallback ---
+  const GEMINI_EXTRACTION_PROMPT = `Inspect this album cover, vinyl sleeve back, or CD insert closely. Extract all release-identifying details:
 1. "artist": Artist or band name
 2. "album": Official release title
 3. "catno": Catalog number or barcode etched or printed on the sleeve (empty string if none)
@@ -513,15 +528,22 @@ Return strictly valid JSON matching this schema:
   "country": "string"
 }`;
 
+  const GEMINI_VISION_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+
+  async function callGeminiVision(base64Jpg, apiKey, modelIndex = 0, retriesLeft = 2) {
+    const modelName = GEMINI_VISION_MODELS[modelIndex] || GEMINI_VISION_MODELS[GEMINI_VISION_MODELS.length - 1];
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
     const payload = {
       contents: [{
         parts: [
-          { text: prompt },
-          { inline_data: { mime_type: "image/jpeg", data: base64Jpg } }
+          { text: GEMINI_EXTRACTION_PROMPT },
+          { inline_data: { mime_type: 'image/jpeg', data: base64Jpg } }
         ]
       }],
       generationConfig: {
-        response_mime_type: "application/json"
+        response_mime_type: 'application/json',
+        temperature: 0.1
       }
     };
 
@@ -536,15 +558,43 @@ Return strictly valid JSON matching this schema:
       throw new Error('Connection failed. Please check your internet connection or browser ad-blocker.');
     }
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error?.message || `Gemini API HTTP ${res.status}`);
+    if (res.status === 503 || res.status === 429) {
+      if (retriesLeft > 0) {
+        const delayMs = retriesLeft === 2 ? 1500 : 3000;
+        const sec = (delayMs / 1000).toFixed(1).replace(/\.0$/, '');
+        console.warn(`Transient ${res.status} on ${modelName}. Retrying in ${sec}s... (${retriesLeft} left)`);
+        setStatus(`${modelName} busy (${res.status}). Retrying in ${sec}s...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+        return callGeminiVision(base64Jpg, apiKey, modelIndex, retriesLeft - 1);
+      }
+      if (modelIndex + 1 < GEMINI_VISION_MODELS.length) {
+        const nextModel = GEMINI_VISION_MODELS[modelIndex + 1];
+        console.warn(`${modelName} overloaded (${res.status}). Falling back to ${nextModel}...`);
+        setStatus(`${modelName} busy — switching to ${nextModel}...`);
+        return callGeminiVision(base64Jpg, apiKey, modelIndex + 1, 1);
+      }
     }
 
-    const data = await res.json();
+    if ((res.status === 404 || res.status === 400) && modelIndex + 1 < GEMINI_VISION_MODELS.length) {
+      const nextModel = GEMINI_VISION_MODELS[modelIndex + 1];
+      console.warn(`${modelName} unavailable (${res.status}). Trying ${nextModel}...`);
+      setStatus(`${modelName} unavailable — trying ${nextModel}...`);
+      return callGeminiVision(base64Jpg, apiKey, modelIndex + 1, 1);
+    }
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.error) {
+      throw new Error(data.error?.message || `Gemini API HTTP ${res.status}`);
+    }
+
     const raw = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!raw) throw new Error('No recognition data returned.');
-    return JSON.parse(raw);
+    const cleanedJson = String(raw).trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
+    return JSON.parse(cleanedJson);
+  }
+
+  async function extractVisualCluesWithGemini(apiKey, base64Jpg) {
+    return callGeminiVision(base64Jpg, apiKey, 0, 2);
   }
 
   // --- STAGE 2: Multi-Release Resolver ---
@@ -559,23 +609,37 @@ Return strictly valid JSON matching this schema:
         console.warn('Discogs query fallback:', e);
       }
     }
-    
-    const mbResults = await queryMusicBrainzReleases(clues.artist, clues.album);
+
+    const mbResults = await queryMusicBrainzReleases(clues.artist, clues.album, clues.barcode || (/^\d{8,14}$/.test(String(clues.catno || '').trim()) ? String(clues.catno).trim() : ''));
     return { source: 'musicbrainz', list: mbResults };
   }
 
   async function queryDiscogs(clues, token) {
-    let q = `release_title=${encodeURIComponent(clues.album)}&artist=${encodeURIComponent(clues.artist)}`;
-    if (clues.catno) q += `&catno=${encodeURIComponent(clues.catno)}`;
+    const cleanBc = String(clues.barcode || (/^\d{8,14}$/.test(String(clues.catno || '').trim()) ? clues.catno : '')).replace(/\D/g, '');
+    if (cleanBc) {
+      const bcUrl = `https://api.discogs.com/database/search?barcode=${encodeURIComponent(cleanBc)}&type=release&per_page=15&token=${token}`;
+      const bcRes = await fetch(bcUrl, { headers: { 'User-Agent': 'VinylCoverMatcher/2.0' } });
+      if (bcRes.ok) {
+        const bcData = await bcRes.json();
+        if (Array.isArray(bcData.results) && bcData.results.length > 0) {
+          return bcData.results.map(formatDiscogsItem);
+        }
+      }
+    }
+
+    if (!clues.album && !clues.artist && !clues.catno) return [];
+
+    let q = `release_title=${encodeURIComponent(clues.album || '')}&artist=${encodeURIComponent(clues.artist || '')}`;
+    if (clues.catno && !cleanBc) q += `&catno=${encodeURIComponent(clues.catno)}`;
     if (clues.label) q += `&label=${encodeURIComponent(clues.label)}`;
-    
+
     const url = `https://api.discogs.com/database/search?${q}&type=release&per_page=15&token=${token}`;
     const res = await fetch(url, { headers: { 'User-Agent': 'VinylCoverMatcher/2.0' } });
     if (!res.ok) throw new Error(`Discogs search error HTTP ${res.status}`);
-    
+
     const data = await res.json();
     if (!data.results || data.results.length === 0) {
-      const broadUrl = `https://api.discogs.com/database/search?release_title=${encodeURIComponent(clues.album)}&artist=${encodeURIComponent(clues.artist)}&type=release&per_page=15&token=${token}`;
+      const broadUrl = `https://api.discogs.com/database/search?release_title=${encodeURIComponent(clues.album || '')}&artist=${encodeURIComponent(clues.artist || '')}&type=release&per_page=15&token=${token}`;
       const broadRes = await fetch(broadUrl, { headers: { 'User-Agent': 'VinylCoverMatcher/2.0' } });
       const broadData = await broadRes.json();
       return (broadData.results || []).map(formatDiscogsItem);
@@ -600,24 +664,31 @@ Return strictly valid JSON matching this schema:
     };
   }
 
-  async function queryMusicBrainzReleases(artist, album) {
-    const q = encodeURIComponent(`release:"${album}" AND artist:"${artist}"`);
+  async function queryMusicBrainzReleases(artist, album, barcode = '') {
+    const cleanBc = String(barcode || '').replace(/\D/g, '');
+    const rawQuery = cleanBc
+      ? `barcode:${cleanBc}`
+      : `release:"${album || ''}" AND artist:"${artist || ''}"`;
+    const q = encodeURIComponent(rawQuery);
     const url = `https://musicbrainz.org/ws/2/release/?query=${q}&fmt=json&limit=15`;
     const res = await fetch(url, { headers: { 'User-Agent': 'VinylCoverMatcher/2.0 ( contact@queensferrymusiccollective.co.uk )' } });
     if (!res.ok) return [];
     const data = await res.json();
-    return (data.releases || []).map(r => ({
-      id: r.id,
-      title: `${artist} - ${r.title}`,
-      year: r.date ? r.date.split('-')[0] : 'Unknown Year',
-      country: r.country || 'Worldwide',
-      format: r.media?.[0]?.format || 'Format Unknown',
-      catno: r['label-info']?.[0]?.['catalog-number'] || 'N/A',
-      label: r['label-info']?.[0]?.label?.name || 'N/A',
-      barcode: r.barcode || '',
-      coverImage: `https://coverartarchive.org/release/${r.id}/front-500`,
-      uri: `https://musicbrainz.org/release/${r.id}`
-    }));
+    return (data.releases || []).map(r => {
+      const rArtist = r['artist-credit']?.[0]?.name || artist || 'Unknown Artist';
+      return {
+        id: r.id,
+        title: `${rArtist} - ${r.title}`,
+        year: r.date ? r.date.split('-')[0] : 'Unknown Year',
+        country: r.country || 'Worldwide',
+        format: r.media?.[0]?.format || 'Format Unknown',
+        catno: r['label-info']?.[0]?.['catalog-number'] || 'N/A',
+        label: r['label-info']?.[0]?.label?.name || 'N/A',
+        barcode: r.barcode || cleanBc || '',
+        coverImage: `https://coverartarchive.org/release/${r.id}/front-500`,
+        uri: `https://musicbrainz.org/release/${r.id}`
+      };
+    });
   }
 
   // --- STAGE 3: Full Tracklist & Release Details Retrieval ---
@@ -687,11 +758,6 @@ Return strictly valid JSON matching this schema:
     const key = apiKeyInput.value.trim();
     const discogsToken = discogsTokenInput.value.trim();
 
-    if (!key) {
-      alert('Please enter your Gemini API Key at the top.');
-      return;
-    }
-
     btnScan.disabled = true;
     resultBlock.style.display = 'none';
     setStatus('Optimizing photo...');
@@ -703,17 +769,54 @@ Return strictly valid JSON matching this schema:
     const rawBase64 = finalDataUrl.split(',')[1];
 
     try {
-      setStatus('Reading sleeve typography & catalog clues via Gemini 3.8 Flash...');
-      const clues = await extractVisualCluesWithGemini(key, rawBase64);
-      qmcVisualState.clues = clues;
       qmcVisualState.snappedPhoto = finalDataUrl;
       qmcVisualState.coverImage = '';
       qmcVisualState.fullRelease = null;
       qmcVisualState.tracks = [];
 
+      let clues = null;
+      let preResolved = null;
+
+      // Step 1: Try native barcode scan first to bypass Gemini on crisp barcode shots
+      setStatus('Checking for barcode...');
+      const detectedBarcode = await detectBarcodeFromImage(preview);
+      if (detectedBarcode) {
+        setStatus(`Detected barcode ${detectedBarcode} — searching ${discogsToken ? 'Discogs' : 'MusicBrainz'} directly...`);
+        const bcClues = { artist: '', album: '', catno: detectedBarcode, barcode: detectedBarcode, label: '', year: '', format: '', country: '' };
+        const bcRes = await resolvePressings(bcClues, discogsToken);
+        if (bcRes.list && bcRes.list.length > 0) {
+          preResolved = bcRes;
+          const firstTitle = String(bcRes.list[0].title || '');
+          const splitIdx = firstTitle.indexOf(' - ');
+          clues = {
+            artist: splitIdx > 0 ? firstTitle.slice(0, splitIdx).trim() : '',
+            album: splitIdx > 0 ? firstTitle.slice(splitIdx + 3).trim() : firstTitle,
+            catno: bcRes.list[0].catno && bcRes.list[0].catno !== 'No Cat #' ? bcRes.list[0].catno : detectedBarcode,
+            barcode: detectedBarcode,
+            label: bcRes.list[0].label !== 'Unknown Label' ? bcRes.list[0].label : '',
+            year: bcRes.list[0].year !== 'Unknown Year' ? String(bcRes.list[0].year) : '',
+            format: bcRes.list[0].format || '',
+            country: bcRes.list[0].country !== 'Unknown Country' ? bcRes.list[0].country : ''
+          };
+        }
+      }
+
+      // Step 2: Gemini Vision extraction with automatic 503/429 retry + model fallback
+      if (!clues) {
+        if (!key) {
+          alert('No readable barcode detected — please enter your Gemini API Key at the top to identify sleeve artwork.');
+          btnScan.disabled = false;
+          setStatus('');
+          return;
+        }
+        setStatus(`Reading sleeve typography & catalog clues via ${GEMINI_VISION_MODELS[0]}...`);
+        clues = await extractVisualCluesWithGemini(key, rawBase64);
+      }
+
+      qmcVisualState.clues = clues;
       resTitle.textContent = clues.album || 'Unknown Album';
       resArtist.textContent = clues.artist || 'Unknown Artist';
-      
+
       resTags.innerHTML = '';
       if (clues.year) resTags.innerHTML += `<span class="tag">Year: ${clues.year}</span>`;
       if (clues.label) resTags.innerHTML += `<span class="tag">Label: ${clues.label}</span>`;
@@ -721,8 +824,13 @@ Return strictly valid JSON matching this schema:
       if (clues.format) resTags.innerHTML += `<span class="tag">${clues.format}</span>`;
       if (clues.country) resTags.innerHTML += `<span class="tag">${clues.country}</span>`;
 
-      setStatus(`Searching ${discogsToken ? 'Discogs' : 'MusicBrainz'} for pressings...`);
-      const { source, list } = await resolvePressings(clues, discogsToken);
+      let source, list;
+      if (preResolved) {
+        ({ source, list } = preResolved);
+      } else {
+        setStatus(`Searching ${discogsToken ? 'Discogs' : 'MusicBrainz'} for pressings...`);
+        ({ source, list } = await resolvePressings(clues, discogsToken));
+      }
       detectedReleases = list;
       qmcVisualState.source = source;
       qmcVisualState.detectedReleases = list;
