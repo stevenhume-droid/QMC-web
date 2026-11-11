@@ -9293,6 +9293,9 @@
               <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 flex-wrap gap-2 border-t border-vinyl-800">
                 <span class="text-[10px] font-medium text-slate-300">Live Valuation &amp; Metadata:</span>
                 <div class="flex items-center gap-2 flex-wrap">
+                  <button type="button" onclick="refreshRecordDiscogsMeta('${safeId}')" class="px-2.5 py-1 bg-vinyl-900 hover:bg-amber-950/40 border border-amber-500/40 hover:border-amber-400 text-amber-300 rounded-md text-[11px] font-medium flex items-center gap-1 shadow-sm transition" title="Pull Discogs tracklisting, series, genres &amp; pressing metadata">
+                    <i class="fa-solid fa-arrows-rotate text-[10px]"></i> Discogs Meta
+                  </button>
                   <button type="button" onclick="autoEnrichRecordGenre('${safeId}')" class="px-2.5 py-1 bg-vinyl-900 hover:bg-vinyl-850 border border-vinyl-700 hover:border-sky-500/50 text-sky-400 hover:text-sky-300 rounded-md text-[11px] font-medium flex items-center gap-1 shadow-sm transition">
                     <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Genre
                   </button>
@@ -9363,9 +9366,17 @@
 
             <!-- Tracks Block (Grouped by Side / Disc) -->
             <div class="bg-vinyl-850 p-4 rounded-xl border border-vinyl-800">
-              <h4 class="text-xs uppercase font-bold text-slate-400 tracking-wider mb-2 flex items-center gap-2">
-                <i class="fa-solid fa-list-ol text-brass-400"></i> Tracklist Architecture
-              </h4>
+              <div class="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                <h4 class="text-xs uppercase font-bold text-slate-400 tracking-wider flex items-center gap-2">
+                  <i class="fa-solid fa-list-ol text-brass-400"></i> Tracklist Architecture
+                </h4>
+                ${isOwner ? `
+                  <button type="button" id="detailDiscogsRefreshBtn" onclick="refreshRecordDiscogsMeta('${safeId}')" class="px-2.5 py-1 rounded-lg bg-vinyl-900 hover:bg-amber-950/50 text-amber-300 border border-amber-500/40 hover:border-amber-400 text-[11px] font-semibold flex items-center gap-1.5 shadow-sm transition" title="Pull tracklist, series, genres &amp; pressing metadata from Discogs">
+                    <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
+                    <span>Refresh Discogs Meta &amp; Tracks</span>
+                  </button>
+                ` : ''}
+              </div>
               <div class="space-y-2 text-xs max-h-60 overflow-y-auto pr-1">
                 ${tracksHTML}
               </div>
@@ -11918,6 +11929,303 @@
         showToast(`Updated genres: ${genres}`, "success");
       } else {
         showToast("No online genre tags found for this release", "info");
+      }
+    }
+
+    function parseDiscogsTracklistForRecord(rawTracklist = [], format = '') {
+      if (!Array.isArray(rawTracklist) || rawTracklist.length === 0) return [];
+      const entries = [];
+      let currentHeading = '';
+      rawTracklist.forEach((t) => {
+        if (!t) return;
+        if (t.type_ === 'heading') {
+          if (t.title) currentHeading = String(t.title).trim();
+          return;
+        }
+        if (Array.isArray(t.sub_tracks) && t.sub_tracks.length > 0) {
+          const suitePrefix = t.title ? `${String(t.title).trim()} — ` : '';
+          t.sub_tracks.forEach((st) => {
+            if (!st) return;
+            const pos = String(st.position || t.position || (entries.length + 1)).trim();
+            const title = `${suitePrefix}${String(st.title || `Track ${entries.length + 1}`).trim()}`;
+            entries.push({
+              section: currentHeading || deriveTrackSection(pos, format),
+              index: pos,
+              pos,
+              title,
+              duration: String(st.duration || '').trim()
+            });
+          });
+          return;
+        }
+        const pos = String(t.position || (entries.length + 1)).trim();
+        const title = String(t.title || `Track ${entries.length + 1}`).trim();
+        if (!title) return;
+        entries.push({
+          section: currentHeading || deriveTrackSection(pos, format),
+          index: pos,
+          pos,
+          title,
+          duration: String(t.duration || '').trim()
+        });
+      });
+      return normalizeTracklist(entries, format) || [];
+    }
+
+    async function refreshRecordDiscogsMeta(recordId) {
+      const item = records.find(r => String(r.id) === String(recordId));
+      if (!item) {
+        showToast("Record not found", "error");
+        return;
+      }
+
+      const btn = document.getElementById('detailDiscogsRefreshBtn');
+      const prevBtnHtml = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.classList.add('opacity-60');
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-[10px]"></i><span>Refreshing...</span>`;
+      }
+
+      const token = (typeof getDiscogsToken === 'function' ? getDiscogsToken() : '') ||
+        localStorage.getItem(TOKEN_KEY) ||
+        localStorage.getItem('QMC_DISCOGS_TOKEN') || '';
+
+      try {
+        showToast(`Fetching Discogs release metadata & tracklist for "${item.artist} – ${item.title}"...`, "info");
+
+        const fetchReleaseById = async (dcId) => {
+          let url = `https://api.discogs.com/releases/${encodeURIComponent(dcId)}`;
+          if (token) url += `?token=${encodeURIComponent(token)}`;
+          const res = await fetch(url, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } });
+          if (res.status === 429) throw new Error('Discogs rate limit reached — please wait a moment and retry.');
+          if (!res.ok) return null;
+          return await res.json();
+        };
+
+        let dData = null;
+        if (item.discogsId) {
+          dData = await fetchReleaseById(item.discogsId);
+        }
+
+        if (!dData) {
+          const cleanArtist = (item.artist || '').trim();
+          const cleanTitle = (item.title || '').trim();
+          const cleanCatNo = (item.catNo || '').trim();
+          const cleanBarcode = String(item.barcode || '').replace(/\D/g, '');
+          const terms = typeof getCleanSearchTerms === 'function'
+            ? getCleanSearchTerms(cleanArtist, cleanTitle)
+            : { artist: cleanArtist, title: cleanTitle };
+
+          const searchStrategies = [];
+          if (cleanBarcode) {
+            const p = new URLSearchParams({ barcode: cleanBarcode, type: 'release', per_page: '6' });
+            searchStrategies.push(p);
+          }
+          if (cleanCatNo && !/^(no cat#?|n\/a|none)$/i.test(cleanCatNo)) {
+            const p = new URLSearchParams({ catno: cleanCatNo, type: 'release', per_page: '6' });
+            if (terms.artist) p.set('artist', terms.artist);
+            searchStrategies.push(p);
+          }
+          if (terms.artist || terms.title) {
+            const p = new URLSearchParams({
+              q: [terms.artist, terms.title].filter(Boolean).join(' '),
+              type: 'release',
+              per_page: '8'
+            });
+            searchStrategies.push(p);
+          }
+
+          let authBlocked = false;
+          let candidateResults = [];
+          for (const params of searchStrategies) {
+            if (token) params.set('token', token);
+            const sRes = await fetch(`https://api.discogs.com/database/search?${params.toString()}`, {
+              headers: { 'User-Agent': 'QMCVinylArchive/2.0' }
+            });
+            if (sRes.status === 401 || sRes.status === 403) {
+              authBlocked = true;
+              continue;
+            }
+            if (sRes.status === 429) {
+              throw new Error('Discogs rate limit reached — please wait a moment and retry.');
+            }
+            if (sRes.ok) {
+              const sJson = await sRes.json();
+              if (Array.isArray(sJson.results) && sJson.results.length > 0) {
+                candidateResults = sJson.results;
+                break;
+              }
+            }
+          }
+
+          if (candidateResults.length === 0) {
+            if (authBlocked && !token) {
+              showToast("Discogs search requires a Discogs API token or a saved Discogs Release ID.", "warning");
+            } else {
+              showToast(`No matching Discogs release found for "${item.artist} – ${item.title}".`, "warning");
+            }
+            return;
+          }
+
+          const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const nArtist = norm(cleanArtist);
+          const nTitle = norm(cleanTitle);
+          const nCat = norm(cleanCatNo);
+          const recKind = getMediaKind(item.format);
+
+          const ranked = [...candidateResults].sort((a, b) => {
+            const score = (c) => {
+              let sc = 0;
+              const ct = norm(c.title || '');
+              const cc = norm(c.catno || '');
+              const cFmts = Array.isArray(c.format) ? c.format.join(' ').toLowerCase() : String(c.format || '').toLowerCase();
+              if (nArtist && ct.includes(nArtist)) sc += 3;
+              if (nTitle && ct.includes(nTitle)) sc += 4;
+              if (nCat && cc && (cc === nCat || cc.includes(nCat))) sc += 5;
+              if (recKind === 'vinyl' && (cFmts.includes('vinyl') || cFmts.includes('lp') || cFmts.includes('7"') || cFmts.includes('12"'))) sc += 2;
+              if (recKind === 'cd' && cFmts.includes('cd')) sc += 2;
+              if (recKind === 'tape' && (cFmts.includes('cassette') || cFmts.includes('minidisc'))) sc += 2;
+              return sc;
+            };
+            return score(b) - score(a);
+          });
+
+          if (ranked[0]?.id) {
+            dData = await fetchReleaseById(ranked[0].id);
+          }
+        }
+
+        if (!dData) {
+          showToast("Could not load release details from Discogs.", "warning");
+          return;
+        }
+
+        const updatedParts = [];
+        if (!item.discogsId && dData.id) {
+          item.discogsId = String(dData.id);
+          updatedParts.push(`ID #${item.discogsId}`);
+        }
+
+        // 1. Tracklist (always prioritize fresh Discogs tracklist when available)
+        const parsedTracks = parseDiscogsTracklistForRecord(dData.tracklist || [], item.format);
+        if (parsedTracks.length > 0) {
+          item.tracks = parsedTracks;
+          item.sideATitle = parsedTracks[0]?.title || item.sideATitle || '';
+          item.sideADuration = parsedTracks[0]?.duration || item.sideADuration || '';
+          if (parsedTracks[1]) {
+            item.sideBTitle = parsedTracks[1].title || item.sideBTitle || '';
+            item.sideBDuration = parsedTracks[1].duration || item.sideBDuration || '';
+          }
+          updatedParts.push(`${parsedTracks.length} track${parsedTracks.length === 1 ? '' : 's'}`);
+        }
+
+        // 2. Genres & Sub-styles
+        const dcGenres = [
+          ...(Array.isArray(dData.genres) ? dData.genres : []),
+          ...(Array.isArray(dData.styles) ? dData.styles : [])
+        ].map(x => String(x || '').trim()).filter(Boolean);
+        if (dcGenres.length > 0) {
+          const deduped = [];
+          const seen = new Set();
+          dcGenres.forEach(g => {
+            const low = g.toLowerCase();
+            if (!seen.has(low)) {
+              seen.add(low);
+              deduped.push(g);
+            }
+          });
+          const mergedGenres = deduped.join(', ');
+          if (!item.genres || !item.genres.trim() || mergedGenres.length > item.genres.length) {
+            item.genres = mergedGenres;
+          }
+          const parsedGs = parseGenreAndStyles(item.genres, dData.genres?.[0] || '', dData.styles || []);
+          item.genre = parsedGs.genre;
+          item.styles = parsedGs.styles;
+          updatedParts.push('genres');
+        }
+
+        // 3. Series & Vol #
+        const sInfo = extractDiscogsSeriesInfo(dData);
+        if (sInfo && sInfo.seriesName && !(item.seriesName || '').trim()) {
+          item.seriesName = sInfo.seriesName;
+          if (sInfo.seriesNumber && !(item.seriesNumber || '').trim()) {
+            item.seriesNumber = sInfo.seriesNumber;
+          }
+          updatedParts.push(`series (${sInfo.seriesName})`);
+        }
+
+        // 4. Core Metadata & Pressing Specs (fill missing / placeholder values)
+        if ((!item.label || /^(unknown|--)$/i.test(item.label)) && Array.isArray(dData.labels) && dData.labels[0]?.name) {
+          item.label = String(dData.labels[0].name).trim();
+        }
+        if ((!item.catNo || /^(no cat#?|none|--)$/i.test(item.catNo)) && Array.isArray(dData.labels) && dData.labels[0]?.catno && !/^none$/i.test(dData.labels[0].catno)) {
+          item.catNo = String(dData.labels[0].catno).trim();
+        }
+        if (!item.year && dData.year) {
+          item.year = dData.year;
+        }
+        if ((!item.country || /^(global|unknown|--)$/i.test(item.country)) && dData.country) {
+          item.country = String(dData.country).trim();
+        }
+        if (!item.barcode && Array.isArray(dData.identifiers)) {
+          const bc = dData.identifiers.find(i => /barcode/i.test(i.type || '') && i.value);
+          if (bc) item.barcode = String(bc.value).replace(/\s+/g, '');
+        }
+        if (Array.isArray(dData.identifiers)) {
+          const runouts = dData.identifiers.filter(i => i.type === 'Matrix / Runout' && i.value);
+          const rA = runouts.find(r => /\b(side\s*a|a\b)/i.test(r.description || '')) || runouts[0];
+          const rB = runouts.find(r => /\b(side\s*b|b\b)/i.test(r.description || '')) || runouts[1];
+          if (!item.matrixA && rA) item.matrixA = String(rA.value).trim();
+          if (!item.matrixB && rB && rB !== rA) item.matrixB = String(rB.value).trim();
+        }
+        if (!item.pressingPlant && Array.isArray(dData.companies)) {
+          const press = dData.companies.find(c => /\b(pressed|pressing)\b/i.test(c.entity_type_name || ''));
+          if (press?.name) item.pressingPlant = String(press.name).replace(/\s\(\d+\)$/, '').trim();
+        }
+        if (Array.isArray(dData.extraartists)) {
+          if (!item.producer) {
+            const prod = dData.extraartists.find(a => /\b(producer|produced)\b/i.test(a.role || ''));
+            if (prod?.name) item.producer = String(prod.name).replace(/\s\(\d+\)$/, '').trim();
+          }
+          if (!item.mastering) {
+            const mast = dData.extraartists.find(a => /\b(mastered|lacquer|cut)\b/i.test(a.role || ''));
+            if (mast?.name) item.mastering = `${String(mast.name).replace(/\s\(\d+\)$/, '').trim()} (${mast.role})`;
+          }
+        }
+        if (!item.coverImage && Array.isArray(dData.images) && dData.images.length > 0) {
+          const pImg = dData.images.find(img => img.type === 'primary') || dData.images[0];
+          const imgUrl = pImg?.uri || pImg?.resource_url || '';
+          if (imgUrl && !imgUrl.includes('spacer.gif')) {
+            item.coverImage = imgUrl;
+            updatedParts.push('cover');
+          }
+        }
+
+        item.duplicateHash = computeDuplicateHash(item);
+        saveRecordsToStorage();
+        if (typeof populateSeriesDatalist === 'function') populateSeriesDatalist();
+        renderStats();
+        renderRecords();
+        viewRecordDetail(item.id);
+
+        if (isCloudActive && currentUser && supabaseClient) {
+          const dbRow = mapRecordToDb(item, currentUser.id);
+          supabaseClient.from('records').upsert(dbRow).catch(e => console.warn("Cloud sync Discogs refresh notice:", e));
+        }
+
+        const summary = updatedParts.length > 0 ? updatedParts.join(', ') : 'release metadata checked';
+        showToast(`Discogs refresh complete (${summary})!`, "success");
+      } catch (err) {
+        console.warn("Dossier Discogs refresh notice:", err);
+        showToast(err?.message || "Failed to refresh metadata from Discogs.", "warning");
+      } finally {
+        const currentBtn = document.getElementById('detailDiscogsRefreshBtn');
+        if (currentBtn && currentBtn === btn) {
+          currentBtn.disabled = false;
+          currentBtn.classList.remove('opacity-60');
+          currentBtn.innerHTML = prevBtnHtml;
+        }
       }
     }
 
