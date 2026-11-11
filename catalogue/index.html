@@ -8534,7 +8534,7 @@
                           </div>
                           <div class="flex items-center gap-3">
                             <span class="font-mono text-slate-400 text-xs">
-                              Est: <strong class="text-slate-200">${sym}${data.val.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                              Est: <strong class="text-slate-200">${!areValuesVisible ? '••••••' : `${sym}${data.val.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</strong>
                             </span>
                             <i class="fa-solid fa-arrow-right text-[10px] text-slate-500 group-hover:text-brass-400 group-hover:translate-x-1 transition-all"></i>
                           </div>
@@ -8605,15 +8605,15 @@
                 <div class="mt-4 pt-3 border-t border-vinyl-800/70">
                   <div class="flex items-center justify-between text-[11px] font-semibold text-slate-300 mb-1.5">
                     <span>Format-to-Value Ratio</span>
-                    <span class="font-mono text-[10px] text-brass-400">${highValueValPct}% value in ≥${sym}30 tier</span>
+                    <span class="font-mono text-[10px] text-brass-400">${!areValuesVisible ? 'Hidden' : `${highValueValPct}% value in ≥${sym}30 tier`}</span>
                   </div>
                   <div class="w-full h-2.5 rounded-full bg-vinyl-800 overflow-hidden flex shadow-inner">
-                    <div class="bg-sky-400 h-full" style="width: ${standardSharePct}%" title="Standard (<${sym}30): ${standardValueCount} items"></div>
-                    <div class="bg-brass-400 h-full" style="width: ${highSharePct}%" title="High-Value (≥${sym}30): ${highValueCount} items"></div>
+                    <div class="bg-sky-400 h-full" style="width: ${standardSharePct}%" title="${!areValuesVisible ? 'Standard tier' : `Standard (<${sym}30): ${standardValueCount} items`}"></div>
+                    <div class="bg-brass-400 h-full" style="width: ${highSharePct}%" title="${!areValuesVisible ? 'High-Value tier' : `High-Value (≥${sym}30): ${highValueCount} items`}"></div>
                   </div>
                   <div class="flex items-center justify-between text-[10px] text-slate-400 font-mono mt-1.5">
-                    <span><span class="text-sky-400">●</span> Standard (&lt;${sym}30): <strong>${standardValueCount}</strong></span>
-                    <span><span class="text-brass-400">●</span> High-Value (≥${sym}30): <strong>${highValueCount}</strong></span>
+                    <span><span class="text-sky-400">●</span> Standard (&lt;${sym}30): <strong>${!areValuesVisible ? '••' : standardValueCount}</strong></span>
+                    <span><span class="text-brass-400">●</span> High-Value (≥${sym}30): <strong>${!areValuesVisible ? '••' : highValueCount}</strong></span>
                   </div>
                 </div>
               </div>
