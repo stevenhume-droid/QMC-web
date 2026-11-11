@@ -202,6 +202,30 @@
       margin-top: 6px;
     }
     .discogs-link:hover { text-decoration: underline; }
+    .qmc-export-box {
+      margin-top: 8px;
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn-qmc-apply {
+      background: linear-gradient(90deg, #d4af37, #f59e0b);
+      color: #111;
+      border: 1px solid #f59e0b;
+      font-weight: 800;
+      font-size: 0.92rem;
+      padding: 12px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+    }
+    .btn-qmc-apply:hover { filter: brightness(1.06); }
+    .qmc-embedded header { margin-bottom: 12px; }
+    .qmc-embedded body, body.qmc-embedded { padding: 12px; }
     canvas { display: none; }
   </style>
 </head>
@@ -257,6 +281,19 @@
         <label style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em;">Tracklist</label>
         <ol id="resTracks" class="tracklist"></ol>
       </div>
+
+      <div id="qmcExportActions" class="qmc-export-box">
+        <div class="field" style="gap: 4px;">
+          <label for="qmcPhotoRole">Captured Photo Usage</label>
+          <select id="qmcPhotoRole">
+            <option value="cover_fallback">Official Sleeve Art (use snapshot only if unavailable)</option>
+            <option value="cover_override">Use Captured Snapshot as Front Sleeve Artwork</option>
+            <option value="label_a">Use Captured Snapshot as Side A Center Label</option>
+            <option value="label_b">Use Captured Snapshot as Side B Center Label</option>
+          </select>
+        </div>
+        <button id="qmcApplyVisualMatchBtn" type="button" class="btn-qmc-apply">✔ Use This Pressing in QMC Catalogue</button>
+      </div>
     </div>
   </div>
 </div>
@@ -289,15 +326,33 @@
   let stream = null;
   let snappedImageData = null;
   let detectedReleases = [];
+  let qmcVisualState = {
+    clues: null,
+    source: 'discogs',
+    selectedIndex: 0,
+    fullRelease: null,
+    tracks: [],
+    coverImage: '',
+    snappedPhoto: ''
+  };
+  window.__qmcVisualState = qmcVisualState;
 
-  apiKeyInput.value = localStorage.getItem('gemini_api_key') || '';
+  if (window.parent !== window || new URLSearchParams(window.location.search).get('embedded') === '1') {
+    document.body.classList.add('qmc-embedded');
+  }
+
+  apiKeyInput.value = localStorage.getItem('gemini_api_key') || localStorage.getItem('qmc_gemini_api_key') || '';
   apiKeyInput.addEventListener('input', () => {
-    localStorage.setItem('gemini_api_key', apiKeyInput.value.trim());
+    const val = apiKeyInput.value.trim();
+    localStorage.setItem('gemini_api_key', val);
+    localStorage.setItem('qmc_gemini_api_key', val);
   });
 
-  discogsTokenInput.value = localStorage.getItem('discogs_user_token') || '';
+  discogsTokenInput.value = localStorage.getItem('discogs_user_token') || localStorage.getItem('qmc_discogs_user_token') || localStorage.getItem('QMC_DISCOGS_TOKEN') || '';
   discogsTokenInput.addEventListener('input', () => {
-    localStorage.setItem('discogs_user_token', discogsTokenInput.value.trim());
+    const val = discogsTokenInput.value.trim();
+    localStorage.setItem('discogs_user_token', val);
+    localStorage.setItem('qmc_discogs_user_token', val);
   });
 
   function setStatus(text) {
@@ -511,6 +566,10 @@ Return strictly valid JSON matching this schema:
       format: (r.format || []).join(', ') || 'Vinyl',
       catno: r.catno || 'No Cat #',
       label: (r.label || [])[0] || 'Unknown Label',
+      barcode: Array.isArray(r.barcode) ? (r.barcode[0] || '') : (r.barcode || ''),
+      genre: Array.isArray(r.genre) ? r.genre : [],
+      style: Array.isArray(r.style) ? r.style : [],
+      coverImage: r.cover_image || r.thumb || '',
       uri: `https://www.discogs.com${r.uri || '/release/' + r.id}`
     };
   }
@@ -529,13 +588,17 @@ Return strictly valid JSON matching this schema:
       format: r.media?.[0]?.format || 'Format Unknown',
       catno: r['label-info']?.[0]?.['catalog-number'] || 'N/A',
       label: r['label-info']?.[0]?.label?.name || 'N/A',
+      barcode: r.barcode || '',
+      coverImage: `https://coverartarchive.org/release/${r.id}/front-500`,
       uri: `https://musicbrainz.org/release/${r.id}`
     }));
   }
 
-  // --- STAGE 3: Full Tracklist Retrieval ---
+  // --- STAGE 3: Full Tracklist & Release Details Retrieval ---
   async function fetchTracklist(source, releaseId, discogsToken) {
     resTracks.innerHTML = '<li>Loading tracklist...</li>';
+    qmcVisualState.fullRelease = null;
+    qmcVisualState.tracks = [];
 
     if (source === 'discogs' && discogsToken) {
       try {
@@ -543,11 +606,18 @@ Return strictly valid JSON matching this schema:
         const res = await fetch(url, { headers: { 'User-Agent': 'VinylCoverMatcher/2.0' } });
         if (res.ok) {
           const d = await res.json();
-          renderTracks(d.tracklist.map(t => ({
-            pos: t.position,
-            title: t.title,
-            duration: t.duration
-          })));
+          qmcVisualState.fullRelease = d;
+          const dcImg = (d.images && (d.images.find(img => img.type === 'primary') || d.images[0])) || null;
+          if (dcImg?.uri || dcImg?.resource_url) {
+            qmcVisualState.coverImage = dcImg.uri || dcImg.resource_url;
+          }
+          const structured = (d.tracklist || []).map(t => ({
+            pos: t.position || '',
+            title: t.title || '',
+            duration: t.duration || ''
+          }));
+          qmcVisualState.tracks = structured;
+          renderTracks(structured);
           return;
         }
       } catch (e) {
@@ -556,15 +626,18 @@ Return strictly valid JSON matching this schema:
     }
 
     try {
-      const url = `https://musicbrainz.org/ws/2/release/${releaseId}?inc=recordings&fmt=json`;
+      const url = `https://musicbrainz.org/ws/2/release/${releaseId}?inc=recordings+labels+tags&fmt=json`;
       const res = await fetch(url, { headers: { 'User-Agent': 'VinylCoverMatcher/2.0 ( contact@queensferrymusiccollective.co.uk )' } });
       const d = await res.json();
+      qmcVisualState.fullRelease = d;
       const tracks = d.media?.[0]?.tracks || [];
-      renderTracks(tracks.map((t, idx) => ({
-        pos: idx + 1,
+      const structured = tracks.map((t, idx) => ({
+        pos: String(t.number || idx + 1),
         title: t.title,
         duration: t.length ? `${Math.floor(t.length/60000)}:${String(Math.floor((t.length%60000)/1000)).padStart(2,'0')}` : ''
-      })));
+      }));
+      qmcVisualState.tracks = structured;
+      renderTracks(structured);
     } catch (e) {
       resTracks.innerHTML = '<li>Tracklist unavailable.</li>';
     }
@@ -606,6 +679,11 @@ Return strictly valid JSON matching this schema:
     try {
       setStatus('Reading sleeve typography & catalog clues via Gemini 3.8 Flash...');
       const clues = await extractVisualCluesWithGemini(key, rawBase64);
+      qmcVisualState.clues = clues;
+      qmcVisualState.snappedPhoto = finalDataUrl;
+      qmcVisualState.coverImage = '';
+      qmcVisualState.fullRelease = null;
+      qmcVisualState.tracks = [];
 
       resTitle.textContent = clues.album || 'Unknown Album';
       resArtist.textContent = clues.artist || 'Unknown Artist';
@@ -620,6 +698,8 @@ Return strictly valid JSON matching this schema:
       setStatus(`Searching ${discogsToken ? 'Discogs' : 'MusicBrainz'} for pressings...`);
       const { source, list } = await resolvePressings(clues, discogsToken);
       detectedReleases = list;
+      qmcVisualState.source = source;
+      qmcVisualState.detectedReleases = list;
 
       if (detectedReleases.length > 0) {
         pressingSelector.innerHTML = '';
@@ -653,10 +733,134 @@ Return strictly valid JSON matching this schema:
   function updateSelectedRelease(source, index, discogsToken) {
     const item = detectedReleases[index];
     if (!item) return;
+    qmcVisualState.selectedIndex = Number(index) || 0;
+    qmcVisualState.coverImage = item.coverImage || '';
     discogsReleaseUrl.href = item.uri;
     discogsReleaseUrl.textContent = `View release on ${source === 'discogs' ? 'Discogs' : 'MusicBrainz'} ↗`;
     fetchTracklist(source, item.id, discogsToken);
   }
+
+  function buildQmcExportPayload() {
+    const idx = parseInt(pressingSelector.value || qmcVisualState.selectedIndex || '0', 10);
+    const chosen = detectedReleases[idx] || detectedReleases[0] || null;
+    const clues = qmcVisualState.clues || {};
+    const full = qmcVisualState.fullRelease || null;
+    const source = qmcVisualState.source || 'discogs';
+
+    const cleanStr = (s) => (s && !/^(Unknown|No Cat #|N\/A|Format Unknown|Worldwide)/i.test(String(s).trim())) ? String(s).trim() : '';
+    let artist = cleanStr(clues.artist) || resArtist.textContent.trim();
+    let title = cleanStr(clues.album) || resTitle.textContent.trim();
+    if (full) {
+      if (Array.isArray(full.artists) && full.artists[0]?.name) {
+        artist = full.artists[0].name.replace(/\s*\(\d+\)$/, '').trim();
+      } else if (Array.isArray(full['artist-credit']) && full['artist-credit'][0]?.name) {
+        artist = full['artist-credit'][0].name.trim();
+      }
+      if (full.title) title = String(full.title).trim();
+    } else if (chosen?.title && chosen.title.includes(' - ')) {
+      const parts = chosen.title.split(' - ');
+      if (!artist) artist = parts[0].trim();
+      title = parts.slice(1).join(' - ').trim();
+    }
+
+    const dcLabel = full?.labels?.[0] || full?.['label-info']?.[0];
+    const label = cleanStr(dcLabel?.name || dcLabel?.label?.name) || cleanStr(chosen?.label) || cleanStr(clues.label);
+    const catNo = cleanStr(dcLabel?.catno || dcLabel?.['catalog-number']) || cleanStr(chosen?.catno) || cleanStr(clues.catno);
+    const yearRaw = full?.year || (full?.date ? full.date.split('-')[0] : '') || cleanStr(chosen?.year) || cleanStr(clues.year);
+    const year = /^\d{4}$/.test(String(yearRaw)) ? String(yearRaw) : '';
+    const country = cleanStr(full?.country) || cleanStr(chosen?.country) || cleanStr(clues.country);
+    const format = cleanStr(chosen?.format) || cleanStr(clues.format);
+    const rawFormats = full?.formats || full?.media || format;
+    const discogsId = (source === 'discogs' && (full?.id || chosen?.id)) ? String(full?.id || chosen?.id) : '';
+
+    const identifiers = Array.isArray(full?.identifiers) ? full.identifiers : [];
+    const barcodeId = identifiers.find(i => /barcode/i.test(i.type || ''));
+    const barcode = cleanStr(barcodeId?.value) || cleanStr(full?.barcode) || cleanStr(chosen?.barcode) || (/^\d{8,14}$/.test(cleanStr(clues.catno)) ? cleanStr(clues.catno) : '');
+    const matrixIds = identifiers.filter(i => /matrix|runout|etch/i.test(i.type || ''));
+    const matrixA = matrixIds[0]?.value ? String(matrixIds[0].value).trim() : '';
+    const matrixB = matrixIds[1]?.value ? String(matrixIds[1].value).trim() : '';
+
+    const genresList = Array.isArray(full?.genres) && full.genres.length > 0 ? full.genres : (Array.isArray(chosen?.genre) ? chosen.genre : []);
+    const stylesList = Array.isArray(full?.styles) && full.styles.length > 0 ? full.styles : (Array.isArray(chosen?.style) ? chosen.style : []);
+    const genre = genresList[0] || '';
+    const styles = stylesList;
+
+    const seriesObj = Array.isArray(full?.series) && full.series[0] ? full.series[0] : null;
+    const seriesName = seriesObj?.name ? String(seriesObj.name).trim() : '';
+    const seriesNumber = seriesObj?.catno ? String(seriesObj.catno).trim() : '';
+
+    const photoRole = document.getElementById('qmcPhotoRole')?.value || 'cover_fallback';
+    const snapped = qmcVisualState.snappedPhoto || snappedImageData || '';
+    let coverImage = qmcVisualState.coverImage || chosen?.coverImage || '';
+    let labelAImage = '';
+    let labelBImage = '';
+    if (photoRole === 'cover_override' && snapped) coverImage = snapped;
+    else if (photoRole === 'label_a' && snapped) labelAImage = snapped;
+    else if (photoRole === 'label_b' && snapped) labelBImage = snapped;
+    else if (!coverImage && snapped) coverImage = snapped;
+
+    const tracks = Array.isArray(qmcVisualState.tracks) && qmcVisualState.tracks.length > 0
+      ? qmcVisualState.tracks
+      : Array.from(resTracks.querySelectorAll('li')).map(li => li.textContent.trim()).filter(t => t && !/loading tracklist|no tracks|unavailable|no exact pressings/i.test(t));
+
+    return {
+      source,
+      sourceUrl: chosen?.uri || discogsReleaseUrl.href || '',
+      artist,
+      title,
+      label,
+      catNo,
+      year,
+      country,
+      format,
+      rawFormats,
+      discogsId,
+      barcode,
+      genre,
+      styles,
+      seriesName,
+      seriesNumber,
+      matrixA,
+      matrixB,
+      tracks,
+      coverImage,
+      labelAImage,
+      labelBImage,
+      researchNotes: full?.notes ? String(full.notes).trim().slice(0, 600) : ''
+    };
+  }
+
+  document.getElementById('qmcApplyVisualMatchBtn')?.addEventListener('click', () => {
+    const payload = buildQmcExportPayload();
+    stopCamera();
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'QMC_VISUAL_MATCH', payload }, '*');
+      setStatus('Sent pressing to QMC Catalogue!');
+      return;
+    }
+    if (window.opener && !window.opener.closed) {
+      window.opener.postMessage({ type: 'QMC_VISUAL_MATCH', payload }, '*');
+      setStatus('Sent pressing to open QMC Catalogue window!');
+      return;
+    }
+    try {
+      const storagePayload = { ...payload };
+      if ((storagePayload.coverImage || '').startsWith('data:') && storagePayload.coverImage.length > 300000) storagePayload.coverImage = '';
+      if ((storagePayload.labelAImage || '').startsWith('data:') && storagePayload.labelAImage.length > 300000) storagePayload.labelAImage = '';
+      if ((storagePayload.labelBImage || '').startsWith('data:') && storagePayload.labelBImage.length > 300000) storagePayload.labelBImage = '';
+      localStorage.setItem('qmc_visual_match_payload', JSON.stringify(storagePayload));
+      setStatus('Saved pressing for QMC Catalogue! Return to your Catalogue tab.');
+    } catch (e) {
+      setStatus('Pressing ready — open QMC Catalogue in this browser to import.');
+    }
+  });
+
+  window.addEventListener('message', (event) => {
+    if (event?.data?.type === 'QMC_VISUAL_CLOSE') {
+      stopCamera();
+    }
+  });
+  window.addEventListener('pagehide', stopCamera);
 </script>
 </body>
 </html>
