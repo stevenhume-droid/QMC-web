@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Album Cover Matcher</title>
   <style>
     :root {
@@ -10,8 +10,10 @@
       --card: #1c1c20;
       --border: #2e2e34;
       --accent: #ff6b35;
+      --accent-hover: #ff8252;
       --text: #eaeaea;
       --text-muted: #9e9ea7;
+      --success: #2ecc71;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -20,46 +22,52 @@
       color: var(--text);
       display: flex;
       justify-content: center;
-      padding: 24px 16px;
+      padding: 16px;
+      -webkit-font-smoothing: antialiased;
     }
     .container {
       width: 100%;
-      max-width: 580px;
+      max-width: 520px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
     }
-    header h1 { font-size: 1.5rem; letter-spacing: -0.02em; }
-    header p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+    header h1 { font-size: 1.4rem; letter-spacing: -0.02em; }
+    header p { color: var(--text-muted); font-size: 0.85rem; margin-top: 2px; }
     
     .card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 18px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
       gap: 14px;
     }
     .field label {
       display: block;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-muted);
       margin-bottom: 6px;
+      letter-spacing: 0.05em;
     }
-    input[type="text"], input[type="password"] {
+    input[type="password"] {
       width: 100%;
       padding: 10px 12px;
-      background: #101012;
+      background: #0d0d0f;
       border: 1px solid var(--border);
       border-radius: 8px;
       color: #fff;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    input[type="password"]:focus {
+      border-color: var(--accent);
     }
 
-    /* Camera & Preview */
+    /* Viewport Area */
     .viewport {
       position: relative;
       width: 100%;
@@ -67,7 +75,7 @@
       background: #000;
       border-radius: 8px;
       overflow: hidden;
-      border: 1px dashed var(--border);
+      border: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -79,61 +87,96 @@
     }
     .viewport-guide {
       position: absolute;
-      inset: 12%;
-      border: 2px dashed rgba(255, 255, 255, 0.4);
-      pointer-events: none;
+      inset: 10%;
+      border: 2px dashed rgba(255, 255, 255, 0.45);
       border-radius: 6px;
+      pointer-events: none;
     }
 
-    .btn-row {
+    /* Controls */
+    .btn-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 8px;
     }
     button, .file-label {
       background: #2a2a30;
       color: #fff;
       border: 1px solid var(--border);
-      padding: 11px 14px;
+      padding: 12px 14px;
       border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 500;
+      font-size: 0.85rem;
+      font-weight: 600;
       cursor: pointer;
       text-align: center;
-      transition: background 0.15s ease;
+      transition: background 0.15s ease, opacity 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
-    button:hover, .file-label:hover { background: #373740; }
+    button:active, .file-label:active { background: #373740; }
+    button:disabled { opacity: 0.35; cursor: not-allowed; }
+    
+    .btn-snap {
+      background: #ffffff;
+      color: #121214;
+      border-color: #ffffff;
+    }
+    .btn-snap:active { background: #e0e0e0; }
+
+    .file-label {
+      grid-column: span 2;
+      background: #222227;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    input[type="file"] { display: none; }
+
     button.primary {
+      grid-column: span 2;
       background: var(--accent);
       border-color: var(--accent);
       color: #121214;
       font-weight: 700;
-      grid-column: span 2;
+      font-size: 0.95rem;
+      padding: 14px;
     }
-    button.primary:hover { opacity: 0.9; }
-    button:disabled { opacity: 0.4; cursor: not-allowed; }
-    input[type="file"] { display: none; }
+    button.primary:active { background: var(--accent-hover); }
+
+    #status {
+      font-size: 0.8rem;
+      color: var(--accent);
+      min-height: 1.1rem;
+      text-align: center;
+      word-break: break-word;
+    }
 
     /* Results */
-    #status { font-size: 0.85rem; color: var(--accent); min-height: 1.2rem; }
-    .result-section { display: none; border-top: 1px solid var(--border); padding-top: 14px; }
+    .result-section {
+      display: none;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+    }
     .album-header { margin-bottom: 12px; }
-    .album-title { font-size: 1.25rem; font-weight: 700; }
-    .album-artist { font-size: 1rem; color: var(--text-muted); }
-    .album-meta { font-size: 0.8rem; color: var(--accent); margin-top: 4px; }
+    .album-title { font-size: 1.25rem; font-weight: 700; color: #fff; line-height: 1.2; }
+    .album-artist { font-size: 1rem; color: var(--text-muted); margin-top: 2px; }
+    .album-meta { font-size: 0.8rem; color: var(--accent); margin-top: 6px; }
     
     .tracklist {
       list-style-type: decimal;
       padding-left: 20px;
       font-size: 0.85rem;
-      max-height: 180px;
+      max-height: 200px;
       overflow-y: auto;
       margin-top: 8px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 5px;
     }
-    .tracklist li { color: #d0d0d5; }
+    .tracklist li { color: #d0d0d5; padding-right: 8px; }
     canvas { display: none; }
   </style>
 </head>
@@ -142,7 +185,7 @@
 <div class="container">
   <header>
     <h1>Album Cover Matcher</h1>
-    <p>Snap a sleeve or CD jacket to retrieve release details and tracklists.</p>
+    <p>Snap a vinyl sleeve or CD cover to retrieve release metadata.</p>
   </header>
 
   <div class="card">
@@ -157,9 +200,10 @@
       <div class="viewport-guide"></div>
     </div>
 
-    <div class="btn-row">
+    <div class="btn-grid">
       <button id="btnToggleCam" type="button">Start Camera</button>
-      <label class="file-label" for="fileInput">Upload Photo</label>
+      <button id="btnSnap" type="button" class="btn-snap" disabled>📸 Take Picture</button>
+      <label class="file-label" for="fileInput">Choose from Photo Library</label>
       <input type="file" id="fileInput" accept="image/*">
       <button id="btnScan" class="primary" type="button" disabled>Analyze Cover</button>
     </div>
@@ -172,7 +216,7 @@
         <div id="resArtist" class="album-artist"></div>
         <div id="resMeta" class="album-meta"></div>
       </div>
-      <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">Tracklist (MusicBrainz)</label>
+      <label style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em;">Tracklist (MusicBrainz)</label>
       <ol id="resTracks" class="tracklist"></ol>
     </div>
   </div>
@@ -185,7 +229,9 @@
   const preview = document.getElementById('preview');
   const canvas = document.getElementById('offscreenCanvas');
   const ctx = canvas.getContext('2d');
+  
   const btnToggleCam = document.getElementById('btnToggleCam');
+  const btnSnap = document.getElementById('btnSnap');
   const fileInput = document.getElementById('fileInput');
   const btnScan = document.getElementById('btnScan');
   const apiKeyInput = document.getElementById('apiKey');
@@ -198,35 +244,17 @@
   const resTracks = document.getElementById('resTracks');
 
   let stream = null;
-  let activeImageData = null;
+  let snappedImageData = null;
 
-  // Persist API key locally for convenience
+  // Persist API key in localStorage
   apiKeyInput.value = localStorage.getItem('gemini_api_key') || '';
-  apiKeyInput.addEventListener('change', () => {
+  apiKeyInput.addEventListener('input', () => {
     localStorage.setItem('gemini_api_key', apiKeyInput.value.trim());
   });
 
-  // Toggle Camera
-  btnToggleCam.addEventListener('click', async () => {
-    if (stream) {
-      stopCamera();
-      btnToggleCam.textContent = 'Start Camera';
-      return;
-    }
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }
-      });
-      video.srcObject = stream;
-      video.style.display = 'block';
-      preview.style.display = 'none';
-      btnToggleCam.textContent = 'Stop Camera';
-      btnScan.disabled = false;
-      setStatus('');
-    } catch (err) {
-      setStatus('Unable to access camera: ' + err.message);
-    }
-  });
+  function setStatus(text) {
+    statusEl.textContent = text;
+  }
 
   function stopCamera() {
     if (stream) {
@@ -235,36 +263,74 @@
     }
   }
 
-  // Handle Image Upload
+  // Camera start / stop
+  btnToggleCam.addEventListener('click', async () => {
+    if (stream) {
+      stopCamera();
+      btnToggleCam.textContent = 'Start Camera';
+      btnSnap.disabled = true;
+      setStatus('');
+      return;
+    }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { 
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 }
+        }
+      });
+      video.srcObject = stream;
+      video.style.display = 'block';
+      preview.style.display = 'none';
+      snappedImageData = null;
+      btnToggleCam.textContent = 'Stop Camera';
+      btnSnap.disabled = false;
+      btnScan.disabled = true;
+      setStatus('Align cover in the frame and tap "📸 Take Picture"');
+    } catch (err) {
+      setStatus('Camera access failed: ' + err.message);
+    }
+  });
+
+  // Take Picture button: freezes video stream to preview
+  btnSnap.addEventListener('click', () => {
+    if (!stream) return;
+
+    snappedImageData = captureDownscaledImage(video, video.videoWidth, video.videoHeight);
+    preview.src = snappedImageData;
+    preview.style.display = 'block';
+    video.style.display = 'none';
+
+    stopCamera();
+    btnToggleCam.textContent = 'Retake Photo';
+    btnSnap.disabled = true;
+    btnScan.disabled = false;
+    setStatus('Photo captured. Tap "Analyze Cover" to identify.');
+  });
+
+  // Photo library selection
   fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
     stopCamera();
     btnToggleCam.textContent = 'Start Camera';
+    btnSnap.disabled = true;
     video.style.display = 'none';
 
     const reader = new FileReader();
     reader.onload = (event) => {
       preview.src = event.target.result;
       preview.style.display = 'block';
-      activeImageData = event.target.result;
+      snappedImageData = event.target.result;
       btnScan.disabled = false;
+      setStatus('Photo loaded. Tap "Analyze Cover" to identify.');
     };
     reader.readAsDataURL(file);
   });
 
-  // Downsample to max 800px square for fast API transfer
-  function captureDownscaledImage() {
-    let source = preview;
-    let sW = preview.naturalWidth;
-    let sH = preview.naturalHeight;
-
-    if (stream && video.videoWidth) {
-      source = video;
-      sW = video.videoWidth;
-      sH = video.videoHeight;
-    }
-
+  // Downsample to max 800px on canvas to keep transfer payload < 90KB
+  function captureDownscaledImage(sourceEl, sW, sH) {
     const maxDim = 800;
     let targetW = sW;
     let targetH = sH;
@@ -281,31 +347,31 @@
 
     canvas.width = targetW;
     canvas.height = targetH;
-    ctx.drawImage(source, 0, 0, targetW, targetH);
+    ctx.drawImage(sourceEl, 0, 0, targetW, targetH);
     return canvas.toDataURL('image/jpeg', 0.85);
   }
 
-  function setStatus(text) {
-    statusEl.textContent = text;
-  }
-
-  // Orchestrate Scan
+  // Analyze Cover click
   btnScan.addEventListener('click', async () => {
     const key = apiKeyInput.value.trim();
     if (!key) {
-      alert('Please enter your Gemini API Key first.');
+      alert('Please enter your Gemini API Key at the top.');
       return;
     }
 
     btnScan.disabled = true;
     resultBlock.style.display = 'none';
-    setStatus('Optimizing photo...');
+    setStatus('Optimizing image payload...');
 
-    const base64DataUrl = captureDownscaledImage();
-    const rawBase64 = base64DataUrl.split(',')[1];
+    let finalDataUrl = snappedImageData;
+    // If user loaded via library, ensure it runs through the downscaler
+    if (!finalDataUrl.startsWith('data:image/jpeg;base64') || preview.naturalWidth > 800) {
+      finalDataUrl = captureDownscaledImage(preview, preview.naturalWidth, preview.naturalHeight);
+    }
+    const rawBase64 = finalDataUrl.split(',')[1];
 
     try {
-      setStatus('Identifying artwork via Gemini Vision...');
+      setStatus('Identifying album with Gemini 2.5 Flash...');
       const albumData = await identifyAlbumArtwork(key, rawBase64);
 
       setStatus(`Found "${albumData.album}" by ${albumData.artist}. Searching MusicBrainz...`);
@@ -317,23 +383,23 @@
       resultBlock.style.display = 'block';
       setStatus('');
     } catch (err) {
-      setStatus(`Error: ${err.message}`);
+      setStatus('Error: ' + err.message);
     } finally {
       btnScan.disabled = false;
     }
   });
 
-  // 1. Identify via Gemini 1.5 Flash Vision
+  // Call Gemini 2.5 Flash Vision Endpoint
   async function identifyAlbumArtwork(apiKey, base64Jpg) {
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     
-    const prompt = `Inspect this photo of an album cover (vinyl record or CD). Identify:
-1. Artist / Band name
-2. Official Album Title
-3. Original Release Year (if known)
-4. Record Label or Catalog hint (if visible)
+    const prompt = `Identify this album cover (vinyl record or CD). Return strictly JSON:
+1. "artist": Artist or band name
+2. "album": Official release title
+3. "year": Original release year (string)
+4. "label": Record label or catalog number if visible (string)
 
-Respond ONLY with raw JSON in this format:
+Return ONLY valid JSON matching this schema:
 {"artist": "string", "album": "string", "year": "string", "label": "string"}`;
 
     const payload = {
@@ -357,56 +423,54 @@ Respond ONLY with raw JSON in this format:
 
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
-      throw new Error(errBody.error?.message || `API HTTP ${res.status}`);
+      throw new Error(errBody.error?.message || `HTTP ${res.status}`);
     }
 
     const json = await res.json();
     const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!rawText) throw new Error('Model produced an empty response.');
+    if (!rawText) throw new Error('No recognition data received from model.');
     
     return JSON.parse(rawText);
   }
 
-  // 2. Cross-reference release & tracklist via MusicBrainz open API
+  // Fetch tracklist via MusicBrainz open API
   async function fetchMusicBrainzMetadata(artist, album) {
     resTracks.innerHTML = '';
     const cleanQuery = encodeURIComponent(`release:"${album}" AND artist:"${artist}"`);
     const searchUrl = `https://musicbrainz.org/ws/2/release/?query=${cleanQuery}&fmt=json&limit=1`;
 
     const searchRes = await fetch(searchUrl, {
-      headers: { 'User-Agent': 'AlbumCoverMatcherPrototype/1.0.0 ( contact@example.com )' }
+      headers: { 'User-Agent': 'AlbumCoverMatcher/1.0.0 ( contact@queensferrymusiccollective.co.uk )' }
     });
 
     if (!searchRes.ok) {
-      resTracks.innerHTML = '<li>Unable to reach MusicBrainz database.</li>';
+      resTracks.innerHTML = '<li>Unable to connect to MusicBrainz.</li>';
       return;
     }
 
     const data = await searchRes.json();
     if (!data.releases || data.releases.length === 0) {
-      resTracks.innerHTML = '<li>No exact tracklist match found in MusicBrainz.</li>';
+      resTracks.innerHTML = '<li>No exact tracklist match found in MusicBrainz database.</li>';
       return;
     }
 
     const releaseId = data.releases[0].id;
-
-    // Fetch full tracklist for this release
     const lookupUrl = `https://musicbrainz.org/ws/2/release/${releaseId}?inc=recordings&fmt=json`;
     const lookupRes = await fetch(lookupUrl, {
-      headers: { 'User-Agent': 'AlbumCoverMatcherPrototype/1.0.0 ( contact@example.com )' }
+      headers: { 'User-Agent': 'AlbumCoverMatcher/1.0.0 ( contact@queensferrymusiccollective.co.uk )' }
     });
 
     const releaseDetails = await lookupRes.json();
     const media = releaseDetails.media?.[0];
 
-    if (media && media.tracks) {
+    if (media && media.tracks && media.tracks.length > 0) {
       media.tracks.forEach(track => {
         const li = document.createElement('li');
-        li.textContent = `${track.title}`;
+        li.textContent = track.title;
         resTracks.appendChild(li);
       });
     } else {
-      resTracks.innerHTML = '<li>No track details returned for this pressing.</li>';
+      resTracks.innerHTML = '<li>No track details found for this release.</li>';
     }
   }
 </script>
