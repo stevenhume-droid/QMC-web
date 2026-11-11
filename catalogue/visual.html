@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Album Cover Matcher</title>
+  <style>
+    :root {
+      --bg: #121214;
+      --card: #1c1c20;
+      --border: #2e2e34;
+      --accent: #ff6b35;
+      --text: #eaeaea;
+      --text-muted: #9e9ea7;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+    .container {
+      width: 100%;
+      max-width: 580px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    header h1 { font-size: 1.5rem; letter-spacing: -0.02em; }
+    header p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+    
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .field label {
+      display: block;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 10px 12px;
+      background: #101012;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+
+    /* Camera & Preview */
+    .viewport {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px dashed var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    video, img#preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .viewport-guide {
+      position: absolute;
+      inset: 12%;
+      border: 2px dashed rgba(255, 255, 255, 0.4);
+      pointer-events: none;
+      border-radius: 6px;
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    button, .file-label {
+      background: #2a2a30;
+      color: #fff;
+      border: 1px solid var(--border);
+      padding: 11px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.15s ease;
+    }
+    button:hover, .file-label:hover { background: #373740; }
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #121214;
+      font-weight: 700;
+      grid-column: span 2;
+    }
+    button.primary:hover { opacity: 0.9; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    input[type="file"] { display: none; }
+
+    /* Results */
+    #status { font-size: 0.85rem; color: var(--accent); min-height: 1.2rem; }
+    .result-section { display: none; border-top: 1px solid var(--border); padding-top: 14px; }
+    .album-header { margin-bottom: 12px; }
+    .album-title { font-size: 1.25rem; font-weight: 700; }
+    .album-artist { font-size: 1rem; color: var(--text-muted); }
+    .album-meta { font-size: 0.8rem; color: var(--accent); margin-top: 4px; }
+    
+    .tracklist {
+      list-style-type: decimal;
+      padding-left: 20px;
+      font-size: 0.85rem;
+      max-height: 180px;
+      overflow-y: auto;
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .tracklist li { color: #d0d0d5; }
+    canvas { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Album Cover Matcher</h1>
+    <p>Snap a sleeve or CD jacket to retrieve release details and tracklists.</p>
+  </header>
+
+  <div class="card">
+    <div class="field">
+      <label for="apiKey">Gemini API Key</label>
+      <input type="password" id="apiKey" placeholder="AIzaSy...">
+    </div>
+
+    <div class="viewport">
+      <video id="webcam" autoplay playsinline muted></video>
+      <img id="preview" style="display: none;" alt="Cover Preview">
+      <div class="viewport-guide"></div>
+    </div>
+
+    <div class="btn-row">
+      <button id="btnToggleCam" type="button">Start Camera</button>
+      <label class="file-label" for="fileInput">Upload Photo</label>
+      <input type="file" id="fileInput" accept="image/*">
+      <button id="btnScan" class="primary" type="button" disabled>Analyze Cover</button>
+    </div>
+
+    <div id="status"></div>
+
+    <div id="resultBlock" class="result-section">
+      <div class="album-header">
+        <div id="resTitle" class="album-title"></div>
+        <div id="resArtist" class="album-artist"></div>
+        <div id="resMeta" class="album-meta"></div>
+      </div>
+      <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">Tracklist (MusicBrainz)</label>
+      <ol id="resTracks" class="tracklist"></ol>
+    </div>
+  </div>
+</div>
+
+<canvas id="offscreenCanvas"></canvas>
+
+<script>
+  const video = document.getElementById('webcam');
+  const preview = document.getElementById('preview');
+  const canvas = document.getElementById('offscreenCanvas');
+  const ctx = canvas.getContext('2d');
+  const btnToggleCam = document.getElementById('btnToggleCam');
+  const fileInput = document.getElementById('fileInput');
+  const btnScan = document.getElementById('btnScan');
+  const apiKeyInput = document.getElementById('apiKey');
+  const statusEl = document.getElementById('status');
+  
+  const resultBlock = document.getElementById('resultBlock');
+  const resTitle = document.getElementById('resTitle');
+  const resArtist = document.getElementById('resArtist');
+  const resMeta = document.getElementById('resMeta');
+  const resTracks = document.getElementById('resTracks');
+
+  let stream = null;
+  let activeImageData = null;
+
+  // Persist API key locally for convenience
+  apiKeyInput.value = localStorage.getItem('gemini_api_key') || '';
+  apiKeyInput.addEventListener('change', () => {
+    localStorage.setItem('gemini_api_key', apiKeyInput.value.trim());
+  });
+
+  // Toggle Camera
+  btnToggleCam.addEventListener('click', async () => {
+    if (stream) {
+      stopCamera();
+      btnToggleCam.textContent = 'Start Camera';
+      return;
+    }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }
+      });
+      video.srcObject = stream;
+      video.style.display = 'block';
+      preview.style.display = 'none';
+      btnToggleCam.textContent = 'Stop Camera';
+      btnScan.disabled = false;
+      setStatus('');
+    } catch (err) {
+      setStatus('Unable to access camera: ' + err.message);
+    }
+  });
+
+  function stopCamera() {
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
+  }
+
+  // Handle Image Upload
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    stopCamera();
+    btnToggleCam.textContent = 'Start Camera';
+    video.style.display = 'none';
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      preview.src = event.target.result;
+      preview.style.display = 'block';
+      activeImageData = event.target.result;
+      btnScan.disabled = false;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Downsample to max 800px square for fast API transfer
+  function captureDownscaledImage() {
+    let source = preview;
+    let sW = preview.naturalWidth;
+    let sH = preview.naturalHeight;
+
+    if (stream && video.videoWidth) {
+      source = video;
+      sW = video.videoWidth;
+      sH = video.videoHeight;
+    }
+
+    const maxDim = 800;
+    let targetW = sW;
+    let targetH = sH;
+
+    if (targetW > maxDim || targetH > maxDim) {
+      if (targetW > targetH) {
+        targetH = Math.round((targetH * maxDim) / targetW);
+        targetW = maxDim;
+      } else {
+        targetW = Math.round((targetW * maxDim) / targetH);
+        targetH = maxDim;
+      }
+    }
+
+    canvas.width = targetW;
+    canvas.height = targetH;
+    ctx.drawImage(source, 0, 0, targetW, targetH);
+    return canvas.toDataURL('image/jpeg', 0.85);
+  }
+
+  function setStatus(text) {
+    statusEl.textContent = text;
+  }
+
+  // Orchestrate Scan
+  btnScan.addEventListener('click', async () => {
+    const key = apiKeyInput.value.trim();
+    if (!key) {
+      alert('Please enter your Gemini API Key first.');
+      return;
+    }
+
+    btnScan.disabled = true;
+    resultBlock.style.display = 'none';
+    setStatus('Optimizing photo...');
+
+    const base64DataUrl = captureDownscaledImage();
+    const rawBase64 = base64DataUrl.split(',')[1];
+
+    try {
+      setStatus('Identifying artwork via Gemini Vision...');
+      const albumData = await identifyAlbumArtwork(key, rawBase64);
+
+      setStatus(`Found "${albumData.album}" by ${albumData.artist}. Searching MusicBrainz...`);
+      resTitle.textContent = albumData.album || 'Unknown Album';
+      resArtist.textContent = albumData.artist || 'Unknown Artist';
+      resMeta.textContent = `Year: ${albumData.year || 'N/A'} • Label: ${albumData.label || 'N/A'}`;
+
+      await fetchMusicBrainzMetadata(albumData.artist, albumData.album);
+      resultBlock.style.display = 'block';
+      setStatus('');
+    } catch (err) {
+      setStatus(`Error: ${err.message}`);
+    } finally {
+      btnScan.disabled = false;
+    }
+  });
+
+  // 1. Identify via Gemini 1.5 Flash Vision
+  async function identifyAlbumArtwork(apiKey, base64Jpg) {
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    
+    const prompt = `Inspect this photo of an album cover (vinyl record or CD). Identify:
+1. Artist / Band name
+2. Official Album Title
+3. Original Release Year (if known)
+4. Record Label or Catalog hint (if visible)
+
+Respond ONLY with raw JSON in this format:
+{"artist": "string", "album": "string", "year": "string", "label": "string"}`;
+
+    const payload = {
+      contents: [{
+        parts: [
+          { text: prompt },
+          { inline_data: { mime_type: "image/jpeg", data: base64Jpg } }
+        ]
+      }],
+      generationConfig: {
+        response_mime_type: "application/json",
+        temperature: 0.1
+      }
+    };
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.error?.message || `API HTTP ${res.status}`);
+    }
+
+    const json = await res.json();
+    const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!rawText) throw new Error('Model produced an empty response.');
+    
+    return JSON.parse(rawText);
+  }
+
+  // 2. Cross-reference release & tracklist via MusicBrainz open API
+  async function fetchMusicBrainzMetadata(artist, album) {
+    resTracks.innerHTML = '';
+    const cleanQuery = encodeURIComponent(`release:"${album}" AND artist:"${artist}"`);
+    const searchUrl = `https://musicbrainz.org/ws/2/release/?query=${cleanQuery}&fmt=json&limit=1`;
+
+    const searchRes = await fetch(searchUrl, {
+      headers: { 'User-Agent': 'AlbumCoverMatcherPrototype/1.0.0 ( contact@example.com )' }
+    });
+
+    if (!searchRes.ok) {
+      resTracks.innerHTML = '<li>Unable to reach MusicBrainz database.</li>';
+      return;
+    }
+
+    const data = await searchRes.json();
+    if (!data.releases || data.releases.length === 0) {
+      resTracks.innerHTML = '<li>No exact tracklist match found in MusicBrainz.</li>';
+      return;
+    }
+
+    const releaseId = data.releases[0].id;
+
+    // Fetch full tracklist for this release
+    const lookupUrl = `https://musicbrainz.org/ws/2/release/${releaseId}?inc=recordings&fmt=json`;
+    const lookupRes = await fetch(lookupUrl, {
+      headers: { 'User-Agent': 'AlbumCoverMatcherPrototype/1.0.0 ( contact@example.com )' }
+    });
+
+    const releaseDetails = await lookupRes.json();
+    const media = releaseDetails.media?.[0];
+
+    if (media && media.tracks) {
+      media.tracks.forEach(track => {
+        const li = document.createElement('li');
+        li.textContent = `${track.title}`;
+        resTracks.appendChild(li);
+      });
+    } else {
+      resTracks.innerHTML = '<li>No track details returned for this pressing.</li>';
+    }
+  }
+</script>
+</body>
+</html>
