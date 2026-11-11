@@ -340,6 +340,12 @@
           <button onclick="exportToCSV()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-200 flex items-center gap-2">
             <i class="fa-solid fa-file-csv text-emerald-400"></i> Export Archival CSV
           </button>
+          <button onclick="exportDiscogsListingCSV()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-200 flex items-center gap-2" title="Export active crate as a Discogs Marketplace Inventory bulk CSV">
+            <i class="fa-solid fa-compact-disc text-amber-400"></i> Export Discogs Listing CSV
+          </button>
+          <button onclick="exportEbayListingCSV()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-200 flex items-center gap-2" title="Export active crate as an eBay Seller Hub / File Exchange bulk CSV">
+            <i class="fa-solid fa-tags text-sky-400"></i> Export eBay Seller Hub CSV
+          </button>
           <button onclick="exportToExcel()" class="w-full text-left px-3 py-2 text-xs hover:bg-vinyl-700 text-slate-200 flex items-center gap-2">
             <i class="fa-solid fa-file-excel text-green-400"></i> Export Excel Workbook (.xlsx)
           </button>
@@ -2848,6 +2854,8 @@
         <button onclick="closeMobileMore();openBatchUploadModal()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-file-excel text-lg text-emerald-400"></i>Batch Upload</button>
         <button onclick="closeMobileMore();exportToExcel()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-file-export text-lg text-green-400"></i>Export Excel</button>
         <button onclick="closeMobileMore();exportToCSV()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-file-csv text-lg text-emerald-400"></i>Export CSV</button>
+        <button onclick="closeMobileMore();exportDiscogsListingCSV()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-compact-disc text-lg text-amber-400"></i>Discogs CSV</button>
+        <button onclick="closeMobileMore();exportEbayListingCSV()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-tags text-lg text-sky-400"></i>eBay CSV</button>
         <button onclick="closeMobileMore();exportToJSON()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-code text-lg text-blue-400"></i>JSON Backup</button>
         <label class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5 cursor-pointer"><i class="fa-solid fa-file-import text-lg text-amber-400"></i>Import JSON<input type="file" accept=".json" onchange="closeMobileMore();importFromJSON(event)" class="hidden"></label>
         <button onclick="closeMobileMore();forceBustCache()" class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i class="fa-solid fa-arrows-rotate text-lg text-sky-400"></i>Hard Reload</button>
@@ -15510,6 +15518,36 @@
       showToast("Downloaded sample Excel (.xlsx) template!");
     }
 
+    /**
+     * Escapes CSV fields safely and wraps values in double quotes.
+     */
+    function escapeCSV(value) {
+      if (value === null || value === undefined) return '""';
+      const str = String(value).trim();
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+
+    /**
+     * Triggers a client-side CSV file download via Blob URL.
+     */
+    function downloadCSV(csvContent, filename) {
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function resolveCSVExportRecords(inputRecords) {
+      if (Array.isArray(inputRecords)) return inputRecords;
+      if (typeof getFilteredAndSortedRecords === 'function') return getFilteredAndSortedRecords();
+      return Array.isArray(records) ? records : [];
+    }
+
     function exportToCSV() {
       if (records.length === 0) {
         showToast("No records to export", "error");
@@ -15526,11 +15564,6 @@
         "Country", "Barcode", "Genre", "Producer", "Provenance",
         "Transfer Status", "Transfer Notes", "Research Notes", "Date Added"
       ];
-
-      const escapeCSV = (str) => {
-        if (str === null || str === undefined) return '""';
-        return `"${String(str).replace(/"/g, '""')}"`;
-      };
 
       const rows = records.map(r => [
         escapeCSV(r.id),
@@ -15571,14 +15604,140 @@
         escapeCSV(r.dateAdded)
       ].join(','));
 
-      const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent([headers.join(','), ...rows].join('\n'));
-      const link = document.createElement('a');
-      link.setAttribute('href', csvContent);
-      link.setAttribute('download', `QMC_Vinyl_Catalogue_${new Date().toISOString().slice(0,10)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      downloadCSV([headers.join(','), ...rows].join('\n'), `QMC_Vinyl_Catalogue_${new Date().toISOString().slice(0,10)}.csv`);
       showToast("Exported archival CSV file!");
+    }
+
+    /**
+     * DISCOGS BULK EXPORTER
+     * Format: Discogs Marketplace Inventory CSV
+     */
+    function exportDiscogsListingCSV(inputRecords) {
+      const list = resolveCSVExportRecords(inputRecords);
+      if (list.length === 0) {
+        showToast("No records to export for Discogs", "error");
+        return;
+      }
+
+      const headers = [
+        'listing_id',
+        'release_id',
+        'price',
+        'media_condition',
+        'sleeve_condition',
+        'condition_comments',
+        'status',
+        'location',
+        'format'
+      ];
+
+      const gradeMap = {
+        'M': 'Mint (M)',
+        'NM': 'Near Mint (NM or M-)',
+        'M-': 'Near Mint (NM or M-)',
+        'VG+': 'Very Good Plus (VG+)',
+        'VG': 'Very Good (VG)',
+        'G+': 'Good Plus (G+)',
+        'G': 'Good (G)',
+        'F': 'Fair (F)',
+        'P': 'Poor (P)'
+      };
+
+      const rows = list.map(item => {
+        const rawMedia = String(item.mediaGrade || item.grade || '').trim();
+        const mediaGrade = gradeMap[rawMedia.toUpperCase()] || rawMedia || 'Very Good (VG)';
+        const rawSleeve = String(item.sleeveGrade || '').trim();
+        const sleeveGrade = gradeMap[rawSleeve.toUpperCase()] || rawSleeve || 'Generic';
+
+        const extraNotes = item.researchNotes || item.mediaGradeNotes || item.notes || '';
+        const sellerComments = `Deep ultrasonic cleaned via HumminGuru. Housed in a brand new anti-static inner sleeve. Sound-checked. Fast dispatch in professional record mailer. ${extraNotes}`.trim();
+        const releaseId = item.discogsId || item.catNo || '';
+        const rawPrice = item.estimatedValue ?? item.val ?? item.price ?? 0;
+        const askingPrice = Number(Number.isFinite(Number(rawPrice)) ? rawPrice : 0).toFixed(2);
+
+        return [
+          escapeCSV(''),
+          escapeCSV(releaseId),
+          escapeCSV(askingPrice),
+          escapeCSV(mediaGrade),
+          escapeCSV(sleeveGrade),
+          escapeCSV(sellerComments),
+          escapeCSV('For Sale'),
+          escapeCSV(item.location || 'BIN-01'),
+          escapeCSV(item.format || 'Vinyl')
+        ].join(',');
+      });
+
+      const csvOutput = [headers.join(','), ...rows].join('\r\n');
+      downloadCSV(csvOutput, `QMC_Discogs_Inventory_${new Date().toISOString().slice(0, 10)}.csv`);
+      showToast(`Exported ${list.length} Discogs marketplace listings!`);
+    }
+
+    /**
+     * EBAY FILE EXCHANGE / SELLER HUB BULK EXPORTER
+     * eBay Category ID for Vinyl Records: 176985
+     */
+    function exportEbayListingCSV(inputRecords) {
+      const list = resolveCSVExportRecords(inputRecords);
+      if (list.length === 0) {
+        showToast("No records to export for eBay", "error");
+        return;
+      }
+
+      const headers = [
+        'Action(SiteID=UK|Country=GB|Currency=GBP|Version=1193)',
+        'CustomLabel',
+        'Category',
+        'Title',
+        'StartPrice',
+        'Quantity',
+        'Format',
+        'Duration',
+        'ConditionID',
+        'Description'
+      ];
+
+      const rows = list.map(item => {
+        const artist = item.artist || 'Unknown Artist';
+        const title = item.title || 'Untitled';
+        const format = item.format || '7"';
+        const grade = item.mediaGrade || item.grade || 'VG';
+        const sleeveGrade = item.sleeveGrade || 'Original / Generic';
+        const catNo = item.catNo || '';
+
+        const rawTitle = `${artist} - ${title} ${format} [${grade}] ${catNo}`.replace(/\s+/g, ' ').trim();
+        const truncatedTitle = rawTitle.slice(0, 80);
+
+        const rawPrice = item.estimatedValue ?? item.val ?? item.price ?? 0;
+        const price = Number(Number.isFinite(Number(rawPrice)) ? rawPrice : 0).toFixed(2);
+        const sku = item.id || `${artist.slice(0, 3)}-${item.year || '00'}`;
+
+        const safe = (v) => typeof escapeHtml === 'function' ? escapeHtml(v) : String(v || '');
+        const description = `
+          <h3>${safe(artist)} - ${safe(title)}</h3>
+          <p><strong>Format:</strong> ${safe(format)} (${safe(item.speed || '45 RPM')}) | <strong>Year:</strong> ${safe(item.year || 'N/A')}</p>
+          <p><strong>Label / Cat #:</strong> ${safe(item.label || '')} / ${safe(catNo)}</p>
+          <p><strong>Visual / Audio Grade:</strong> ${safe(grade)} (Sleeve: ${safe(sleeveGrade)})</p>
+          <p><strong>Archival Preparation:</strong> Every disc has undergone a comprehensive ultrasonic cleaning bath using a HumminGuru cleaner and has been placed into a new archival anti-static inner sleeve prior to shipping.</p>
+        `.replace(/\s+/g, ' ').trim();
+
+        return [
+          escapeCSV('Add'),
+          escapeCSV(sku),
+          escapeCSV('176985'),
+          escapeCSV(truncatedTitle),
+          escapeCSV(price),
+          escapeCSV(item.qty || 1),
+          escapeCSV('FixedPrice'),
+          escapeCSV('GTC'),
+          escapeCSV('3000'),
+          escapeCSV(description)
+        ].join(',');
+      });
+
+      const csvOutput = [headers.join(','), ...rows].join('\r\n');
+      downloadCSV(csvOutput, `QMC_eBay_Listings_${new Date().toISOString().slice(0, 10)}.csv`);
+      showToast(`Exported ${list.length} eBay Seller Hub listings!`);
     }
 
     function exportToExcel() {
