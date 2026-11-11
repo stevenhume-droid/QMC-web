@@ -3231,6 +3231,9 @@
        ========================================================= */
     const STORAGE_KEY = 'qmc_vinyl_catalogue_v2';
     const TOKEN_KEY = 'qmc_discogs_user_token';
+    function getDiscogsToken() {
+      return localStorage.getItem(TOKEN_KEY) || localStorage.getItem('QMC_DISCOGS_TOKEN') || localStorage.getItem('discogs_user_token') || '';
+    }
     const CURRENCY_KEY = 'qmc_archive_currency';
     const PROFILE_STORAGE_KEY = 'qmc_member_profile';
 
@@ -13425,6 +13428,8 @@
 
       showToast(`Loading details for "${match.title}"...`, "info");
 
+      try {
+      const setElVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
       const searchFormatChoice = document.getElementById('autofillFormatFilter')?.value || 'ALL';
       let fullRelease = match;
       let totalTracksFound = 0;
@@ -13443,6 +13448,7 @@
       let releaseGenres = [];
       let discogsCoverUrl = '';
       let assignedFormat = '12" LP (Album)';
+      let isSingleOrEP = false;
       let producerName = '';
       let masteringName = '';
       let pressingPlantName = '';
@@ -13502,6 +13508,8 @@
 
             // Determine format using our comprehensive parser
             assignedFormat = parseDiscogsFormat(dData.formats || match.rawDiscogsFormat || []);
+            const dcFmtText = (dData.formats || []).map(f => [f.name || '', ...(f.descriptions || []), f.text || ''].join(' ')).join(' ').toLowerCase();
+            if (/\b(single|maxi|ep|cds)\b/.test(dcFmtText)) isSingleOrEP = true;
 
             // Auto-detect Vinyl Weight and Colour from Discogs format descriptions
             const descList = [];
@@ -13513,12 +13521,12 @@
             if (weightMatch) {
               const cleanedW = weightMatch.match(/\b\d+\s*g?\b/i)?.[0] || weightMatch;
               const wVal = cleanedW.toLowerCase().endsWith('g') ? cleanedW : (cleanedW + 'g');
-              document.getElementById('formVinylWeight').value = wVal;
+              setElVal('formVinylWeight', wVal);
             }
             const colorKeywords = ['clear', 'white', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'gold', 'silver', 'splatter', 'marbled', 'swirl', 'picture disc', 'etched', 'coloured', 'colored'];
             const colorMatch = descList.find(d => colorKeywords.some(k => d.toLowerCase().includes(k)));
             if (colorMatch) {
-              document.getElementById('formVinylColor').value = colorMatch;
+              setElVal('formVinylColor', colorMatch);
             }
 
             // Extract credits: Producer, Mastering, Pressing Plant
@@ -13565,10 +13573,11 @@
             // Cover image
             if (dData.images && dData.images.length > 0) {
               const pImg = dData.images.find(img => img.type === 'primary') || dData.images[0];
-              if (pImg && (pImg.uri || pImg.resource_url) && !pImg.uri.includes('spacer.gif')) {
-                discogsCoverUrl = pImg.uri || pImg.resource_url;
+              const pImgUrl = pImg?.uri || pImg?.resource_url || '';
+              if (pImgUrl && !String(pImgUrl).includes('spacer.gif')) {
+                discogsCoverUrl = pImgUrl;
               }
-            } else if (match.coverThumb && !match.coverThumb.includes('spacer.gif')) {
+            } else if (match.coverThumb && !String(match.coverThumb).includes('spacer.gif')) {
               discogsCoverUrl = match.coverThumb;
             }
           }
@@ -13627,7 +13636,7 @@
         // Format determination from MusicBrainz media & release-group
         const rgType = (fullRelease['release-group']?.['primary-type'] || '').toLowerCase();
         const rgSecTypes = (fullRelease['release-group']?.['secondary-types'] || []).map(s => String(s).toLowerCase());
-        const isSingleOrEP = rgType === 'single' || rgType === 'ep' || rgSecTypes.includes('single') || rgSecTypes.includes('ep');
+        isSingleOrEP = rgType === 'single' || rgType === 'ep' || rgSecTypes.includes('single') || rgSecTypes.includes('ep');
 
         let totalMbTracks = 0;
         if (fullRelease.media && fullRelease.media.length > 0) {
@@ -13729,15 +13738,15 @@
       duplicateBannerDismissed = false;
 
       // Populate TAB 1: General Info
-      if (artistName) document.getElementById('formArtist').value = artistName;
-      if (titleName) document.getElementById('formTitle').value = titleName;
-      if (releaseYear) document.getElementById('formYear').value = releaseYear;
-      if (releaseCountry) document.getElementById('formCountry').value = releaseCountry;
-      if (releaseBarcode) document.getElementById('formBarcode').value = releaseBarcode;
-      if (releaseLabel) document.getElementById('formLabel').value = releaseLabel;
-      if (releaseCatNo) document.getElementById('formCatNo').value = releaseCatNo;
-      if (seriesNameVal && document.getElementById('formSeriesName')) document.getElementById('formSeriesName').value = seriesNameVal;
-      if (seriesNumberVal && document.getElementById('formSeriesNumber')) document.getElementById('formSeriesNumber').value = seriesNumberVal;
+      if (artistName) setElVal('formArtist', artistName);
+      if (titleName) setElVal('formTitle', titleName);
+      if (releaseYear) setElVal('formYear', releaseYear);
+      if (releaseCountry) setElVal('formCountry', releaseCountry);
+      if (releaseBarcode) setElVal('formBarcode', releaseBarcode);
+      if (releaseLabel) setElVal('formLabel', releaseLabel);
+      if (releaseCatNo) setElVal('formCatNo', releaseCatNo);
+      if (seriesNameVal) setElVal('formSeriesName', seriesNameVal);
+      if (seriesNumberVal) setElVal('formSeriesNumber', seriesNumberVal);
 
       // Format selection with fuzzy fallback
       const fmtSelect = document.getElementById('formFormat');
@@ -13932,18 +13941,18 @@
       }
 
       if (allTrackLines.length > 0) {
-        document.getElementById('formAlbumTracks').value = allTrackLines.join('\n');
+        setElVal('formAlbumTracks', allTrackLines.join('\n'));
       }
 
       // Populate A & B track fields for singles
       if (is7Inch || is12Maxi || trackA) {
         if (trackA) {
-          document.getElementById('formSideATitle').value = trackA;
-          document.getElementById('formSideADuration').value = trackADur;
+          setElVal('formSideATitle', trackA);
+          setElVal('formSideADuration', trackADur);
         }
         if (trackB) {
-          document.getElementById('formSideBTitle').value = trackB;
-          document.getElementById('formSideBDuration').value = trackBDur;
+          setElVal('formSideBTitle', trackB);
+          setElVal('formSideBDuration', trackBDur);
         }
       }
 
@@ -14021,6 +14030,11 @@
       setQuickLookupCollapsed(true, `Matched: ${artistName || 'Artist'} – ${titleName} (${releaseYear || 'n/a'})`);
       showToast(`Autofilled "${titleName}" with all release details & tracks!`);
       switchFormTab('tab-general');
+      } catch (err) {
+        console.error("Apply selected release error:", err);
+        closeAutofillResults();
+        showToast("Applied basic release info (some details could not be loaded).", "warning");
+      }
     }
 
     async function pullCoverArtForCurrentForm() {

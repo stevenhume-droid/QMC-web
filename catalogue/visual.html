@@ -284,7 +284,7 @@
       <button id="btnToggleCam" type="button">Start Camera</button>
       <button id="btnSnap" type="button" class="btn-snap" disabled>📸 Take Picture</button>
       <label class="file-label" for="fileInput">Choose from Photo Library</label>
-      <input type="file" id="fileInput" accept="image/*" capture="environment">
+      <input type="file" id="fileInput" accept="image/*">
       <button id="btnScan" class="primary" type="button" disabled>Identify Release</button>
     </div>
 
@@ -468,6 +468,7 @@
       setStatus('Photo loaded. Tap "Identify Release" to search.');
     };
     reader.readAsDataURL(file);
+    fileInput.value = '';
   });
 
   function captureDownscaledImage(sourceEl, sW, sH) {
