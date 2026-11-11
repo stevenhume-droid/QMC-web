@@ -2612,14 +2612,21 @@
               <input type="radio" name="batchRefreshMode" value="audit" checked class="mt-0.5 text-purple-500 focus:ring-purple-400 bg-vinyl-900 border-vinyl-700">
               <div>
                 <span class="font-semibold text-slate-200">Audit &amp; Reclassify Potential Misclassifications (Recommended)</span>
-                <p class="text-[11px] text-slate-400 mt-0.5">Checks records saved as 12" LP or CD/Other with single/maxi/cassette/MD titles, 45 RPM speeds, or short tracklists.</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Checks records saved as 12" LP or CD/Other with single/maxi/cassette/MD titles, 45 RPM speeds, short tracklists, missing metadata, or series candidates.</p>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-vinyl-800/60 cursor-pointer">
+              <input type="radio" name="batchRefreshMode" value="series" class="mt-0.5 text-indigo-500 focus:ring-indigo-400 bg-vinyl-900 border-vinyl-700">
+              <div>
+                <span class="font-semibold text-slate-200">Pull Release Series &amp; Vol # Only</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Scans records without a Series Name via Discogs &amp; MusicBrainz to backfill series tags and volume numbers.</p>
               </div>
             </label>
             <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-vinyl-800/60 cursor-pointer">
               <input type="radio" name="batchRefreshMode" value="all" class="mt-0.5 text-purple-500 focus:ring-purple-400 bg-vinyl-900 border-vinyl-700">
               <div>
                 <span class="font-semibold text-slate-200">Comprehensive Full Refresh (All Records in Crate)</span>
-                <p class="text-[11px] text-slate-400 mt-0.5">Audits every record against Discogs &amp; MusicBrainz, backfilling missing data across the entire archive.</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Audits every record against Discogs &amp; MusicBrainz, backfilling missing genres, series info, and valuations across the entire archive.</p>
               </div>
             </label>
           </div>
@@ -2645,6 +2652,10 @@
               <span class="text-slate-300">Backfill Missing Genres &amp; Styles</span>
             </label>
             <label class="flex items-center gap-2 p-1.5 rounded hover:bg-vinyl-800/40 cursor-pointer">
+              <input type="checkbox" id="batchRefreshOptSeries" checked class="rounded text-indigo-500 focus:ring-indigo-400 bg-vinyl-900 border-vinyl-700">
+              <span class="text-slate-300">Pull Release Series &amp; Vol #</span>
+            </label>
+            <label class="flex items-center gap-2 p-1.5 rounded hover:bg-vinyl-800/40 cursor-pointer sm:col-span-2">
               <input type="checkbox" id="batchRefreshOptValuate" checked class="rounded text-amber-500 focus:ring-amber-400 bg-vinyl-900 border-vinyl-700">
               <span class="text-slate-300">Refresh Market Valuation</span>
             </label>
@@ -2662,9 +2673,10 @@
           <div class="w-full bg-vinyl-950 h-2.5 rounded-full overflow-hidden border border-vinyl-750">
             <div id="batchRefreshProgressBar" class="h-full bg-gradient-to-r from-purple-500 via-sky-500 to-teal-400 transition-all duration-200" style="width: 0%;"></div>
           </div>
-          <div class="flex items-center justify-between text-[11px] font-mono text-slate-400">
+          <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-slate-400">
             <span>Reclassified: <strong id="batchRefreshReclassifiedCount" class="text-purple-300">0</strong></span>
             <span>Enriched: <strong id="batchRefreshEnrichedCount" class="text-emerald-300">0</strong></span>
+            <span>Series: <strong id="batchRefreshSeriesCount" class="text-indigo-300">0</strong></span>
             <span>Valuated: <strong id="batchRefreshValuatedCount" class="text-amber-300">0</strong></span>
           </div>
           <!-- Live Activity Log -->
@@ -3392,8 +3404,17 @@
     function normalizeTracklist(rawTracks, format = '') {
       if (!Array.isArray(rawTracks)) return undefined;
       const cleaned = rawTracks
-        .filter(t => t && (t.title || t.pos || t.index))
+        .filter(t => t && (typeof t === 'string' ? t.trim() : (t.title || t.pos || t.index)))
         .map((t, idx) => {
+          if (typeof t === 'string') {
+            return {
+              section: deriveTrackSection(String(idx + 1), format),
+              index: String(idx + 1),
+              pos: String(idx + 1),
+              title: t.trim(),
+              duration: ''
+            };
+          }
           const index = String(t.index || t.pos || (idx + 1)).trim();
           const section = String(t.section || deriveTrackSection(index, format)).trim();
           return {
@@ -4482,7 +4503,7 @@
       let discogsId = null;
 
       if (targetType === 'record' && recordId) {
-        const rec = records.find(r => r.id === recordId);
+        const rec = records.find(r => String(r.id) === String(recordId));
         if (rec) {
           artist = rec.artist || '';
           title = rec.title || '';
@@ -4602,7 +4623,7 @@
     }
 
     function deleteCoverArtForRecord(recordId) {
-      const item = records.find(r => r.id === recordId);
+      const item = records.find(r => String(r.id) === String(recordId));
       if (!item) return;
       const proceed = confirm(`Remove custom cover sleeve for "${item.title}" and revert to generic archival sleeve?`);
       if (!proceed) return;
@@ -5183,11 +5204,11 @@
         } else {
           // Standard personal archive mode
           supabaseClient.auth.onAuthStateChange(async (event, session) => {
-            await handleAuthSession(session);
+            await handleAuthSession(session, event);
           });
 
           const { data: { session } } = await supabaseClient.auth.getSession();
-          await handleAuthSession(session);
+          await handleAuthSession(session, 'INITIAL_SESSION');
         }
       } catch (err) {
         console.warn("Supabase init error (using local cache):", err);
@@ -5204,7 +5225,8 @@
               display_name: (parsed.display_name || '').trim(),
               city: (parsed.city || 'South Queensferry').trim(),
               cloud_auto_sync: parsed.cloud_auto_sync !== false,
-              updated_at: parsed.updated_at || ''
+              updated_at: parsed.updated_at || '',
+              local_override: parsed.local_override === true
             };
           }
         }
@@ -5221,7 +5243,8 @@
         display_name: (patch.display_name !== undefined ? patch.display_name : memberProfile.display_name || '').trim(),
         city: (patch.city !== undefined ? patch.city : memberProfile.city || 'South Queensferry').trim(),
         cloud_auto_sync: patch.cloud_auto_sync !== undefined ? Boolean(patch.cloud_auto_sync) : memberProfile.cloud_auto_sync !== false,
-        updated_at: new Date().toISOString()
+        updated_at: patch.updated_at !== undefined ? patch.updated_at : new Date().toISOString(),
+        local_override: patch.local_override !== undefined ? Boolean(patch.local_override) : Boolean(memberProfile.local_override)
       };
       try {
         await Promise.resolve().then(() => {
@@ -5231,6 +5254,49 @@
         console.warn("Could not persist member profile to localStorage:", e);
       }
       return memberProfile;
+    }
+
+    async function syncProfileToSupabase(user, displayName, city) {
+      if (!user || !supabaseClient) return false;
+      let dbOk = false;
+      let authOk = false;
+      try {
+        const { error: profileError } = await supabaseClient
+          .from('profiles')
+          .upsert({
+            id: user.id,
+            display_name: displayName,
+            city: city
+          }, { onConflict: 'id' });
+
+        if (!profileError) {
+          dbOk = true;
+        } else {
+          // Retry without `city` if public.profiles schema only defines id + display_name
+          const { error: retryError } = await supabaseClient
+            .from('profiles')
+            .upsert({
+              id: user.id,
+              display_name: displayName
+            }, { onConflict: 'id' });
+          dbOk = !retryError;
+          if (retryError) console.warn("Profiles table update error:", retryError);
+        }
+      } catch (e) {
+        console.warn("Profiles table sync notice:", e);
+      }
+
+      try {
+        const { error: authErr } = await supabaseClient.auth.updateUser({
+          data: { display_name: displayName, city: city }
+        });
+        authOk = !authErr;
+        if (authErr) console.warn("Auth updateUser notice:", authErr);
+      } catch (authErr) {
+        console.warn("Auth updateUser notice:", authErr);
+      }
+
+      return dbOk || authOk;
     }
 
     function applyMemberProfileToDOM() {
@@ -5291,8 +5357,16 @@
         await saveMemberProfileToStorage({
           display_name: newName,
           city: newCity,
-          cloud_auto_sync: autoSync
+          cloud_auto_sync: autoSync,
+          local_override: true
         });
+        if (currentUser && supabaseClient) {
+          const synced = await syncProfileToSupabase(currentUser, newName, newCity);
+          currentUserProfile = { ...(currentUserProfile || {}), display_name: newName, city: newCity };
+          if (synced) {
+            await saveMemberProfileToStorage({ local_override: false });
+          }
+        }
         applyMemberProfileToDOM();
         updateAuthUI();
         renderStats();
@@ -5305,42 +5379,63 @@
       }
     }
 
-    async function handleAuthSession(session) {
+    async function handleAuthSession(session, authEvent = '') {
       loadMemberProfileFromStorage();
       if (session && session.user) {
+        // On background JWT refresh / metadata update for same signed-in user, do NOT clobber profile or force-reload
+        if ((authEvent === 'TOKEN_REFRESHED' || authEvent === 'USER_UPDATED') && currentUser && currentUser.id === session.user.id) {
+          currentUser = session.user;
+          applyMemberProfileToDOM();
+          updateAuthUI();
+          return;
+        }
+
         currentUser = session.user;
         isCloudActive = true;
+        let cloudProfile = null;
         try {
           const { data: profile } = await supabaseClient
             .from('profiles')
             .select('*')
             .eq('id', currentUser.id)
             .single();
-          currentUserProfile = profile || { display_name: memberProfile.display_name || currentUser.user_metadata?.display_name || currentUser.email.split('@')[0], city: memberProfile.city || 'South Queensferry' };
+          cloudProfile = profile || null;
         } catch (e) {
-          currentUserProfile = { display_name: memberProfile.display_name || currentUser.user_metadata?.display_name || currentUser.email.split('@')[0], city: memberProfile.city || 'South Queensferry' };
+          cloudProfile = null;
         }
 
-        // Prefer locally saved profile overrides if present, else mirror cloud profile into localStorage
-        const resolvedName = currentUserProfile.display_name || memberProfile.display_name || (currentUser.email ? currentUser.email.split('@')[0] : 'Member');
-        const resolvedCity = currentUserProfile.city || memberProfile.city || 'South Queensferry';
+        const localHasName = Boolean(memberProfile.display_name);
+        const localTime = memberProfile.updated_at ? Date.parse(memberProfile.updated_at) || 0 : 0;
+        const cloudTime = cloudProfile?.updated_at ? Date.parse(cloudProfile.updated_at) || 0 : 0;
+        const preferLocal = localHasName && (memberProfile.local_override === true || !cloudTime || localTime >= cloudTime);
+
+        const fallbackName = (currentUser.email ? currentUser.email.split('@')[0] : 'Member');
+        const resolvedName = preferLocal
+          ? (memberProfile.display_name || cloudProfile?.display_name || currentUser.user_metadata?.display_name || fallbackName)
+          : (cloudProfile?.display_name || currentUser.user_metadata?.display_name || memberProfile.display_name || fallbackName);
+        const resolvedCity = preferLocal
+          ? (memberProfile.city || cloudProfile?.city || currentUser.user_metadata?.city || 'South Queensferry')
+          : (cloudProfile?.city || memberProfile.city || currentUser.user_metadata?.city || 'South Queensferry');
+
+        currentUserProfile = {
+          ...(cloudProfile || {}),
+          display_name: resolvedName,
+          city: resolvedCity
+        };
+
         await saveMemberProfileToStorage({
           display_name: resolvedName,
           city: resolvedCity,
-          cloud_auto_sync: memberProfile.cloud_auto_sync !== false
+          cloud_auto_sync: memberProfile.cloud_auto_sync !== false,
+          local_override: preferLocal && memberProfile.local_override === true
         });
-        currentUserProfile.display_name = resolvedName;
-        currentUserProfile.city = resolvedCity;
 
-        // Auto-ensure user row exists in public.profiles table to prevent foreign key errors
-        try {
-          await supabaseClient.from('profiles').upsert({
-            id: currentUser.id,
-            display_name: resolvedName,
-            city: resolvedCity
-          }, { onConflict: 'id' });
-        } catch (e) {
-          console.warn("Notice updating profile on login:", e);
+        // Push local profile override up to cloud when newer/pending or row missing
+        if (!cloudProfile || (preferLocal && resolvedName !== (cloudProfile.display_name || ''))) {
+          const synced = await syncProfileToSupabase(currentUser, resolvedName, resolvedCity);
+          if (synced && memberProfile.local_override) {
+            await saveMemberProfileToStorage({ local_override: false });
+          }
         }
 
         // Fetch user's own cloud records (never anyone else's)
@@ -5475,33 +5570,19 @@
       }
 
       try {
-        // 1. Explicitly await persistence to localStorage first
+        // 1. Explicitly await persistence to localStorage first with local_override protection
         await saveMemberProfileToStorage({
           display_name: newName,
           city: newCity,
-          cloud_auto_sync: autoSync
+          cloud_auto_sync: autoSync,
+          local_override: true
         });
 
-        // 2. If signed in to Supabase, also sync cloud profile and auth metadata
+        // 2. If signed in to Supabase, sync cloud profile & auth metadata with schema fallback
         if (currentUser && supabaseClient) {
-          const { error: profileError } = await supabaseClient
-            .from('profiles')
-            .upsert({
-              id: currentUser.id,
-              display_name: newName,
-              city: newCity
-            }, { onConflict: 'id' });
-
-          if (profileError) {
-            console.warn("Profiles table update error:", profileError);
-          }
-
-          try {
-            await supabaseClient.auth.updateUser({
-              data: { display_name: newName, city: newCity }
-            });
-          } catch (authErr) {
-            console.warn("Auth updateUser notice:", authErr);
+          const synced = await syncProfileToSupabase(currentUser, newName, newCity);
+          if (synced) {
+            await saveMemberProfileToStorage({ local_override: false });
           }
 
           // 3. Update in-memory user objects
@@ -8815,7 +8896,7 @@
 
     function viewRecordDetail(id) {
       currentDetailRecordId = id;
-      const item = records.find(r => r.id === id);
+      const item = records.find(r => String(r.id) === String(id));
       if (!item) return;
 
       const modal = document.getElementById('detailModal');
@@ -8829,7 +8910,8 @@
       const seriesLabel = formatSeriesLabel(item);
       const gs = parseGenreAndStyles(item.genres || '', item.genre || '', item.styles || '');
       const gradingMeta = getFormatGradingMeta(item.format);
-      const normalizedTracks = normalizeTracklist(item.tracks || item.tracklist || [], item.format);
+      const normalizedTracks = normalizeTracklist(item.tracks || item.tracklist || [], item.format) || [];
+      const safeId = escapeJsString(String(item.id));
 
       // Build Media-Appropriate Tracklist grouped by section (Side A / Disc 1 / Side 1)
       let tracksHTML = '';
@@ -8976,7 +9058,7 @@
                 </button>
               `).join('')}
               ${(!gs.genre && (!gs.styles || gs.styles.length === 0)) ? `
-                <button type="button" onclick="autoEnrichRecordGenre('${item.id}')" class="px-2 py-0.5 rounded-full bg-vinyl-850 hover:bg-vinyl-800 text-sky-400 border border-sky-500/30 text-[11px] font-medium flex items-center gap-1 transition">
+                <button type="button" onclick="autoEnrichRecordGenre('${safeId}')" class="px-2 py-0.5 rounded-full bg-vinyl-850 hover:bg-vinyl-800 text-sky-400 border border-sky-500/30 text-[11px] font-medium flex items-center gap-1 transition">
                   <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Auto-Fetch Genre &amp; Styles
                 </button>
               ` : ''}
@@ -8992,7 +9074,7 @@
           
           <!-- Column 1: Front Sleeve Cover & Core Metadata -->
           <div class="space-y-4">
-            <div class="aspect-square bg-vinyl-950 rounded-xl overflow-hidden border border-vinyl-800 relative group cursor-pointer" onclick="${isOwner ? `openArtworkChooserModal('record', '${item.id}')` : ''}" title="${isOwner ? 'Click to choose cover sleeve' : ''}">
+            <div class="aspect-square bg-vinyl-950 rounded-xl overflow-hidden border border-vinyl-800 relative group cursor-pointer" onclick="${isOwner ? `openArtworkChooserModal('record', '${safeId}')` : ''}" title="${isOwner ? 'Click to choose cover sleeve' : ''}">
               <img src="${coverSrc}" alt="Cover" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-102" onerror="this.onerror=null; this.src=getDefaultCover('${encodeURIComponent(item.format || '')}', '${encodeURIComponent(item.artist || '')}', '${encodeURIComponent(item.title || '')}', true)">
               ${isOwner ? `
                 <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
@@ -9004,12 +9086,12 @@
             </div>
 
             <div class="flex items-center gap-2">
-              <button type="button" onclick="openArtworkChooserModal('record', '${item.id}')" id="detailPullArtBtn-${item.id}" class="flex-1 py-2 px-3 bg-vinyl-850 hover:bg-vinyl-800 text-brass-400 border border-brass-500/30 hover:border-brass-400 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 shadow transition" title="Choose from multiple matching sleeve options or generic">
+              <button type="button" onclick="openArtworkChooserModal('record', '${safeId}')" id="detailPullArtBtn-${escapeHtml(item.id)}" class="flex-1 py-2 px-3 bg-vinyl-850 hover:bg-vinyl-800 text-brass-400 border border-brass-500/30 hover:border-brass-400 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 shadow transition" title="Choose from multiple matching sleeve options or generic">
                 <i class="fa-solid fa-images text-xs"></i>
                 <span>${item.coverImage ? 'Choose Alternate Sleeve' : 'Choose Cover Sleeve'}</span>
               </button>
               ${item.coverImage ? `
-                <button type="button" onclick="deleteCoverArtForRecord('${item.id}')" class="py-2 px-2.5 bg-red-950/40 hover:bg-red-900/50 text-red-300 border border-red-800/60 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 shadow transition" title="Remove custom sleeve and revert to generic sleeve">
+                <button type="button" onclick="deleteCoverArtForRecord('${safeId}')" class="py-2 px-2.5 bg-red-950/40 hover:bg-red-900/50 text-red-300 border border-red-800/60 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 shadow transition" title="Remove custom sleeve and revert to generic sleeve">
                   <i class="fa-solid fa-trash-can text-xs"></i>
                 </button>
               ` : ''}
@@ -9055,7 +9137,7 @@
             </div>
 
             <!-- Trigger for Extended Archival Drawer -->
-            <button type="button" onclick="openExtendedArchivalModal('${item.id}')" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-cyan-950/60 to-vinyl-850 hover:from-cyan-900/60 hover:to-vinyl-800 border border-cyan-500/40 text-cyan-300 hover:text-cyan-200 text-xs font-bold flex items-center justify-center gap-2 shadow-lg transition">
+            <button type="button" onclick="openExtendedArchivalModal('${safeId}')" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-cyan-950/60 to-vinyl-850 hover:from-cyan-900/60 hover:to-vinyl-800 border border-cyan-500/40 text-cyan-300 hover:text-cyan-200 text-xs font-bold flex items-center justify-center gap-2 shadow-lg transition">
               <span>🔬 View Extended Archival Details</span>
               <span class="px-1.5 py-0.5 rounded bg-cyan-500/20 text-[10px] font-mono">${extendedCount}</span>
             </button>
@@ -9135,12 +9217,12 @@
                   </div>
                 </div>
                 <div class="text-right flex items-center gap-2">
-                  <button type="button" onclick="promptQuickValuation('${item.id}')" class="text-xs font-mono font-bold ${hasVal ? 'text-emerald-400 bg-emerald-950/80 border-emerald-500/30 hover:border-emerald-400' : 'text-amber-400 bg-amber-950/80 border-amber-500/30 hover:border-amber-400'} px-2.5 sm:px-3 py-1 rounded-lg border inline-flex items-center gap-1.5 transition shadow-sm" title="Click to quick-set assessed valuation">
+                  <button type="button" onclick="promptQuickValuation('${safeId}')" class="text-xs font-mono font-bold ${hasVal ? 'text-emerald-400 bg-emerald-950/80 border-emerald-500/30 hover:border-emerald-400' : 'text-amber-400 bg-amber-950/80 border-amber-500/30 hover:border-amber-400'} px-2.5 sm:px-3 py-1 rounded-lg border inline-flex items-center gap-1.5 transition shadow-sm" title="Click to quick-set assessed valuation">
                     <span>${hasVal ? `${sym}${parseFloat(item.estimatedValue).toFixed(2)}` : 'Set Value'}</span>
                     <i class="fa-solid fa-pen-to-square text-[9px] opacity-70"></i>
                   </button>
                   ${isOwner ? `
-                    <button type="button" onclick="closeDetailModal(); editRecord('${item.id}');" class="px-2.5 py-1 text-[11px] rounded bg-brass-500/10 hover:bg-brass-500/20 text-brass-400 border border-brass-500/30 transition flex items-center gap-1 font-medium" title="Edit record &amp; valuation">
+                    <button type="button" onclick="editRecord('${safeId}');" class="px-2.5 py-1 text-[11px] rounded bg-brass-500/10 hover:bg-brass-500/20 text-brass-400 border border-brass-500/30 transition flex items-center gap-1 font-medium" title="Edit record &amp; valuation">
                       <i class="fa-solid fa-pen text-[10px]"></i> Edit
                     </button>
                   ` : ''}
@@ -9211,13 +9293,13 @@
               <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 flex-wrap gap-2 border-t border-vinyl-800">
                 <span class="text-[10px] font-medium text-slate-300">Live Valuation &amp; Metadata:</span>
                 <div class="flex items-center gap-2 flex-wrap">
-                  <button type="button" onclick="autoEnrichRecordGenre('${item.id}')" class="px-2.5 py-1 bg-vinyl-900 hover:bg-vinyl-850 border border-vinyl-700 hover:border-sky-500/50 text-sky-400 hover:text-sky-300 rounded-md text-[11px] font-medium flex items-center gap-1 shadow-sm transition">
+                  <button type="button" onclick="autoEnrichRecordGenre('${safeId}')" class="px-2.5 py-1 bg-vinyl-900 hover:bg-vinyl-850 border border-vinyl-700 hover:border-sky-500/50 text-sky-400 hover:text-sky-300 rounded-md text-[11px] font-medium flex items-center gap-1 shadow-sm transition">
                     <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Genre
                   </button>
-                  <button type="button" onclick="fetchDiscogsPriceForRecord('${item.id}')" class="px-2.5 py-1 bg-vinyl-900 hover:bg-amber-950/40 border border-vinyl-700 hover:border-amber-500/50 text-amber-400 hover:text-amber-300 rounded-md text-[11px] font-medium flex items-center gap-1 shadow-sm transition">
+                  <button type="button" onclick="fetchDiscogsPriceForRecord('${safeId}')" class="px-2.5 py-1 bg-vinyl-900 hover:bg-amber-950/40 border border-vinyl-700 hover:border-amber-500/50 text-amber-400 hover:text-amber-300 rounded-md text-[11px] font-medium flex items-center gap-1 shadow-sm transition">
                     <i class="fa-solid fa-compact-disc text-[10px]"></i> Discogs Value
                   </button>
-                  <button type="button" onclick="fetchEbayPriceForRecord('${item.id}')" class="px-2.5 py-1 bg-vinyl-900 hover:bg-blue-950/40 border border-vinyl-700 hover:border-blue-500/50 text-blue-400 hover:text-blue-300 rounded-md text-[11px] font-medium flex items-center gap-1 shadow-sm transition">
+                  <button type="button" onclick="fetchEbayPriceForRecord('${safeId}')" class="px-2.5 py-1 bg-vinyl-900 hover:bg-blue-950/40 border border-vinyl-700 hover:border-blue-500/50 text-blue-400 hover:text-blue-300 rounded-md text-[11px] font-medium flex items-center gap-1 shadow-sm transition">
                     <i class="fa-brands fa-ebay text-xs"></i> eBay Sold Value
                   </button>
                 </div>
@@ -9297,14 +9379,14 @@
             Record ID: ${escapeHtml(item.id)}
           </div>
           <div class="flex gap-2 w-full sm:w-auto justify-end flex-wrap">
-            <button type="button" onclick="openExtendedArchivalModal('${item.id}')" class="px-3 py-2 rounded-lg bg-cyan-950/60 hover:bg-cyan-900/70 text-cyan-300 border border-cyan-500/40 text-xs font-semibold flex items-center gap-1.5 transition">
+            <button type="button" onclick="openExtendedArchivalModal('${safeId}')" class="px-3 py-2 rounded-lg bg-cyan-950/60 hover:bg-cyan-900/70 text-cyan-300 border border-cyan-500/40 text-xs font-semibold flex items-center gap-1.5 transition">
               <span>🔬 Extended Archival Details</span>
             </button>
             ${isOwner ? `
-              <button onclick="openArtworkChooserModal('record', '${item.id}')" class="px-3 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-sky-400 border border-sky-500/30 text-xs font-semibold flex items-center gap-1.5 transition shadow">
+              <button type="button" onclick="openArtworkChooserModal('record', '${safeId}')" class="px-3 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-sky-400 border border-sky-500/30 text-xs font-semibold flex items-center gap-1.5 transition shadow">
                 <i class="fa-solid fa-images"></i> <span>Sleeve</span>
               </button>
-              <button onclick="editRecord('${item.id}'); closeDetailModal();" class="px-3 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 text-xs font-semibold flex items-center gap-1.5">
+              <button type="button" onclick="editRecord('${safeId}');" class="px-3 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 text-xs font-semibold flex items-center gap-1.5">
                 <i class="fa-solid fa-pen-to-square"></i> <span>Edit</span>
               </button>
             ` : ''}
@@ -9320,7 +9402,8 @@
     }
 
     function openExtendedArchivalModal(id) {
-      const item = records.find(r => r.id === (id || currentDetailRecordId));
+      const targetId = id || currentDetailRecordId;
+      const item = records.find(r => String(r.id) === String(targetId));
       if (!item) return;
 
       const drawer = document.getElementById('extendedArchivalModal');
@@ -9711,30 +9794,29 @@
       if (qmcToken && !localStorage.getItem('discogs_user_token')) {
         try { localStorage.setItem('discogs_user_token', qmcToken); } catch (e) {}
       }
+      const qmcGemini = localStorage.getItem('qmc_gemini_api_key') || '';
+      if (qmcGemini && !localStorage.getItem('gemini_api_key')) {
+        try { localStorage.setItem('gemini_api_key', qmcGemini); } catch (e) {}
+      }
 
-      const modal = document.getElementById('visualMatcherModal');
-      const frame = document.getElementById('visualMatcherFrame');
-      const statusBar = document.getElementById('visualMatcherStatusBar');
-      if (!modal || !frame) return;
-      if (statusBar) statusBar.classList.add('hidden');
-
-      frame.onload = () => {
-        try {
-          const doc = frame.contentDocument || frame.contentWindow?.document;
-          if (!doc) return;
-          const is404 = /404|file not found/i.test(doc.title || '') && !doc.getElementById('resultBlock');
-          if (is404) {
-            showToast("visual.html not found on this local server path.", "warning");
-            return;
+      const targetUrl = 'visual.html?t=' + Date.now();
+      let openedWin = null;
+      try {
+        if (typeof window.open === 'function') {
+          // Open as a full-page browser tab/window while preserving window.opener for live import
+          openedWin = window.open(targetUrl, 'qmcVisualMatcher');
+          if (openedWin && typeof openedWin.focus === 'function') {
+            openedWin.focus();
           }
-          attachVisualMatcherBridge(frame);
-        } catch (err) {
-          // Cross-origin fallback: postMessage / storage events handle sync
         }
-      };
+      } catch (e) {}
 
-      frame.src = 'visual.html?embedded=1&t=' + Date.now();
-      modal.classList.remove('hidden');
+      if (openedWin) return;
+
+      // Popup-blocker fallback: navigate to visual.html full-page
+      try {
+        window.location.href = targetUrl;
+      } catch (e) {}
     }
 
     function closeVisualMatcherModal() {
@@ -9945,6 +10027,8 @@
     window.addEventListener('message', (event) => {
       if (event?.data?.type === 'QMC_VISUAL_MATCH' && event.data.payload) {
         applyVisualMatcherPayload(event.data.payload);
+        closeVisualMatcherModal();
+      } else if (event?.data?.type === 'QMC_VISUAL_EXIT') {
         closeVisualMatcherModal();
       }
     });
@@ -10252,7 +10336,7 @@
 
     function editRecord(id) {
       if (typeof closeDetailModal === 'function') closeDetailModal();
-      const item = records.find(r => r.id === id);
+      const item = records.find(r => String(r.id) === String(id));
       if (!item) return;
 
       document.getElementById('modalTitle').innerText = 'Edit Record: ' + item.artist;
@@ -10886,7 +10970,7 @@
     }
 
     function promptQuickValuation(id) {
-      const rec = records.find(r => r.id === id);
+      const rec = records.find(r => String(r.id) === String(id));
       if (!rec) return;
       const sym = getCurrencySymbol(rec.currency);
       const currentVal = (rec.estimatedValue !== undefined && rec.estimatedValue !== null && !isNaN(rec.estimatedValue)) ? parseFloat(rec.estimatedValue).toFixed(2) : '';
@@ -10914,7 +10998,7 @@
     }
 
     async function fetchDiscogsPriceForRecord(recordId) {
-      const record = records.find(r => r.id === recordId);
+      const record = records.find(r => String(r.id) === String(recordId));
       if (!record) return;
 
       const token = localStorage.getItem(TOKEN_KEY) || '';
@@ -11426,7 +11510,7 @@
     }
 
     async function fetchEbayPriceForRecord(recordId) {
-      const record = records.find(r => r.id === recordId);
+      const record = records.find(r => String(r.id) === String(recordId));
       if (!record) return;
 
       const sym = getCurrencySymbol(record.currency);
@@ -11640,6 +11724,155 @@
       return resultList.join(', ');
     }
 
+    function extractDiscogsSeriesInfo(releaseData) {
+      if (!releaseData || !Array.isArray(releaseData.series) || releaseData.series.length === 0) return null;
+      const first = releaseData.series.find(s => s && s.name && String(s.name).trim());
+      if (!first) return null;
+      return {
+        seriesName: String(first.name).trim(),
+        seriesNumber: first.catno ? String(first.catno).trim() : ''
+      };
+    }
+
+    function extractMusicBrainzSeriesInfo(releaseData) {
+      const rels = Array.isArray(releaseData?.relations) ? releaseData.relations : [];
+      const seriesRel = rels.find(r => r && r['target-type'] === 'series' && r.series && r.series.name);
+      if (!seriesRel) return null;
+      const attrNum = seriesRel['attribute-values']?.number;
+      const ordNum = (seriesRel['ordering-key'] !== undefined && seriesRel['ordering-key'] !== null && seriesRel['ordering-key'] !== '')
+        ? String(seriesRel['ordering-key'])
+        : '';
+      return {
+        seriesName: String(seriesRel.series.name).trim(),
+        seriesNumber: String(attrNum || ordNum || '').trim()
+      };
+    }
+
+    async function fetchSeriesFromOnlineSources(rec = {}, overrideToken = '') {
+      const cleanArtist = (rec.artist || '').trim();
+      const cleanTitle = (rec.title || '').trim();
+      const cleanCatNo = (rec.catNo || rec.cat_no || '').trim();
+      const cleanBarcode = String(rec.barcode || '').replace(/\D/g, '');
+      let discogsId = rec.discogsId ? String(rec.discogsId).trim() : '';
+      const token = overrideToken || localStorage.getItem(TOKEN_KEY) || localStorage.getItem('QMC_DISCOGS_TOKEN') || '';
+
+      if (!cleanArtist && !cleanTitle && !discogsId && !cleanBarcode) return null;
+
+      const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const resultMatchesRecord = (candTitle = '', candArtist = '') => {
+        const nt = norm(cleanTitle);
+        const na = norm(cleanArtist);
+        const ct = norm(candTitle);
+        const ca = norm(candArtist);
+        if (nt && ct && !(ct.includes(nt) || nt.includes(ct))) return false;
+        if (na && ca && !(ca.includes(na) || na.includes(ca) || ct.includes(na))) return false;
+        return Boolean(ct || ca);
+      };
+
+      const fetchDiscogsReleaseDetails = async (relId) => {
+        let url = `https://api.discogs.com/releases/${encodeURIComponent(relId)}`;
+        if (token) url += `?token=${encodeURIComponent(token)}`;
+        const res = await fetch(url, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } });
+        if (!res.ok) return null;
+        return await res.json();
+      };
+
+      const collectDiscogsGenres = (rel) => {
+        const gSet = [];
+        if (Array.isArray(rel?.genres)) rel.genres.forEach(g => { if (g && !gSet.includes(g)) gSet.push(g.trim()); });
+        if (Array.isArray(rel?.styles)) rel.styles.forEach(s => { if (s && !gSet.includes(s)) gSet.push(s.trim()); });
+        return gSet.join(', ');
+      };
+
+      // 1. Direct Discogs Release lookup by existing discogsId
+      if (discogsId) {
+        try {
+          const data = await fetchDiscogsReleaseDetails(discogsId);
+          if (data) {
+            const sInfo = extractDiscogsSeriesInfo(data);
+            const genresStr = collectDiscogsGenres(data);
+            if (sInfo) {
+              return { ...sInfo, discogsId: String(data.id || discogsId), genres: genresStr, source: 'Discogs' };
+            }
+          }
+        } catch (e) {
+          console.warn("Discogs ID series fetch notice:", e);
+        }
+      }
+
+      // 2. Discogs Database Search -> full /releases/{id} for series array
+      if (!discogsId && (cleanBarcode || cleanCatNo || (cleanArtist && cleanTitle))) {
+        try {
+          const terms = typeof getCleanSearchTerms === 'function'
+            ? getCleanSearchTerms(cleanArtist, cleanTitle)
+            : { artist: cleanArtist, title: cleanTitle };
+          const params = new URLSearchParams({ type: 'release', per_page: '5' });
+          if (cleanBarcode) {
+            params.set('barcode', cleanBarcode);
+          } else if (cleanCatNo && cleanCatNo.toLowerCase() !== 'none') {
+            params.set('catno', cleanCatNo);
+            if (terms.artist) params.set('artist', terms.artist);
+          } else {
+            params.set('q', [terms.artist, terms.title].filter(Boolean).join(' '));
+          }
+          if (token) params.set('token', token);
+
+          const sRes = await fetch(`https://api.discogs.com/database/search?${params.toString()}`, {
+            headers: { 'User-Agent': 'QMCVinylArchive/2.0' }
+          });
+          if (sRes.ok) {
+            const sData = await sRes.json();
+            const candidate = (sData.results || []).find(r => cleanBarcode || resultMatchesRecord(r.title, '')) || sData.results?.[0];
+            if (candidate?.id) {
+              const relDetails = await fetchDiscogsReleaseDetails(candidate.id);
+              if (relDetails) {
+                const sInfo = extractDiscogsSeriesInfo(relDetails);
+                const genresStr = collectDiscogsGenres(relDetails);
+                if (sInfo) {
+                  return { ...sInfo, discogsId: String(relDetails.id || candidate.id), genres: genresStr, source: 'Discogs' };
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("Discogs Search series fetch notice:", e);
+        }
+      }
+
+      // 3. MusicBrainz fallback (release search -> release detail with inc=series-rels)
+      if (cleanBarcode || cleanArtist || cleanTitle) {
+        try {
+          let mbQuery = '';
+          if (cleanBarcode) mbQuery = `barcode:${cleanBarcode}`;
+          else if (cleanArtist && cleanTitle) mbQuery = `artist:"${cleanArtist}" AND release:"${cleanTitle}"`;
+          else mbQuery = [cleanArtist, cleanTitle].filter(Boolean).join(' ');
+
+          const searchRes = await fetch(`https://musicbrainz.org/ws/2/release?query=${encodeURIComponent(mbQuery)}&fmt=json&limit=3`);
+          if (searchRes.ok) {
+            const searchData = await searchRes.json();
+            const relHit = (searchData.releases || []).find(r => {
+              const rArtist = r['artist-credit']?.[0]?.name || '';
+              return cleanBarcode || resultMatchesRecord(r.title, rArtist);
+            });
+            if (relHit?.id) {
+              const detailRes = await fetch(`https://musicbrainz.org/ws/2/release/${encodeURIComponent(relHit.id)}?inc=series-rels&fmt=json`);
+              if (detailRes.ok) {
+                const detailData = await detailRes.json();
+                const mbSeries = extractMusicBrainzSeriesInfo(detailData);
+                if (mbSeries) {
+                  return { ...mbSeries, discogsId: discogsId || '', genres: '', source: 'MusicBrainz' };
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("MusicBrainz series fetch notice:", e);
+        }
+      }
+
+      return null;
+    }
+
     async function autoFetchGenreForCurrentForm() {
       const artist = document.getElementById('formArtist')?.value.trim() || '';
       const title = document.getElementById('formTitle')?.value.trim() || '';
@@ -11661,7 +11894,7 @@
     }
 
     async function autoEnrichRecordGenre(recordId) {
-      const item = records.find(r => r.id === recordId);
+      const item = records.find(r => String(r.id) === String(recordId));
       if (!item) {
         showToast("Record not found", "error");
         return;
@@ -11864,14 +12097,18 @@
       const opt12S = document.getElementById('batchRefreshOpt12S')?.checked ?? true;
       const optTapes = document.getElementById('batchRefreshOptTapes')?.checked ?? true;
       const optGenres = document.getElementById('batchRefreshOptGenres')?.checked ?? true;
+      const optSeries = document.getElementById('batchRefreshOptSeries')?.checked ?? true;
       const optValuate = document.getElementById('batchRefreshOptValuate')?.checked ?? true;
 
       // Identify target records
       let targetList = [];
-      if (mode === 'audit') {
+      if (mode === 'series') {
+        targetList = records.filter(r => !(r.seriesName || r.series_name || '').trim());
+      } else if (mode === 'audit') {
         targetList = records.filter(r => {
           const fmt = (r.format || '').toLowerCase();
           const title = (r.title || '').toLowerCase();
+          const labelLow = (r.label || '').toLowerCase();
           const speed = (r.speed || '').toLowerCase();
           const tracks = r.tracks || [];
 
@@ -11883,10 +12120,15 @@
           const hasShortTracks = isLp && tracks.length > 0 && tracks.length <= 4;
           const is45Speed = speed.includes('45');
           const isMissingMeta = !r.genres || !r.genres.trim() || !r.year || !r.estimatedValue;
+          const isSeriesCandidate = optSeries && !(r.seriesName || r.series_name || '').trim() && (
+            Boolean(r.discogsId) ||
+            /series|vol\.?|volume|fabric|latenight|dj.?kicks|back to mine|renaissance|global underground|solid steel|ministry|now that|anthology|edition|collection/i.test(`${title} ${labelLow}`)
+          );
 
           return (isLp && (titleHasSingle || hasShortTracks || is45Speed)) ||
                  (isOther && (titleHasTape || titleHasSingle)) ||
-                 isMissingMeta;
+                 isMissingMeta ||
+                 isSeriesCandidate;
         });
       } else {
         targetList = [...records];
@@ -11903,6 +12145,7 @@
       const pBar = document.getElementById('batchRefreshProgressBar');
       const pReclass = document.getElementById('batchRefreshReclassifiedCount');
       const pEnrich = document.getElementById('batchRefreshEnrichedCount');
+      const pSeries = document.getElementById('batchRefreshSeriesCount');
       const pVal = document.getElementById('batchRefreshValuatedCount');
       const pLog = document.getElementById('batchRefreshLog');
       const btn = document.getElementById('startBatchRefreshBtn');
@@ -11917,6 +12160,7 @@
       isBatchMetadataRefreshRunning = true;
       let reclassifiedCount = 0;
       let enrichedCount = 0;
+      let seriesCount = 0;
       let valuatedCount = 0;
       let discogsThrottled = false;
       const updatedRecords = [];
@@ -11941,7 +12185,9 @@
           const speedLow = (rec.speed || '').toLowerCase();
           const tracksCount = (rec.tracks || []).length;
 
-          if (opt12S && (fLow.includes('lp') || fLow.includes('other'))) {
+          const runReclassAndMeta = mode !== 'series';
+
+          if (runReclassAndMeta && opt12S && (fLow.includes('lp') || fLow.includes('other'))) {
             const is12Candidate = tLow.includes('12"') && (tLow.includes('single') || tLow.includes('maxi') || tLow.includes('ep') || tLow.includes('mix')) ||
                                   tLow.includes('maxi single') || tLow.includes('maxi-single') ||
                                   (speedLow.includes('45') && fLow.includes('12"')) ||
@@ -11961,7 +12207,7 @@
             }
           }
 
-          if (optTapes && (fLow.includes('other') || fLow.includes('cd') || fLow.includes('lp'))) {
+          if (runReclassAndMeta && optTapes && (fLow.includes('other') || fLow.includes('cd') || fLow.includes('lp'))) {
             if (tLow.includes('cassette') || tLow.includes('tape')) {
               rec.format = 'Cassette Tape';
               reclassifiedCount++;
@@ -11987,10 +12233,40 @@
             }
           }
 
-          // 2. Metadata Backfill (Genres)
-          if (optGenres && (!rec.genres || !rec.genres.trim())) {
+          // 2a. Release Series Backfill (Discogs / MusicBrainz)
+          if ((mode === 'series' || optSeries) && !(rec.seriesName || rec.series_name || '').trim()) {
             try {
-              const fetchedGenres = await fetchGenreFromOnlineSources(rec.artist, rec.title);
+              const sRes = await fetchSeriesFromOnlineSources(rec, discogsToken);
+              if (sRes && sRes.seriesName) {
+                rec.seriesName = sRes.seriesName;
+                if (sRes.seriesNumber && !(rec.seriesNumber || rec.series_number || '').trim()) {
+                  rec.seriesNumber = sRes.seriesNumber;
+                }
+                if (sRes.discogsId && !rec.discogsId) {
+                  rec.discogsId = String(sRes.discogsId);
+                }
+                if (runReclassAndMeta && optGenres && (!rec.genres || !rec.genres.trim()) && sRes.genres) {
+                  rec.genres = sRes.genres;
+                  enrichedCount++;
+                }
+                seriesCount++;
+                changed = true;
+                if (pLog) {
+                  const row = document.createElement('div');
+                  row.className = 'text-indigo-300';
+                  const numBadge = rec.seriesNumber ? ` #${rec.seriesNumber}` : '';
+                  row.innerText = `[Series] ${rec.artist} – ${rec.title}: Added "${rec.seriesName}${numBadge}" (${sRes.source})`;
+                  pLog.appendChild(row);
+                  pLog.scrollTop = pLog.scrollHeight;
+                }
+              }
+            } catch (e) {}
+          }
+
+          // 2b. Metadata Backfill (Genres)
+          if (runReclassAndMeta && optGenres && (!rec.genres || !rec.genres.trim())) {
+            try {
+              const fetchedGenres = await fetchGenreFromOnlineSources(rec.artist, rec.title, rec.discogsId);
               if (fetchedGenres) {
                 rec.genres = fetchedGenres;
                 enrichedCount++;
@@ -12007,7 +12283,7 @@
           }
 
           // 3. Valuation Refresh
-          if (optValuate && (changed || !rec.estimatedValue || rec.estimatedValue === '0' || rec.estimatedValue === 0)) {
+          if (runReclassAndMeta && optValuate && (changed || !rec.estimatedValue || rec.estimatedValue === '0' || rec.estimatedValue === 0)) {
             try {
               let val = null;
               if (discogsToken && !discogsThrottled) {
@@ -12044,12 +12320,14 @@
 
           if (pReclass) pReclass.innerText = reclassifiedCount;
           if (pEnrich) pEnrich.innerText = enrichedCount;
+          if (pSeries) pSeries.innerText = seriesCount;
           if (pVal) pVal.innerText = valuatedCount;
 
           await new Promise(r => setTimeout(r, 150));
         }
 
         try { saveRecordsToStorage(); } catch (e) { console.warn("Storage save notice:", e); }
+        try { if (typeof populateSeriesDatalist === 'function') populateSeriesDatalist(); } catch (e) {}
         try { renderStats(); } catch (e) { console.warn("Stats render notice:", e); }
         try { renderRecords(); } catch (e) { console.warn("Records render notice:", e); }
         if (typeof renderArchiveStation === 'function') {
@@ -12091,7 +12369,7 @@
         if (pLog) {
           const row = document.createElement('div');
           row.className = 'text-emerald-400 font-bold mt-2 pt-2 border-t border-vinyl-800';
-          row.innerText = `Audit Finished! Reclassified: ${reclassifiedCount}, Enriched: ${enrichedCount}, Valuated: ${valuatedCount}.`;
+          row.innerText = `Audit Finished! Reclassified: ${reclassifiedCount}, Enriched: ${enrichedCount}, Series: ${seriesCount}, Valuated: ${valuatedCount}.`;
           pLog.appendChild(row);
           pLog.scrollTop = pLog.scrollHeight;
         }
@@ -12863,6 +13141,8 @@
       let matrixAVal = '';
       let matrixBVal = '';
       let discogsReleaseId = '';
+      let seriesNameVal = '';
+      let seriesNumberVal = '';
 
       // Seed everything from the search-result card first, so what the user saw is always copied
       // even if the detail request fails or comes back sparse (rate limits, missing fields)
@@ -12906,6 +13186,11 @@
             }
             if (Array.isArray(dData.genres)) releaseGenres.push(...dData.genres);
             if (Array.isArray(dData.styles)) releaseGenres.push(...dData.styles);
+            const dcSeries = extractDiscogsSeriesInfo(dData);
+            if (dcSeries) {
+              seriesNameVal = dcSeries.seriesName;
+              seriesNumberVal = dcSeries.seriesNumber;
+            }
 
             // Determine format using our comprehensive parser
             assignedFormat = parseDiscogsFormat(dData.formats || match.rawDiscogsFormat || []);
@@ -12985,11 +13270,16 @@
       } else {
         // Source: MusicBrainz
         try {
-          const detailUrl = `https://musicbrainz.org/ws/2/release/${match.id}?inc=recordings+artist-credits+labels+genres+tags+release-groups&fmt=json`;
+          const detailUrl = `https://musicbrainz.org/ws/2/release/${match.id}?inc=recordings+artist-credits+labels+genres+tags+release-groups+series-rels&fmt=json`;
           let detailRes = await fetch(detailUrl);
           if (!detailRes.ok) { await new Promise(r => setTimeout(r, 1200)); detailRes = await fetch(detailUrl); } // MusicBrainz rate-limit retry
           if (detailRes.ok) {
             fullRelease = await detailRes.json();
+            const mbSeries = extractMusicBrainzSeriesInfo(fullRelease);
+            if (mbSeries) {
+              seriesNameVal = mbSeries.seriesName;
+              seriesNumberVal = mbSeries.seriesNumber;
+            }
           }
         } catch (err) {
           console.warn("Could not fetch release recordings detail, using summary:", err);
@@ -13138,6 +13428,8 @@
       if (releaseBarcode) document.getElementById('formBarcode').value = releaseBarcode;
       if (releaseLabel) document.getElementById('formLabel').value = releaseLabel;
       if (releaseCatNo) document.getElementById('formCatNo').value = releaseCatNo;
+      if (seriesNameVal && document.getElementById('formSeriesName')) document.getElementById('formSeriesName').value = seriesNameVal;
+      if (seriesNumberVal && document.getElementById('formSeriesNumber')) document.getElementById('formSeriesNumber').value = seriesNumberVal;
 
       // Format selection with fuzzy fallback
       const fmtSelect = document.getElementById('formFormat');

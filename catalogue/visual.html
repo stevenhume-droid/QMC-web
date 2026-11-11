@@ -30,13 +30,36 @@
     }
     .container {
       width: 100%;
-      max-width: 540px;
+      max-width: 600px;
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
     header h1 { font-size: 1.4rem; letter-spacing: -0.02em; }
     header p { color: var(--text-muted); font-size: 0.85rem; margin-top: 2px; }
+    .btn-exit-visual {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      background: #25252b;
+      color: #eaeaea;
+      border: 1px solid #3a3a44;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-exit-visual:hover {
+      background: #421d24;
+      border-color: #b91c1c;
+      color: #fecaca;
+    }
     
     .card {
       background: var(--card);
@@ -233,8 +256,11 @@
 
 <div class="container">
   <header>
-    <h1>Album & Pressing Matcher</h1>
-    <p>Snap sleeve front, back barcode, or spine to identify the exact pressing.</p>
+    <div>
+      <h1>Album & Pressing Matcher</h1>
+      <p>Snap sleeve front, back barcode, or spine to identify the exact pressing.</p>
+    </div>
+    <button id="btnExitVisual" type="button" class="btn-exit-visual" title="Exit Visual Matcher and return to QMC Catalogue">✕ Exit</button>
   </header>
 
   <div class="card">
@@ -830,6 +856,29 @@ Return strictly valid JSON matching this schema:
     };
   }
 
+  function exitVisualPage() {
+    stopCamera();
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'QMC_VISUAL_EXIT' }, '*');
+      return;
+    }
+    if (window.opener && !window.opener.closed) {
+      try { window.opener.focus(); } catch (e) {}
+    }
+    try { window.close(); } catch (e) {}
+    setTimeout(() => {
+      if (!window.closed) {
+        if (window.history.length > 1 && document.referrer && document.referrer.includes('catalogue')) {
+          window.history.back();
+        } else {
+          window.location.href = 'index.html';
+        }
+      }
+    }, 150);
+  }
+
+  document.getElementById('btnExitVisual')?.addEventListener('click', exitVisualPage);
+
   document.getElementById('qmcApplyVisualMatchBtn')?.addEventListener('click', () => {
     const payload = buildQmcExportPayload();
     stopCamera();
@@ -840,7 +889,9 @@ Return strictly valid JSON matching this schema:
     }
     if (window.opener && !window.opener.closed) {
       window.opener.postMessage({ type: 'QMC_VISUAL_MATCH', payload }, '*');
+      try { window.opener.focus(); } catch (e) {}
       setStatus('Sent pressing to open QMC Catalogue window!');
+      setTimeout(() => { try { window.close(); } catch (e) {} }, 120);
       return;
     }
     try {
@@ -849,7 +900,8 @@ Return strictly valid JSON matching this schema:
       if ((storagePayload.labelAImage || '').startsWith('data:') && storagePayload.labelAImage.length > 300000) storagePayload.labelAImage = '';
       if ((storagePayload.labelBImage || '').startsWith('data:') && storagePayload.labelBImage.length > 300000) storagePayload.labelBImage = '';
       localStorage.setItem('qmc_visual_match_payload', JSON.stringify(storagePayload));
-      setStatus('Saved pressing for QMC Catalogue! Return to your Catalogue tab.');
+      setStatus('Saved pressing — returning to QMC Catalogue...');
+      setTimeout(() => { window.location.href = 'index.html'; }, 120);
     } catch (e) {
       setStatus('Pressing ready — open QMC Catalogue in this browser to import.');
     }
