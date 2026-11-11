@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Album Cover Matcher</title>
+  <title>Album & Pressing Matcher</title>
   <style>
     :root {
       --bg: #121214;
@@ -16,6 +16,7 @@
       --accent-hover: #ff8252;
       --text: #eaeaea;
       --text-muted: #9e9ea7;
+      --badge-bg: #2a2a32;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -29,7 +30,7 @@
     }
     .container {
       width: 100%;
-      max-width: 520px;
+      max-width: 540px;
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -55,17 +56,17 @@
       margin-bottom: 6px;
       letter-spacing: 0.05em;
     }
-    input[type="password"] {
+    input[type="password"], select {
       width: 100%;
       padding: 10px 12px;
       background: #0d0d0f;
       border: 1px solid var(--border);
       border-radius: 8px;
       color: #fff;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       outline: none;
     }
-    input[type="password"]:focus {
+    input[type="password"]:focus, select:focus {
       border-color: var(--accent);
     }
 
@@ -89,7 +90,7 @@
     }
     .viewport-guide {
       position: absolute;
-      inset: 10%;
+      inset: 8%;
       border: 2px dashed rgba(255, 255, 255, 0.45);
       border-radius: 6px;
       pointer-events: none;
@@ -122,11 +123,7 @@
     button:active, .file-label:active { background: #373740; }
     button:disabled { opacity: 0.35; cursor: not-allowed; }
     
-    .btn-snap {
-      background: #ffffff;
-      color: #121214;
-      border-color: #ffffff;
-    }
+    .btn-snap { background: #ffffff; color: #121214; border-color: #ffffff; }
     .btn-snap:active { background: #e0e0e0; }
 
     .file-label {
@@ -154,6 +151,7 @@
       min-height: 1.1rem;
       text-align: center;
       word-break: break-word;
+      line-height: 1.4;
     }
 
     /* Results */
@@ -161,24 +159,49 @@
       display: none;
       border-top: 1px solid var(--border);
       padding-top: 14px;
+      flex-direction: column;
+      gap: 12px;
     }
-    .album-header { margin-bottom: 12px; }
+    .album-header { margin-bottom: 4px; }
     .album-title { font-size: 1.25rem; font-weight: 700; color: #fff; line-height: 1.2; }
     .album-artist { font-size: 1rem; color: var(--text-muted); margin-top: 2px; }
-    .album-meta { font-size: 0.8rem; color: var(--accent); margin-top: 6px; }
-    
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .tag {
+      background: var(--badge-bg);
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      color: #ccc;
+    }
+    .tag-cat { color: var(--accent); font-weight: 600; }
+
     .tracklist {
       list-style-type: decimal;
       padding-left: 20px;
       font-size: 0.85rem;
-      max-height: 200px;
+      max-height: 220px;
       overflow-y: auto;
-      margin-top: 8px;
+      margin-top: 6px;
       display: flex;
       flex-direction: column;
       gap: 5px;
     }
-    .tracklist li { color: #d0d0d5; padding-right: 8px; }
+    .tracklist li {
+      color: #d0d0d5;
+      padding-right: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .track-dur { color: var(--text-muted); font-size: 0.8rem; margin-left: 8px; }
+    .discogs-link {
+      font-size: 0.8rem;
+      color: var(--accent);
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 6px;
+    }
+    .discogs-link:hover { text-decoration: underline; }
     canvas { display: none; }
   </style>
 </head>
@@ -186,14 +209,19 @@
 
 <div class="container">
   <header>
-    <h1>Album Cover Matcher</h1>
-    <p>Snap a vinyl sleeve or CD cover to retrieve release metadata.</p>
+    <h1>Album & Pressing Matcher</h1>
+    <p>Snap cover, catalog text, or spine to identify exact release pressing.</p>
   </header>
 
   <div class="card">
     <div class="field">
       <label for="apiKey">Gemini API Key</label>
       <input type="password" id="apiKey" placeholder="AIzaSy...">
+    </div>
+
+    <div class="field">
+      <label for="discogsToken">Discogs Token (Optional but Recommended for exact pressings)</label>
+      <input type="password" id="discogsToken" placeholder="Paste personal token from discogs.com/settings/developers">
     </div>
 
     <div class="viewport">
@@ -207,7 +235,7 @@
       <button id="btnSnap" type="button" class="btn-snap" disabled>📸 Take Picture</button>
       <label class="file-label" for="fileInput">Choose from Photo Library</label>
       <input type="file" id="fileInput" accept="image/*" capture="environment">
-      <button id="btnScan" class="primary" type="button" disabled>Analyze Cover</button>
+      <button id="btnScan" class="primary" type="button" disabled>Identify Release</button>
     </div>
 
     <div id="status"></div>
@@ -216,10 +244,19 @@
       <div class="album-header">
         <div id="resTitle" class="album-title"></div>
         <div id="resArtist" class="album-artist"></div>
-        <div id="resMeta" class="album-meta"></div>
+        <div id="resTags" class="tags"></div>
       </div>
-      <label style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em;">Tracklist (MusicBrainz)</label>
-      <ol id="resTracks" class="tracklist"></ol>
+
+      <div class="field" id="pressingSelectGroup" style="display: none;">
+        <label for="pressingSelector">Select Matching Pressing / Release</label>
+        <select id="pressingSelector"></select>
+        <a id="discogsReleaseUrl" class="discogs-link" target="_blank" rel="noopener">View release on Discogs ↗</a>
+      </div>
+
+      <div>
+        <label style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em;">Tracklist</label>
+        <ol id="resTracks" class="tracklist"></ol>
+      </div>
     </div>
   </div>
 </div>
@@ -237,20 +274,30 @@
   const fileInput = document.getElementById('fileInput');
   const btnScan = document.getElementById('btnScan');
   const apiKeyInput = document.getElementById('apiKey');
+  const discogsTokenInput = document.getElementById('discogsToken');
   const statusEl = document.getElementById('status');
   
   const resultBlock = document.getElementById('resultBlock');
   const resTitle = document.getElementById('resTitle');
   const resArtist = document.getElementById('resArtist');
-  const resMeta = document.getElementById('resMeta');
+  const resTags = document.getElementById('resTags');
+  const pressingSelectGroup = document.getElementById('pressingSelectGroup');
+  const pressingSelector = document.getElementById('pressingSelector');
+  const discogsReleaseUrl = document.getElementById('discogsReleaseUrl');
   const resTracks = document.getElementById('resTracks');
 
   let stream = null;
   let snappedImageData = null;
+  let detectedReleases = [];
 
   apiKeyInput.value = localStorage.getItem('gemini_api_key') || '';
   apiKeyInput.addEventListener('input', () => {
     localStorage.setItem('gemini_api_key', apiKeyInput.value.trim());
+  });
+
+  discogsTokenInput.value = localStorage.getItem('discogs_user_token') || '';
+  discogsTokenInput.addEventListener('input', () => {
+    localStorage.setItem('discogs_user_token', discogsTokenInput.value.trim());
   });
 
   function setStatus(text) {
@@ -259,17 +306,16 @@
 
   function stopCamera() {
     if (video.srcObject) {
-      const tracks = video.srcObject.getTracks();
-      tracks.forEach(track => track.stop());
+      video.srcObject.getTracks().forEach(t => t.stop());
       video.srcObject = null;
     }
     if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach(t => t.stop());
       stream = null;
     }
   }
 
-  // Camera start / stop with Safari iOS lifecycle fix
+  // Camera start / stop
   btnToggleCam.addEventListener('click', async () => {
     if (stream) {
       stopCamera();
@@ -281,14 +327,9 @@
     }
 
     setStatus('Requesting camera access...');
-
     const constraints = {
       audio: false,
-      video: { 
-        facingMode: { ideal: 'environment' },
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      }
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
     };
 
     try {
@@ -296,50 +337,42 @@
       stream = await navigator.mediaDevices.getUserMedia(constraints);
       video.srcObject = stream;
 
-      await new Promise((resolve) => {
-        if (video.readyState >= 1) {
-          resolve();
-        } else {
-          video.onloadedmetadata = () => resolve();
-        }
+      await new Promise(resolve => {
+        if (video.readyState >= 1) resolve();
+        else video.onloadedmetadata = () => resolve();
       });
 
       await video.play();
-
       video.style.display = 'block';
       preview.style.display = 'none';
       snappedImageData = null;
       btnToggleCam.textContent = 'Stop Camera';
       btnSnap.disabled = false;
       btnScan.disabled = true;
-      setStatus('Align cover in the frame and tap "📸 Take Picture"');
+      setStatus('Capture sleeve front or spine, then tap "📸 Take Picture"');
     } catch (err) {
-      console.error(err);
       setStatus('Camera error: ' + (err.name || err.message));
     }
   });
 
-  // Freeze video stream to snapshot
+  // Freeze frame
   btnSnap.addEventListener('click', () => {
     if (!stream) return;
-
     snappedImageData = captureDownscaledImage(video, video.videoWidth || 800, video.videoHeight || 800);
     preview.src = snappedImageData;
     preview.style.display = 'block';
     video.style.display = 'none';
-
     stopCamera();
     btnToggleCam.textContent = 'Retake Photo';
     btnSnap.disabled = true;
     btnScan.disabled = false;
-    setStatus('Photo captured. Tap "Analyze Cover" to identify.');
+    setStatus('Photo captured. Tap "Identify Release" to search.');
   });
 
-  // Photo library selection
+  // Photo library picker
   fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     stopCamera();
     btnToggleCam.textContent = 'Start Camera';
     btnSnap.disabled = true;
@@ -351,17 +384,15 @@
       preview.style.display = 'block';
       snappedImageData = event.target.result;
       btnScan.disabled = false;
-      setStatus('Photo loaded. Tap "Analyze Cover" to identify.');
+      setStatus('Photo loaded. Tap "Identify Release" to search.');
     };
     reader.readAsDataURL(file);
   });
 
-  // Downsample to max 800px on canvas to keep transfer payload small
   function captureDownscaledImage(sourceEl, sW, sH) {
-    const maxDim = 800;
+    const maxDim = 900;
     let targetW = sW;
     let targetH = sH;
-
     if (targetW > maxDim || targetH > maxDim) {
       if (targetW > targetH) {
         targetH = Math.round((targetH * maxDim) / targetW);
@@ -371,62 +402,35 @@
         targetH = maxDim;
       }
     }
-
     canvas.width = targetW;
     canvas.height = targetH;
     ctx.drawImage(sourceEl, 0, 0, targetW, targetH);
     return canvas.toDataURL('image/jpeg', 0.85);
   }
 
-  // Analyze Cover click
-  btnScan.addEventListener('click', async () => {
-    const key = apiKeyInput.value.trim();
-    if (!key) {
-      alert('Please enter your Gemini API Key at the top.');
-      return;
-    }
-
-    btnScan.disabled = true;
-    resultBlock.style.display = 'none';
-    setStatus('Optimizing image payload...');
-
-    let finalDataUrl = snappedImageData;
-    if (!finalDataUrl.startsWith('data:image/jpeg;base64') || preview.naturalWidth > 800) {
-      finalDataUrl = captureDownscaledImage(preview, preview.naturalWidth, preview.naturalHeight);
-    }
-    const rawBase64 = finalDataUrl.split(',')[1];
-
-    try {
-      setStatus('Identifying album with Gemini 3.8 Flash...');
-      const albumData = await identifyAlbumArtwork(key, rawBase64);
-
-      setStatus(`Found "${albumData.album}" by ${albumData.artist}. Searching MusicBrainz...`);
-      resTitle.textContent = albumData.album || 'Unknown Album';
-      resArtist.textContent = albumData.artist || 'Unknown Artist';
-      resMeta.textContent = `Year: ${albumData.year || 'N/A'} • Label: ${albumData.label || 'N/A'}`;
-
-      await fetchMusicBrainzMetadata(albumData.artist, albumData.album);
-      resultBlock.style.display = 'block';
-      setStatus('');
-    } catch (err) {
-      setStatus('Error: ' + err.message);
-    } finally {
-      btnScan.disabled = false;
-    }
-  });
-
-  // Call Gemini 3.8 Flash Vision Endpoint
-  async function identifyAlbumArtwork(apiKey, base64Jpg) {
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
+  // --- STAGE 1: Gemini Vision Sleeve Inspection ---
+  async function extractVisualCluesWithGemini(apiKey, base64Jpg) {
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
     
-    const prompt = `Identify this album cover (vinyl record or CD). Return strictly JSON:
+    const prompt = `Inspect this album cover, vinyl sleeve, or CD insert closely. Extract all release-identifying details:
 1. "artist": Artist or band name
 2. "album": Official release title
-3. "year": Original release year (string)
-4. "label": Record label or catalog number if visible (string)
+3. "catno": Catalog number or barcode etched or printed on the sleeve (empty string if none)
+4. "label": Record label name (e.g., Go! Discs, Factory, 4AD, Island, London Records)
+5. "year": Stated copyright or release year (empty string if not visible)
+6. "format": Inferred format (e.g., "Vinyl, LP", "CD, Album", "12 Inch")
+7. "country": Country of manufacture/distribution if printed (e.g., UK, Europe, US)
 
-Return ONLY valid JSON matching this schema:
-{"artist": "string", "album": "string", "year": "string", "label": "string"}`;
+Return strictly valid JSON:
+{
+  "artist": "string",
+  "album": "string",
+  "catno": "string",
+  "label": "string",
+  "year": "string",
+  "format": "string",
+  "country": "string"
+}`;
 
     const payload = {
       contents: [{
@@ -448,56 +452,212 @@ Return ONLY valid JSON matching this schema:
     });
 
     if (!res.ok) {
-      const errBody = await res.json().catch(() => ({}));
-      throw new Error(errBody.error?.message || `HTTP ${res.status}`);
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `Gemini API HTTP ${res.status}`);
     }
 
-    const json = await res.json();
-    const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!rawText) throw new Error('No recognition data received from model.');
-    
-    return JSON.parse(rawText);
+    const data = await res.json();
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    return JSON.parse(raw);
   }
 
-  // Fetch tracklist via MusicBrainz open API
-  async function fetchMusicBrainzMetadata(artist, album) {
+  // --- STAGE 2: Discogs / MusicBrainz Multi-Release Resolver ---
+  async function resolvePressings(clues, discogsToken) {
+    if (discogsToken) {
+      try {
+        const discogsResults = await queryDiscogs(clues, discogsToken);
+        if (discogsResults && discogsResults.length > 0) {
+          return { source: 'discogs', list: discogsResults };
+        }
+      } catch (e) {
+        console.warn('Discogs query failed, falling back to MusicBrainz:', e);
+      }
+    }
+    
+    // Fallback: MusicBrainz Releases
+    const mbResults = await queryMusicBrainzReleases(clues.artist, clues.album);
+    return { source: 'musicbrainz', list: mbResults };
+  }
+
+  async function queryDiscogs(clues, token) {
+    // Build targeted query parameters
+    let q = `release_title=${encodeURIComponent(clues.album)}&artist=${encodeURIComponent(clues.artist)}`;
+    if (clues.catno) q += `&catno=${encodeURIComponent(clues.catno)}`;
+    if (clues.label) q += `&label=${encodeURIComponent(clues.label)}`;
+    
+    const url = `https://api.discogs.com/database/search?${q}&type=release&per_page=15&token=${token}`;
+    const res = await fetch(url, { headers: { 'User-Agent': 'VinylCoverMatcher/2.0' } });
+    if (!res.ok) throw new Error(`Discogs search error HTTP ${res.status}`);
+    
+    const data = await res.json();
+    if (!data.results || data.results.length === 0) {
+      // Relax search: title and artist only
+      const broadUrl = `https://api.discogs.com/database/search?release_title=${encodeURIComponent(clues.album)}&artist=${encodeURIComponent(clues.artist)}&type=release&per_page=15&token=${token}`;
+      const broadRes = await fetch(broadUrl, { headers: { 'User-Agent': 'VinylCoverMatcher/2.0' } });
+      const broadData = await broadRes.json();
+      return (broadData.results || []).map(formatDiscogsItem);
+    }
+    return data.results.map(formatDiscogsItem);
+  }
+
+  function formatDiscogsItem(r) {
+    return {
+      id: r.id,
+      title: r.title,
+      year: r.year || 'Unknown Year',
+      country: r.country || 'Unknown Country',
+      format: (r.format || []).join(', ') || 'Vinyl',
+      catno: r.catno || 'No Cat #',
+      label: (r.label || [])[0] || 'Unknown Label',
+      uri: `https://www.discogs.com${r.uri || '/release/' + r.id}`
+    };
+  }
+
+  async function queryMusicBrainzReleases(artist, album) {
+    const q = encodeURIComponent(`release:"${album}" AND artist:"${artist}"`);
+    const url = `https://musicbrainz.org/ws/2/release/?query=${q}&fmt=json&limit=15`;
+    const res = await fetch(url, { headers: { 'User-Agent': 'VinylCoverMatcher/2.0 ( contact@example.com )' } });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.releases || []).map(r => ({
+      id: r.id,
+      title: `${artist} - ${r.title}`,
+      year: r.date ? r.date.split('-')[0] : 'Unknown Year',
+      country: r.country || 'Worldwide',
+      format: r.media?.[0]?.format || 'Format Unknown',
+      catno: r['label-info']?.[0]?.['catalog-number'] || 'N/A',
+      label: r['label-info']?.[0]?.label?.name || 'N/A',
+      uri: `https://musicbrainz.org/release/${r.id}`
+    }));
+  }
+
+  // --- STAGE 3: Fetch Full Tracklist for Chosen Release ---
+  async function fetchTracklist(source, releaseId, discogsToken) {
+    resTracks.innerHTML = '<li>Loading tracklist...</li>';
+
+    if (source === 'discogs' && discogsToken) {
+      try {
+        const url = `https://api.discogs.com/releases/${releaseId}?token=${discogsToken}`;
+        const res = await fetch(url, { headers: { 'User-Agent': 'VinylCoverMatcher/2.0' } });
+        if (res.ok) {
+          const d = await res.json();
+          renderTracks(d.tracklist.map(t => ({
+            pos: t.position,
+            title: t.title,
+            duration: t.duration
+          })));
+          return;
+        }
+      } catch (e) {
+        console.warn('Failed Discogs details fetch:', e);
+      }
+    }
+
+    // MusicBrainz details lookup
+    try {
+      const url = `https://musicbrainz.org/ws/2/release/${releaseId}?inc=recordings&fmt=json`;
+      const res = await fetch(url, { headers: { 'User-Agent': 'VinylCoverMatcher/2.0 ( contact@example.com )' } });
+      const d = await res.json();
+      const tracks = d.media?.[0]?.tracks || [];
+      renderTracks(tracks.map((t, idx) => ({
+        pos: idx + 1,
+        title: t.title,
+        duration: t.length ? `${Math.floor(t.length/60000)}:${String(Math.floor((t.length%60000)/1000)).padStart(2,'0')}` : ''
+      })));
+    } catch (e) {
+      resTracks.innerHTML = '<li>Tracklist unavailable.</li>';
+    }
+  }
+
+  function renderTracks(list) {
     resTracks.innerHTML = '';
-    const cleanQuery = encodeURIComponent(`release:"${album}" AND artist:"${artist}"`);
-    const searchUrl = `https://musicbrainz.org/ws/2/release/?query=${cleanQuery}&fmt=json&limit=1`;
-
-    const searchRes = await fetch(searchUrl, {
-      headers: { 'User-Agent': 'AlbumCoverMatcher/1.0.0 ( contact@queensferrymusiccollective.co.uk )' }
+    if (!list || list.length === 0) {
+      resTracks.innerHTML = '<li>No tracks listed for this release.</li>';
+      return;
+    }
+    list.forEach(t => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span><strong>${t.pos ? t.pos + '. ' : ''}</strong>${t.title}</span><span class="track-dur">${t.duration || ''}</span>`;
+      resTracks.appendChild(li);
     });
+  }
 
-    if (!searchRes.ok) {
-      resTracks.innerHTML = '<li>Unable to connect to MusicBrainz.</li>';
+  // Orchestrate Identification
+  btnScan.addEventListener('click', async () => {
+    const key = apiKeyInput.value.trim();
+    const discogsToken = discogsTokenInput.value.trim();
+
+    if (!key) {
+      alert('Please enter your Gemini API Key at the top.');
       return;
     }
 
-    const data = await searchRes.json();
-    if (!data.releases || data.releases.length === 0) {
-      resTracks.innerHTML = '<li>No exact tracklist match found in MusicBrainz database.</li>';
-      return;
+    btnScan.disabled = true;
+    resultBlock.style.display = 'none';
+    setStatus('Optimizing photo...');
+
+    let finalDataUrl = snappedImageData;
+    if (!finalDataUrl.startsWith('data:image/jpeg;base64') || preview.naturalWidth > 900) {
+      finalDataUrl = captureDownscaledImage(preview, preview.naturalWidth, preview.naturalHeight);
     }
+    const rawBase64 = finalDataUrl.split(',')[1];
 
-    const releaseId = data.releases[0].id;
-    const lookupUrl = `https://musicbrainz.org/ws/2/release/${releaseId}?inc=recordings&fmt=json`;
-    const lookupRes = await fetch(lookupUrl, {
-      headers: { 'User-Agent': 'AlbumCoverMatcher/1.0.0 ( contact@queensferrymusiccollective.co.uk )' }
-    });
+    try {
+      // Step 1: Visual Extraction
+      setStatus('1/2 Reading sleeve typography & catalog clues via Gemini...');
+      const clues = await extractVisualCluesWithGemini(key, rawBase64);
 
-    const releaseDetails = await lookupRes.json();
-    const media = releaseDetails.media?.[0];
+      resTitle.textContent = clues.album || 'Unknown Album';
+      resArtist.textContent = clues.artist || 'Unknown Artist';
+      
+      // Visual clue tags
+      resTags.innerHTML = '';
+      if (clues.year) resTags.innerHTML += `<span class="tag">Year: ${clues.year}</span>`;
+      if (clues.label) resTags.innerHTML += `<span class="tag">Label: ${clues.label}</span>`;
+      if (clues.catno) resTags.innerHTML += `<span class="tag tag-cat">Cat #: ${clues.catno}</span>`;
+      if (clues.format) resTags.innerHTML += `<span class="tag">${clues.format}</span>`;
+      if (clues.country) resTags.innerHTML += `<span class="tag">${clues.country}</span>`;
 
-    if (media && media.tracks && media.tracks.length > 0) {
-      media.tracks.forEach(track => {
-        const li = document.createElement('li');
-        li.textContent = track.title;
-        resTracks.appendChild(li);
-      });
-    } else {
-      resTracks.innerHTML = '<li>No track details found for this release.</li>';
+      // Step 2: Database Pressing Resolution
+      setStatus(`2/2 Searching ${discogsToken ? 'Discogs' : 'MusicBrainz'} for candidate pressings...`);
+      const { source, list } = await resolvePressings(clues, discogsToken);
+      detectedReleases = list;
+
+      if (detectedReleases.length > 0) {
+        pressingSelector.innerHTML = '';
+        detectedReleases.forEach((rel, index) => {
+          const opt = document.createElement('option');
+          opt.value = index;
+          opt.textContent = `${rel.year} • ${rel.country} • ${rel.format} • ${rel.label} [${rel.catno}]`;
+          pressingSelector.appendChild(opt);
+        });
+
+        pressingSelectGroup.style.display = 'block';
+        updateSelectedRelease(source, 0, discogsToken);
+
+        pressingSelector.onchange = (e) => {
+          updateSelectedRelease(source, e.target.value, discogsToken);
+        };
+      } else {
+        pressingSelectGroup.style.display = 'none';
+        resTracks.innerHTML = '<li>No exact pressings found matching these parameters.</li>';
+      }
+
+      resultBlock.style.display = 'flex';
+      setStatus('');
+    } catch (err) {
+      setStatus('Error: ' + err.message);
+    } finally {
+      btnScan.disabled = false;
     }
+  });
+
+  function updateSelectedRelease(source, index, discogsToken) {
+    const item = detectedReleases[index];
+    if (!item) return;
+    discogsReleaseUrl.href = item.uri;
+    discogsReleaseUrl.textContent = `View this pressing on ${source === 'discogs' ? 'Discogs' : 'MusicBrainz'} ↗`;
+    fetchTracklist(source, item.id, discogsToken);
   }
 </script>
 </body>
