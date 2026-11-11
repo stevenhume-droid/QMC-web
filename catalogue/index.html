@@ -396,8 +396,13 @@
             <button type="button" onclick="toggleFormatFilter('ALL')" class="hidden sm:block text-lg sm:text-xl font-bold font-mono text-brass-400 hover:text-brass-300 transition cursor-pointer flex-shrink-0" title="Click to view all records in collection">
               <span id="statTotalItems">0</span>
             </button>
-            <div id="statFormatBreakdown" class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none py-0.5 text-[10px] sm:text-[11px] font-mono" style="scrollbar-width: none;">
-              <!-- Dynamically populated format chips for ALL formats -->
+            <div class="min-w-0 flex-1 space-y-1">
+              <div id="statCategoryRefinement" class="flex items-center gap-1 overflow-x-auto whitespace-nowrap scrollbar-none text-[10px] font-semibold" style="scrollbar-width: none;">
+                <!-- Dynamically populated quick category refinement chips (Albums, Singles, CD LP's, CD Singles, Minidiscs, Cassettes) -->
+              </div>
+              <div id="statFormatBreakdown" class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none py-0.5 text-[10px] sm:text-[11px] font-mono" style="scrollbar-width: none;">
+                <!-- Dynamically populated format chips for ALL formats -->
+              </div>
             </div>
           </div>
           <!-- Hidden compatibility counters for backwards compatibility -->
@@ -483,18 +488,30 @@
           <span>Share</span>
         </button>
 
-        <!-- Format Filter (Album vs Single vs EP vs Box Set) -->
+        <!-- Format Filter (Collection Groups + Specific Formats) -->
         <select id="filterFormat" onchange="handleSearchFilterChange()" class="mf bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-brass-500">
           <option value="ALL">All Formats</option>
-          <option value="12&quot; LP (Album)">12" LP (Album)</option>
-          <option value="2xLP Gatefold (Album)">2xLP Gatefold (Album)</option>
-          <option value="Box Set (Vinyl / Multi-Disc)">Box Set (Vinyl / Multi-Disc)</option>
-          <option value="12&quot; Maxi / Single">12" Maxi / Single</option>
-          <option value="7&quot; Single (45 RPM)">7" Single (45 RPM)</option>
-          <option value="10&quot; Vinyl">10" Vinyl</option>
-          <option value="Cassette Tape">Cassette Tape</option>
-          <option value="MiniDisc">MiniDisc</option>
-          <option value="CD / Other">CD / Other</option>
+          <optgroup label="Collection Groups">
+            <option value="GROUP:ALBUMS">Albums (12" LP / 2xLP / Box Set)</option>
+            <option value="GROUP:SINGLES">Singles (7" &amp; 12")</option>
+            <option value="GROUP:CD_LP">CD LP's</option>
+            <option value="GROUP:CD_SINGLE">CD Singles</option>
+            <option value="GROUP:MINIDISC">Minidiscs</option>
+            <option value="GROUP:CASSETTE">Cassettes</option>
+          </optgroup>
+          <optgroup label="Specific Formats">
+            <option value="12&quot; LP (Album)">12" LP (Album)</option>
+            <option value="2xLP Gatefold (Album)">2xLP Gatefold (Album)</option>
+            <option value="Box Set (Vinyl / Multi-Disc)">Box Set (Vinyl / Multi-Disc)</option>
+            <option value="12&quot; Maxi / Single">12" Maxi / Single</option>
+            <option value="7&quot; Single (45 RPM)">7" Single (45 RPM)</option>
+            <option value="10&quot; Vinyl">10" Vinyl</option>
+            <option value="CD Album (LP)">CD Album (LP)</option>
+            <option value="CD Single">CD Single</option>
+            <option value="MiniDisc">MiniDisc</option>
+            <option value="Cassette Tape">Cassette Tape</option>
+            <option value="CD / Other">CD / Other</option>
+          </optgroup>
         </select>
 
         <!-- Genre Filter -->
@@ -1404,9 +1421,11 @@
                 <option value="12S">12" Single / Maxi</option>
                 <option value="BOX">Vinyl Box Set</option>
                 <option value="10">10" Vinyl</option>
-                <option value="CASSETTE">Cassette Tape</option>
+                <option value="CD_LP">CD LP / Album</option>
+                <option value="CD_SINGLE">CD Single</option>
+                <option value="CD">CD (Any)</option>
                 <option value="MINIDISC">MiniDisc</option>
-                <option value="CD">CD / Other</option>
+                <option value="CASSETTE">Cassette Tape</option>
               </select>
             </div>
             <div class="flex items-center gap-2 flex-shrink-0">
@@ -1473,8 +1492,10 @@
                 <option value="12&quot; Maxi / Single">12" Maxi / Single</option>
                 <option value="7&quot; Single (45 RPM)">7" Single (45 RPM)</option>
                 <option value="10&quot; Vinyl">10" Vinyl</option>
-                <option value="Cassette Tape">Cassette Tape</option>
+                <option value="CD Album (LP)">CD Album (LP)</option>
+                <option value="CD Single">CD Single</option>
                 <option value="MiniDisc">MiniDisc</option>
+                <option value="Cassette Tape">Cassette Tape</option>
                 <option value="CD / Other">CD / Other</option>
               </select>
             </div>
@@ -3233,6 +3254,107 @@
       if (f.includes('cassette') || f.includes('tape')) return 'tape';
       if (f.includes('cd') || f.includes('compact disc') || f.includes('minidisc') || f.includes('digital')) return 'cd';
       return 'vinyl';
+    }
+
+    function _classifyFormatTokens(format = '') {
+      const f = String(format || '').toLowerCase().trim();
+      const isCassette = f.includes('cassette') || f.includes('tape');
+      const isMiniDisc = f.includes('minidisc') || /\bmd\b/.test(f);
+      const isCDLike = !isCassette && !isMiniDisc && (f.includes('cd') || f.includes('compact disc') || f.includes('sacd') || f.includes('dvd') || f.includes('file'));
+      const isCDSingle = isCDLike && (f.includes('single') || f.includes('maxi') || /\bep\b/.test(f) || /\bcds\b/.test(f));
+      const isCDLP = isCDLike && !isCDSingle;
+      const isTenInch = !isCDLike && !isCassette && !isMiniDisc && (f.includes('10"') || f.includes("10'") || f.includes('10 inch'));
+      const isVinylSingle = !isCDLike && !isCassette && !isMiniDisc && !isTenInch && (
+        f.includes('7"') ||
+        f.includes("7'") ||
+        f.includes('7 inch') ||
+        (f.includes('12"') && (f.includes('single') || f.includes('maxi') || /\bep\b/.test(f) || f.includes('45 rpm'))) ||
+        f.includes('single')
+      );
+      const isVinylAlbum = !isCDLike && !isCassette && !isMiniDisc && !isTenInch && !isVinylSingle && (
+        f.includes('lp') || f.includes('2x') || f.includes('gatefold') || f.includes('box') || f.includes('album') || f.includes('12"') || f === ''
+      );
+      return { isCassette, isMiniDisc, isCDLike, isCDSingle, isCDLP, isTenInch, isVinylSingle, isVinylAlbum };
+    }
+
+    const FORMAT_GROUP_DEFS = [
+      {
+        key: 'GROUP:ALBUMS',
+        label: 'Albums',
+        fullLabel: 'Albums (12" LP / 2xLP / Box Set)',
+        icon: 'fa-solid fa-record-vinyl',
+        color: 'text-amber-400',
+        activeBg: 'bg-amber-500/20 border-amber-400 text-amber-200 ring-1 ring-amber-400/40',
+        barBg: 'bg-amber-400',
+        matcher: fmt => _classifyFormatTokens(fmt).isVinylAlbum
+      },
+      {
+        key: 'GROUP:SINGLES',
+        label: 'Singles',
+        fullLabel: 'Singles (7" & 12")',
+        icon: 'fa-solid fa-circle-dot',
+        color: 'text-sky-400',
+        activeBg: 'bg-sky-500/20 border-sky-400 text-sky-200 ring-1 ring-sky-400/40',
+        barBg: 'bg-sky-400',
+        matcher: fmt => _classifyFormatTokens(fmt).isVinylSingle
+      },
+      {
+        key: 'GROUP:CD_LP',
+        label: "CD LP's",
+        fullLabel: "CD LP's",
+        icon: 'fa-solid fa-compact-disc',
+        color: 'text-slate-200',
+        activeBg: 'bg-slate-400/20 border-slate-300 text-white ring-1 ring-slate-300/40',
+        barBg: 'bg-slate-400',
+        matcher: fmt => _classifyFormatTokens(fmt).isCDLP
+      },
+      {
+        key: 'GROUP:CD_SINGLE',
+        label: 'CD Singles',
+        fullLabel: 'CD Singles',
+        icon: 'fa-solid fa-compact-disc',
+        color: 'text-indigo-300',
+        activeBg: 'bg-indigo-500/20 border-indigo-400 text-indigo-200 ring-1 ring-indigo-400/40',
+        barBg: 'bg-indigo-400',
+        matcher: fmt => _classifyFormatTokens(fmt).isCDSingle
+      },
+      {
+        key: 'GROUP:MINIDISC',
+        label: 'Minidiscs',
+        fullLabel: 'Minidiscs',
+        icon: 'fa-solid fa-floppy-disk',
+        color: 'text-fuchsia-400',
+        activeBg: 'bg-fuchsia-500/20 border-fuchsia-400 text-fuchsia-200 ring-1 ring-fuchsia-400/40',
+        barBg: 'bg-fuchsia-400',
+        matcher: fmt => _classifyFormatTokens(fmt).isMiniDisc
+      },
+      {
+        key: 'GROUP:CASSETTE',
+        label: 'Cassettes',
+        fullLabel: 'Cassettes',
+        icon: 'fa-solid fa-tape',
+        color: 'text-teal-400',
+        activeBg: 'bg-teal-500/20 border-teal-400 text-teal-200 ring-1 ring-teal-400/40',
+        barBg: 'bg-teal-400',
+        matcher: fmt => _classifyFormatTokens(fmt).isCassette
+      }
+    ];
+
+    function matchesFormatFilter(recordFormat = '', filterVal = 'ALL') {
+      if (!filterVal || filterVal === 'ALL') return true;
+      const groupDef = FORMAT_GROUP_DEFS.find(g => g.key === filterVal);
+      if (groupDef) return groupDef.matcher(recordFormat);
+      const recFmt = String(recordFormat || '');
+      if (recFmt === filterVal) return true;
+      if (filterVal === 'CD Album (LP)' && (recFmt === 'CD / Other' || recFmt === 'CD')) return true;
+      if (filterVal.toLowerCase().includes('box') && recFmt.toLowerCase().includes('box')) return true;
+      return false;
+    }
+
+    function getFormatFilterLabel(filterVal = 'ALL') {
+      if (!filterVal || filterVal === 'ALL') return 'All Formats';
+      const groupDef = FORMAT_GROUP_DEFS.find(g => g.key === filterVal);
+      return groupDef ? groupDef.fullLabel : filterVal;
     }
 
     function deriveTrackSection(pos = '', format = '') {
@@ -5995,7 +6117,8 @@
           count: 0,
           matcher: r => {
             const f = (r.format || '').toLowerCase();
-            return f.includes('maxi') || (f.includes('12"') && (f.includes('single') || f.includes('ep')));
+            const t = _classifyFormatTokens(r.format || '');
+            return !t.isCDLike && !t.isCassette && !t.isMiniDisc && (f.includes('maxi') || (f.includes('12"') && (f.includes('single') || f.includes('ep'))));
           }
         },
         {
@@ -6020,7 +6143,8 @@
           count: 0,
           matcher: r => {
             const f = (r.format || '').toLowerCase();
-            return f.includes('7"') || (f.includes('single') && !f.includes('12"'));
+            const t = _classifyFormatTokens(r.format || '');
+            return !t.isCDLike && !t.isCassette && !t.isMiniDisc && (f.includes('7"') || (f.includes('single') && !f.includes('12"')));
           }
         },
         {
@@ -6060,9 +6184,31 @@
           matcher: r => (r.format || '').toLowerCase().includes('minidisc')
         },
         {
+          key: 'CD Single',
+          label: 'CD Single',
+          shortLabel: 'CD S',
+          color: 'text-indigo-300',
+          activeBg: 'bg-indigo-500/20 border-indigo-500/40 text-indigo-200',
+          filterVal: 'CD Single',
+          alwaysShow: false,
+          count: 0,
+          matcher: r => _classifyFormatTokens(r.format || '').isCDSingle
+        },
+        {
+          key: 'CD Album (LP)',
+          label: 'CD Album (LP)',
+          shortLabel: 'CD LP',
+          color: 'text-slate-300',
+          activeBg: 'bg-slate-500/20 border-slate-400/40 text-slate-200',
+          filterVal: 'CD Album (LP)',
+          alwaysShow: false,
+          count: 0,
+          matcher: r => _classifyFormatTokens(r.format || '').isCDLP
+        },
+        {
           key: 'CD / Other',
           label: 'CD / Other',
-          shortLabel: 'CD',
+          shortLabel: 'Other',
           color: 'text-slate-400',
           activeBg: 'bg-slate-500/20 border-slate-500/40 text-slate-300',
           filterVal: 'CD / Other',
@@ -6099,6 +6245,29 @@
       if (stat12) stat12.innerText = twelveTotal;
       const stat7 = document.getElementById('statTotalSingles');
       if (stat7) stat7.innerText = sevenTotal;
+
+      // Render interactive Collection Group refinement pills inside Stats Strip
+      const catRefEl = document.getElementById('statCategoryRefinement');
+      if (catRefEl) {
+        catRefEl.innerHTML = FORMAT_GROUP_DEFS.map(g => {
+          const cnt = records.reduce((acc, r) => acc + (g.matcher(r.format || '') ? 1 : 0), 0);
+          const isActive = currentFormatFilter === g.key;
+          const chipCls = isActive
+            ? `${g.activeBg} font-bold`
+            : `bg-vinyl-900/90 border-vinyl-700/80 ${cnt > 0 ? g.color + ' hover:border-brass-500/50' : 'text-slate-500 border-vinyl-800/80 opacity-60 hover:opacity-90'}`;
+          return `
+            <button
+              type="button"
+              onclick="toggleFormatFilter('${escapeHtml(g.key)}', true)"
+              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] leading-tight transition cursor-pointer flex-shrink-0 ${chipCls}"
+              title="Refine stats &amp; collection by ${escapeHtml(g.fullLabel)} (${cnt} in archive)"
+            >
+              <span>${escapeHtml(g.label)}</span>
+              <span class="font-mono text-[9px] px-1 rounded bg-vinyl-950/80 ${isActive ? 'text-white' : 'text-slate-300'}">${cnt}</span>
+            </button>
+          `;
+        }).join('');
+      }
 
       // Render ALL active and primary formats in the summary breakdown
       const breakdownEl = document.getElementById('statFormatBreakdown');
@@ -6409,11 +6578,7 @@
           if (!matchText.includes(searchTerm)) return false;
         }
         if (formatFilter !== 'ALL') {
-          if (item.format !== formatFilter) {
-            const isBoxFilter = formatFilter.toLowerCase().includes('box');
-            const isItemBox = (item.format || '').toLowerCase().includes('box');
-            if (!(isBoxFilter && isItemBox)) return false;
-          }
+          if (!matchesFormatFilter(item.format, formatFilter)) return false;
         }
         if (gradeFilter !== 'ALL' && item.mediaGrade !== gradeFilter) return false;
 
@@ -6499,7 +6664,8 @@
         pillsHTML += `<span class="bg-vinyl-800 text-slate-200 px-2.5 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Query: "${escapeHtml(searchTerm)}" <button onclick="clearSearchInput()" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
       }
       if (formatFilter !== 'ALL') {
-        pillsHTML += `<span class="bg-vinyl-800 text-amber-400 px-2.5 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Format: ${escapeHtml(formatFilter)} <button onclick="document.getElementById('filterFormat').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
+        const formatLabel = getFormatFilterLabel(formatFilter);
+        pillsHTML += `<span class="bg-vinyl-800 text-amber-400 px-2.5 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Format: ${escapeHtml(formatLabel)} <button onclick="document.getElementById('filterFormat').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
       }
       if (gradeFilter !== 'ALL') {
         pillsHTML += `<span class="bg-vinyl-800 text-emerald-400 px-2.5 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Media: ${escapeHtml(gradeFilter)} <button onclick="document.getElementById('filterGrade').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
@@ -7632,7 +7798,7 @@
       showToast(`Filtered catalogue by series: ${seriesStr}`, 'info');
     }
 
-    function toggleFormatFilter(filterVal) {
+    function toggleFormatFilter(filterVal, stayInView = false) {
       const sel = document.getElementById('filterFormat');
       if (!sel) return;
       if (filterVal === 'ALL' || sel.value === filterVal) {
@@ -7640,22 +7806,25 @@
         showToast('Showing all formats', 'info');
       } else {
         sel.value = filterVal;
-        showToast(`Filtered by ${filterVal}`, 'info');
+        showToast(`Filtered by ${getFormatFilterLabel(filterVal)}`, 'info');
       }
       handleSearchFilterChange();
-      if (currentView === 'analytics') switchView('grid');
+      if (currentView === 'analytics' && !stayInView) switchView('grid');
     }
 
-    function filterByFormatTag(formatStr) {
+    function filterByFormatTag(formatStr, stayInView = false) {
       const sel = document.getElementById('filterFormat');
       if (sel) {
         if (formatStr === 'ALL') {
           sel.value = 'ALL';
           showToast('Showing all formats', 'info');
+        } else if (FORMAT_GROUP_DEFS.some(g => g.key === formatStr)) {
+          sel.value = (sel.value === formatStr) ? 'ALL' : formatStr;
+          showToast(sel.value === 'ALL' ? 'Showing all formats' : `Filtered by ${getFormatFilterLabel(formatStr)}`, 'info');
         } else {
           let matched = false;
           for (let i = 0; i < sel.options.length; i++) {
-            if (sel.options[i].value.toLowerCase().includes(formatStr.toLowerCase()) || sel.options[i].text.toLowerCase().includes(formatStr.toLowerCase())) {
+            if (sel.options[i].value.toLowerCase() === formatStr.toLowerCase() || sel.options[i].value.toLowerCase().includes(formatStr.toLowerCase()) || sel.options[i].text.toLowerCase().includes(formatStr.toLowerCase())) {
               sel.selectedIndex = i;
               matched = true;
               break;
@@ -7668,20 +7837,54 @@
           showToast(`Filtered catalogue by format: ${formatStr}`, 'info');
         }
         handleSearchFilterChange();
-        if (currentView === 'analytics') switchView('grid');
+        if (currentView === 'analytics' && !stayInView) switchView('grid');
       }
+    }
+
+    function _renderAnalyticsFormatRefinementBar(curFormatFilter) {
+      const basePool = records;
+      const allActive = !curFormatFilter || curFormatFilter === 'ALL';
+      return `
+        <div class="bg-vinyl-900/90 px-4 py-3 rounded-2xl border border-vinyl-800 shadow-lg flex flex-wrap items-center justify-between gap-2.5">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300">
+            <i class="fa-solid fa-sliders text-brass-400"></i>
+            <span>Format Stats Refinement</span>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button type="button" onclick="toggleFormatFilter('ALL', true)" class="px-2.5 py-1 rounded-lg border text-xs font-semibold transition flex items-center gap-1.5 ${allActive ? 'bg-brass-500/20 border-brass-400 text-brass-200 ring-1 ring-brass-400/40' : 'bg-vinyl-950/80 border-vinyl-700 text-slate-300 hover:border-brass-500/50'}">
+              <span>All Formats</span>
+              <span class="font-mono text-[10px] px-1.5 py-0.2 rounded bg-vinyl-900 text-slate-300">${basePool.length}</span>
+            </button>
+            ${FORMAT_GROUP_DEFS.map(g => {
+              const groupItems = basePool.filter(r => g.matcher(r.format || ''));
+              const isActive = curFormatFilter === g.key;
+              return `
+                <button type="button" onclick="toggleFormatFilter('${escapeHtml(g.key)}', true)" class="px-2.5 py-1 rounded-lg border text-xs font-semibold transition flex items-center gap-1.5 ${isActive ? g.activeBg : `bg-vinyl-950/80 border-vinyl-700 ${groupItems.length > 0 ? g.color + ' hover:border-brass-500/50' : 'text-slate-500 opacity-60 hover:opacity-90'}`}" title="${escapeHtml(g.fullLabel)}">
+                  <i class="${g.icon} text-[11px]"></i>
+                  <span>${escapeHtml(g.label)}</span>
+                  <span class="font-mono text-[10px] px-1.5 py-0.2 rounded bg-vinyl-900 ${isActive ? 'text-white' : 'text-slate-300'}">${groupItems.length}</span>
+                </button>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
     }
 
     function renderAnalyticsView(list, container) {
       const sym = getCurrencySymbol();
       const total = list.length;
+      const activeFmtVal = document.getElementById('filterFormat')?.value || 'ALL';
       if (total === 0) {
         container.innerHTML = `
-          <div class="p-12 text-center bg-vinyl-900 rounded-2xl border border-vinyl-800">
-            <i class="fa-solid fa-chart-pie text-4xl text-slate-600 mb-3 block"></i>
-            <h3 class="text-lg font-bold text-white mb-1">No Data Available</h3>
-            <p class="text-sm text-slate-400 mb-4">No records match the active filters to generate analytics.</p>
-            <button onclick="resetFilters()" class="px-4 py-2 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-semibold rounded-lg text-xs">Reset All Filters</button>
+          <div class="space-y-4">
+            ${_renderAnalyticsFormatRefinementBar(activeFmtVal)}
+            <div class="p-12 text-center bg-vinyl-900 rounded-2xl border border-vinyl-800">
+              <i class="fa-solid fa-chart-pie text-4xl text-slate-600 mb-3 block"></i>
+              <h3 class="text-lg font-bold text-white mb-1">No Data Available</h3>
+              <p class="text-sm text-slate-400 mb-4">No records match the active filters (${escapeHtml(getFormatFilterLabel(activeFmtVal))}) to generate analytics.</p>
+              <button onclick="resetFilters()" class="px-4 py-2 bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-semibold rounded-lg text-xs">Reset All Filters</button>
+            </div>
           </div>
         `;
         return;
@@ -7739,7 +7942,7 @@
       const curGradeFilter = document.getElementById('filterGrade')?.value || 'ALL';
       if (curSeriesFilter !== 'ALL') activeContextParts.push(`${curSeriesFilter} Series`);
       if (curGenreFilter !== 'ALL') activeContextParts.push(curGenreFilter);
-      if (curFormatFilter !== 'ALL') activeContextParts.push(curFormatFilter);
+      if (curFormatFilter !== 'ALL') activeContextParts.push(getFormatFilterLabel(curFormatFilter));
       if (curLabelFilter !== 'ALL') activeContextParts.push(curLabelFilter);
       if (typeof activeDecadeFilter !== 'undefined' && activeDecadeFilter !== 'ALL') activeContextParts.push(activeDecadeFilter);
       if (curGradeFilter !== 'ALL') activeContextParts.push(`Grade ${curGradeFilter}`);
@@ -7813,17 +8016,19 @@
       const collectorCount = (gradeMap['M'] || 0) + (gradeMap['NM'] || 0) + (gradeMap['VG+'] || 0);
       const collectorPct = Math.round((collectorCount / total) * 100);
 
-      // 4. Format Breakdown Calculations (Calibrated order: specific formats before general matchers)
+      // 4. Format Breakdown Calculations (Calibrated order: grouped collection types + specific disc/media types)
       const formatCategories = [
-        { key: '12" LP', label: '12" LP (Album)', icon: 'fa-solid fa-compact-disc', color: 'text-amber-400', barBg: 'bg-amber-400', count: 0, val: 0, matcher: r => (r.format || '').includes('LP') && !(r.format || '').includes('2x') && !(r.format || '').toLowerCase().includes('box') },
-        { key: '2xLP Gatefold', label: '2xLP Gatefold', icon: 'fa-solid fa-book-open', color: 'text-purple-400', barBg: 'bg-purple-400', count: 0, val: 0, matcher: r => (r.format || '').includes('2x') || (r.format || '').toLowerCase().includes('gatefold') },
-        { key: 'Box Set', label: 'Box Set', icon: 'fa-solid fa-box-archive', color: 'text-brass-400', barBg: 'bg-brass-400', count: 0, val: 0, matcher: r => (r.format || '').toLowerCase().includes('box') },
-        { key: '12" Single', label: '12" Maxi / Single', icon: 'fa-solid fa-circle-dot', color: 'text-sky-400', barBg: 'bg-sky-400', count: 0, val: 0, matcher: r => (r.format || '').toLowerCase().includes('maxi') || ((r.format || '').includes('12"') && (r.format || '').toLowerCase().includes('single')) || (r.format || '').toLowerCase().includes('ep') },
-        { key: '7" Single', label: '7" Single (45 RPM)', icon: 'fa-solid fa-record-vinyl', color: 'text-emerald-400', barBg: 'bg-emerald-400', count: 0, val: 0, matcher: r => (r.format || '').includes('7"') || ((r.format || '').toLowerCase().includes('single') && !(r.format || '').includes('12"')) },
+        { key: '12" LP', label: '12" LP (Album)', icon: 'fa-solid fa-compact-disc', color: 'text-amber-400', barBg: 'bg-amber-400', count: 0, val: 0, matcher: r => _classifyFormatTokens(r.format || '').isVinylAlbum && !(r.format || '').includes('2x') && !(r.format || '').toLowerCase().includes('gatefold') && !(r.format || '').toLowerCase().includes('box') },
+        { key: '2xLP Gatefold', label: '2xLP Gatefold', icon: 'fa-solid fa-book-open', color: 'text-purple-400', barBg: 'bg-purple-400', count: 0, val: 0, matcher: r => !_classifyFormatTokens(r.format || '').isCDLike && ((r.format || '').includes('2x') || (r.format || '').toLowerCase().includes('gatefold')) },
+        { key: 'Box Set', label: 'Box Set', icon: 'fa-solid fa-box-archive', color: 'text-brass-400', barBg: 'bg-brass-400', count: 0, val: 0, matcher: r => !_classifyFormatTokens(r.format || '').isCDLike && (r.format || '').toLowerCase().includes('box') },
+        { key: '12" Single', label: '12" Maxi / Single', icon: 'fa-solid fa-circle-dot', color: 'text-sky-400', barBg: 'bg-sky-400', count: 0, val: 0, matcher: r => { const t = _classifyFormatTokens(r.format || ''); const f = (r.format || '').toLowerCase(); return !t.isCDLike && !t.isCassette && !t.isMiniDisc && (f.includes('maxi') || (f.includes('12"') && (f.includes('single') || f.includes('ep')))); } },
+        { key: '7" Single', label: '7" Single (45 RPM)', icon: 'fa-solid fa-record-vinyl', color: 'text-emerald-400', barBg: 'bg-emerald-400', count: 0, val: 0, matcher: r => { const t = _classifyFormatTokens(r.format || ''); const f = (r.format || '').toLowerCase(); return !t.isCDLike && !t.isCassette && !t.isMiniDisc && (f.includes('7"') || (f.includes('single') && !f.includes('12"'))); } },
         { key: '10" Vinyl', label: '10" Vinyl', icon: 'fa-solid fa-circle', color: 'text-pink-400', barBg: 'bg-pink-400', count: 0, val: 0, matcher: r => (r.format || '').includes('10"') },
-        { key: 'Cassette', label: 'Cassette Tape', icon: 'fa-solid fa-tape', color: 'text-teal-400', barBg: 'bg-teal-400', count: 0, val: 0, matcher: r => (r.format || '').toLowerCase().includes('cassette') || (r.format || '').toLowerCase().includes('tape') },
-        { key: 'MiniDisc', label: 'MiniDisc', icon: 'fa-solid fa-floppy-disk', color: 'text-fuchsia-400', barBg: 'bg-fuchsia-400', count: 0, val: 0, matcher: r => (r.format || '').toLowerCase().includes('minidisc') },
-        { key: 'CD / Other', label: 'CD / Other', icon: 'fa-solid fa-compact-disc', color: 'text-slate-400', barBg: 'bg-slate-400', count: 0, val: 0, matcher: () => true }
+        { key: 'CD Album (LP)', label: "CD LP's", icon: 'fa-solid fa-compact-disc', color: 'text-slate-300', barBg: 'bg-slate-400', count: 0, val: 0, matcher: r => _classifyFormatTokens(r.format || '').isCDLP },
+        { key: 'CD Single', label: 'CD Singles', icon: 'fa-solid fa-compact-disc', color: 'text-indigo-300', barBg: 'bg-indigo-400', count: 0, val: 0, matcher: r => _classifyFormatTokens(r.format || '').isCDSingle },
+        { key: 'Cassette', label: 'Cassettes', icon: 'fa-solid fa-tape', color: 'text-teal-400', barBg: 'bg-teal-400', count: 0, val: 0, matcher: r => _classifyFormatTokens(r.format || '').isCassette },
+        { key: 'MiniDisc', label: 'Minidiscs', icon: 'fa-solid fa-floppy-disk', color: 'text-fuchsia-400', barBg: 'bg-fuchsia-400', count: 0, val: 0, matcher: r => _classifyFormatTokens(r.format || '').isMiniDisc },
+        { key: 'CD / Other', label: 'CD / Other', icon: 'fa-solid fa-compact-disc', color: 'text-slate-400', barBg: 'bg-slate-500', count: 0, val: 0, matcher: () => true }
       ];
 
       list.forEach(r => {
@@ -7948,6 +8153,9 @@
               ` : ''}
             </div>
           </div>
+
+          <!-- FORMAT STATS REFINEMENT STRIP (Albums, Singles, CD LP's, CD Singles, Minidiscs, Cassettes) -->
+          ${_renderAnalyticsFormatRefinementBar(curFormatFilter)}
 
           <!-- 1. FILTERED FINANCIAL SUMMARY BAR & 2. MOST VALUABLE SPOTLIGHT CARD -->
           <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
@@ -10062,7 +10270,8 @@
       else if (f.includes('7"')) base = 8.5;
       else if (f.includes('cassette') || f.includes('tape')) base = 10.0;
       else if (f.includes('minidisc')) base = 20.0;
-      else if (f.includes('cd')) base = 6.0;
+      else if (f.includes('cd') && (f.includes('single') || f.includes('maxi') || /\bep\b/.test(f))) base = 4.0;
+      else if (f.includes('cd')) base = 7.5;
 
       const y = parseInt(year);
       if (!isNaN(y) && y > 1920 && y < 1980) base *= 1.35;
@@ -12010,6 +12219,10 @@
             fmtClause = ' AND format:MiniDisc';
           } else if (fmtChoice === 'BOX') {
             fmtClause = ' AND (format:"Box-Set" OR format:"Vinyl")';
+          } else if (fmtChoice === 'CD_LP') {
+            fmtClause = ' AND format:CD AND primarytype:Album';
+          } else if (fmtChoice === 'CD_SINGLE') {
+            fmtClause = ' AND format:CD AND (primarytype:Single OR primarytype:EP)';
           } else if (fmtChoice === 'CD') {
             fmtClause = ' AND format:CD';
           } else {
@@ -12646,8 +12859,10 @@
           assignedFormat = 'Cassette Tape';
         } else if (searchFormatChoice === 'MINIDISC') {
           assignedFormat = 'MiniDisc';
-        } else if (searchFormatChoice === 'CD') {
-          assignedFormat = 'CD / Other';
+        } else if (searchFormatChoice === 'CD_SINGLE') {
+          assignedFormat = 'CD Single';
+        } else if (searchFormatChoice === 'CD_LP' || searchFormatChoice === 'CD') {
+          assignedFormat = 'CD Album (LP)';
         } else if (fullRelease.media && fullRelease.media.length > 0) {
           const m = fullRelease.media[0];
           const formatName = (m.format || '').toLowerCase();
@@ -12657,6 +12872,10 @@
             assignedFormat = 'MiniDisc';
           } else if (formatName.includes('cassette') || relTitle.includes('cassette')) {
             assignedFormat = 'Cassette Tape';
+          } else if (formatName.includes('cd') && (isSingleOrEP || formatName.includes('single') || formatName.includes('maxi'))) {
+            assignedFormat = 'CD Single';
+          } else if (formatName.includes('cd')) {
+            assignedFormat = 'CD Album (LP)';
           } else if (formatName.includes('box') || relTitle.includes('box set') || (fullRelease.media.length >= 3)) {
             assignedFormat = 'Box Set (Vinyl / Multi-Disc)';
           } else if (formatName.includes('10"')) {
@@ -12667,8 +12886,6 @@
             assignedFormat = '12" Maxi / Single';
           } else if (fullRelease.media.length >= 2) {
             assignedFormat = '2xLP Gatefold (Album)';
-          } else if (formatName.includes('cd')) {
-            assignedFormat = 'CD / Other';
           } else if (isSingleOrEP && totalMbTracks > 0 && totalMbTracks <= 5) {
             assignedFormat = '12" Maxi / Single';
           } else {
@@ -12687,6 +12904,8 @@
       else if (searchFormatChoice === '10') assignedFormat = '10" Vinyl';
       else if (searchFormatChoice === 'CASSETTE') assignedFormat = 'Cassette Tape';
       else if (searchFormatChoice === 'MINIDISC') assignedFormat = 'MiniDisc';
+      else if (searchFormatChoice === 'CD_SINGLE') assignedFormat = 'CD Single';
+      else if (searchFormatChoice === 'CD_LP') assignedFormat = 'CD Album (LP)';
 
       // The pressing the user actually picked wins over the quick-lookup format filter
       {
@@ -12699,12 +12918,14 @@
         (Array.isArray(fullRelease.media) ? fullRelease.media : []).forEach(m => m.format && parts.push(m.format));
         const cf = parts.join(' ').toLowerCase();
         const isVinylCard = /vinyl|\blp\b|12"|10"|7"/.test(cf);
-        if (/\bbox\b/.test(cf)) assignedFormat = 'Box Set (Vinyl / Multi-Disc)';
+        if (/\bcd\b|compact disc/.test(cf) && !isVinylCard) {
+          assignedFormat = (isSingleOrEP || /single|maxi|\bep\b|\bcds\b/.test(cf)) ? 'CD Single' : 'CD Album (LP)';
+        }
+        else if (/\bbox\b/.test(cf)) assignedFormat = 'Box Set (Vinyl / Multi-Disc)';
         else if (/7"|7 inch/.test(cf)) assignedFormat = '7" Single (45 RPM)';
         else if (/10"/.test(cf)) assignedFormat = '10" Vinyl';
         else if (/cassette/.test(cf)) assignedFormat = 'Cassette Tape';
         else if (/minidisc/.test(cf)) assignedFormat = 'MiniDisc';
-        else if (/\bcd\b/.test(cf) && !isVinylCard) assignedFormat = 'CD / Other';
         else if (/12"|\blp\b|vinyl/.test(cf)) {
           if (/single|maxi|\bep\b/.test(cf)) assignedFormat = '12" Maxi / Single';
           else if (!/12" (maxi|lp)|2xlp|box|10"|7"/i.test(assignedFormat)) assignedFormat = '12" LP (Album)';
@@ -13910,6 +14131,13 @@
       if (f.includes('minidisc') || /\bmd\b/.test(f)) {
         return 'MiniDisc';
       }
+      // CD Single vs CD Album (LP) — check before 7" / generic single fallback so "CD, Single" is never misclassified as 7" Vinyl
+      if ((f.includes('cd') || f.includes('compact disc') || f.includes('sacd')) && !f.includes('vinyl') && !/\b12"|\b7"|\b10"|\blp\b/.test(f)) {
+        if (f.includes('single') || f.includes('maxi') || /\bep\b/.test(f) || /\bcds\b/.test(f)) {
+          return 'CD Single';
+        }
+        return 'CD Album (LP)';
+      }
       // 7" single (check 7" BEFORE 12" maxi to avoid false matching)
       if (f.includes('7"') || f.includes("7'") || f.includes('7 inch') || (f.includes('single') && !f.includes('12"'))) {
         return '7" Single (45 RPM)';
@@ -13918,9 +14146,9 @@
       if (f.includes('12"') && (f.includes('single') || f.includes('maxi') || f.includes('ep') || f.includes('45 rpm') || f.includes('promo') || (!f.includes('lp') && !f.includes('album')))) {
         return '12" Maxi / Single';
       }
-      // CD / Other
+      // Other digital / CD fallback (e.g. mixed file / dvd / sacd)
       if (f.includes('cd') || f.includes('file') || f.includes('sacd') || f.includes('dvd')) {
-        return 'CD / Other';
+        return (f.includes('single') || f.includes('maxi') || /\bep\b/.test(f)) ? 'CD Single' : 'CD Album (LP)';
       }
       // Standard 12" LP
       if (f.includes('lp') || f.includes('album') || f.includes('vinyl') || f.includes('12"')) {
