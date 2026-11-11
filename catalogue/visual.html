@@ -3,33 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  
-  <!-- Prevent Browser & Proxy Caching -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  
   <title>Album Cover Matcher</title>
-  
-  <!-- Bust iOS Safari BFCache & Stale URL -->
-  <script>
-    // Invalidate Back/Forward Hibernation Cache in Safari
-    window.addEventListener('pageshow', function(event) {
-      if (event.persisted) {
-        window.location.reload();
-      }
-    });
-
-    // Auto-append timestamp query param if visited raw
-    (function() {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (!urlParams.has('v')) {
-        urlParams.set('v', Date.now());
-        window.history.replaceState(null, '', window.location.pathname + '?' + urlParams.toString());
-      }
-    })();
-  </script>
-
   <style>
     :root {
       --bg: #121214;
@@ -112,4 +89,5 @@
     }
     .viewport-guide {
       position: absolute;
-      inset: 1
+      inset: 10%;
+      border: 2px
