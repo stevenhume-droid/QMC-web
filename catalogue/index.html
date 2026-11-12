@@ -9577,87 +9577,114 @@
       const unmatchedTracks = [];
 
       if (isDemo || !token) {
-        // High-Fidelity Demo Simulation
-        playlistId = 'qmc_pl_' + Date.now();
-        playlistUrl = `https://open.spotify.com/playlist/${playlistId}`;
-        targetSet.tracks.forEach((t, i) => {
-          if (!t.spotify_uri) {
-            t.spotify_uri = `spotify:track:demo_${Math.random().toString(36).slice(2, 10)}`;
+        showToast('Demo Mode: Connect your live Spotify account via the Spotify button in the header to export real playlists.', 'info');
+        // Persist demo state for local simulation without opening non-existent URL
+        targetSet.spotify_playlist_id = 'demo_set_' + Date.now();
+        targetSet.spotify_playlist_url = `https://open.spotify.com/playlist/demo_${Date.now()}`;
+        saveActiveSet(targetSet);
+        if (currentView === 'sets') {
+          renderSetsView(document.getElementById('recordsContainer'));
+        }
+        if (document.getElementById('recordBoxDrawer') && !document.getElementById('recordBoxDrawer').classList.contains('hidden')) {
+          renderSetBuilderPane();
+        }
+        return targetSet;
+      }
+
+      // Real Spotify Web API Pipeline
+      try {
+        // 1. Resolve Track URIs in exact sequence
+        for (let i = 0; i < targetSet.tracks.length; i++) {
+          const tr = targetSet.tracks[i];
+          if (tr.spotify_uri && tr.spotify_uri.startsWith('spotify:track:')) {
+            matchedUris.push(tr.spotify_uri);
+            continue;
           }
-          matchedUris.push(t.spotify_uri);
-        });
-      } else {
-        // Real Spotify Web API Pipeline
-        try {
-          // 1. Resolve Track URIs in exact sequence
-          for (let i = 0; i < targetSet.tracks.length; i++) {
-            const tr = targetSet.tracks[i];
-            if (tr.spotify_uri && tr.spotify_uri.startsWith('spotify:track:')) {
-              matchedUris.push(tr.spotify_uri);
-              continue;
-            }
-            try {
-              const query = encodeURIComponent(`track:${tr.title} artist:${tr.artist}`);
-              const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${query}&type=track&limit=1`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-              });
-              if (searchRes.ok) {
-                const data = await searchRes.json();
-                const matchedTrack = data.tracks?.items?.[0];
-                if (matchedTrack?.uri) {
-                  tr.spotify_uri = matchedTrack.uri;
-                  matchedUris.push(matchedTrack.uri);
-                } else {
-                  unmatchedTracks.push(tr);
-                }
+          try {
+            const query = encodeURIComponent(`track:${tr.title} artist:${tr.artist}`);
+            const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${query}&type=track&limit=1`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (searchRes.ok) {
+              const data = await searchRes.json();
+              const matchedTrack = data.tracks?.items?.[0];
+              if (matchedTrack?.uri) {
+                tr.spotify_uri = matchedTrack.uri;
+                matchedUris.push(matchedTrack.uri);
               } else {
                 unmatchedTracks.push(tr);
               }
-            } catch (_) {
+            } else {
               unmatchedTracks.push(tr);
             }
+          } catch (_) {
+            unmatchedTracks.push(tr);
           }
-
-          // 2. Create Playlist on User's Account
-          const userId = (profile && profile.id) ? profile.id : 'me';
-          const endpoint = (userId === 'me') ? 'https://api.spotify.com/v1/me/playlists' : `https://api.spotify.com/v1/users/${encodeURIComponent(userId)}/playlists`;
-          const createRes = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              name: targetSet.title || 'QMC Vinyl Session',
-              description: (targetSet.description || 'QMC Vinyl Session') + ' — Curated via QMC Music Media Archive',
-              public: false
-            })
-          });
-
-          if (createRes.ok) {
-            const plData = await createRes.json();
-            playlistId = plData.id;
-            playlistUrl = plData.external_urls?.spotify || `https://open.spotify.com/playlist/${plData.id}`;
-
-            // 3. Populate Tracks in exact order
-            if (matchedUris.length > 0) {
-              await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}/tracks`, {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ uris: matchedUris.slice(0, 100) })
-              });
-            }
-          } else {
-            throw new Error(`Failed to create playlist (HTTP ${createRes.status})`);
-          }
-        } catch (err) {
-          console.warn('Spotify API export error:', err);
-          playlistId = 'qmc_pl_' + Date.now();
-          playlistUrl = `https://open.spotify.com/playlist/${playlistId}`;
         }
+
+        // 2. Resolve real Spotify User ID
+        let userId = (profile && profile.id) ? profile.id : null;
+        if (!userId) {
+          try {
+            const meRes = await fetch('https://api.spotify.com/v1/me', {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (meRes.ok) {
+              const meData = await meRes.json();
+              userId = meData.id;
+              localStorage.setItem('spotify_user_profile', JSON.stringify({
+                id: meData.id,
+                display_name: meData.display_name || 'Spotify Collector',
+                email: meData.email || '',
+                avatar: meData.images && meData.images[0] ? meData.images[0].url : '',
+                product: meData.product || 'premium'
+              }));
+            }
+          } catch (_) { }
+        }
+
+        if (!userId) {
+          throw new Error('Spotify user profile could not be loaded. Please reconnect your Spotify session.');
+        }
+
+        // 3. Create Playlist on User's Account
+        const createRes = await fetch(`https://api.spotify.com/v1/users/${encodeURIComponent(userId)}/playlists`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: targetSet.title || 'QMC Vinyl Session',
+            description: (targetSet.description || 'QMC Vinyl Session') + ' — Curated via QMC Music Media Archive',
+            public: false
+          })
+        });
+
+        if (createRes.ok) {
+          const plData = await createRes.json();
+          playlistId = plData.id;
+          playlistUrl = plData.external_urls?.spotify || `https://open.spotify.com/playlist/${plData.id}`;
+
+          // 4. Populate Tracks in exact order
+          if (matchedUris.length > 0) {
+            await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}/tracks`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ uris: matchedUris.slice(0, 100) })
+            });
+          }
+        } else {
+          const errJson = await createRes.json().catch(() => ({}));
+          throw new Error(errJson?.error?.message || `Failed to create playlist (HTTP ${createRes.status})`);
+        }
+      } catch (err) {
+        console.warn('Spotify API export error:', err);
+        showToast(`Spotify export failed: ${err.message || err}`, 'error');
+        return null;
       }
 
       // Persist Spotify Playlist ID and URL on Set
@@ -9673,7 +9700,7 @@
       }
 
       showToast(`Exported to Spotify: "${targetSet.title}"!`, 'success');
-      if (playlistUrl && typeof window !== 'undefined' && window.open) {
+      if (playlistUrl && !playlistUrl.includes('qmc_pl_') && typeof window !== 'undefined' && window.open) {
         try { window.open(playlistUrl, '_blank'); } catch (_) { }
       }
 
@@ -11157,7 +11184,7 @@
           client_id: clientId,
           response_type: 'code',
           redirect_uri: redirectUri,
-          scope: SPOTIFY_SCOPES,
+          scope: Array.isArray(SPOTIFY_SCOPES) ? SPOTIFY_SCOPES.join(' ') : String(SPOTIFY_SCOPES),
           code_challenge_method: 'S256',
           code_challenge: challenge
         });
