@@ -9,6 +9,11 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="QMC Archive">
   <meta name="mobile-web-app-capable" content="yes">
+  <link rel="icon" type="image/jpeg" href="qmc-logo.jpg">
+  <link rel="apple-touch-icon" href="qmc-logo.jpg">
+  <script>
+    try { if (localStorage.getItem('qmc_theme') === 'light') document.documentElement.classList.add('theme-light'); } catch (e) { }
+  </script>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -295,6 +300,189 @@
         word-break: break-word;
       }
     }
+
+    /* ===== ALTERNATIVE LIGHT THEME (Forth Bridge Crimson & Archival Paper) ===== */
+    html.theme-light body {
+      background-color: #f6f2eb !important;
+      color: #1c1917 !important;
+    }
+
+    html.theme-light .bg-vinyl-950,
+    html.theme-light .bg-vinyl-950\/95,
+    html.theme-light .bg-vinyl-950\/80 {
+      background-color: #f6f2eb !important;
+    }
+
+    html.theme-light .bg-vinyl-900,
+    html.theme-light .bg-vinyl-900\/95,
+    html.theme-light .bg-vinyl-900\/90,
+    html.theme-light .bg-vinyl-900\/85 {
+      background-color: #ffffff !important;
+    }
+
+    html.theme-light .bg-vinyl-850,
+    html.theme-light .bg-vinyl-850\/95,
+    html.theme-light .bg-vinyl-850\/90,
+    html.theme-light .bg-vinyl-850\/80,
+    html.theme-light .bg-vinyl-850\/70,
+    html.theme-light .bg-vinyl-850\/60 {
+      background-color: #efe9df !important;
+    }
+
+    html.theme-light .bg-vinyl-800,
+    html.theme-light .bg-vinyl-800\/95,
+    html.theme-light .bg-vinyl-800\/90,
+    html.theme-light .bg-vinyl-800\/80 {
+      background-color: #e7dfd3 !important;
+    }
+
+    html.theme-light .hover\:bg-vinyl-800:hover,
+    html.theme-light .hover\:bg-vinyl-700:hover {
+      background-color: #dcd1c1 !important;
+    }
+
+    html.theme-light .bg-gradient-to-r.from-vinyl-900,
+    html.theme-light .bg-gradient-to-b.from-vinyl-900 {
+      background-image: linear-gradient(to right, #ffffff, #f8f3ec, #ffffff) !important;
+    }
+
+    html.theme-light #appHeader {
+      background-color: rgba(255, 255, 255, 0.94) !important;
+      border-color: #e2d8c8 !important;
+    }
+
+    html.theme-light #viewsControlsBar {
+      background-color: rgba(250, 247, 242, 0.88) !important;
+      border-color: #e2d8c8 !important;
+    }
+
+    html.theme-light #mobileBottomNav {
+      background-color: rgba(255, 255, 255, 0.96) !important;
+      border-color: #e2d8c8 !important;
+    }
+
+    html.theme-light .border-vinyl-800,
+    html.theme-light .border-vinyl-800\/80,
+    html.theme-light .border-vinyl-750,
+    html.theme-light .border-vinyl-700 {
+      border-color: #dfd5c5 !important;
+    }
+
+    html.theme-light .text-white {
+      color: #1c1917 !important;
+    }
+
+    html.theme-light .text-slate-100,
+    html.theme-light .text-slate-200 {
+      color: #292524 !important;
+    }
+
+    html.theme-light .text-slate-300 {
+      color: #44403c !important;
+    }
+
+    html.theme-light .text-slate-400,
+    html.theme-light .text-slate-500 {
+      color: #6b635b !important;
+    }
+
+    html.theme-light .text-brass-400,
+    html.theme-light .text-brass-300 {
+      color: #8b1e1a !important;
+    }
+
+    html.theme-light .bg-brass-500 {
+      background-color: #8b1e1a !important;
+      color: #ffffff !important;
+    }
+
+    html.theme-light .bg-brass-500\/20,
+    html.theme-light .bg-brass-500\/15,
+    html.theme-light .bg-brass-500\/10 {
+      background-color: rgba(139, 30, 26, 0.1) !important;
+    }
+
+    html.theme-light .border-brass-500\/50,
+    html.theme-light .border-brass-500\/40,
+    html.theme-light .border-brass-500\/30,
+    html.theme-light .border-brass-400 {
+      border-color: rgba(139, 30, 26, 0.35) !important;
+    }
+
+    html.theme-light .from-brass-500 {
+      --tw-gradient-from: #8b1e1a !important;
+      --tw-gradient-to: rgba(139, 30, 26, 0) !important;
+      --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+      color: #ffffff !important;
+    }
+
+    html.theme-light .to-amber-500 {
+      --tw-gradient-to: #a82924 !important;
+    }
+
+    html.theme-light .text-vinyl-950 {
+      color: #ffffff !important;
+    }
+
+    html.theme-light .text-emerald-400,
+    html.theme-light .text-emerald-300 {
+      color: #047857 !important;
+    }
+
+    html.theme-light .bg-emerald-950\/90 {
+      background-color: rgba(236, 253, 245, 0.94) !important;
+    }
+
+    html.theme-light .text-sky-400,
+    html.theme-light .text-sky-300 {
+      color: #0369a1 !important;
+    }
+
+    html.theme-light .text-amber-400,
+    html.theme-light .text-amber-300 {
+      color: #b45309 !important;
+    }
+
+    html.theme-light .text-pink-300 {
+      color: #9d174d !important;
+    }
+
+    html.theme-light .bg-pink-500\/10,
+    html.theme-light .bg-pink-500\/15,
+    html.theme-light .bg-pink-950\/60 {
+      background-color: rgba(157, 23, 77, 0.08) !important;
+    }
+
+    html.theme-light input,
+    html.theme-light select,
+    html.theme-light textarea {
+      background-color: #ffffff !important;
+      color: #1c1917 !important;
+      border-color: #d6cbb9 !important;
+    }
+
+    html.theme-light ::placeholder {
+      color: #8c8277 !important;
+    }
+
+    html.theme-light .mnav-btn.active {
+      color: #8b1e1a !important;
+    }
+
+    /* Keep cover sleeve dark overlays readable in light mode */
+    html.theme-light .aspect-square .bg-black\/85,
+    html.theme-light .aspect-square .bg-black\/80 {
+      background-color: rgba(20, 23, 29, 0.85) !important;
+      color: #f8fafc !important;
+    }
+
+    html.theme-light .aspect-square .text-brass-400 {
+      color: #f6d365 !important;
+    }
+
+    html.theme-light .aspect-square .text-emerald-300 {
+      color: #047857 !important;
+    }
   </style>
 </head>
 
@@ -305,14 +493,11 @@
   <header id="appHeader"
     class="border-b border-vinyl-800 bg-vinyl-900/95 backdrop-blur sticky top-0 z-40 px-3 sm:px-4 lg:px-8 py-2 sm:py-3 flex items-center justify-between gap-2 sm:gap-4">
     <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-      <!-- Vinyl Logo Badge -->
+      <!-- QMC Brand Logo Badge -->
       <a href="../index.html"
-        class="w-8 h-8 sm:w-10 sm:h-10 rounded-full vinyl-grooves flex-shrink-0 flex items-center justify-center border border-brass-500/40 shadow-inner group hover:scale-105 transition"
+        class="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white p-0.5 flex-shrink-0 flex items-center justify-center border border-brass-500/40 shadow-sm group hover:scale-105 transition overflow-hidden"
         title="Back to QMC Home">
-        <div
-          class="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 rounded-full bg-brass-500 border border-black flex items-center justify-center group-hover:bg-amber-400">
-          <div class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-black"></div>
-        </div>
+        <img src="qmc-logo.jpg" alt="Queensferry Music Collective" class="w-full h-full object-cover rounded-full">
       </a>
       <div class="min-w-0">
         <div class="flex items-center gap-1.5 sm:gap-2">
@@ -433,6 +618,13 @@
         class="hidden md:flex px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-vinyl-950 transition flex items-center gap-2 shadow-lg shadow-brass-500/10">
         <i class="fa-solid fa-plus text-sm"></i>
         <span>Catalogue Record</span>
+      </button>
+
+      <!-- Theme Toggle (Dark / Light) -->
+      <button type="button" onclick="toggleTheme()" id="themeToggleBtn"
+        class="p-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border border-vinyl-700 transition flex items-center justify-center"
+        title="Switch between Dark and Light theme">
+        <i id="themeToggleIcon" class="fa-solid fa-sun text-amber-400 text-sm"></i>
       </button>
 
       <!-- Import / Export Menu Dropdown -->
@@ -561,8 +753,8 @@
 
   <!-- COMPACT COLLECTION SUMMARY STRIP (Collection + Interactive Decades Filter) -->
   <section class="bg-vinyl-900 border-b border-vinyl-800 px-3 sm:px-4 lg:px-8 py-2 sm:py-2.5">
-    <!-- Mobile-Only Quick Metrics Bar with Toggle -->
-    <div class="sm:hidden flex items-center justify-between pb-1.5 text-xs">
+    <!-- Quick Metrics Bar with Formats & Decades Toggle (starts minimised) -->
+    <div class="flex items-center justify-between text-xs">
       <div class="flex items-center gap-2">
         <button type="button" onclick="toggleFormatFilter('ALL')"
           class="font-bold font-mono text-brass-400 text-sm flex items-center gap-1">
@@ -580,7 +772,7 @@
       </button>
     </div>
 
-    <div id="statsStrip" class="grid grid-cols-1 md:grid-cols-5 gap-2 sm:gap-3">
+    <div id="statsStrip" class="hidden mt-2 grid grid-cols-1 md:grid-cols-5 gap-2 sm:gap-3">
 
       <!-- 1. Total Collection & Format Breakdown (All Formats) -->
       <div
@@ -3533,6 +3725,9 @@
           class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5 cursor-pointer"><i
             class="fa-solid fa-file-import text-lg text-amber-400"></i>Import JSON<input type="file" accept=".json"
             onchange="closeMobileMore();importFromJSON(event)" class="hidden"></label>
+        <button onclick="closeMobileMore();toggleTheme()"
+          class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i
+            id="mobileThemeToggleIcon" class="fa-solid fa-sun text-lg text-amber-400"></i><span id="mobileThemeToggleLabel">Light Theme</span></button>
         <button onclick="closeMobileMore();forceBustCache()"
           class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i
             class="fa-solid fa-arrows-rotate text-lg text-sky-400"></i>Hard Reload</button>
@@ -6697,6 +6892,7 @@
 
     // Initialize Application
     window.addEventListener('DOMContentLoaded', () => {
+      applyTheme((() => { try { return localStorage.getItem('qmc_theme') === 'light' ? 'light' : 'dark'; } catch (e) { return 'dark'; } })(), false);
       syncStickyControlsOffset();
       window.addEventListener('resize', syncStickyControlsOffset);
       if (typeof ResizeObserver === 'function') {
@@ -7654,7 +7850,7 @@
       renderStats();
     }
 
-    let isMobileStatsExpanded = true;
+    let isMobileStatsExpanded = false;
     function toggleMobileStatsStrip() {
       isMobileStatsExpanded = !isMobileStatsExpanded;
       const strip = document.getElementById('statsStrip');
@@ -7777,6 +7973,33 @@
       const stats = document.getElementById('mnav-stats');
       if (crate) crate.classList.toggle('active', mode !== 'analytics');
       if (stats) stats.classList.toggle('active', mode === 'analytics');
+    }
+
+    function toggleTheme() {
+      const isLight = !!document.documentElement?.classList?.contains('theme-light');
+      applyTheme(isLight ? 'dark' : 'light', true);
+    }
+
+    function applyTheme(theme, persist = false) {
+      const isLight = theme === 'light';
+      document.documentElement?.classList?.toggle('theme-light', isLight);
+      if (persist) {
+        try { localStorage.setItem('qmc_theme', isLight ? 'light' : 'dark'); } catch (e) { }
+      }
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) metaTheme.setAttribute('content', isLight ? '#f6f2eb' : '#0c0d10');
+      const icon = document.getElementById('themeToggleIcon');
+      if (icon) {
+        icon.className = isLight ? 'fa-solid fa-moon text-slate-600 text-sm' : 'fa-solid fa-sun text-amber-400 text-sm';
+      }
+      const btn = document.getElementById('themeToggleBtn');
+      if (btn) btn.title = isLight ? 'Switch to Dark Theme' : 'Switch to Light Theme';
+      const mIcon = document.getElementById('mobileThemeToggleIcon');
+      if (mIcon) {
+        mIcon.className = isLight ? 'fa-solid fa-moon text-lg text-slate-600' : 'fa-solid fa-sun text-lg text-amber-400';
+      }
+      const mLabel = document.getElementById('mobileThemeToggleLabel');
+      if (mLabel) mLabel.innerText = isLight ? 'Dark Theme' : 'Light Theme';
     }
 
     function toggleMoreMenu(ev) {
