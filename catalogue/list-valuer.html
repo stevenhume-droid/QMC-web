@@ -158,31 +158,37 @@
   </style>
 </head>
 
-<body class="bg-vinyl-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-brass-500/30 selection:text-brass-300">
+<body
+  class="bg-vinyl-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-brass-500/30 selection:text-brass-300">
 
   <!-- Header -->
   <header id="appHeader" class="sticky top-0 z-40 bg-vinyl-900/90 backdrop-blur-md border-b border-vinyl-800 shadow-md">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-      
+
       <!-- Brand & Title -->
       <div class="flex items-center gap-3">
         <a href="index.html" class="flex items-center gap-2.5 group" title="Return to Music Media Archive">
-          <div class="w-9 h-9 rounded-full overflow-hidden border border-brass-500/40 p-[1px] bg-vinyl-950 flex-shrink-0 group-hover:border-brass-400 transition">
+          <div
+            class="w-9 h-9 rounded-full overflow-hidden border border-brass-500/40 p-[1px] bg-vinyl-950 flex-shrink-0 group-hover:border-brass-400 transition">
             <img src="qmc-logo.jpg" alt="Music Media Archive" class="w-full h-full object-cover rounded-full">
           </div>
           <div>
             <div class="flex items-center gap-2">
               <span class="text-xs uppercase tracking-widest font-bold text-brass-400">MMA</span>
-              <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brass-500/10 text-brass-400 border border-brass-500/30">Bulk Valuer</span>
+              <span
+                class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brass-500/10 text-brass-400 border border-brass-500/30">Bulk
+                Valuer</span>
             </div>
-            <h1 class="text-sm sm:text-base font-bold text-white tracking-tight leading-none group-hover:text-brass-300 transition">List Pricing & Valuation</h1>
+            <h1
+              class="text-sm sm:text-base font-bold text-white tracking-tight leading-none group-hover:text-brass-300 transition">
+              List Pricing & Valuation</h1>
           </div>
         </a>
       </div>
 
       <!-- Controls & Actions -->
       <div class="flex items-center gap-2 sm:gap-3 text-xs">
-        
+
         <!-- Discogs Token Status / Button -->
         <button onclick="openTokenModal()" id="tokenStatusBtn"
           class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-800 text-slate-300 hover:text-white transition"
@@ -192,12 +198,15 @@
         </button>
 
         <!-- Theme Toggle -->
-        <button onclick="toggleTheme()" class="w-8 h-8 rounded-lg bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-800 text-slate-300 hover:text-amber-400 transition flex items-center justify-center" title="Toggle Theme">
+        <button onclick="toggleTheme()"
+          class="w-8 h-8 rounded-lg bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-800 text-slate-300 hover:text-amber-400 transition flex items-center justify-center"
+          title="Toggle Theme">
           <i id="themeIcon" class="fa-solid fa-moon"></i>
         </button>
 
         <!-- Back to Archive Button -->
-        <a href="index.html" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 font-medium transition shadow-sm">
+        <a href="index.html"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 font-medium transition shadow-sm">
           <i class="fa-solid fa-arrow-left text-[11px]"></i>
           <span>Archive</span>
         </a>
@@ -210,24 +219,29 @@
 
     <!-- Step 1: Input & Configuration Section -->
     <section class="bg-vinyl-900 border border-vinyl-800 rounded-2xl p-4 sm:p-6 shadow-xl relative overflow-hidden">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4 pb-3 border-b border-vinyl-800/80">
+      <div
+        class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4 pb-3 border-b border-vinyl-800/80">
         <div>
           <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
             <i class="fa-solid fa-list-check text-brass-400"></i>
             <span>Paste Track or Album List</span>
           </h2>
           <p class="text-xs text-slate-400 mt-0.5">
-            Paste one item per line as <code class="text-brass-300 bg-vinyl-950 px-1 py-0.5 rounded border border-vinyl-800">Artist - Song / Title</code>, or paste directly from spreadsheets.
+            Paste one item per line as <code
+              class="text-brass-300 bg-vinyl-950 px-1 py-0.5 rounded border border-vinyl-800">Artist - Song / Title</code>,
+            or paste directly from spreadsheets.
           </p>
         </div>
 
         <!-- Quick Sample / Action Buttons -->
         <div class="flex items-center gap-2 flex-wrap">
-          <button type="button" onclick="loadSampleList()" class="px-2.5 py-1.5 text-xs rounded-lg bg-vinyl-800 hover:bg-vinyl-750 border border-vinyl-700 text-brass-400 hover:text-brass-300 font-medium transition flex items-center gap-1.5">
+          <button type="button" onclick="loadSampleList()"
+            class="px-2.5 py-1.5 text-xs rounded-lg bg-vinyl-800 hover:bg-vinyl-750 border border-vinyl-700 text-brass-400 hover:text-brass-300 font-medium transition flex items-center gap-1.5">
             <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>
             <span>Load Sample 7" List</span>
           </button>
-          <button type="button" onclick="clearInput()" class="px-2.5 py-1.5 text-xs rounded-lg bg-vinyl-800 hover:bg-vinyl-750 border border-vinyl-700 text-slate-400 hover:text-slate-200 transition">
+          <button type="button" onclick="clearInput()"
+            class="px-2.5 py-1.5 text-xs rounded-lg bg-vinyl-800 hover:bg-vinyl-750 border border-vinyl-700 text-slate-400 hover:text-slate-200 transition">
             Clear
           </button>
         </div>
@@ -237,7 +251,8 @@
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1">Target Format</label>
-          <select id="targetFormatSelect" class="w-full bg-vinyl-950 border border-vinyl-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brass-500 transition">
+          <select id="targetFormatSelect"
+            class="w-full bg-vinyl-950 border border-vinyl-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brass-500 transition">
             <option value='7" Single' selected>7" Vinyl Single (45 RPM)</option>
             <option value='12" Single'>12" Vinyl Single / Maxi</option>
             <option value='12" LP (Album)'>12" Vinyl LP (Album)</option>
@@ -249,7 +264,8 @@
 
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1">Target Condition Grade</label>
-          <select id="targetGradeSelect" class="w-full bg-vinyl-950 border border-vinyl-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brass-500 transition">
+          <select id="targetGradeSelect"
+            class="w-full bg-vinyl-950 border border-vinyl-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brass-500 transition">
             <option value="Near Mint (NM or M-)">Near Mint (NM)</option>
             <option value="Very Good Plus (VG+)" selected>Very Good Plus (VG+) — Standard</option>
             <option value="Very Good (VG)">Very Good (VG)</option>
@@ -260,7 +276,8 @@
 
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1">Valuation Currency</label>
-          <select id="currencySelect" class="w-full bg-vinyl-950 border border-vinyl-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brass-500 transition">
+          <select id="currencySelect"
+            class="w-full bg-vinyl-950 border border-vinyl-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brass-500 transition">
             <option value="GBP" selected>GBP (£) — British Pounds</option>
             <option value="USD">USD ($) — US Dollars</option>
             <option value="EUR">EUR (€) — Euros</option>
@@ -270,8 +287,7 @@
 
       <!-- Textarea Input -->
       <div class="relative">
-        <textarea id="rawListInput" rows="7"
-          placeholder="Paste tracks here, e.g.:
+        <textarea id="rawListInput" rows="7" placeholder="Paste tracks here, e.g.:
 Joy Division - Love Will Tear Us Apart
 New Order - Blue Monday
 The Smiths - This Charming Man
@@ -299,15 +315,20 @@ Siouxsie And The Banshees - Hong Kong Garden"
     </section>
 
     <!-- Step 2: Staged Items Review & Start Valuation -->
-    <section id="reviewSection" class="hidden bg-vinyl-900 border border-vinyl-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-4">
+    <section id="reviewSection"
+      class="hidden bg-vinyl-900 border border-vinyl-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-vinyl-800/80">
         <div>
           <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-            <span class="w-6 h-6 rounded-full bg-brass-500/20 text-brass-400 border border-brass-500/40 flex items-center justify-center text-xs font-bold">2</span>
+            <span
+              class="w-6 h-6 rounded-full bg-brass-500/20 text-brass-400 border border-brass-500/40 flex items-center justify-center text-xs font-bold">2</span>
             <span>Review Parsed Tracks</span>
-            <span id="stagedCountBadge" class="text-xs px-2 py-0.5 rounded-full bg-vinyl-800 text-slate-300 border border-vinyl-700">0 tracks</span>
+            <span id="stagedCountBadge"
+              class="text-xs px-2 py-0.5 rounded-full bg-vinyl-800 text-slate-300 border border-vinyl-700">0
+              tracks</span>
           </h3>
-          <p class="text-xs text-slate-400 mt-0.5">Check and adjust artist or titles if needed before querying market pricing.</p>
+          <p class="text-xs text-slate-400 mt-0.5">Check and adjust artist or titles if needed before querying market
+            pricing.</p>
         </div>
 
         <!-- Action Execution Button -->
@@ -323,7 +344,8 @@ Siouxsie And The Banshees - Hong Kong Garden"
       <!-- Parsed Table Preview -->
       <div class="overflow-x-auto border border-vinyl-800 rounded-xl bg-vinyl-950 max-h-80 overflow-y-auto">
         <table class="w-full text-left text-xs text-slate-300">
-          <thead class="bg-vinyl-850 text-slate-400 uppercase tracking-wider text-[10px] sticky top-0 z-10 border-b border-vinyl-800">
+          <thead
+            class="bg-vinyl-850 text-slate-400 uppercase tracking-wider text-[10px] sticky top-0 z-10 border-b border-vinyl-800">
             <tr>
               <th class="py-2.5 px-3 w-10 text-center">#</th>
               <th class="py-2.5 px-3">Artist</th>
@@ -340,7 +362,8 @@ Siouxsie And The Banshees - Hong Kong Garden"
     </section>
 
     <!-- Step 3: Progress & Live Processing Banner -->
-    <section id="progressSection" class="hidden bg-vinyl-900 border border-brass-500/30 rounded-2xl p-4 sm:p-5 shadow-2xl space-y-3">
+    <section id="progressSection"
+      class="hidden bg-vinyl-900 border border-brass-500/30 rounded-2xl p-4 sm:p-5 shadow-2xl space-y-3">
       <div class="flex items-center justify-between gap-3">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-lg bg-brass-500/20 text-brass-400 flex items-center justify-center animate-spin">
@@ -351,16 +374,19 @@ Siouxsie And The Banshees - Hong Kong Garden"
               <span>Querying Discogs Marketplace & Historical Sales...</span>
               <span id="progressPercentBadge" class="text-[11px] font-mono text-brass-400">0%</span>
             </div>
-            <p id="progressStatusText" class="text-[11px] text-slate-400 truncate max-w-md sm:max-w-xl">Preparing valuation queue...</p>
+            <p id="progressStatusText" class="text-[11px] text-slate-400 truncate max-w-md sm:max-w-xl">Preparing
+              valuation queue...</p>
           </div>
         </div>
 
         <!-- Pause / Cancel Controls -->
         <div class="flex items-center gap-2">
-          <button type="button" onclick="togglePauseQueue()" id="pauseQueueBtn" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-slate-200 border border-vinyl-700 text-xs font-medium transition">
+          <button type="button" onclick="togglePauseQueue()" id="pauseQueueBtn"
+            class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-slate-200 border border-vinyl-700 text-xs font-medium transition">
             <i class="fa-solid fa-pause"></i> <span id="pauseBtnLabel">Pause</span>
           </button>
-          <button type="button" onclick="cancelQueue()" class="px-3 py-1.5 rounded-lg bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/50 text-xs font-medium transition">
+          <button type="button" onclick="cancelQueue()"
+            class="px-3 py-1.5 rounded-lg bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/50 text-xs font-medium transition">
             Cancel
           </button>
         </div>
@@ -368,16 +394,17 @@ Siouxsie And The Banshees - Hong Kong Garden"
 
       <!-- Progress Track -->
       <div class="w-full bg-vinyl-950 h-2 rounded-full overflow-hidden border border-vinyl-800">
-        <div id="progressBarFill" class="bg-gradient-to-r from-brass-600 to-amber-400 h-full w-0 transition-all duration-300"></div>
+        <div id="progressBarFill"
+          class="bg-gradient-to-r from-brass-600 to-amber-400 h-full w-0 transition-all duration-300"></div>
       </div>
     </section>
 
     <!-- Step 4: Results & Financial Intelligence Dashboard -->
     <section id="resultsSection" class="hidden space-y-4">
-      
+
       <!-- Financial Summary Cards -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        
+
         <!-- Total Median Valuation -->
         <div class="p-4 rounded-2xl bg-vinyl-900 border border-brass-500/30 shadow-lg relative overflow-hidden">
           <div class="text-[10px] uppercase tracking-wider font-bold text-brass-400 mb-1 flex items-center gap-1.5">
@@ -419,13 +446,16 @@ Siouxsie And The Banshees - Hong Kong Garden"
       </div>
 
       <!-- Action Bar: Export & Archive Integration -->
-      <div class="bg-vinyl-900 border border-vinyl-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div
+        class="bg-vinyl-900 border border-vinyl-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div class="flex items-center gap-2 flex-wrap">
           <span class="text-xs font-semibold text-slate-300">Export Results:</span>
-          <button type="button" onclick="exportValuationsCSV()" class="px-3 py-1.5 rounded-lg bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 text-emerald-400 font-semibold text-xs flex items-center gap-1.5 transition">
+          <button type="button" onclick="exportValuationsCSV()"
+            class="px-3 py-1.5 rounded-lg bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 text-emerald-400 font-semibold text-xs flex items-center gap-1.5 transition">
             <i class="fa-solid fa-file-csv"></i> <span>Export CSV</span>
           </button>
-          <button type="button" onclick="exportValuationsExcel()" class="px-3 py-1.5 rounded-lg bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 text-green-400 font-semibold text-xs flex items-center gap-1.5 transition">
+          <button type="button" onclick="exportValuationsExcel()"
+            class="px-3 py-1.5 rounded-lg bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 text-green-400 font-semibold text-xs flex items-center gap-1.5 transition">
             <i class="fa-solid fa-file-excel"></i> <span>Export Excel</span>
           </button>
         </div>
@@ -448,7 +478,8 @@ Siouxsie And The Banshees - Hong Kong Garden"
           </h3>
           <div class="flex items-center gap-3 text-xs text-slate-400">
             <label class="flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" checked class="rounded accent-brass-500">
+              <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" checked
+                class="rounded accent-brass-500">
               <span>Select All</span>
             </label>
           </div>
@@ -480,21 +511,24 @@ Siouxsie And The Banshees - Hong Kong Garden"
   </main>
 
   <!-- MODAL: DISCOGS TOKEN SETTINGS -->
-  <div id="tokenModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div id="tokenModal"
+    class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
       <div class="flex items-center justify-between pb-3 border-b border-vinyl-800 mb-4">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
           <i class="fa-solid fa-key text-brass-400"></i>
           <span>Discogs Personal Access Token</span>
         </h3>
-        <button onclick="closeTokenModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center">
+        <button onclick="closeTokenModal()"
+          class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
       <div class="space-y-4 text-xs text-slate-300">
         <p>
-          A free Discogs User Token gives you accurate condition-based price suggestions (M, NM, VG+, VG) and 60 lookups/minute.
+          A free Discogs User Token gives you accurate condition-based price suggestions (M, NM, VG+, VG) and 60
+          lookups/minute.
         </p>
 
         <div>
@@ -504,7 +538,8 @@ Siouxsie And The Banshees - Hong Kong Garden"
         </div>
 
         <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1">
-          <a href="https://www.discogs.com/settings/developers" target="_blank" rel="noopener" class="text-brass-400 hover:underline flex items-center gap-1">
+          <a href="https://www.discogs.com/settings/developers" target="_blank" rel="noopener"
+            class="text-brass-400 hover:underline flex items-center gap-1">
             <span>Generate free token on Discogs</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
           </a>
@@ -512,8 +547,10 @@ Siouxsie And The Banshees - Hong Kong Garden"
         </div>
 
         <div class="pt-3 border-t border-vinyl-800 flex justify-end gap-2">
-          <button type="button" onclick="closeTokenModal()" class="px-4 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 font-medium">Cancel</button>
-          <button type="button" onclick="saveToken()" class="px-4 py-2 rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold">Save Token</button>
+          <button type="button" onclick="closeTokenModal()"
+            class="px-4 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 font-medium">Cancel</button>
+          <button type="button" onclick="saveToken()"
+            class="px-4 py-2 rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold">Save Token</button>
         </div>
       </div>
     </div>
@@ -585,8 +622,8 @@ Siouxsie And The Banshees - Hong Kong Garden"
     function getStoredToken() {
       try {
         return localStorage.getItem(TOKEN_KEY) ||
-               localStorage.getItem('QMC_DISCOGS_TOKEN') ||
-               localStorage.getItem('discogs_personal_token') || '';
+          localStorage.getItem('QMC_DISCOGS_TOKEN') ||
+          localStorage.getItem('discogs_personal_token') || '';
       } catch (e) {
         return '';
       }
@@ -1314,7 +1351,7 @@ Siouxsie And The Banshees - Hong Kong Garden"
     function showToast(message, type = 'info') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
-      
+
       let border = 'border-vinyl-700';
       let icon = 'fa-info-circle text-sky-400';
       if (type === 'success') {
@@ -1345,4 +1382,3 @@ Siouxsie And The Banshees - Hong Kong Garden"
 </body>
 
 </html>
-
