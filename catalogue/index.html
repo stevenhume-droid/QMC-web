@@ -181,6 +181,12 @@
         min-width: 32px;
       }
 
+      #filterPillsContainer button,
+      #decadeQuickChips button {
+        min-height: 24px;
+        min-width: 22px;
+      }
+
       .form-tab-btn {
         min-height: 44px;
         font-size: 13px;
@@ -788,7 +794,7 @@
       </div>
 
       <!-- Active Tag & Filter Indicators -->
-      <div id="filterPillsContainer" class="flex flex-wrap items-center gap-1.5 empty:hidden text-xs text-slate-400">
+      <div id="filterPillsContainer" class="flex flex-wrap items-center gap-1.5 empty:hidden text-[11px] sm:text-xs text-slate-400">
       </div>
     </div>
 
@@ -3926,6 +3932,7 @@
     let isShareViewValuesHidden = false;
     let areValuesVisible = localStorage.getItem('qmc_show_values') !== 'false';
     let currentDetailRecordId = null;
+    let dossierDirtyRecordId = null;
     let shareOwnerId = null;
     let shareOwnerName = '';
 
@@ -5349,11 +5356,11 @@
         const item = records.find(r => r.id === currentChooserTarget.recordId);
         if (item) {
           item.coverImage = url || '';
-          saveRecordsToStorage();
-          if (isCloudActive && currentUser && supabaseClient) {
-            const dbRow = mapRecordToDb(item, currentUser.id);
-            supabaseClient.from('records').upsert(dbRow, { onConflict: 'id' }).then(() => { }).catch(e => console.warn(e));
+          if (String(currentDetailRecordId) === String(item.id)) {
+            dossierDirtyRecordId = item.id;
           }
+          saveRecordsToStorage();
+          syncRecordToCloud(item);
           renderStats();
           renderRecords();
           const detailModal = document.getElementById('detailModal');
@@ -7598,33 +7605,33 @@
       let pillsHTML = '';
 
       if (activeArtistFilter) {
-        pillsHTML += `<span class="bg-brass-500/20 text-brass-300 px-2.5 py-0.5 rounded-full border border-brass-500/50 flex items-center gap-1.5 font-medium"><i class="fa-solid fa-user text-[10px]"></i> Artist: "${escapeHtml(activeArtistFilter)}" <button onclick="clearArtistFilter()" class="hover:text-red-400 ml-1"><i class="fa-solid fa-xmark"></i></button></span>`;
+        pillsHTML += `<span class="bg-brass-500/20 text-brass-300 px-2 py-0.5 rounded-full border border-brass-500/50 flex items-center gap-1 font-medium"><i class="fa-solid fa-user text-[10px]"></i> Artist: "${escapeHtml(activeArtistFilter)}" <button onclick="clearArtistFilter()" class="hover:text-red-400 ml-0.5"><i class="fa-solid fa-xmark"></i></button></span>`;
       }
       if (activeDecadeFilters.length > 0) {
         activeDecadeFilters.forEach(dec => {
           const decStart = parseInt(dec);
           const decLabel = !isNaN(decStart) ? `${dec} (${decStart}–${decStart + 9})` : 'Unknown Year';
-          pillsHTML += `<span class="bg-vinyl-800 text-sky-300 px-2.5 py-0.5 rounded-full border border-sky-500/40 flex items-center gap-1.5">Decade: ${escapeHtml(decLabel)} <button onclick="clearDecadeFilter('${escapeHtml(dec)}')" class="hover:text-red-400" title="Remove ${escapeHtml(dec)}"><i class="fa-solid fa-xmark"></i></button></span>`;
+          pillsHTML += `<span class="bg-vinyl-800 text-sky-300 px-2 py-0.5 rounded-full border border-sky-500/40 flex items-center gap-1">Decade: ${escapeHtml(decLabel)} <button onclick="clearDecadeFilter('${escapeHtml(dec)}')" class="hover:text-red-400" title="Remove ${escapeHtml(dec)}"><i class="fa-solid fa-xmark"></i></button></span>`;
         });
       }
       if (searchTerm) {
-        pillsHTML += `<span class="bg-vinyl-800 text-slate-200 px-2.5 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Query: "${escapeHtml(searchTerm)}" <button onclick="clearSearchInput()" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
+        pillsHTML += `<span class="bg-vinyl-800 text-slate-200 px-2 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1">Query: "${escapeHtml(searchTerm)}" <button onclick="clearSearchInput()" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
       }
       if (formatFilter !== 'ALL') {
         const formatLabel = getFormatFilterLabel(formatFilter);
-        pillsHTML += `<span class="bg-vinyl-800 text-amber-400 px-2.5 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Format: ${escapeHtml(formatLabel)} <button onclick="document.getElementById('filterFormat').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
+        pillsHTML += `<span class="bg-vinyl-800 text-amber-400 px-2 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1">Format: ${escapeHtml(formatLabel)} <button onclick="document.getElementById('filterFormat').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
       }
       if (gradeFilter !== 'ALL') {
-        pillsHTML += `<span class="bg-vinyl-800 text-emerald-400 px-2.5 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1.5">Media: ${escapeHtml(gradeFilter)} <button onclick="document.getElementById('filterGrade').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
+        pillsHTML += `<span class="bg-vinyl-800 text-emerald-400 px-2 py-0.5 rounded-full border border-vinyl-700 flex items-center gap-1">Media: ${escapeHtml(gradeFilter)} <button onclick="document.getElementById('filterGrade').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
       }
       if (genreFilter !== 'ALL') {
-        pillsHTML += `<span class="bg-vinyl-800 text-purple-300 px-2.5 py-0.5 rounded-full border border-purple-500/40 flex items-center gap-1.5">Genre: ${escapeHtml(genreFilter)} <button onclick="document.getElementById('filterGenre').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
+        pillsHTML += `<span class="bg-vinyl-800 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/40 flex items-center gap-1">Genre: ${escapeHtml(genreFilter)} <button onclick="document.getElementById('filterGenre').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
       }
       if (labelFilter !== 'ALL') {
-        pillsHTML += `<span class="bg-vinyl-800 text-teal-300 px-2.5 py-0.5 rounded-full border border-teal-500/40 flex items-center gap-1.5">Label: ${escapeHtml(labelFilter)} <button onclick="document.getElementById('filterLabel').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
+        pillsHTML += `<span class="bg-vinyl-800 text-teal-300 px-2 py-0.5 rounded-full border border-teal-500/40 flex items-center gap-1">Label: ${escapeHtml(labelFilter)} <button onclick="document.getElementById('filterLabel').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
       }
       if (seriesFilter !== 'ALL') {
-        pillsHTML += `<span class="bg-vinyl-800 text-pink-300 px-2.5 py-0.5 rounded-full border border-pink-500/40 flex items-center gap-1.5">Series: ${escapeHtml(seriesFilter)} <button onclick="document.getElementById('filterSeries').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
+        pillsHTML += `<span class="bg-vinyl-800 text-pink-300 px-2 py-0.5 rounded-full border border-pink-500/40 flex items-center gap-1">Series: ${escapeHtml(seriesFilter)} <button onclick="document.getElementById('filterSeries').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button></span>`;
       }
 
       container.innerHTML = pillsHTML;
@@ -7881,6 +7888,8 @@
       if (t && t.id && t.id.endsWith('Modal') && t.classList.contains('fixed')) {
         if (t.id === 'scannerModal' && typeof closeScannerModal === 'function') {
           closeScannerModal();
+        } else if (t.id === 'detailModal' && typeof closeDetailModal === 'function') {
+          closeDetailModal();
         } else {
           t.classList.add('hidden');
         }
@@ -8181,6 +8190,23 @@
       }
     }
 
+    const expandedCardTracklists = new Set();
+
+    function toggleCardTracklist(event, recordId) {
+      if (event) event.stopPropagation();
+      const key = String(recordId || '');
+      if (!key) return;
+      const panel = document.getElementById(`cardTracksExpanded-${key}`);
+      const chevron = document.getElementById(`cardTracksChevron-${key}`);
+      const trigger = document.getElementById(`cardTracksToggle-${key}`);
+      const willExpand = !expandedCardTracklists.has(key);
+      if (willExpand) expandedCardTracklists.add(key);
+      else expandedCardTracklists.delete(key);
+      if (panel) panel.classList.toggle('hidden', !willExpand);
+      if (chevron) chevron.classList.toggle('rotate-180', willExpand);
+      if (trigger) trigger.setAttribute('aria-expanded', willExpand ? 'true' : 'false');
+    }
+
     function safeEncodeUriPart(str) {
       return encodeURIComponent(str || '').replace(/'/g, '%27');
     }
@@ -8394,29 +8420,63 @@
                   </div>
                 ` : ''}
 
-                <!-- Tracks Summary Quick Info -->
-                <div class="bg-vinyl-850 p-2.5 rounded-lg border border-vinyl-800 space-y-1 text-[11px]">
-                  ${item.tracks && item.tracks.length > 0 ? `
-                    <div class="flex items-center justify-between text-slate-300">
-                      <span class="font-medium text-brass-400 truncate flex-1">
-                        <i class="fa-solid fa-list text-[10px] mr-1"></i> ${item.tracks.length} Tracks Tracklist
-                      </span>
-                      <span class="text-[10px] text-slate-500 font-mono">${escapeHtml(item.country || '')}</span>
+                <!-- Tracks Summary Quick Info (click to expand full tracklist) -->
+                ${(() => {
+                  const recKey = String(item.id || '');
+                  const safeDomId = escapeHtml(recKey);
+                  const isTracksExpanded = expandedCardTracklists.has(recKey);
+                  const hasTracks = item.tracks && item.tracks.length > 0;
+                  const tracksRowsHtml = hasTracks
+                    ? item.tracks.map((t, idx) => `
+                        <div class="flex items-center justify-between gap-2 text-[10px] py-0.5 border-b border-vinyl-800/50 last:border-b-0">
+                          <span class="text-slate-200 truncate"><span class="text-brass-400/90 font-mono mr-1.5">${escapeHtml(t.position || t.side || String(idx + 1))}</span>${escapeHtml(t.title || 'Untitled Track')}</span>
+                          ${t.duration ? `<span class="text-slate-500 font-mono flex-shrink-0">${escapeHtml(t.duration)}</span>` : ''}
+                        </div>
+                      `).join('')
+                    : `
+                        <div class="flex items-center justify-between gap-2 text-[10px] py-0.5 border-b border-vinyl-800/50">
+                          <span class="text-slate-200 truncate"><span class="text-brass-400 font-mono mr-1.5">A</span>${escapeHtml(item.sideATitle || item.title)}</span>
+                          ${item.sideADuration ? `<span class="text-slate-500 font-mono flex-shrink-0">${escapeHtml(item.sideADuration)}</span>` : ''}
+                        </div>
+                        <div class="flex items-center justify-between gap-2 text-[10px] py-0.5">
+                          <span class="text-slate-300 truncate"><span class="text-slate-400 font-mono mr-1.5">B</span>${escapeHtml(item.sideBTitle || 'Side B Track')}</span>
+                          ${item.sideBDuration ? `<span class="text-slate-500 font-mono flex-shrink-0">${escapeHtml(item.sideBDuration)}</span>` : ''}
+                        </div>
+                      `;
+                  return `
+                    <div id="cardTracksToggle-${safeDomId}" role="button" tabindex="0" aria-expanded="${isTracksExpanded ? 'true' : 'false'}" onclick="toggleCardTracklist(event, '${safeId}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleCardTracklist(event,'${safeId}');}" class="bg-vinyl-850 hover:bg-vinyl-850/80 p-2.5 rounded-lg border border-vinyl-800 hover:border-brass-500/40 space-y-1 text-[11px] cursor-pointer transition select-none" title="Click to show/hide full tracklist">
+                      ${hasTracks ? `
+                        <div class="flex items-center justify-between text-slate-300 gap-1.5">
+                          <span class="font-medium text-brass-400 truncate flex-1">
+                            <i class="fa-solid fa-list text-[10px] mr-1"></i> ${item.tracks.length} Tracks Tracklist
+                          </span>
+                          <span class="flex items-center gap-1.5 flex-shrink-0">
+                            ${item.country ? `<span class="text-[10px] text-slate-500 font-mono">${escapeHtml(item.country)}</span>` : ''}
+                            <i id="cardTracksChevron-${safeDomId}" class="fa-solid fa-chevron-down text-[9px] text-slate-500 transition-transform duration-200 ${isTracksExpanded ? 'rotate-180' : ''}"></i>
+                          </span>
+                        </div>
+                        <div class="text-[10px] text-slate-400 truncate">
+                          ${escapeHtml(item.tracks.slice(0, 2).map(t => t.title).join(' · '))}${item.tracks.length > 2 ? '...' : ''}
+                        </div>
+                      ` : `
+                        <div class="flex items-center justify-between gap-1.5">
+                          <div class="flex items-center gap-1.5 text-slate-300 truncate min-w-0">
+                            <span class="w-3.5 h-3.5 rounded-full bg-vinyl-800 text-[8px] font-bold text-brass-400 flex items-center justify-center flex-shrink-0">A</span>
+                            <span class="truncate">${escapeHtml(item.sideATitle || item.title)}</span>
+                          </div>
+                          <i id="cardTracksChevron-${safeDomId}" class="fa-solid fa-chevron-down text-[9px] text-slate-500 transition-transform duration-200 flex-shrink-0 ${isTracksExpanded ? 'rotate-180' : ''}"></i>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-slate-400 truncate">
+                          <span class="w-3.5 h-3.5 rounded-full bg-vinyl-800 text-[8px] font-bold text-slate-400 flex items-center justify-center flex-shrink-0">B</span>
+                          <span class="truncate">${escapeHtml(item.sideBTitle || 'Side B Track')}</span>
+                        </div>
+                      `}
+                      <div id="cardTracksExpanded-${safeDomId}" class="${isTracksExpanded ? '' : 'hidden'} mt-2 pt-2 border-t border-vinyl-800/80 space-y-0.5 max-h-44 overflow-y-auto pr-1" onclick="event.stopPropagation()">
+                        ${tracksRowsHtml}
+                      </div>
                     </div>
-                    <div class="text-[10px] text-slate-400 truncate">
-                      ${escapeHtml(item.tracks.slice(0, 2).map(t => t.title).join(' · '))}${item.tracks.length > 2 ? '...' : ''}
-                    </div>
-                  ` : `
-                    <div class="flex items-center gap-1.5 text-slate-300 truncate">
-                      <span class="w-3.5 h-3.5 rounded-full bg-vinyl-800 text-[8px] font-bold text-brass-400 flex items-center justify-center">A</span>
-                      <span class="truncate">${escapeHtml(item.sideATitle || item.title)}</span>
-                    </div>
-                    <div class="flex items-center gap-1.5 text-slate-400 truncate">
-                      <span class="w-3.5 h-3.5 rounded-full bg-vinyl-800 text-[8px] font-bold text-slate-400 flex items-center justify-center">B</span>
-                      <span class="truncate">${escapeHtml(item.sideBTitle || 'Side B Track')}</span>
-                    </div>
-                  `}
-                </div>
+                  `;
+                })()}
 
                 <!-- Matrix snippet -->
                 ${item.matrixA ? `
@@ -10415,10 +10475,40 @@
       if (drawer) drawer.classList.add('hidden');
     }
 
+    async function syncRecordToCloud(item, { showErrorToast = false } = {}) {
+      if (!item || isReadOnlyShareView || !currentUser || !supabaseClient) return false;
+      if (item.userId && item.userId !== currentUser.id) return false;
+      if (!item.userId) item.userId = currentUser.id;
+      try {
+        const dbRow = mapRecordToDb(item, currentUser.id);
+        const res = await supabaseClient.from('records').upsert(dbRow);
+        if (res && res.error) {
+          console.warn("Cloud sync record error:", res.error);
+          if (showErrorToast) showToast("Saved locally, cloud sync warning: " + res.error.message, "warning");
+          return false;
+        }
+        return true;
+      } catch (e) {
+        console.warn("Cloud sync record notice:", e);
+        if (showErrorToast) showToast("Saved locally; cloud sync will retry when online.", "warning");
+        return false;
+      }
+    }
+
     function closeDetailModal() {
+      const closingId = dossierDirtyRecordId || currentDetailRecordId;
+      const shouldPush = dossierDirtyRecordId !== null && String(dossierDirtyRecordId) === String(closingId);
       currentDetailRecordId = null;
+      dossierDirtyRecordId = null;
       closeExtendedArchivalModal();
       document.getElementById('detailModal').classList.add('hidden');
+      if (shouldPush && closingId) {
+        const rec = records.find(r => String(r.id) === String(closingId));
+        if (rec) {
+          saveRecordsToStorage();
+          syncRecordToCloud(rec);
+        }
+      }
     }
 
     /* =========================================================
@@ -13077,16 +13167,14 @@
         }
 
         item.duplicateHash = computeDuplicateHash(item);
+        dossierDirtyRecordId = item.id;
         saveRecordsToStorage();
         if (typeof populateSeriesDatalist === 'function') populateSeriesDatalist();
         renderStats();
         renderRecords();
         viewRecordDetail(item.id);
 
-        if (isCloudActive && currentUser && supabaseClient) {
-          const dbRow = mapRecordToDb(item, currentUser.id);
-          supabaseClient.from('records').upsert(dbRow).catch(e => console.warn("Cloud sync Discogs refresh notice:", e));
-        }
+        await syncRecordToCloud(item, { showErrorToast: true });
 
         const summary = updatedParts.length > 0 ? updatedParts.join(', ') : 'release metadata checked';
         showToast(`Discogs refresh complete (${summary})!`, "success");
