@@ -421,16 +421,30 @@
     }
 
     html.theme-light [class*="text-cyan-"] {
-      color: #0e7490 !important;
+      color: #0369a1 !important;
     }
 
     html.theme-light [class*="border-cyan-"] {
-      border-color: #0891b2 !important;
+      border-color: #38bdf8 !important;
     }
 
     html.theme-light [class*="bg-cyan-500/"] {
-      background-color: rgba(6, 182, 212, 0.16) !important;
+      background-color: rgba(14, 165, 233, 0.16) !important;
       font-weight: 600 !important;
+    }
+
+    html.theme-light [class*="bg-cyan-950"],
+    html.theme-light [class*="from-cyan-950"],
+    html.theme-light [class*="to-cyan-950"] {
+      background-color: #e0f2fe !important;
+      background-image: none !important;
+      color: #0369a1 !important;
+    }
+
+    html.theme-light [class*="hover:bg-cyan-900"]:hover,
+    html.theme-light [class*="hover:from-cyan-900"]:hover {
+      background-color: #bae6fd !important;
+      background-image: none !important;
     }
 
     html.theme-light [class*="text-yellow-"] {
@@ -9847,20 +9861,85 @@
       }
     }
 
-    function toggleSpotifyEmbedView(recordId) {
+    async function toggleSpotifyEmbedView(recordId) {
       const container = document.getElementById('dossierSpotifyEmbedContainer');
       const btn = document.getElementById('toggleEmbedBtn');
       if (!container) return;
       if (container.classList.contains('hidden')) {
         container.classList.remove('hidden');
         if (btn) btn.innerHTML = '<i class="fa-solid fa-compress text-[9px]"></i><span class="hidden sm:inline">Close Embed</span>';
-        if (!container.querySelector('iframe')) {
-          const rec = records.find(r => String(r.id) === String(recordId));
-          const query = rec ? encodeURIComponent(`${rec.artist} ${rec.title}`) : '';
-          container.innerHTML = `
-            <iframe style="border-radius:12px" src="https://open.spotify.com/embed/search/${query}?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-          `;
+        
+        const rec = (typeof records !== 'undefined' ? records : []).find(r => String(r.id) === String(recordId));
+        if (!rec) return;
+
+        const query = encodeURIComponent(`${rec.artist} ${rec.title}`);
+        const safeArtist = (typeof escapeHtml === 'function') ? escapeHtml(rec.artist || '') : (rec.artist || '');
+        const safeTitle = (typeof escapeHtml === 'function') ? escapeHtml(rec.title || '') : (rec.title || '');
+
+        let spotifyUri = rec.spotify_uri || rec.spotify_id || rec.spotifyId || null;
+
+        // If authenticated with real Spotify PKCE token, query search API to resolve canonical album/track URI
+        if (!spotifyUri && typeof isSpotifyAuthenticated === 'function' && isSpotifyAuthenticated()) {
+          const token = localStorage.getItem('spotify_access_token');
+          const isDemo = localStorage.getItem('spotify_demo_connected') === 'true';
+          if (token && !isDemo) {
+            try {
+              const res = await fetch(`https://api.spotify.com/v1/search?q=${query}&type=album,track&limit=1`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              if (res.ok) {
+                const data = await res.json();
+                if (data.albums?.items?.[0]?.uri) {
+                  spotifyUri = data.albums.items[0].uri;
+                  rec.spotify_uri = spotifyUri;
+                } else if (data.tracks?.items?.[0]?.uri) {
+                  spotifyUri = data.tracks.items[0].uri;
+                  rec.spotify_uri = spotifyUri;
+                }
+              }
+            } catch (_) {}
+          }
         }
+
+        if (spotifyUri) {
+          let embedPath = '';
+          if (spotifyUri.startsWith('spotify:')) {
+            const parts = spotifyUri.split(':');
+            embedPath = `${parts[1]}/${parts[2]}`;
+          } else if (spotifyUri.includes('open.spotify.com/')) {
+            const match = spotifyUri.match(/(track|album|playlist)\/([a-zA-Z0-9]+)/);
+            if (match) embedPath = `${match[1]}/${match[2]}`;
+          } else {
+            embedPath = `album/${spotifyUri}`;
+          }
+
+          if (embedPath) {
+            container.innerHTML = `
+              <iframe style="border-radius:12px" src="https://open.spotify.com/embed/${embedPath}?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+            `;
+            return;
+          }
+        }
+
+        // Spotify does not support /embed/search/ (which causes 404). Render an instant 1-click Audition Card instead:
+        container.innerHTML = `
+          <div class="p-3 bg-vinyl-900 border border-emerald-500/30 rounded-xl flex items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-9 h-9 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                <i class="fa-brands fa-spotify text-lg"></i>
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white truncate">${safeArtist} — ${safeTitle}</div>
+                <div class="text-[11px] text-slate-400">Direct in-app embed requires a Spotify URI. Open to stream in Spotify:</div>
+              </div>
+            </div>
+            <a href="https://open.spotify.com/search/${query}" target="_blank" rel="noopener noreferrer"
+              class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-1.5 flex-shrink-0 shadow transition">
+              <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+              <span>Open in Spotify</span>
+            </a>
+          </div>
+        `;
       } else {
         container.classList.add('hidden');
         if (btn) btn.innerHTML = '<i class="fa-solid fa-window-maximize text-[9px]"></i><span class="hidden sm:inline">Spotify Embed</span>';
@@ -11986,7 +12065,7 @@
                 </div>
                 <div class="space-y-1">
                   <div class="flex justify-between items-center text-[10px]">
-                    <span class="text-slate-400 font-medium">Valence / Mood</span>
+                    <span class="text-slate-400 font-medium truncate pr-1" title="Valence (Musical Positivity / Mood)">Mood / Vibe</span>
                     <span class="font-mono text-sky-300 font-bold">${telemetry.valence}%</span>
                   </div>
                   <div class="w-full h-1.5 bg-vinyl-800 rounded-full overflow-hidden">
