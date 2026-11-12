@@ -525,34 +525,43 @@
         </button>
       </div>
 
-      <!-- Estimated Archive Value Pill (Positioned right next to username) with On-Demand Recalculate Trigger & Visibility Toggle -->
+      <!-- Estimated Archive Value: Collapsed to currency icon (£) by default, expands to show price & actions on click -->
       <div id="topValuationContainer"
-        class="flex items-stretch rounded-lg bg-vinyl-850 border border-emerald-500/30 shadow-sm overflow-hidden group">
-        <div onclick="switchView('analytics')"
-          class="px-2 sm:px-3 py-1 sm:py-1.5 hover:bg-vinyl-800 cursor-pointer transition flex items-center gap-1 sm:gap-2"
-          title="Estimated Archive Value — Click to view Valuation Analytics">
-          <i class="fa-solid fa-coins text-[11px] sm:text-xs text-emerald-400"></i>
-          <div class="leading-tight">
-            <div class="flex items-baseline gap-1 sm:gap-1.5">
-              <span class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold hidden lg:inline">Est.
-                Value</span>
-              <span id="statTotalValue"
-                class="text-[11px] sm:text-sm font-bold font-mono text-emerald-400 whitespace-nowrap">£0.00</span>
+        class="flex items-stretch rounded-lg bg-vinyl-850 border border-emerald-500/30 shadow-sm overflow-hidden transition-all duration-200">
+        <!-- Collapsed Trigger Button: £ Currency Icon -->
+        <button type="button" onclick="toggleTopValuationExpanded()" id="topValuationToggleBtn"
+          class="px-2 sm:px-2.5 py-1 sm:py-1.5 hover:bg-vinyl-800 text-emerald-400 font-bold transition flex items-center gap-1 sm:gap-1.5 focus:outline-none select-none"
+          title="Archive Valuation — Click to show price" aria-expanded="false">
+          <span id="topValuationCurrencyIcon" class="text-xs sm:text-sm font-extrabold font-mono leading-none">£</span>
+          <i id="topValuationChevron" class="fa-solid fa-chevron-right text-[8px] sm:text-[9px] text-emerald-400/60 transition-transform duration-200"></i>
+        </button>
+
+        <!-- Expandable Content: Price amount & Quick Actions -->
+        <div id="topValuationBody" class="hidden items-stretch border-l border-emerald-500/20">
+          <div onclick="switchView('analytics')"
+            class="px-2 sm:px-2.5 py-1 sm:py-1.5 hover:bg-vinyl-800 cursor-pointer transition flex items-center gap-1 sm:gap-1.5"
+            title="Estimated Archive Value — Click to view Valuation Analytics">
+            <div class="leading-tight">
+              <div class="flex items-baseline gap-1">
+                <span class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold hidden xl:inline">Est.</span>
+                <span id="statTotalValue"
+                  class="text-[11px] sm:text-xs font-bold font-mono text-emerald-400 whitespace-nowrap">£0.00</span>
+              </div>
+              <div id="statAvgValue" class="hidden">Avg: £0.00 / disc</div>
             </div>
-            <div id="statAvgValue" class="hidden">Avg: £0.00 / disc</div>
           </div>
+          <button type="button" onclick="event.stopPropagation(); toggleGlobalValueVisibility()"
+            id="btnToggleValueVisibility"
+            class="px-1.5 sm:px-2 py-1 sm:py-1.5 hover:bg-emerald-500/20 text-emerald-400/80 hover:text-emerald-300 border-l border-emerald-500/20 transition flex items-center justify-center"
+            title="Toggle valuation visibility (Show/Hide monetary amounts)">
+            <i id="iconToggleValueVisibility" class="fa-solid fa-eye text-[10px] sm:text-[11px]"></i>
+          </button>
+          <button type="button" onclick="event.stopPropagation(); recalculateArchiveTotals(true)"
+            class="px-1.5 sm:px-2 py-1 sm:py-1.5 hover:bg-emerald-500/20 text-emerald-400/80 hover:text-emerald-300 border-l border-emerald-500/20 transition flex items-center justify-center"
+            title="Recalculate &amp; sum archive totals on demand">
+            <i class="fa-solid fa-arrows-rotate text-[10px] sm:text-[11px]"></i>
+          </button>
         </div>
-        <button type="button" onclick="event.stopPropagation(); toggleGlobalValueVisibility()"
-          id="btnToggleValueVisibility"
-          class="px-1.5 sm:px-2 py-1 sm:py-1.5 hover:bg-emerald-500/20 text-emerald-400/80 hover:text-emerald-300 border-l border-emerald-500/20 transition flex items-center justify-center"
-          title="Toggle valuation visibility (Show/Hide monetary amounts)">
-          <i id="iconToggleValueVisibility" class="fa-solid fa-eye text-[10px] sm:text-[11px]"></i>
-        </button>
-        <button type="button" onclick="event.stopPropagation(); recalculateArchiveTotals(true)"
-          class="px-1.5 sm:px-2 py-1 sm:py-1.5 hover:bg-emerald-500/20 text-emerald-400/80 hover:text-emerald-300 border-l border-emerald-500/20 transition flex items-center justify-center"
-          title="Recalculate &amp; sum archive totals on demand">
-          <i class="fa-solid fa-arrows-rotate text-[10px] sm:text-[11px]"></i>
-        </button>
       </div>
 
       <!-- Mobile Barcode Scan & Exit WebApp Buttons -->
@@ -600,6 +609,14 @@
         <i class="fa-solid fa-coins text-sm"></i>
         <span>Market Values</span>
       </button>
+
+      <!-- Bulk List Valuer Quick Link -->
+      <a href="list-valuer.html" id="quickListValuerBtn"
+        class="hidden lg:flex px-3 py-2 text-xs font-medium rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 hover:border-brass-400 transition items-center gap-2 shadow-sm"
+        title="Paste a track list and get instant valuations">
+        <i class="fa-solid fa-list-check text-sm"></i>
+        <span>List Valuer</span>
+      </a>
 
       <!-- Batch Import (Excel/CSV) Trigger -->
       <button onclick="openBatchUploadModal()" id="quickBatchBtn"
@@ -1155,6 +1172,21 @@
         <div class="space-y-3 pt-1">
           <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">
             Automated Collection Valuation Engines
+          </div>
+
+          <!-- Bulk List Valuer Highlight Card -->
+          <div class="p-3.5 bg-gradient-to-r from-brass-600/15 via-vinyl-850 to-vinyl-850 border border-brass-500/30 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="space-y-1 text-left w-full sm:w-auto">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-white text-xs flex items-center gap-1.5"><i class="fa-solid fa-list-check text-brass-400"></i> Bulk List Valuer</span>
+                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-brass-500/20 text-brass-300 border border-brass-500/30">New Tool</span>
+              </div>
+              <p class="text-[11px] text-slate-400">Paste any list of artists and songs to get instant market valuations, price ranges &amp; Excel/CSV export.</p>
+            </div>
+            <a href="list-valuer.html" class="w-full sm:w-auto px-3.5 py-2 rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold text-xs flex items-center justify-center gap-1.5 transition whitespace-nowrap shadow">
+              <span>Open List Valuer</span>
+              <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </a>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2336,18 +2368,7 @@
                 </div>
                 <div class="sm:col-span-3">
                   <input type="text" id="formSideBDuration" placeholder="Duration (e.g. 3:12)"
-                    class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-brass-500">
-                </div>
-              </div>
-            </div>
-
-            <!-- Multi-Track Listing Textarea (Adapts placeholder for Vinyl / CD / Tape) -->
-            <div id="tracksAlbumContainer" class="space-y-2">
-              <textarea id="formAlbumTracks" rows="4"
-                placeholder="Enter or paste tracks (one per line, e.g.):&#10;A1. Speak to Me / Breathe (3:58)&#10;A2. On the Run (3:35)&#10;B1. Money (6:22)"
-                class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg p-2.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-brass-500 leading-relaxed"></textarea>
-              <div class="flex justify-between items-center text-[10px] text-slate-500">
-                <span id="tracksHelperHint">Accepts Side A/B (A1, B1), Disc/Track (01, 02), or Tape Side 1/2 numbering
+                    class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-brasumbering
                   with durations.</span>
                 <button type="button" onclick="formatTracklistText()" class="text-brass-400 hover:underline">Clean
                   Format</button>
@@ -3694,6 +3715,9 @@
         <button onclick="closeMobileMore();openValuationModal()"
           class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i
             class="fa-solid fa-coins text-lg text-amber-400"></i>Market Values</button>
+        <a href="list-valuer.html"
+          class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i
+            class="fa-solid fa-list-check text-lg text-brass-400"></i>List Valuer</a>
         <button onclick="closeMobileMore();openInsuranceModal()"
           class="p-3 rounded-xl bg-vinyl-850 border border-brass-500/30 text-brass-300 flex flex-col items-center gap-1.5"><i
             class="fa-solid fa-shield-halved text-lg text-brass-400"></i>Insurance</button>

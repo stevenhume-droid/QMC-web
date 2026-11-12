@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0c0d10">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="QMC List Valuer">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <script>
+    try { if (localStorage.getItem('qmc_theme') === 'light') document.documentElement.classList.add('theme-light'); } catch (e) { }
+  </script>
+  <title>QMC Bulk List Valuer — Music Valuation Intelligence</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- SheetJS for Excel export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            vinyl: {
+              950: '#0c0d10',
+              900: '#14171d',
+              850: '#1c2029',
+              800: '#232936',
+              750: '#2a3142',
+              700: '#323a4d',
+              600: '#434e66'
+            },
+            brass: {
+              300: '#fae392',
+              400: '#f6d365',
+              500: '#d4af37',
+              600: '#aa8c2c',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Menlo', 'Courier New', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Light Theme Palette Overrides */
+    html.theme-light body {
+      background-color: #f7f5f0 !important;
+      color: #1e2229 !important;
+    }
+
+    html.theme-light [class*="bg-vinyl-950"] {
+      background-color: #ffffff !important;
+    }
+
+    html.theme-light [class*="bg-vinyl-900"] {
+      background-color: #faf8f5 !important;
+    }
+
+    html.theme-light [class*="bg-vinyl-850"] {
+      background-color: #f4efe6 !important;
+    }
+
+    html.theme-light [class*="bg-vinyl-800"] {
+      background-color: #ede7dc !important;
+    }
+
+    html.theme-light [class*="bg-vinyl-750"],
+    html.theme-light [class*="bg-vinyl-700"],
+    html.theme-light [class*="bg-vinyl-600"] {
+      background-color: #e2dbce !important;
+      color: #2a3142 !important;
+    }
+
+    html.theme-light [class*="from-vinyl-"] {
+      --tw-gradient-from: #fbf9f5 !important;
+      --tw-gradient-to: #ede7dc !important;
+      --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+    }
+
+    html.theme-light #appHeader {
+      background-color: #faf8f5 !important;
+      border-color: #e2dbce !important;
+    }
+
+    html.theme-light [class*="border-vinyl-"] {
+      border-color: #dfd7ca !important;
+    }
+
+    html.theme-light .text-white {
+      color: #15181e !important;
+    }
+
+    html.theme-light .text-slate-100,
+    html.theme-light .text-slate-200 {
+      color: #242933 !important;
+    }
+
+    html.theme-light .text-slate-300 {
+      color: #3e4656 !important;
+    }
+
+    html.theme-light .text-slate-400,
+    html.theme-light .text-slate-500 {
+      color: #5d6778 !important;
+    }
+
+    html.theme-light [class*="text-brass-"] {
+      color: #8c6d17 !important;
+    }
+
+    html.theme-light .bg-brass-500 {
+      background-color: #c99e28 !important;
+      color: #ffffff !important;
+    }
+
+    html.theme-light [class*="border-brass-"] {
+      border-color: #d1ab3f !important;
+    }
+
+    html.theme-light input,
+    html.theme-light select,
+    html.theme-light textarea {
+      background-color: #ffffff !important;
+      color: #1a1e24 !important;
+      border-color: #d3cbbe !important;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(180, 160, 120, 0.3);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(212, 175, 55, 0.5);
+    }
+  </style>
+</head>
+
+<body class="bg-vinyl-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-brass-500/30 selection:text-brass-300">
+
+  <!-- Header -->
+  <header id="appHeader" class="sticky top-0 z-40 bg-vinyl-900/90 backdrop-blur-md border-b border-vinyl-800 shadow-md">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="flex items-center gap-2.5 group" title="Return to QMC Archive">
+          <div class="w-9 h-9 rounded-full overflow-hidden border border-brass-500/40 p-[1px] bg-vinyl-800 flex-shrink-0 group-hover:border-brass-400 transition">
+            <img src="qmc-logo.jpg" alt="Queensferry Music Collective" class="w-full h-full object-cover rounded-full">
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs uppercase tracking-widest font-bold text-brass-400">QMC</span>
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brass-500/10 text-brass-400 border border-brass-500/30">Bulk Valuer</span>
+            </div>
+            <h1 class="text-sm sm:text-base font-bold text-white tracking-tight leading-none group-hover:text-brass-300 transition">List Pricing & Valuation</h1>
+          </div>
+        </a>
+      </div>
+
+      <!-- Controls & Actions -->
+      <div class="flex items-center gap-2 sm:gap-3 text-xs">
+        
+        <!-- Discogs Token Status / Button -->
+        <button onclick="openTokenModal()" id="tokenStatusBtn"
+          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-800 text-slate-300 hover:text-white transition"
+          title="Configure Discogs Personal Access Token">
+          <span id="tokenDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+          <span id="tokenLabel" class="hidden sm:inline">Discogs Token</span>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button onclick="toggleTheme()" class="w-8 h-8 rounded-lg bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-800 text-slate-300 hover:text-amber-400 transition flex items-center justify-center" title="Toggle Theme">
+          <i id="themeIcon" class="fa-solid fa-moon"></i>
+        </button>
+
+        <!-- Back to Archive Button -->
+        <a href="index.html" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 font-medium transition shadow-sm">
+          <i class="fa-solid fa-arrow-left text-[11px]"></i>
+          <span>Archive</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-6xl mx-auto px-4 py-6 w-full flex-1 space-y-6">
+
+    <!-- Step 1: Input & Configuration Section -->
+    <section class="bg-vinyl-900 border border-vinyl-800 rounded-2xl p-4 sm:p-6 shadow-xl relative overflow-hidden">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4 pb-3 border-b border-vinyl-800/80">
+        <div>
+          <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-list-check text-brass-400"></i>
+            <span>Paste Track or Album List</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Paste one item per line as <code class="text-brass-300 bg-vinyl-950 px-1 py-0.5 rounded border border-vinyl-800">Artist - Song / Title</code>, or paste directly from spreadsheets.
+          </p>
+        </div>
+
+        <!-- Quick Sample / Action Buttons -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <button type="button" onclick="loadSampleList()" class="px-2.5 py-1.5 text-xs rounded-lg bg-vinyl-800 hover:bg-vinyl-750 border border-vinyl-700 text-brass-400 hover:text-brass-300 font-medium transition flex items-center gap-1.5">
+            <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>
+            <span>Load Sample 7" List</span>
+          </button>
+          <button type="button" onclick="clearInput()" class="px-2.5 py-1.5 text-xs rounded-lg bg-vinyl-800 hover:bg-vinyl-750 border border-vinyl-700 text-slate-400 hover:text-slate-200 transition">
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <!-- Controls Row: Target Format, Target Grade, Currency -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Target Format</label>
+          <select id="targetFormatSelect" class="w-full bg-vinyl-950 border border-vinyl-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brass-500 transition">
+            <option value='7" Single' selected>7" Vinyl Single (45 RPM)</option>
+            <option value='12" Single'>12" Vinyl Single / Maxi</option>
+            <option value='12" LP (Album)'>12" Vinyl LP (Album)</option>
+            <option value='CD'>CD Album / Single</option>
+            <option value='Cassette'>Cassette Tape</option>
+            <option value=''>Any / Auto-Detect</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Target Condition Grade</label>
+          <select id="targetGradeSelect" class="w-full bg-vinyl-950 border border-vinyl-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brass-500 transition">
+            <option value="Near Mint (NM or M-)">Near Mint (NM)</option>
+            <option value="Very Good Plus (VG+)" selected>Very Good Plus (VG+) — Standard</option>
+            <option value="Very Good (VG)">Very Good (VG)</option>
+            <option value="Good Plus (G+)">Good Plus (G+)</option>
+            <option value="Mint (M)">Mint (M) — Unplayed</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Valuation Currency</label>
+          <select id="currencySelect" class="w-full bg-vinyl-950 border border-vinyl-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brass-500 transition">
+            <option value="GBP" selected>GBP (£) — British Pounds</option>
+            <option value="USD">USD ($) — US Dollars</option>
+            <option value="EUR">EUR (€) — Euros</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Textarea Input -->
+      <div class="relative">
+        <textarea id="rawListInput" rows="7"
+          placeholder="Paste tracks here, e.g.:
+Joy Division - Love Will Tear Us Apart
+New Order - Blue Monday
+The Smiths - This Charming Man
+The Cure - Boys Don't Cry
+Depeche Mode - Enjoy The Silence
+Echo & The Bunnymen - The Killing Moon
+Bauhaus - Bela Lugosi's Dead
+Siouxsie And The Banshees - Hong Kong Garden"
+          class="w-full bg-vinyl-950 border border-vinyl-800 rounded-xl p-3.5 text-xs sm:text-sm font-mono text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-brass-500/80 transition leading-relaxed"></textarea>
+      </div>
+
+      <!-- Action Trigger -->
+      <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="text-xs text-slate-400 flex items-center gap-2">
+          <i class="fa-solid fa-circle-info text-sky-400"></i>
+          <span id="detectedLineCount">0 lines detected</span>
+        </div>
+
+        <button type="button" onclick="parseRawInput()" id="parseListBtn"
+          class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-brass-600 to-brass-500 hover:from-brass-500 hover:to-brass-400 text-vinyl-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-brass-500/20 active:scale-[0.98] transition">
+          <i class="fa-solid fa-list-ol"></i>
+          <span>Parse & Review List</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Step 2: Staged Items Review & Start Valuation -->
+    <section id="reviewSection" class="hidden bg-vinyl-900 border border-vinyl-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-vinyl-800/80">
+        <div>
+          <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-brass-500/20 text-brass-400 border border-brass-500/40 flex items-center justify-center text-xs font-bold">2</span>
+            <span>Review Parsed Tracks</span>
+            <span id="stagedCountBadge" class="text-xs px-2 py-0.5 rounded-full bg-vinyl-800 text-slate-300 border border-vinyl-700">0 tracks</span>
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">Check and adjust artist or titles if needed before querying market pricing.</p>
+        </div>
+
+        <!-- Action Execution Button -->
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="startValuation()" id="startValuationBtn"
+            class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition active:scale-[0.98]">
+            <i class="fa-solid fa-play"></i>
+            <span>Start Valuation</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Parsed Table Preview -->
+      <div class="overflow-x-auto border border-vinyl-800 rounded-xl bg-vinyl-950 max-h-80 overflow-y-auto">
+        <table class="w-full text-left text-xs text-slate-300">
+          <thead class="bg-vinyl-850 text-slate-400 uppercase tracking-wider text-[10px] sticky top-0 z-10 border-b border-vinyl-800">
+            <tr>
+              <th class="py-2.5 px-3 w-10 text-center">#</th>
+              <th class="py-2.5 px-3">Artist</th>
+              <th class="py-2.5 px-3">Song / Title</th>
+              <th class="py-2.5 px-3 w-28">Format</th>
+              <th class="py-2.5 px-3 w-14 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody id="stagedTableBody" class="divide-y divide-vinyl-800/60 font-mono text-xs">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Step 3: Progress & Live Processing Banner -->
+    <section id="progressSection" class="hidden bg-vinyl-900 border border-brass-500/30 rounded-2xl p-4 sm:p-5 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-brass-500/20 text-brass-400 flex items-center justify-center animate-spin">
+            <i class="fa-solid fa-compact-disc text-base"></i>
+          </div>
+          <div>
+            <div class="text-xs font-bold text-white flex items-center gap-2">
+              <span>Querying Discogs Marketplace & Historical Sales...</span>
+              <span id="progressPercentBadge" class="text-[11px] font-mono text-brass-400">0%</span>
+            </div>
+            <p id="progressStatusText" class="text-[11px] text-slate-400 truncate max-w-md sm:max-w-xl">Preparing valuation queue...</p>
+          </div>
+        </div>
+
+        <!-- Pause / Cancel Controls -->
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="togglePauseQueue()" id="pauseQueueBtn" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-slate-200 border border-vinyl-700 text-xs font-medium transition">
+            <i class="fa-solid fa-pause"></i> <span id="pauseBtnLabel">Pause</span>
+          </button>
+          <button type="button" onclick="cancelQueue()" class="px-3 py-1.5 rounded-lg bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/50 text-xs font-medium transition">
+            Cancel
+          </button>
+        </div>
+      </div>
+
+      <!-- Progress Track -->
+      <div class="w-full bg-vinyl-950 h-2 rounded-full overflow-hidden border border-vinyl-800">
+        <div id="progressBarFill" class="bg-gradient-to-r from-brass-600 to-amber-400 h-full w-0 transition-all duration-300"></div>
+      </div>
+    </section>
+
+    <!-- Step 4: Results & Financial Intelligence Dashboard -->
+    <section id="resultsSection" class="hidden space-y-4">
+      
+      <!-- Financial Summary Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        
+        <!-- Total Median Valuation -->
+        <div class="p-4 rounded-2xl bg-vinyl-900 border border-brass-500/30 shadow-lg relative overflow-hidden">
+          <div class="text-[10px] uppercase tracking-wider font-bold text-brass-400 mb-1 flex items-center gap-1.5">
+            <i class="fa-solid fa-coins"></i> Total List Value
+          </div>
+          <div class="text-xl sm:text-2xl font-black text-white font-mono" id="sumMedianVal">£0.00</div>
+          <div class="text-[11px] text-slate-400 mt-1 flex items-center justify-between">
+            <span>Range:</span>
+            <span class="font-mono text-slate-300" id="sumRangeVal">£0 - £0</span>
+          </div>
+        </div>
+
+        <!-- Average per Item -->
+        <div class="p-4 rounded-2xl bg-vinyl-900 border border-vinyl-800 shadow-lg">
+          <div class="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-1 flex items-center gap-1.5">
+            <i class="fa-solid fa-chart-line text-emerald-400"></i> Avg. Value / Track
+          </div>
+          <div class="text-xl sm:text-2xl font-black text-white font-mono" id="avgItemVal">£0.00</div>
+          <div class="text-[11px] text-slate-400 mt-1">Based on target condition</div>
+        </div>
+
+        <!-- Total Valued Count -->
+        <div class="p-4 rounded-2xl bg-vinyl-900 border border-vinyl-800 shadow-lg">
+          <div class="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-1 flex items-center gap-1.5">
+            <i class="fa-solid fa-check-double text-sky-400"></i> Valued / Match Rate
+          </div>
+          <div class="text-xl sm:text-2xl font-black text-white font-mono" id="matchedCountVal">0 / 0</div>
+          <div class="text-[11px] text-slate-400 mt-1" id="matchRateVal">100% matched</div>
+        </div>
+
+        <!-- Top Value Track Spotlight -->
+        <div class="p-4 rounded-2xl bg-vinyl-900 border border-vinyl-800 shadow-lg flex flex-col justify-between">
+          <div class="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-1 flex items-center gap-1.5">
+            <i class="fa-solid fa-crown text-amber-400"></i> Most Valuable Track
+          </div>
+          <div class="text-xs font-bold text-amber-300 truncate" id="topValTrackName">—</div>
+          <div class="text-base sm:text-lg font-black text-white font-mono mt-0.5" id="topValTrackPrice">£0.00</div>
+        </div>
+      </div>
+
+      <!-- Action Bar: Export & Archive Integration -->
+      <div class="bg-vinyl-900 border border-vinyl-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-xs font-semibold text-slate-300">Export Results:</span>
+          <button type="button" onclick="exportValuationsCSV()" class="px-3 py-1.5 rounded-lg bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 text-emerald-400 font-semibold text-xs flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-file-csv"></i> <span>Export CSV</span>
+          </button>
+          <button type="button" onclick="exportValuationsExcel()" class="px-3 py-1.5 rounded-lg bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 text-green-400 font-semibold text-xs flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-file-excel"></i> <span>Export Excel</span>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <button type="button" onclick="importSelectedToArchive()" id="importToArchiveBtn"
+            class="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-brass-600 to-amber-500 hover:from-brass-500 hover:to-amber-400 text-vinyl-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-brass-500/20 transition active:scale-[0.98]">
+            <i class="fa-solid fa-folder-plus"></i>
+            <span>Add to QMC Crate (<span id="selectedCountBadge">0</span>)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Detailed Results Table -->
+      <div class="bg-vinyl-900 border border-vinyl-800 rounded-2xl shadow-xl overflow-hidden">
+        <div class="p-4 border-b border-vinyl-800 flex items-center justify-between gap-3">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-table-list text-brass-400"></i>
+            <span>Valuation Breakdown</span>
+          </h3>
+          <div class="flex items-center gap-3 text-xs text-slate-400">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" checked class="rounded accent-brass-500">
+              <span>Select All</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-vinyl-850 text-slate-400 uppercase tracking-wider text-[10px] border-b border-vinyl-800">
+              <tr>
+                <th class="py-3 px-3 w-10 text-center">Sel</th>
+                <th class="py-3 px-3">Artist & Song</th>
+                <th class="py-3 px-3">Matched Release</th>
+                <th class="py-3 px-3 text-center">Year</th>
+                <th class="py-3 px-3 text-right">Low</th>
+                <th class="py-3 px-3 text-right font-bold text-brass-400">Median</th>
+                <th class="py-3 px-3 text-right">High</th>
+                <th class="py-3 px-3 text-right">For Sale From</th>
+                <th class="py-3 px-3 text-center">Market Links</th>
+              </tr>
+            </thead>
+            <tbody id="resultsTableBody" class="divide-y divide-vinyl-800/60 font-mono text-xs">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: DISCOGS TOKEN SETTINGS -->
+  <div id="tokenModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-vinyl-900 border border-vinyl-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-vinyl-800 mb-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-key text-brass-400"></i>
+          <span>Discogs Personal Access Token</span>
+        </h3>
+        <button onclick="closeTokenModal()" class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs text-slate-300">
+        <p>
+          A free Discogs User Token gives you accurate condition-based price suggestions (M, NM, VG+, VG) and 60 lookups/minute.
+        </p>
+
+        <div>
+          <label class="block font-semibold text-slate-200 mb-1">Your Discogs Token</label>
+          <input type="password" id="discogsTokenInput" placeholder="Paste your token here"
+            class="w-full bg-vinyl-950 border border-vinyl-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brass-500 font-mono">
+        </div>
+
+        <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+          <a href="https://www.discogs.com/settings/developers" target="_blank" rel="noopener" class="text-brass-400 hover:underline flex items-center gap-1">
+            <span>Generate free token on Discogs</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+          </a>
+          <button type="button" onclick="clearToken()" class="text-red-400 hover:underline">Clear Token</button>
+        </div>
+
+        <div class="pt-3 border-t border-vinyl-800 flex justify-end gap-2">
+          <button type="button" onclick="closeTokenModal()" class="px-4 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 font-medium">Cancel</button>
+          <button type="button" onclick="saveToken()" class="px-4 py-2 rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold">Save Token</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- APPLICATION LOGIC -->
+  <script>
+    const STORAGE_KEY = 'qmc_vinyl_catalogue_v2';
+    const TOKEN_KEY = 'discogs_user_token';
+    const CURRENCY_KEY = 'qmc_archive_currency';
+
+    let stagedItems = [];
+    let valuedResults = [];
+    let isQueueRunning = false;
+    let isQueuePaused = false;
+    let cancelRequested = false;
+
+    // Currency symbols
+    const CURRENCY_SYMBOLS = {
+      GBP: '£',
+      USD: '$',
+      EUR: '€'
+    };
+
+    function getSym(code) {
+      return CURRENCY_SYMBOLS[code || 'GBP'] || '£';
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      initTokenUI();
+      initCurrency();
+      initTheme();
+
+      const input = document.getElementById('rawListInput');
+      input.addEventListener('input', updateDetectedCount);
+      updateDetectedCount();
+    });
+
+    // Theme toggle
+    function initTheme() {
+      const isLight = document.documentElement.classList.contains('theme-light');
+      const icon = document.getElementById('themeIcon');
+      if (icon) {
+        icon.className = isLight ? 'fa-solid fa-sun text-amber-400' : 'fa-solid fa-moon';
+      }
+    }
+
+    function toggleTheme() {
+      const isLight = document.documentElement.classList.toggle('theme-light');
+      try { localStorage.setItem('qmc_theme', isLight ? 'light' : 'dark'); } catch (e) { }
+      initTheme();
+    }
+
+    // Currency selection
+    function initCurrency() {
+      try {
+        const saved = localStorage.getItem(CURRENCY_KEY);
+        if (saved && document.getElementById('currencySelect')) {
+          document.getElementById('currencySelect').value = saved;
+        }
+      } catch (e) { }
+    }
+
+    // Discogs Token Management
+    function getStoredToken() {
+      try {
+        return localStorage.getItem(TOKEN_KEY) ||
+               localStorage.getItem('QMC_DISCOGS_TOKEN') ||
+               localStorage.getItem('discogs_personal_token') || '';
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function initTokenUI() {
+      const token = getStoredToken();
+      const dot = document.getElementById('tokenDot');
+      const label = document.getElementById('tokenLabel');
+      if (token) {
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-emerald-400/20';
+        label.textContent = 'Discogs Connected';
+      } else {
+        dot.className = 'w-2 h-2 rounded-full bg-amber-400';
+        label.textContent = 'Set Discogs Token';
+      }
+    }
+
+    function openTokenModal() {
+      document.getElementById('discogsTokenInput').value = getStoredToken();
+      document.getElementById('tokenModal').classList.remove('hidden');
+    }
+
+    function closeTokenModal() {
+      document.getElementById('tokenModal').classList.add('hidden');
+    }
+
+    function saveToken() {
+      const val = document.getElementById('discogsTokenInput').value.trim();
+      if (val) {
+        try {
+          localStorage.setItem(TOKEN_KEY, val);
+          localStorage.setItem('QMC_DISCOGS_TOKEN', val);
+        } catch (e) { }
+        showToast('Discogs token saved successfully', 'success');
+      }
+      initTokenUI();
+      closeTokenModal();
+    }
+
+    function clearToken() {
+      try {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem('QMC_DISCOGS_TOKEN');
+      } catch (e) { }
+      document.getElementById('discogsTokenInput').value = '';
+      initTokenUI();
+      showToast('Discogs token cleared', 'info');
+      closeTokenModal();
+    }
+
+    // Textarea input detection
+    function updateDetectedCount() {
+      const text = document.getElementById('rawListInput').value;
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      document.getElementById('detectedLineCount').textContent = `${lines.length} track${lines.length === 1 ? '' : 's'} detected`;
+    }
+
+    function clearInput() {
+      document.getElementById('rawListInput').value = '';
+      updateDetectedCount();
+      document.getElementById('reviewSection').classList.add('hidden');
+      document.getElementById('resultsSection').classList.add('hidden');
+      stagedItems = [];
+      valuedResults = [];
+    }
+
+    function loadSampleList() {
+      const sample = [
+        "Joy Division - Love Will Tear Us Apart",
+        "New Order - Blue Monday",
+        "The Smiths - This Charming Man",
+        "The Cure - Boys Don't Cry",
+        "Depeche Mode - Enjoy The Silence",
+        "Echo & The Bunnymen - The Killing Moon",
+        "Bauhaus - Bela Lugosi's Dead",
+        "Siouxsie And The Banshees - Hong Kong Garden"
+      ].join('\n');
+      document.getElementById('rawListInput').value = sample;
+      document.getElementById('targetFormatSelect').value = '7" Single';
+      updateDetectedCount();
+      parseRawInput();
+      showToast('Loaded 8 classic 7" singles for valuation', 'info');
+    }
+
+    // Parsing List
+    function parseRawInput() {
+      const text = document.getElementById('rawListInput').value;
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      const defaultFormat = document.getElementById('targetFormatSelect').value || '7" Single';
+
+      if (lines.length === 0) {
+        showToast('Please paste at least one artist and song title', 'warning');
+        return;
+      }
+
+      stagedItems = [];
+
+      lines.forEach((line, idx) => {
+        // Strip leading numbering e.g. "1. ", "01 - ", "[1]"
+        let clean = line.replace(/^\[?\d+[\].)\-:]\s*/, '').trim();
+
+        let artist = '';
+        let title = '';
+
+        // Check for tab separation (Excel / Sheets copy)
+        if (clean.includes('\t')) {
+          const parts = clean.split('\t').map(p => p.trim());
+          artist = parts[0] || '';
+          title = parts[1] || '';
+        }
+        // Check for standard " - " separator
+        else if (clean.includes(' - ')) {
+          const parts = clean.split(' - ');
+          artist = parts[0].trim();
+          title = parts.slice(1).join(' - ').trim();
+        }
+        // Check for comma separation "Artist, Song"
+        else if (clean.includes(',')) {
+          const parts = clean.split(',');
+          artist = parts[0].trim();
+          title = parts.slice(1).join(',').trim();
+        }
+        // Fallback: whole line as title or search query
+        else {
+          artist = clean;
+          title = '';
+        }
+
+        stagedItems.push({
+          id: `item_${Date.now()}_${idx}`,
+          artist: artist,
+          title: title,
+          format: defaultFormat
+        });
+      });
+
+      renderStagedTable();
+      document.getElementById('reviewSection').classList.remove('hidden');
+      document.getElementById('stagedCountBadge').textContent = `${stagedItems.length} track${stagedItems.length === 1 ? '' : 's'}`;
+      document.getElementById('reviewSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function renderStagedTable() {
+      const tbody = document.getElementById('stagedTableBody');
+      tbody.innerHTML = '';
+
+      stagedItems.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-vinyl-900/60 transition';
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 text-center text-slate-500">${idx + 1}</td>
+          <td class="py-2.5 px-3">
+            <input type="text" value="${escapeHtml(item.artist)}" onchange="updateStagedItem('${item.id}', 'artist', this.value)"
+              class="w-full bg-transparent border-b border-transparent hover:border-vinyl-700 focus:border-brass-500 focus:bg-vinyl-950 text-slate-200 px-1 py-0.5 rounded outline-none transition">
+          </td>
+          <td class="py-2.5 px-3">
+            <input type="text" value="${escapeHtml(item.title)}" onchange="updateStagedItem('${item.id}', 'title', this.value)"
+              class="w-full bg-transparent border-b border-transparent hover:border-vinyl-700 focus:border-brass-500 focus:bg-vinyl-950 text-slate-200 px-1 py-0.5 rounded outline-none transition">
+          </td>
+          <td class="py-2.5 px-3">
+            <span class="text-slate-400 text-[11px]">${escapeHtml(item.format || 'Auto')}</span>
+          </td>
+          <td class="py-2.5 px-3 text-center">
+            <button type="button" onclick="removeStagedItem('${item.id}')" class="text-slate-500 hover:text-red-400 transition" title="Remove">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function updateStagedItem(id, field, value) {
+      const it = stagedItems.find(i => i.id === id);
+      if (it) it[field] = value.trim();
+    }
+
+    function removeStagedItem(id) {
+      stagedItems = stagedItems.filter(i => i.id !== id);
+      renderStagedTable();
+      document.getElementById('stagedCountBadge').textContent = `${stagedItems.length} track${stagedItems.length === 1 ? '' : 's'}`;
+      if (stagedItems.length === 0) {
+        document.getElementById('reviewSection').classList.add('hidden');
+      }
+    }
+
+    // --- DISCogs SEARCH & VALUATION ENGINE ---
+
+    async function startValuation() {
+      if (stagedItems.length === 0) {
+        showToast('No items to valuate', 'warning');
+        return;
+      }
+
+      const token = getStoredToken();
+      if (!token) {
+        const proceed = confirm(
+          "No Discogs Token found!\n\nWithout a free personal token, Discogs limits requests to 25/min and restricts detailed condition-based price suggestions.\n\nWould you like to enter your token now? (Cancel to proceed with public queries)"
+        );
+        if (proceed) {
+          openTokenModal();
+          return;
+        }
+      }
+
+      isQueueRunning = true;
+      isQueuePaused = false;
+      cancelRequested = false;
+      valuedResults = [];
+
+      document.getElementById('startValuationBtn').disabled = true;
+      document.getElementById('progressSection').classList.remove('hidden');
+      document.getElementById('resultsSection').classList.remove('hidden');
+      document.getElementById('resultsTableBody').innerHTML = '';
+
+      const targetGrade = document.getElementById('targetGradeSelect').value;
+      const currency = document.getElementById('currencySelect').value || 'GBP';
+      const total = stagedItems.length;
+
+      for (let i = 0; i < total; i++) {
+        if (cancelRequested) {
+          showToast('Valuation cancelled', 'info');
+          break;
+        }
+
+        while (isQueuePaused) {
+          await sleep(500);
+          if (cancelRequested) break;
+        }
+        if (cancelRequested) break;
+
+        const item = stagedItems[i];
+        const pct = Math.round(((i + 1) / total) * 100);
+
+        document.getElementById('progressBarFill').style.width = `${pct}%`;
+        document.getElementById('progressPercentBadge').textContent = `${pct}%`;
+        document.getElementById('progressStatusText').textContent = `Looking up (${i + 1}/${total}): ${item.artist} - ${item.title}`;
+
+        // Perform Discogs Search & Price valuation
+        const valuation = await queryDiscogsItem(item, targetGrade, currency, token);
+        valuedResults.push(valuation);
+
+        renderResultRow(valuation, valuedResults.length - 1);
+        updateSummaryKPIs(currency);
+
+        // Rate limit delay: ~1.1s with token (under 60/min limit), 2.5s without
+        const delayMs = token ? 1100 : 2500;
+        await sleep(delayMs);
+      }
+
+      isQueueRunning = false;
+      document.getElementById('startValuationBtn').disabled = false;
+      document.getElementById('progressSection').classList.add('hidden');
+      updateSummaryKPIs(currency);
+      showToast(`Completed valuation for ${valuedResults.length} records!`, 'success');
+    }
+
+    function togglePauseQueue() {
+      isQueuePaused = !isQueuePaused;
+      const btn = document.getElementById('pauseBtnLabel');
+      btn.textContent = isQueuePaused ? 'Resume' : 'Pause';
+      showToast(isQueuePaused ? 'Valuation paused' : 'Valuation resumed', 'info');
+    }
+
+    function cancelQueue() {
+      cancelRequested = true;
+      isQueueRunning = false;
+      isQueuePaused = false;
+      document.getElementById('startValuationBtn').disabled = false;
+      document.getElementById('progressSection').classList.add('hidden');
+    }
+
+    async function queryDiscogsItem(item, targetGrade, currency, token) {
+      const q = `${item.artist} ${item.title}`.trim();
+      let formatParam = '';
+
+      const fLow = (item.format || '').toLowerCase();
+      if (fLow.includes('7"')) formatParam = '7"';
+      else if (fLow.includes('12"')) formatParam = '12"';
+      else if (fLow.includes('lp') || fLow.includes('album')) formatParam = 'LP';
+      else if (fLow.includes('cd')) formatParam = 'CD';
+      else if (fLow.includes('cassette')) formatParam = 'Cassette';
+
+      let release = null;
+      let priceData = null;
+      let lowestPrice = null;
+      let numForSale = null;
+
+      try {
+        // Step 1: Database Search
+        let searchUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(q)}&type=release`;
+        if (formatParam) searchUrl += `&format=${encodeURIComponent(formatParam)}`;
+        if (token) searchUrl += `&token=${encodeURIComponent(token)}`;
+
+        let searchRes = await fetch(searchUrl, {
+          headers: token ? { 'User-Agent': 'QMCVinylArchive/2.0' } : {}
+        });
+
+        if (searchRes.status === 429) {
+          console.warn("Discogs 429 rate limit hit — cooling down 3s...");
+          await sleep(3000);
+          searchRes = await fetch(searchUrl, {
+            headers: token ? { 'User-Agent': 'QMCVinylArchive/2.0' } : {}
+          });
+        }
+
+        let searchData = null;
+        if (searchRes.ok) {
+          searchData = await searchRes.json();
+        }
+
+        // Broad fallback if strict search empty
+        if (!searchData || !searchData.results || searchData.results.length === 0) {
+          let broadUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(q)}&type=release`;
+          if (token) broadUrl += `&token=${encodeURIComponent(token)}`;
+          const broadRes = await fetch(broadUrl, {
+            headers: token ? { 'User-Agent': 'QMCVinylArchive/2.0' } : {}
+          });
+          if (broadRes.ok) searchData = await broadRes.json();
+        }
+
+        if (searchData && searchData.results && searchData.results.length > 0) {
+          release = searchData.results[0];
+        }
+
+        // Step 2: Marketplace Price Suggestions
+        if (release && release.id) {
+          let priceUrl = `https://api.discogs.com/marketplace/price_suggestions/${release.id}`;
+          if (token) priceUrl += `?token=${encodeURIComponent(token)}`;
+
+          const priceRes = await fetch(priceUrl, {
+            headers: token ? { 'User-Agent': 'QMCVinylArchive/2.0' } : {}
+          });
+
+          if (priceRes.ok) {
+            priceData = await priceRes.json();
+          }
+
+          // Step 3: Release lowest price check
+          let relUrl = `https://api.discogs.com/releases/${release.id}`;
+          if (token) relUrl += `?token=${encodeURIComponent(token)}`;
+          const relRes = await fetch(relUrl, {
+            headers: token ? { 'User-Agent': 'QMCVinylArchive/2.0' } : {}
+          });
+          if (relRes.ok) {
+            const relData = await relRes.json();
+            lowestPrice = relData.lowest_price ? parseFloat(relData.lowest_price) : null;
+            numForSale = relData.num_for_sale || null;
+          }
+        }
+      } catch (err) {
+        console.warn(`Query failed for ${q}:`, err);
+      }
+
+      // Calculation of Low, Median, High
+      let assessedMedian = 0;
+      let assessedLow = 0;
+      let assessedHigh = 0;
+
+      if (priceData) {
+        const targetObj = priceData[targetGrade] || priceData['Very Good Plus (VG+)'] || Object.values(priceData)[0];
+        if (targetObj && targetObj.value) {
+          assessedMedian = parseFloat(targetObj.value);
+          assessedLow = parseFloat(priceData['Good Plus (G+)']?.value || priceData['Very Good (VG)']?.value || (assessedMedian * 0.65));
+          assessedHigh = parseFloat(priceData['Near Mint (NM or M-)']?.value || priceData['Mint (M)']?.value || (assessedMedian * 1.5));
+        }
+      }
+
+      // If price suggestions not returned, fall back to lowest_price multiplier or baseline
+      if (assessedMedian === 0 && lowestPrice) {
+        assessedMedian = Math.round(lowestPrice * 1.25 * 100) / 100;
+        assessedLow = Math.round(lowestPrice * 100) / 100;
+        assessedHigh = Math.round(lowestPrice * 1.8 * 100) / 100;
+      }
+
+      // Final fallback if unpriced
+      const isPriced = assessedMedian > 0;
+
+      return {
+        id: item.id,
+        artist: item.artist,
+        title: item.title,
+        format: item.format,
+        targetGrade: targetGrade,
+        currency: currency,
+        matched: !!release,
+        releaseId: release?.id || null,
+        releaseTitle: release?.title || null,
+        year: release?.year || null,
+        catno: release?.catno || null,
+        thumb: release?.thumb || release?.cover_image || null,
+        median: isPriced ? Math.round(assessedMedian * 100) / 100 : 0,
+        low: isPriced ? Math.round(assessedLow * 100) / 100 : 0,
+        high: isPriced ? Math.round(assessedHigh * 100) / 100 : 0,
+        lowestPrice: lowestPrice ? Math.round(lowestPrice * 100) / 100 : null,
+        numForSale: numForSale,
+        selected: true
+      };
+    }
+
+    // --- RENDERING RESULTS ---
+
+    function renderResultRow(res, idx) {
+      const tbody = document.getElementById('resultsTableBody');
+      const sym = getSym(res.currency);
+      const tr = document.createElement('tr');
+      tr.id = `row_${res.id}`;
+      tr.className = 'hover:bg-vinyl-850/60 transition';
+
+      const thumbHtml = res.thumb ?
+        `<img src="${escapeHtml(res.thumb)}" class="w-8 h-8 rounded object-cover flex-shrink-0 bg-vinyl-800 border border-vinyl-700">` :
+        `<div class="w-8 h-8 rounded bg-vinyl-800 border border-vinyl-700 flex items-center justify-center text-slate-500 text-[10px] flex-shrink-0"><i class="fa-solid fa-record-vinyl"></i></div>`;
+
+      const releaseUrl = res.releaseId ? `https://www.discogs.com/release/${res.releaseId}` : `https://www.discogs.com/search/?q=${encodeURIComponent(res.artist + ' ' + res.title)}&type=release`;
+      const ebayUrl = `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(res.artist + ' ' + res.title + ' vinyl')}&LH_Complete=1&LH_Sold=1`;
+      const popsikeUrl = `https://www.popsike.com/php/quicksearch.php?searchquery=${encodeURIComponent(res.artist + ' ' + res.title)}`;
+
+      tr.innerHTML = `
+        <td class="py-2.5 px-3 text-center">
+          <input type="checkbox" ${res.selected ? 'checked' : ''} onchange="toggleItemSelect('${res.id}', this.checked)" class="rounded accent-brass-500">
+        </td>
+        <td class="py-2.5 px-3">
+          <div class="flex items-center gap-2.5">
+            ${thumbHtml}
+            <div>
+              <div class="font-bold text-white text-xs">${escapeHtml(res.artist)}</div>
+              <div class="text-slate-300 text-[11px]">${escapeHtml(res.title || '—')}</div>
+            </div>
+          </div>
+        </td>
+        <td class="py-2.5 px-3 text-slate-300 text-[11px]">
+          ${res.matched ? `<span class="truncate block max-w-xs" title="${escapeHtml(res.releaseTitle)}">${escapeHtml(res.releaseTitle)}</span>` : `<span class="text-slate-500 italic">No exact match found</span>`}
+          ${res.catno ? `<span class="text-[10px] text-slate-500 font-mono">${escapeHtml(res.catno)}</span>` : ''}
+        </td>
+        <td class="py-2.5 px-3 text-center text-slate-400 font-mono text-[11px]">${res.year || '—'}</td>
+        <td class="py-2.5 px-3 text-right text-slate-400 font-mono">${res.low > 0 ? `${sym}${res.low.toFixed(2)}` : '—'}</td>
+        <td class="py-2.5 px-3 text-right font-bold text-brass-400 font-mono">${res.median > 0 ? `${sym}${res.median.toFixed(2)}` : '—'}</td>
+        <td class="py-2.5 px-3 text-right text-slate-400 font-mono">${res.high > 0 ? `${sym}${res.high.toFixed(2)}` : '—'}</td>
+        <td class="py-2.5 px-3 text-right font-mono text-[11px]">
+          ${res.lowestPrice ? `<span class="text-emerald-400 font-bold">${sym}${res.lowestPrice.toFixed(2)}</span>${res.numForSale ? ` <span class="text-[10px] text-slate-500">(${res.numForSale})</span>` : ''}` : '—'}
+        </td>
+        <td class="py-2.5 px-3 text-center">
+          <div class="flex items-center justify-center gap-2">
+            <a href="${releaseUrl}" target="_blank" rel="noopener" class="text-slate-400 hover:text-amber-400 transition" title="View on Discogs">
+              <i class="fa-solid fa-record-vinyl text-xs"></i>
+            </a>
+            <a href="${ebayUrl}" target="_blank" rel="noopener" class="text-slate-400 hover:text-sky-400 transition" title="eBay Sold Listings">
+              <i class="fa-solid fa-tags text-xs"></i>
+            </a>
+            <a href="${popsikeUrl}" target="_blank" rel="noopener" class="text-slate-400 hover:text-purple-400 transition" title="Popsike History">
+              <i class="fa-solid fa-chart-line text-xs"></i>
+            </a>
+          </div>
+        </td>
+      `;
+
+      tbody.appendChild(tr);
+    }
+
+    function toggleItemSelect(id, checked) {
+      const it = valuedResults.find(r => r.id === id);
+      if (it) it.selected = checked;
+      updateSelectedCount();
+    }
+
+    function toggleSelectAll(checked) {
+      valuedResults.forEach(r => r.selected = checked);
+      document.querySelectorAll('#resultsTableBody input[type="checkbox"]').forEach(cb => cb.checked = checked);
+      updateSelectedCount();
+    }
+
+    function updateSelectedCount() {
+      const count = valuedResults.filter(r => r.selected).length;
+      document.getElementById('selectedCountBadge').textContent = count;
+    }
+
+    function updateSummaryKPIs(currency) {
+      const sym = getSym(currency);
+      let sumMedian = 0;
+      let sumLow = 0;
+      let sumHigh = 0;
+      let pricedCount = 0;
+      let topItem = null;
+
+      valuedResults.forEach(r => {
+        if (r.median > 0) {
+          sumMedian += r.median;
+          sumLow += r.low;
+          sumHigh += r.high;
+          pricedCount++;
+          if (!topItem || r.median > topItem.median) {
+            topItem = r;
+          }
+        }
+      });
+
+      const avg = pricedCount > 0 ? (sumMedian / pricedCount) : 0;
+      const matchRate = valuedResults.length > 0 ? Math.round((pricedCount / valuedResults.length) * 100) : 0;
+
+      document.getElementById('sumMedianVal').textContent = `${sym}${sumMedian.toFixed(2)}`;
+      document.getElementById('sumRangeVal').textContent = `${sym}${sumLow.toFixed(0)} - ${sym}${sumHigh.toFixed(0)}`;
+      document.getElementById('avgItemVal').textContent = `${sym}${avg.toFixed(2)}`;
+      document.getElementById('matchedCountVal').textContent = `${pricedCount} / ${valuedResults.length}`;
+      document.getElementById('matchRateVal').textContent = `${matchRate}% successfully priced`;
+
+      if (topItem) {
+        document.getElementById('topValTrackName').textContent = `${topItem.artist} - ${topItem.title}`;
+        document.getElementById('topValTrackPrice').textContent = `${sym}${topItem.median.toFixed(2)}`;
+      } else {
+        document.getElementById('topValTrackName').textContent = '—';
+        document.getElementById('topValTrackPrice').textContent = `${sym}0.00`;
+      }
+
+      updateSelectedCount();
+    }
+
+    // --- EXPORTS & ARCHIVE IMPORT ---
+
+    function exportValuationsCSV() {
+      if (valuedResults.length === 0) {
+        showToast('No valuation data to export', 'warning');
+        return;
+      }
+
+      const rows = [
+        ["Artist", "Song / Title", "Format", "Condition", "Release Title", "Year", "Catalog Number", "Low Estimate", "Median Valuation", "High Estimate", "Lowest Asking Price", "Currency", "Discogs URL"]
+      ];
+
+      valuedResults.forEach(r => {
+        const discogsUrl = r.releaseId ? `https://www.discogs.com/release/${r.releaseId}` : '';
+        rows.push([
+          r.artist || '',
+          r.title || '',
+          r.format || '',
+          r.targetGrade || '',
+          r.releaseTitle || '',
+          r.year || '',
+          r.catno || '',
+          r.low ? r.low.toFixed(2) : '',
+          r.median ? r.median.toFixed(2) : '',
+          r.high ? r.high.toFixed(2) : '',
+          r.lowestPrice ? r.lowestPrice.toFixed(2) : '',
+          r.currency || 'GBP',
+          discogsUrl
+        ]);
+      });
+
+      const csvContent = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `QMC-List-Valuations-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast("CSV export generated successfully", "success");
+    }
+
+    function exportValuationsExcel() {
+      if (valuedResults.length === 0) {
+        showToast('No valuation data to export', 'warning');
+        return;
+      }
+
+      if (typeof XLSX === 'undefined') {
+        exportValuationsCSV();
+        return;
+      }
+
+      const data = valuedResults.map(r => ({
+        "Artist": r.artist || '',
+        "Song / Title": r.title || '',
+        "Format": r.format || '',
+        "Condition": r.targetGrade || '',
+        "Release Title": r.releaseTitle || '',
+        "Year": r.year || '',
+        "Catalog #": r.catno || '',
+        "Low Estimate": r.low || 0,
+        "Median Valuation": r.median || 0,
+        "High Estimate": r.high || 0,
+        "Lowest Asking Price": r.lowestPrice || '',
+        "Currency": r.currency || 'GBP',
+        "Discogs Link": r.releaseId ? `https://www.discogs.com/release/${r.releaseId}` : ''
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Valuations");
+      XLSX.writeFile(wb, `QMC-List-Valuations-${new Date().toISOString().slice(0, 10)}.xlsx`);
+      showToast("Excel spreadsheet generated successfully", "success");
+    }
+
+    function importSelectedToArchive() {
+      const selected = valuedResults.filter(r => r.selected);
+      if (selected.length === 0) {
+        showToast('Please select at least one record to add to Archive', 'warning');
+        return;
+      }
+
+      let existing = [];
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) existing = JSON.parse(stored);
+      } catch (e) {
+        existing = [];
+      }
+
+      let addedCount = 0;
+      selected.forEach(r => {
+        const newRecord = {
+          id: String(Date.now() + Math.floor(Math.random() * 100000)),
+          artist: r.artist,
+          title: r.title || r.releaseTitle || 'Untitled',
+          format: r.format || '7" Single',
+          year: r.year ? parseInt(r.year) : null,
+          catNo: r.catno || '',
+          discogsId: r.releaseId ? String(r.releaseId) : null,
+          coverImage: r.thumb || '',
+          mediaGrade: r.targetGrade || 'VG+',
+          sleeveGrade: 'VG+',
+          country: 'UK',
+          currency: r.currency || 'GBP',
+          estimatedValue: r.median > 0 ? r.median : null,
+          priceLow: r.low > 0 ? r.low : null,
+          priceMedian: r.median > 0 ? r.median : null,
+          priceHigh: r.high > 0 ? r.high : null,
+          priceSource: r.median > 0 ? 'Discogs List Valuer' : '',
+          notes: `Imported via QMC List Valuer on ${new Date().toLocaleDateString()}`,
+          created_at: new Date().toISOString()
+        };
+        existing.unshift(newRecord);
+        addedCount++;
+      });
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+        showToast(`Added ${addedCount} records directly to your QMC Archive Crate!`, 'success');
+      } catch (err) {
+        console.error("Failed to save to local storage:", err);
+        showToast("Storage error saving records", "error");
+      }
+    }
+
+    // --- UTILITIES ---
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      let border = 'border-vinyl-700';
+      let icon = 'fa-info-circle text-sky-400';
+      if (type === 'success') {
+        border = 'border-emerald-500/50';
+        icon = 'fa-circle-check text-emerald-400';
+      } else if (type === 'warning') {
+        border = 'border-amber-500/50';
+        icon = 'fa-triangle-exclamation text-amber-400';
+      } else if (type === 'error') {
+        border = 'border-red-500/50';
+        icon = 'fa-circle-exclamation text-red-400';
+      }
+
+      toast.className = `p-3 rounded-xl bg-vinyl-900/95 border ${border} text-white shadow-2xl flex items-center gap-2.5 text-xs max-w-sm pointer-events-auto transition transform duration-200 translate-y-2 opacity-0`;
+      toast.innerHTML = `<i class="fa-solid ${icon} text-sm flex-shrink-0"></i><span class="leading-snug">${escapeHtml(message)}</span>`;
+
+      container.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 250);
+      }, 4000);
+    }
+  </script>
+</body>
+
+</html>
+
