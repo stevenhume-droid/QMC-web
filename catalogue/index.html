@@ -175,6 +175,12 @@
         min-height: 40px;
       }
 
+      .card-action-bar button,
+      .card-action-bar a {
+        min-height: 32px;
+        min-width: 32px;
+      }
+
       .form-tab-btn {
         min-height: 44px;
         font-size: 13px;
@@ -666,8 +672,8 @@
           </button>
 
           <!-- Search Bar Toggle Button (next to Gallery expand/minimise toggle) -->
-          <button type="button" id="searchToggleBtn" onclick="toggleSearchBar()"
-            aria-expanded="false" aria-controls="globalSearchWrapper"
+          <button type="button" id="searchToggleBtn" onclick="toggleSearchBar()" aria-expanded="false"
+            aria-controls="globalSearchWrapper"
             class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-brass-500/50 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-slate-300 font-semibold flex items-center gap-1 transition shadow-sm"
             title="Toggle Search Bar">
             <i id="searchToggleIcon" class="fa-solid fa-magnifying-glass text-xs text-slate-300"></i>
@@ -773,7 +779,8 @@
           <input type="text" id="globalSearch" oninput="handleSearchFilterChange()"
             placeholder="Search Artist, Album, Title, Label, Cat #, Matrix..."
             class="w-full pl-8 pr-9 py-2 bg-vinyl-850/95 backdrop-blur-md border border-vinyl-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brass-500 focus:ring-1 focus:ring-brass-500 shadow-md">
-          <button type="button" onclick="if (document.getElementById('globalSearch')?.value) { clearSearchInput(); } else { toggleSearchBar(false); }"
+          <button type="button"
+            onclick="if (document.getElementById('globalSearch')?.value) { clearSearchInput(); } else { toggleSearchBar(false); }"
             class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 text-xs p-1"
             title="Clear or hide search">
             <i class="fa-solid fa-xmark"></i>
@@ -8175,6 +8182,10 @@
       }
     }
 
+    function safeEncodeUriPart(str) {
+      return encodeURIComponent(str || '').replace(/'/g, '%27');
+    }
+
     function renderGridView(list, container) {
       const sym = getCurrencySymbol();
 
@@ -8182,17 +8193,18 @@
       if (currentGridDensity === 'compact') {
         let html = '<div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-4">';
         list.forEach(item => {
-          const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
+          const coverSrc = escapeHtml(item.coverImage || getDefaultCover(item.format, item.artist, item.title));
+          const safeId = escapeJsString(item.id);
           const isAlbum = item.format && item.format.includes('LP');
           const hasVal = areValuesVisible && item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
           const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
 
           html += `
-            <div class="bg-vinyl-900 rounded-xl border border-vinyl-800 hover:border-brass-500/50 transition-all duration-200 overflow-hidden shadow-md flex flex-col group cursor-pointer" onclick="viewRecordDetail('${item.id}')">
+            <div class="bg-vinyl-900 rounded-xl border border-vinyl-800 hover:border-brass-500/50 transition-all duration-200 overflow-hidden shadow-md flex flex-col group cursor-pointer" onclick="viewRecordDetail('${safeId}')">
               
               <!-- Sleeve Visual Cover -->
-              <div class="relative w-full aspect-square bg-vinyl-950 overflow-hidden">
-                <img src="${coverSrc}" alt="${escapeHtml(item.title)}" loading="lazy" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" onerror="this.onerror=null; this.src=getDefaultCover('${encodeURIComponent(item.format || '')}', '${encodeURIComponent(item.artist || '')}', '${encodeURIComponent(item.title || '')}', true)">
+              <div class="relative w-full aspect-square bg-vinyl-950 overflow-hidden flex-shrink-0">
+                <img src="${coverSrc}" alt="${escapeHtml(item.title)}" loading="lazy" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" onerror="this.onerror=null; this.src=getDefaultCover('${safeEncodeUriPart(item.format)}', '${safeEncodeUriPart(item.artist)}', '${safeEncodeUriPart(item.title)}', true)">
                 
                 <!-- Format Indicator & Price Badge -->
                 <div class="absolute top-1.5 left-1.5 flex flex-col gap-0.5 items-start z-10 pointer-events-none">
@@ -8229,10 +8241,10 @@
               <div class="p-2 sm:p-2.5 flex-1 flex flex-col justify-between gap-1">
                 <div>
                   <h3 class="text-xs font-bold text-white tracking-tight truncate group-hover:text-brass-400 transition" onclick="event.stopPropagation(); filterByArtist('${escapeJsString(item.artist)}')" title="${escapeHtml(item.artist)}">
-                    ${item.artist}
+                    ${escapeHtml(item.artist)}
                   </h3>
                   <h4 class="text-[11px] font-medium text-slate-300 truncate" title="${escapeHtml(item.title)}">
-                    ${item.title}
+                    ${escapeHtml(item.title)}
                   </h4>
                   ${formatSeriesLabel(item) ? `
                     <div class="mt-0.5">
@@ -8247,21 +8259,21 @@
                         ${escapeHtml(item.label)}
                       </button>
                     ` : `<span></span>`}
-                    <span class="text-slate-400 text-[9px] flex-shrink-0">${item.country || ''}</span>
+                    <span class="text-slate-400 text-[9px] flex-shrink-0">${escapeHtml(item.country || '')}</span>
                   </div>
                 </div>
 
                 <!-- Quick Action Bar -->
                 <div class="pt-1.5 border-t border-vinyl-800 flex items-center justify-between text-[10px] text-slate-400" onclick="event.stopPropagation()">
-                  <span class="text-brass-400 hover:text-brass-300 flex items-center gap-1 font-semibold cursor-pointer" onclick="viewRecordDetail('${item.id}')">
+                  <span class="text-brass-400 hover:text-brass-300 flex items-center gap-1 font-semibold cursor-pointer" onclick="viewRecordDetail('${safeId}')">
                     <i class="fa-solid fa-file-lines text-[9px]"></i> Dossier
                   </span>
                   <div class="flex items-center gap-1.5">
-                    <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener" class="p-0.5 hover:text-blue-400 transition" title="eBay Sold"><i class="fa-brands fa-ebay text-xs"></i></a>
-                    <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener" class="p-0.5 hover:text-amber-400 transition" title="Discogs"><i class="fa-solid fa-compact-disc text-[10px]"></i></a>
-                    <a href="${getStreamingLinks(item).spotify}" target="_blank" rel="noopener" class="p-0.5 hover:text-emerald-400 transition" title="Audition on Spotify"><i class="fa-brands fa-spotify text-[11px]"></i></a>
+                    <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center p-0.5 hover:text-blue-400 transition" title="eBay Sold"><i class="fa-brands fa-ebay text-xs"></i></a>
+                    <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center p-0.5 hover:text-amber-400 transition" title="Discogs"><i class="fa-solid fa-compact-disc text-[10px]"></i></a>
+                    <a href="${getStreamingLinks(item).spotify}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center p-0.5 text-emerald-400/90 hover:text-emerald-300 transition" title="Audition on Spotify"><i class="fa-brands fa-spotify text-[11px]"></i></a>
                     ${isOwner ? `
-                      <button onclick="editRecord('${item.id}')" class="p-0.5 hover:text-amber-400 transition" title="Edit"><i class="fa-solid fa-pen-to-square text-[10px]"></i></button>
+                      <button type="button" onclick="event.stopPropagation(); editRecord('${safeId}')" class="inline-flex items-center justify-center p-0.5 hover:text-amber-400 transition" title="Edit"><i class="fa-solid fa-pen-to-square text-[10px]"></i></button>
                     ` : ''}
                   </div>
                 </div>
@@ -8279,7 +8291,8 @@
       let html = '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">';
 
       list.forEach(item => {
-        const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
+        const coverSrc = escapeHtml(item.coverImage || getDefaultCover(item.format, item.artist, item.title));
+        const safeId = escapeJsString(item.id);
         const isAlbum = item.format && item.format.includes('LP');
         const hasVal = areValuesVisible && item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
         const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
@@ -8288,12 +8301,12 @@
           <div class="bg-vinyl-900 rounded-2xl border border-vinyl-800 hover:border-brass-500/50 transition-all duration-200 overflow-hidden shadow-lg hover:shadow-2xl flex flex-col group">
             
             <!-- Sleeve Visual Card Header -->
-            <div class="relative w-full aspect-square bg-vinyl-950 overflow-hidden cursor-pointer" onclick="viewRecordDetail('${item.id}')">
-              <img src="${coverSrc}" alt="${escapeHtml(item.title)}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src=getDefaultCover('${encodeURIComponent(item.format || '')}', '${encodeURIComponent(item.artist || '')}', '${encodeURIComponent(item.title || '')}', true)">
+            <div class="relative w-full aspect-square bg-vinyl-950 overflow-hidden cursor-pointer flex-shrink-0" onclick="viewRecordDetail('${safeId}')">
+              <img src="${coverSrc}" alt="${escapeHtml(item.title)}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src=getDefaultCover('${safeEncodeUriPart(item.format)}', '${safeEncodeUriPart(item.artist)}', '${safeEncodeUriPart(item.title)}', true)">
               
               <!-- Direct Choose Sleeve Hover Button -->
               ${isOwner ? `
-                <button onclick="event.stopPropagation(); openArtworkChooserModal('record', '${item.id}')" class="opacity-0 group-hover:opacity-100 transition-all duration-200 absolute inset-0 m-auto w-max h-max px-3.5 py-1.5 rounded-lg bg-black/85 hover:bg-black text-brass-400 hover:text-white border border-brass-500/50 hover:border-brass-400 text-xs font-semibold backdrop-blur-md flex items-center gap-1.5 shadow-2xl z-20 cursor-pointer pointer-events-auto" title="Choose from online sleeve choices or generic">
+                <button type="button" onclick="event.stopPropagation(); openArtworkChooserModal('record', '${safeId}')" class="opacity-0 group-hover:opacity-100 transition-all duration-200 absolute inset-0 m-auto w-max h-max px-3.5 py-1.5 rounded-lg bg-black/85 hover:bg-black text-brass-400 hover:text-white border border-brass-500/50 hover:border-brass-400 text-xs font-semibold backdrop-blur-md flex items-center gap-1.5 shadow-2xl z-20 cursor-pointer pointer-events-none group-hover:pointer-events-auto" title="Choose from online sleeve choices or generic">
                   <i class="fa-solid fa-images text-xs text-sky-400"></i>
                   <span>Choose Sleeve</span>
                 </button>
@@ -8353,13 +8366,13 @@
               <div>
                 <div class="flex items-baseline justify-between gap-1 mb-1">
                   <h3 class="text-sm font-bold text-white tracking-tight truncate hover:text-brass-400 cursor-pointer transition" onclick="filterByArtist('${escapeJsString(item.artist)}')" title="Filter archive for all by ${escapeHtml(item.artist)}">
-                    ${item.artist}
+                    ${escapeHtml(item.artist)}
                   </h3>
-                  <span class="text-xs font-mono text-slate-400">${item.year || '--'}</span>
+                  <span class="text-xs font-mono text-slate-400">${escapeHtml(item.year || '--')}</span>
                 </div>
                 
-                <h4 class="text-xs font-semibold text-slate-200 hover:text-brass-400 truncate mb-2 cursor-pointer transition" onclick="viewRecordDetail('${item.id}')" title="View dossier for ${escapeHtml(item.title)}">
-                  ${item.title}
+                <h4 class="text-xs font-semibold text-slate-200 hover:text-brass-400 truncate mb-2 cursor-pointer transition" onclick="viewRecordDetail('${safeId}')" title="View dossier for ${escapeHtml(item.title)}">
+                  ${escapeHtml(item.title)}
                 </h4>
 
                 ${formatSeriesLabel(item) ? `
@@ -8374,9 +8387,9 @@
                 <!-- Member Crate Attribution -->
                 ${item.ownerName ? `
                   <div class="flex items-center justify-between text-[10px] text-slate-400 mb-2">
-                    <span class="flex items-center gap-1.5 truncate max-w-[160px]" title="Catalogued by ${item.ownerName}">
+                    <span class="flex items-center gap-1.5 truncate max-w-[160px]" title="Catalogued by ${escapeHtml(item.ownerName)}">
                       <i class="fa-solid fa-circle-user text-brass-400 text-[11px]"></i>
-                      <span class="truncate">${item.ownerName}</span>
+                      <span class="truncate">${escapeHtml(item.ownerName)}</span>
                     </span>
                     ${isOwner && currentUser ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-brass-500/10 text-brass-400 border border-brass-500/20 font-mono">Your Crate</span>' : ''}
                   </div>
@@ -8389,65 +8402,66 @@
                       <span class="font-medium text-brass-400 truncate flex-1">
                         <i class="fa-solid fa-list text-[10px] mr-1"></i> ${item.tracks.length} Tracks Tracklist
                       </span>
-                      <span class="text-[10px] text-slate-500 font-mono">${item.country || ''}</span>
+                      <span class="text-[10px] text-slate-500 font-mono">${escapeHtml(item.country || '')}</span>
                     </div>
                     <div class="text-[10px] text-slate-400 truncate">
-                      ${item.tracks.slice(0, 2).map(t => t.title).join(' · ')}${item.tracks.length > 2 ? '...' : ''}
+                      ${escapeHtml(item.tracks.slice(0, 2).map(t => t.title).join(' · '))}${item.tracks.length > 2 ? '...' : ''}
                     </div>
                   ` : `
                     <div class="flex items-center gap-1.5 text-slate-300 truncate">
                       <span class="w-3.5 h-3.5 rounded-full bg-vinyl-800 text-[8px] font-bold text-brass-400 flex items-center justify-center">A</span>
-                      <span class="truncate">${item.sideATitle || item.title}</span>
+                      <span class="truncate">${escapeHtml(item.sideATitle || item.title)}</span>
                     </div>
                     <div class="flex items-center gap-1.5 text-slate-400 truncate">
                       <span class="w-3.5 h-3.5 rounded-full bg-vinyl-800 text-[8px] font-bold text-slate-400 flex items-center justify-center">B</span>
-                      <span class="truncate">${item.sideBTitle || 'Side B Track'}</span>
+                      <span class="truncate">${escapeHtml(item.sideBTitle || 'Side B Track')}</span>
                     </div>
                   `}
                 </div>
 
                 <!-- Matrix snippet -->
                 ${item.matrixA ? `
-                  <div class="mt-2 text-[10px] text-emerald-400/90 font-mono truncate" title="Matrix A: ${item.matrixA}">
-                    <i class="fa-solid fa-compact-disc mr-1 text-slate-600"></i>${item.matrixA}
+                  <div class="mt-2 text-[10px] text-emerald-400/90 font-mono truncate" title="Matrix A: ${escapeHtml(item.matrixA)}">
+                    <i class="fa-solid fa-compact-disc mr-1 text-slate-600"></i>${escapeHtml(item.matrixA)}
                   </div>
                 ` : ''}
               </div>
 
               <!-- Action Bar Footer with 1-Click Market Checks -->
-              <div class="mt-4 pt-3 border-t border-vinyl-800 flex items-center justify-between text-xs text-slate-400">
-                <button onclick="viewRecordDetail('${item.id}')" class="hover:text-brass-400 transition flex items-center gap-1">
+              <div class="card-action-bar mt-4 pt-3 border-t border-vinyl-800 flex items-center justify-between flex-wrap gap-2 text-xs text-slate-400">
+                <button type="button" onclick="viewRecordDetail('${safeId}')" class="hover:text-brass-400 transition flex items-center gap-1 flex-shrink-0">
                   <i class="fa-solid fa-file-lines"></i> Dossier
                 </button>
 
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5 flex-wrap">
                   <!-- 1-Click eBay Sold Link -->
-                  <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener" class="p-1 hover:text-blue-400 transition" title="Check eBay Sold Listings (90 Days)">
+                  <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center flex-shrink-0 p-1.5 rounded hover:bg-vinyl-800 hover:text-blue-400 transition" title="Check eBay Sold Listings (90 Days)">
                     <i class="fa-brands fa-ebay text-base"></i>
                   </a>
 
                   <!-- 1-Click Discogs Market Link -->
-                  <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener" class="p-1 hover:text-amber-400 transition" title="Check Discogs Marketplace Average">
+                  <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center flex-shrink-0 p-1.5 rounded hover:bg-vinyl-800 hover:text-amber-400 transition" title="Check Discogs Marketplace Average">
                     <i class="fa-solid fa-compact-disc"></i>
                   </a>
 
                   <!-- 1-Click Spotify Audition Link -->
-                  <a href="${getStreamingLinks(item).spotify}" target="_blank" rel="noopener" class="p-1 hover:text-emerald-400 transition" title="Audition on Spotify">
+                  <a href="${getStreamingLinks(item).spotify}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center flex-shrink-0 p-1.5 rounded hover:bg-emerald-500/15 text-emerald-400/90 hover:text-emerald-300 transition" title="Audition on Spotify">
                     <i class="fa-brands fa-spotify text-sm"></i>
                   </a>
 
                   ${isOwner ? `
-                    <button onclick="openArtworkChooserModal('record', '${item.id}')" class="p-1 text-slate-400 hover:text-sky-400 transition" title="Choose Cover Sleeve">
+                    <span class="w-px h-3.5 bg-vinyl-700/80 mx-0.5 flex-shrink-0" aria-hidden="true"></span>
+                    <button type="button" onclick="event.stopPropagation(); openArtworkChooserModal('record', '${safeId}')" class="inline-flex items-center justify-center flex-shrink-0 p-1.5 rounded hover:bg-vinyl-800 text-slate-400 hover:text-sky-400 transition" title="Choose Cover Sleeve">
                       <i class="fa-solid fa-images"></i>
                     </button>
-                    <button onclick="editRecord('${item.id}')" class="p-1 hover:text-amber-400 transition" title="Edit Metadata">
+                    <button type="button" onclick="event.stopPropagation(); editRecord('${safeId}')" class="inline-flex items-center justify-center flex-shrink-0 p-1.5 rounded hover:bg-vinyl-800 hover:text-amber-400 transition" title="Edit Metadata">
                       <i class="fa-solid fa-pen-to-square"></i>
                     </button>
-                    <button onclick="deleteRecordPrompt('${item.id}')" class="p-1 hover:text-red-400 transition" title="Delete Entry">
+                    <button type="button" onclick="event.stopPropagation(); deleteRecordPrompt('${safeId}')" class="inline-flex items-center justify-center flex-shrink-0 p-1.5 rounded hover:bg-vinyl-800 hover:text-red-400 transition" title="Delete Entry">
                       <i class="fa-solid fa-trash-can"></i>
                     </button>
                   ` : `
-                    <span class="p-1 text-slate-600 cursor-default" title="Contributed by ${item.ownerName || 'another member'}">
+                    <span class="inline-flex items-center justify-center p-1 text-slate-600 cursor-default" title="Contributed by ${escapeHtml(item.ownerName || 'another member')}">
                       <i class="fa-solid fa-shield-halved text-xs"></i>
                     </span>
                   `}
@@ -9158,22 +9172,11 @@
               </div>
             </div>
 
-            <!-- Quick Jump View Controls -->
-            <div class="flex flex-wrap items-center gap-2 self-stretch md:self-auto justify-start sm:justify-end">
-              <button onclick="switchView('grid')" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 text-xs font-medium border border-vinyl-700 transition flex items-center gap-1.5" title="Switch to Sleeve Gallery View">
-                <i class="fa-solid fa-grip text-sky-400"></i> Gallery
-              </button>
-              <button onclick="switchView('list')" class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 text-xs font-medium border border-vinyl-700 transition flex items-center gap-1.5" title="Switch to Archival Table">
-                <i class="fa-solid fa-table-list text-amber-400"></i> Table
-              </button>
-              <button onclick="openInsuranceModal()" class="hidden md:inline-flex px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 text-xs font-medium border border-brass-500/30 transition items-center gap-1.5" title="Insuring Your Music Collection Guide">
+            <!-- Analytics Hero Actions -->
+            <div class="hidden md:flex items-center gap-2">
+              <button onclick="openInsuranceModal()" class="inline-flex px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 text-xs font-medium border border-brass-500/30 transition items-center gap-1.5" title="Insuring Your Music Collection Guide">
                 <i class="fa-solid fa-shield-halved"></i> <span>Insurance Guide</span>
               </button>
-              ${!isReadOnlyShareView ? `
-                <button onclick="openAutoValuateModal()" class="px-3 py-1.5 rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 text-xs font-bold transition flex items-center gap-1.5 shadow" title="Refresh Live Pricing">
-                  <i class="fa-solid fa-coins"></i> Valuate Archive
-                </button>
-              ` : ''}
             </div>
           </div>
 
