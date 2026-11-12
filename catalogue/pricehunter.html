@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vinyl Price Hunter — Audiophile Record Price Finder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --gold: #d4af37;
+      --gold-light: #f3cf65;
+      --gold-dark: #997819;
+      --bg-dark: #0d0e12;
+      --panel-dark: #15161c;
+      --border-dark: #262833;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-dark);
+      color: #e4e4e7;
+    }
+    .heading-font {
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    /* Vinyl record decorative texture */
+    .vinyl-grooves {
+      background: radial-gradient(circle, transparent 35%, rgba(212, 175, 55, 0.05) 36%, transparent 37%),
+                  radial-gradient(circle, transparent 48%, rgba(255, 255, 255, 0.02) 49%, transparent 50%),
+                  radial-gradient(circle, transparent 62%, rgba(212, 175, 55, 0.04) 63%, transparent 64%),
+                  radial-gradient(circle, transparent 76%, rgba(255, 255, 255, 0.02) 77%, transparent 78%),
+                  radial-gradient(circle, #1a1b22 0%, #0d0e12 100%);
+    }
+    .record-spin {
+      animation: spin 14s linear infinite;
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+    /* Subtle custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f1015;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2b2d3a;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #d4af37;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-amber-500/30 selection:text-amber-200">
+
+  <!-- Header -->
+  <header class="border-b border-[#22242e] bg-[#121318]/90 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
+      <div class="flex items-center space-x-3.5">
+        <div class="relative w-10 h-10 rounded-full bg-gradient-to-tr from-amber-600 via-zinc-900 to-amber-300 p-[2px] flex items-center justify-center shadow-lg shadow-amber-950/40">
+          <div class="w-full h-full rounded-full bg-[#111217] flex items-center justify-center vinyl-grooves">
+            <div class="w-3.5 h-3.5 rounded-full bg-amber-400/90 border border-amber-200/50"></div>
+          </div>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2 heading-font">
+            VINYL <span class="text-amber-400 font-extrabold">PRICE HUNTER</span>
+            <span class="text-[10px] tracking-widest uppercase font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded-full hidden sm:inline-block">9 Stores Engine</span>
+          </h1>
+          <p class="text-xs text-zinc-400">Aggregated vinyl shopping & lowest price reconnaissance</p>
+        </div>
+      </div>
+
+      <!-- Quick Nav / Stats -->
+      <div class="flex items-center gap-3">
+        <button id="viewWishlistBtn" class="flex items-center gap-2 text-xs font-medium px-3.5 py-2 rounded-lg bg-[#1c1e27] hover:bg-[#252834] border border-[#2b2d3d] text-zinc-300 hover:text-white transition shadow-sm">
+          <i data-lucide="bookmark" class="w-4 h-4 text-amber-400"></i>
+          <span>Watchlist</span>
+          <span id="watchlistCountBadge" class="bg-amber-500/20 text-amber-300 text-[10px] font-bold px-1.5 py-0.2 rounded-full border border-amber-500/30">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-1 w-full space-y-8">
+    
+    <!-- Hero / Query Section -->
+    <section class="bg-gradient-to-b from-[#171821] to-[#121319] border border-[#262836] rounded-2xl p-5 sm:p-7 shadow-2xl relative overflow-hidden">
+      <!-- Glow ambient backdrop -->
+      <div class="absolute -right-24 -top-24 w-72 h-72 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+        <div>
+          <span class="text-amber-400 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="disc" class="w-3.5 h-3.5 text-amber-400"></i> Multi-Retailer Search Query
+          </span>
+          <h2 class="text-2xl font-bold text-white mt-1 heading-font">Find The Best Wax Across 9 Marketplaces</h2>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-zinc-400 bg-[#0f1015]/80 px-3 py-1.5 rounded-lg border border-[#242633] self-start lg:self-auto">
+          <i data-lucide="info" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>Sorts eBay by cheapest total price & pre-filters vinyl formats</span>
+        </div>
+      </div>
+
+      <!-- Main Search Form -->
+      <form id="searchForm" onsubmit="event.preventDefault(); triggerSearchAll();" class="space-y-5">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <!-- Artist -->
+          <div class="md:col-span-4">
+            <label for="artistInput" class="block text-xs font-medium text-zinc-300 mb-1.5">Artist / Band Name</label>
+            <div class="relative">
+              <i data-lucide="user" class="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <input type="text" id="artistInput" placeholder="e.g. Pink Floyd, Burial, Miles Davis"
+                class="w-full bg-[#0c0d12] border border-[#2c2f3f] focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 outline-none transition">
+            </div>
+          </div>
+
+          <!-- Album Title -->
+          <div class="md:col-span-4">
+            <label for="titleInput" class="block text-xs font-medium text-zinc-300 mb-1.5">Album / Release Title</label>
+            <div class="relative">
+              <i data-lucide="disc-3" class="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <input type="text" id="titleInput" placeholder="e.g. The Dark Side of the Moon, Untrue"
+                class="w-full bg-[#0c0d12] border border-[#2c2f3f] focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 outline-none transition">
+            </div>
+          </div>
+
+          <!-- Format -->
+          <div class="md:col-span-2">
+            <label for="formatInput" class="block text-xs font-medium text-zinc-300 mb-1.5">Vinyl Format</label>
+            <div class="relative">
+              <select id="formatInput" class="w-full bg-[#0c0d12] border border-[#2c2f3f] focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl px-3 py-2.5 text-sm text-zinc-200 outline-none appearance-none transition cursor-pointer">
+                <option value="vinyl">All Vinyl Formats</option>
+                <option value="lp">12" LP</option>
+                <option value="7">7" Single</option>
+                <option value="10">10" Vinyl</option>
+                <option value="box">Box Set</option>
+              </select>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-zinc-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            </div>
+          </div>
+
+          <!-- Cat / Matrix / Barcode -->
+          <div class="md:col-span-2">
+            <label for="catInput" class="block text-xs font-medium text-zinc-300 mb-1.5">Cat # / Barcode <span class="text-zinc-500 font-normal">(Optional)</span></label>
+            <div class="relative">
+              <i data-lucide="barcode" class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+              <input type="text" id="catInput" placeholder="e.g. SHVL 804"
+                class="w-full bg-[#0c0d12] border border-[#2c2f3f] focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white placeholder-zinc-500 outline-none transition">
+            </div>
+          </div>
+        </div>
+
+        <!-- Store Toggle Strip -->
+        <div class="pt-2 border-t border-[#222432]/80">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Active Platforms for Multi-Search:</span>
+              <span id="activeStoresCount" class="text-xs text-amber-400 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">9/9 Enabled</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <button type="button" onclick="toggleAllStores(true)" class="text-amber-400 hover:text-amber-300 hover:underline">Select All</button>
+              <span class="text-zinc-600">|</span>
+              <button type="button" onclick="toggleAllStores(false)" class="text-zinc-400 hover:text-zinc-200 hover:underline">Clear All</button>
+            </div>
+          </div>
+
+          <!-- Checkboxes Grid -->
+          <div id="storeCheckboxes" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2">
+            <!-- Injected dynamically for store selections -->
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-3">
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="fillExample('Burial', 'Untrue', 'HDBLP002', 'lp')" class="text-xs text-zinc-400 hover:text-amber-400 transition flex items-center gap-1 bg-[#13141a] px-2.5 py-1.5 rounded-lg border border-[#242633]">
+              <i data-lucide="sparkles" class="w-3 h-3 text-amber-400"></i> Try: Burial — Untrue
+            </button>
+            <button type="button" onclick="fillExample('Miles Davis', 'Kind of Blue', '', 'lp')" class="text-xs text-zinc-400 hover:text-amber-400 transition flex items-center gap-1 bg-[#13141a] px-2.5 py-1.5 rounded-lg border border-[#242633]">
+              <i data-lucide="sparkles" class="w-3 h-3 text-amber-400"></i> Miles Davis — Kind of Blue
+            </button>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <button type="button" onclick="openSaveToWishlistModal()" class="px-4 py-2.5 rounded-xl bg-[#1d1f2b] hover:bg-[#252837] text-zinc-200 text-xs font-semibold flex items-center gap-2 border border-[#32364a] transition active:scale-[0.98]">
+              <i data-lucide="plus-circle" class="w-4 h-4 text-amber-400"></i> Add to Watchlist
+            </button>
+            <button type="button" onclick="triggerSearchAll()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-amber-950/40 transition active:scale-[0.98]">
+              <i data-lucide="external-link" class="w-4 h-4"></i> Search Selected Stores
+            </button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- Direct Launch Store Cards (The 9 Retailers) -->
+    <section>
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-lg font-bold text-white heading-font flex items-center gap-2">
+            <span>Direct Marketplace Cards</span>
+            <span class="text-xs font-normal text-zinc-400">(Click to open target platform query in new tab)</span>
+          </h3>
+        </div>
+        <button onclick="updateStoreCards()" class="text-xs text-zinc-400 hover:text-amber-400 flex items-center gap-1">
+          <i data-lucide="refresh-cw" class="w-3 h-3"></i> Sync Links
+        </button>
+      </div>
+
+      <div id="storeCardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- Wishlist / Watchlist Section -->
+    <section id="wishlistSection" class="bg-[#14151c] border border-[#262837] rounded-2xl p-5 sm:p-7 shadow-xl">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#222432]">
+        <div>
+          <div class="flex items-center gap-2">
+            <i data-lucide="bookmark" class="w-5 h-5 text-amber-400"></i>
+            <h3 class="text-xl font-bold text-white heading-font">Vinyl Watchlist & Target Prices</h3>
+          </div>
+          <p class="text-xs text-zinc-400 mt-1">Keep track of grails, set max target prices, and execute 1-click batch re-checks.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="exportWishlistJSON()" class="px-3 py-1.5 rounded-lg bg-[#1b1c26] hover:bg-[#252736] border border-[#2a2c3d] text-zinc-300 text-xs font-medium flex items-center gap-1.5 transition">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i> Export JSON
+          </button>
+          <button onclick="exportWishlistCSV()" class="px-3 py-1.5 rounded-lg bg-[#1b1c26] hover:bg-[#252736] border border-[#2a2c3d] text-zinc-300 text-xs font-medium flex items-center gap-1.5 transition">
+            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Export CSV
+          </button>
+          <label class="px-3 py-1.5 rounded-lg bg-[#1b1c26] hover:bg-[#252736] border border-[#2a2c3d] text-zinc-300 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer">
+            <i data-lucide="upload" class="w-3.5 h-3.5"></i> Import JSON
+            <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importWishlistJSON(event)">
+          </label>
+        </div>
+      </div>
+
+      <!-- Watchlist list table/cards -->
+      <div id="wishlistEmptyState" class="py-12 text-center text-zinc-500 hidden">
+        <div class="w-16 h-16 mx-auto rounded-full bg-[#1b1c26] flex items-center justify-center text-zinc-600 mb-3 border border-[#292b3a]">
+          <i data-lucide="disc" class="w-8 h-8 text-zinc-500"></i>
+        </div>
+        <p class="text-sm font-medium text-zinc-300">Your watchlist is currently empty</p>
+        <p class="text-xs text-zinc-500 mt-1">Search an album above and hit "Add to Watchlist" with your target price.</p>
+      </div>
+
+      <div id="wishlistItemsGrid" class="divide-y divide-[#20222e] mt-2">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Save to Wishlist Modal -->
+  <div id="wishlistModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-[#161720] border border-[#2c2f42] rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-4 border-b border-[#252738]">
+        <h4 class="text-base font-bold text-white flex items-center gap-2 heading-font">
+          <i data-lucide="bookmark-plus" class="w-4 h-4 text-amber-400"></i> Add to Target Watchlist
+        </h4>
+        <button onclick="closeSaveToWishlistModal()" class="text-zinc-400 hover:text-white transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 py-4 text-xs">
+        <div>
+          <label class="block text-zinc-400 mb-1">Artist / Band</label>
+          <input type="text" id="modalArtist" class="w-full bg-[#0d0e13] border border-[#2b2d3d] rounded-lg px-3 py-2 text-white">
+        </div>
+        <div>
+          <label class="block text-zinc-400 mb-1">Album Title</label>
+          <input type="text" id="modalTitle" class="w-full bg-[#0d0e13] border border-[#2b2d3d] rounded-lg px-3 py-2 text-white">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-zinc-400 mb-1">Target Price Threshold</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-amber-400 font-semibold">£</span>
+              <input type="number" id="modalTargetPrice" step="0.5" placeholder="25.00" class="w-full bg-[#0d0e13] border border-[#2b2d3d] rounded-lg pl-7 pr-3 py-2 text-white">
+            </div>
+          </div>
+          <div>
+            <label class="block text-zinc-400 mb-1">Format</label>
+            <select id="modalFormat" class="w-full bg-[#0d0e13] border border-[#2b2d3d] rounded-lg px-3 py-2 text-white">
+              <option value="vinyl">All Vinyl</option>
+              <option value="lp">12" LP</option>
+              <option value="7">7" Single</option>
+              <option value="10">10" Vinyl</option>
+              <option value="box">Box Set</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-zinc-400 mb-1">Notes / Pressing Matrix preference</label>
+          <input type="text" id="modalNotes" placeholder="e.g. 180g remaster, blue vinyl, original 1994 pressing" class="w-full bg-[#0d0e13] border border-[#2b2d3d] rounded-lg px-3 py-2 text-white">
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-3 border-t border-[#252738]">
+        <button onclick="closeSaveToWishlistModal()" class="px-3.5 py-2 rounded-lg bg-[#212330] hover:bg-[#2b2e40] text-zinc-300 text-xs font-semibold transition">Cancel</button>
+        <button onclick="saveWishlistItem()" class="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs transition">Save to Watchlist</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-[#1a1c26] border border-amber-500/40 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div id="toastIcon" class="text-amber-400">
+      <i data-lucide="check-circle" class="w-5 h-5"></i>
+    </div>
+    <div id="toastMessage" class="text-xs font-medium">Notification message</div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-[#1e202b] bg-[#0c0d12] py-6 text-center text-xs text-zinc-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+        <span>9 Search Connectors Live & Optimized for Vinyl</span>
+      </div>
+      <div>
+        Direct search generation across Discogs, eBay UK, Rough Trade, Juno, HHV, Norman, Banquet, Bandcamp & Popsike.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Platform Configurations
+    const PLATFORMS = [
+      {
+        id: 'discogs',
+        name: 'Discogs',
+        domain: 'discogs.com',
+        color: '#282828',
+        accent: '#f3cf65',
+        type: 'Marketplace & Database',
+        tip: 'Global community marketplace. Check seller ratings & shipping origin to avoid import duties.',
+        icon: 'disc',
+        buildUrl: (q) => {
+          const parts = [q.artist, q.title, q.cat].filter(Boolean).join(' ');
+          let formatParam = 'Vinyl';
+          if (q.format === 'lp') formatParam = 'LP';
+          if (q.format === '7') formatParam = '7"';
+          if (q.format === '10') formatParam = '10"';
+          if (q.format === 'box') formatParam = 'Box+Set';
+          return `https://www.discogs.com/search/?q=${encodeURIComponent(parts)}&type=release&format_exact=${encodeURIComponent(formatParam)}`;
+        }
+      },
+      {
+        id: 'ebay',
+        name: 'eBay UK',
+        domain: 'ebay.co.uk',
+        color: '#0064d2',
+        accent: '#0064d2',
+        type: 'Auctions & Buy It Now',
+        tip: 'Pre-filtered to Vinyl Category (176985) and sorted by lowest Total Price (Price + P&P).',
+        icon: 'shopping-bag',
+        buildUrl: (q) => {
+          let term = [q.artist, q.title, q.cat].filter(Boolean).join(' ');
+          if (q.format === '7') term += ' 7"';
+          if (q.format === 'box') term += ' box set';
+          // _sacat=176985 is UK Vinyl Records category; _sop=15 sorts by Lowest Price + P&P
+          return `https://www.ebay.co.uk/sch/176985/i.html?_from=R40&_nkw=${encodeURIComponent(term)}&_sop=15`;
+        }
+      },
+      {
+        id: 'roughtrade',
+        name: 'Rough Trade UK',
+        domain: 'roughtrade.com',
+        color: '#e5002b',
+        accent: '#e5002b',
+        type: 'Indie Specialist Retailer',
+        tip: 'Premier source for exclusive color variants, signed editions, and curated recommendations.',
+        icon: 'store',
+        buildUrl: (q) => {
+          const term = [q.artist, q.title].filter(Boolean).join(' ');
+          return `https://www.roughtrade.com/en-gb/search?q=${encodeURIComponent(term)}`;
+        }
+      },
+      {
+        id: 'juno',
+        name: 'Juno Records',
+        domain: 'juno.co.uk',
+        color: '#1e66d0',
+        accent: '#2f80ed',
+        type: 'Dance, Electronic & All Genres',
+        tip: 'Fast UK dispatch, sound clip previews, and detailed release tracklists.',
+        icon: 'radio',
+        buildUrl: (q) => {
+          const term = [q.artist, q.title, q.cat].filter(Boolean).join(' ');
+          return `https://www.juno.co.uk/search/?q%5Ball%5D%5B0%5D=${encodeURIComponent(term)}&solrorder=relevancy&hide_forthcoming=0&media_type=vinyl`;
+        }
+      },
+      {
+        id: 'hhv',
+        name: 'HHV.de',
+        domain: 'hhv.de',
+        color: '#333333',
+        accent: '#ff9900',
+        type: 'European Vinyl Hub',
+        tip: 'Major European hub for Hip-Hop, Jazz, Funk, House and Japanese city-pop pressings.',
+        icon: 'globe',
+        buildUrl: (q) => {
+          const term = [q.artist, q.title, q.cat].filter(Boolean).join(' ');
+          return `https://www.hhv.de/shop/en/records/itemsearch:${encodeURIComponent(term)}`;
+        }
+      },
+      {
+        id: 'norman',
+        name: 'Norman Records',
+        domain: 'normanrecords.com',
+        color: '#143642',
+        accent: '#ec9a29',
+        type: 'Independent UK Record Store',
+        tip: 'Legendary Leeds independent record retailer with thorough staff reviews and stellar protective packing.',
+        icon: 'library',
+        buildUrl: (q) => {
+          const term = [q.artist, q.title].filter(Boolean).join(' ');
+          return `https://www.normanrecords.com/search?q=${encodeURIComponent(term)}&format=vinyl`;
+        }
+      },
+      {
+        id: 'banquet',
+        name: 'Banquet Records',
+        domain: 'banquetrecords.com',
+        color: '#8b0000',
+        accent: '#ff4d4d',
+        type: 'Kingston UK Record Store',
+        tip: 'Kingston record shop known for album release shows, indie exclusives, and singles.',
+        icon: 'tag',
+        buildUrl: (q) => {
+          const term = [q.artist, q.title].filter(Boolean).join(' ');
+          return `https://www.banquetrecords.com/search?q=${encodeURIComponent(term)}`;
+        }
+      },
+      {
+        id: 'bandcamp',
+        name: 'Bandcamp',
+        domain: 'bandcamp.com',
+        color: '#1da0c3',
+        accent: '#1da0c3',
+        type: 'Direct From Artist / Label',
+        tip: 'Direct support to artists. Vinyl orders almost universally include high-res digital downloads.',
+        icon: 'music',
+        buildUrl: (q) => {
+          const term = [q.artist, q.title].filter(Boolean).join(' ');
+          return `https://bandcamp.com/search?q=${encodeURIComponent(term)}&item_type=a`;
+        }
+      },
+      {
+        id: 'popsike',
+        name: 'Popsike',
+        domain: 'popsike.com',
+        color: '#4a2545',
+        accent: '#d4af37',
+        type: 'Historical Auction Price Guide',
+        tip: 'Essential historical database of real auction sale prices dating back to early 2000s.',
+        icon: 'trending-up',
+        buildUrl: (q) => {
+          const term = [q.artist, q.title, q.cat].filter(Boolean).join(' ');
+          return `https://www.popsike.com/php/quicksearch.php?searchquery=${encodeURIComponent(term)}&thumbs=&currsel=&sortord=dprice`;
+        }
+      }
+    ];
+
+    // State
+    let activeStoreIds = new Set(PLATFORMS.map(p => p.id));
+    let watchlist = [];
+
+    // Init
+    window.addEventListener('DOMContentLoaded', () => {
+      loadWishlist();
+      renderStoreCheckboxes();
+      updateStoreCards();
+      
+      // Setup event listeners for instant reactive card URL generation
+      ['artistInput', 'titleInput', 'catInput', 'formatInput'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          updateStoreCards();
+        });
+      });
+
+      // Quick scroll to watchlist button
+      document.getElementById('viewWishlistBtn').addEventListener('click', () => {
+        document.getElementById('wishlistSection').scrollIntoView({ behavior: 'smooth' });
+      });
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+          triggerSearchAll();
+        }
+      });
+
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    });
+
+    // Helper to extract current query
+    function getCurrentQuery() {
+      return {
+        artist: document.getElementById('artistInput').value.trim(),
+        title: document.getElementById('titleInput').value.trim(),
+        cat: document.getElementById('catInput').value.trim(),
+        format: document.getElementById('formatInput').value
+      };
+    }
+
+    // Render checkbox filters
+    function renderStoreCheckboxes() {
+      const container = document.getElementById('storeCheckboxes');
+      container.innerHTML = PLATFORMS.map(p => {
+        const checked = activeStoreIds.has(p.id) ? 'checked' : '';
+        return `
+          <label class="flex items-center gap-2 p-2 rounded-lg bg-[#111218] border border-[#252837] hover:border-[#383b4e] cursor-pointer text-xs transition">
+            <input type="checkbox" value="${p.id}" ${checked} onchange="toggleStore('${p.id}', this.checked)" class="rounded bg-[#1a1c26] border-[#383b4e] text-amber-500 focus:ring-0">
+            <span class="truncate text-zinc-200 font-medium">${p.name}</span>
+          </label>
+        `;
+      }).join('');
+      updateActiveStoreCountText();
+    }
+
+    function toggleStore(storeId, isChecked) {
+      if (isChecked) {
+        activeStoreIds.add(storeId);
+      } else {
+        activeStoreIds.delete(storeId);
+      }
+      updateActiveStoreCountText();
+    }
+
+    function toggleAllStores(selectAll) {
+      if (selectAll) {
+        activeStoreIds = new Set(PLATFORMS.map(p => p.id));
+      } else {
+        activeStoreIds.clear();
+      }
+      renderStoreCheckboxes();
+    }
+
+    function updateActiveStoreCountText() {
+      const el = document.getElementById('activeStoresCount');
+      el.textContent = `${activeStoreIds.size}/${PLATFORMS.length} Enabled`;
+    }
+
+    // Render 9 Store Cards
+    function updateStoreCards() {
+      const query = getCurrentQuery();
+      const container = document.getElementById('storeCardsContainer');
+      const hasQuery = query.artist || query.title || query.cat;
+
+      container.innerHTML = PLATFORMS.map(store => {
+        const searchUrl = store.buildUrl(query);
+        const isActive = activeStoreIds.has(store.id);
+
+        return `
+          <div class="bg-[#14151c] border ${isActive ? 'border-[#262837]' : 'border-zinc-800 opacity-60'} rounded-xl p-4 flex flex-col justify-between hover:border-amber-500/40 transition group">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-[#1b1d28] flex items-center justify-center text-amber-400 border border-[#2b2e40]">
+                    <i data-lucide="${store.icon}" class="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <h4 class="text-sm font-bold text-white group-hover:text-amber-300 transition">${store.name}</h4>
+                    <span class="text-[10px] text-zinc-400 block">${store.type}</span>
+                  </div>
+                </div>
+                <span class="text-[10px] text-zinc-500 font-mono">${store.domain}</span>
+              </div>
+              <p class="text-xs text-zinc-400 mb-4 line-clamp-2 leading-relaxed">
+                ${store.tip}
+              </p>
+            </div>
+
+            <div class="pt-3 border-t border-[#1f212e] flex items-center justify-between gap-2">
+              <a href="${searchUrl}" target="_blank" rel="noopener noreferrer"
+                 class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg bg-[#1c1e28] hover:bg-amber-500 hover:text-zinc-950 text-zinc-200 transition">
+                <span>Open Store Search</span>
+                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+              </a>
+              <button onclick="copyLink('${searchUrl}')" title="Copy Direct Search Link"
+                      class="px-2.5 py-2 rounded-lg bg-[#1c1e28] hover:bg-[#272938] text-zinc-400 hover:text-white transition">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    }
+
+    // Launch multi-store search
+    function triggerSearchAll() {
+      const q = getCurrentQuery();
+      if (!q.artist && !q.title && !q.cat) {
+        showToast('Please enter an Artist, Album Title, or Catalog Number first.', 'alert');
+        return;
+      }
+
+      if (activeStoreIds.size === 0) {
+        showToast('No stores selected! Please enable at least one store.', 'alert');
+        return;
+      }
+
+      let opened = 0;
+      PLATFORMS.forEach(p => {
+        if (activeStoreIds.has(p.id)) {
+          const url = p.buildUrl(q);
+          window.open(url, '_blank');
+          opened++;
+        }
+      });
+
+      showToast(`Initiated searches across ${opened} stores. If some failed to open, enable popups for this page.`, 'success');
+    }
+
+    // Example Quick Fill
+    function fillExample(artist, title, cat, format) {
+      document.getElementById('artistInput').value = artist;
+      document.getElementById('titleInput').value = title;
+      document.getElementById('catInput').value = cat || '';
+      document.getElementById('formatInput').value = format;
+      updateStoreCards();
+      showToast(`Loaded example: ${artist} — ${title}`);
+    }
+
+    // Modal Wishlist
+    function openSaveToWishlistModal() {
+      const q = getCurrentQuery();
+      document.getElementById('modalArtist').value = q.artist;
+      document.getElementById('modalTitle').value = q.title;
+      document.getElementById('modalFormat').value = q.format;
+      document.getElementById('modalTargetPrice').value = '';
+      document.getElementById('modalNotes').value = '';
+      document.getElementById('wishlistModal').classList.remove('hidden');
+    }
+
+    function closeSaveToWishlistModal() {
+      document.getElementById('wishlistModal').classList.add('hidden');
+    }
+
+    function saveWishlistItem() {
+      const artist = document.getElementById('modalArtist').value.trim();
+      const title = document.getElementById('modalTitle').value.trim();
+      const targetPrice = parseFloat(document.getElementById('modalTargetPrice').value) || null;
+      const format = document.getElementById('modalFormat').value;
+      const notes = document.getElementById('modalNotes').value.trim();
+
+      if (!artist && !title) {
+        showToast('Please specify an artist or album title.', 'alert');
+        return;
+      }
+
+      const newItem = {
+        id: 'wl_' + Date.now(),
+        artist,
+        title,
+        targetPrice,
+        format,
+        notes,
+        found: false,
+        dateAdded: new Date().toISOString()
+      };
+
+      watchlist.unshift(newItem);
+      saveWatchlistToStorage();
+      renderWatchlist();
+      closeSaveToWishlistModal();
+      showToast(`Saved "${artist || 'Unknown'} — ${title || 'Untitled'}" to Watchlist!`);
+    }
+
+    function deleteWishlistItem(id) {
+      watchlist = watchlist.filter(item => item.id !== id);
+      saveWatchlistToStorage();
+      renderWatchlist();
+      showToast('Removed item from Watchlist.');
+    }
+
+    function toggleFoundWishlistItem(id) {
+      const item = watchlist.find(i => i.id === id);
+      if (item) {
+        item.found = !item.found;
+        saveWatchlistToStorage();
+        renderWatchlist();
+      }
+    }
+
+    function editTargetPrice(id) {
+      const item = watchlist.find(i => i.id === id);
+      if (!item) return;
+      const current = item.targetPrice || '';
+      const input = prompt(`Enter new target price (£) for "${item.title || item.artist}":`, current);
+      if (input !== null) {
+        const val = parseFloat(input);
+        item.targetPrice = isNaN(val) ? null : val;
+        saveWatchlistToStorage();
+        renderWatchlist();
+        showToast('Target price updated.');
+      }
+    }
+
+    function searchItemNow(id) {
+      const item = watchlist.find(i => i.id === id);
+      if (!item) return;
+      document.getElementById('artistInput').value = item.artist || '';
+      document.getElementById('titleInput').value = item.title || '';
+      document.getElementById('formatInput').value = item.format || 'vinyl';
+      document.getElementById('catInput').value = '';
+      updateStoreCards();
+      triggerSearchAll();
+    }
+
+    function renderWatchlist() {
+      const container = document.getElementById('wishlistItemsGrid');
+      const emptyState = document.getElementById('wishlistEmptyState');
+      const countBadge = document.getElementById('watchlistCountBadge');
+
+      countBadge.textContent = watchlist.length;
+
+      if (watchlist.length === 0) {
+        emptyState.classList.remove('hidden');
+        container.innerHTML = '';
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      container.innerHTML = watchlist.map(item => {
+        const targetText = item.targetPrice ? `Target: £${item.targetPrice.toFixed(2)}` : 'No Target Set';
+        const formatLabel = {
+          vinyl: 'Vinyl (All)',
+          lp: '12" LP',
+          '7': '7" Single',
+          '10': '10" Vinyl',
+          box: 'Box Set'
+        }[item.format] || 'Vinyl';
+
+        return `
+          <div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${item.found ? 'opacity-50' : ''}">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-white text-sm">${item.artist || 'Unknown Artist'}</span>
+                <span class="text-zinc-500">—</span>
+                <span class="text-zinc-200 text-sm font-semibold">${item.title || 'Untitled Release'}</span>
+                ${item.found ? '<span class="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30">Acquired</span>' : ''}
+              </div>
+              <div class="flex flex-wrap items-center gap-2 text-xs text-zinc-400">
+                <span class="bg-[#1e202e] px-2 py-0.5 rounded text-zinc-300">${formatLabel}</span>
+                <button onclick="editTargetPrice('${item.id}')" class="text-amber-400 hover:underline flex items-center gap-1 font-mono">
+                  ${targetText} <i data-lucide="edit-3" class="w-3 h-3"></i>
+                </button>
+                ${item.notes ? `<span class="text-zinc-500 italic">"${item.notes}"</span>` : ''}
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 self-end sm:self-auto">
+              <button onclick="searchItemNow('${item.id}')" class="px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-300 hover:text-zinc-950 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5 transition">
+                <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Hunt Now
+              </button>
+              <button onclick="toggleFoundWishlistItem('${item.id}')" title="${item.found ? 'Mark as Wanted' : 'Mark as Acquired'}"
+                      class="p-2 rounded-lg bg-[#1b1d28] hover:bg-[#252837] text-zinc-400 hover:text-emerald-400 transition">
+                <i data-lucide="${item.found ? 'rotate-ccw' : 'check'}" class="w-4 h-4"></i>
+              </button>
+              <button onclick="deleteWishlistItem('${item.id}')" title="Delete Entry"
+                      class="p-2 rounded-lg bg-[#1b1d28] hover:bg-rose-950/40 text-zinc-400 hover:text-rose-400 transition">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    }
+
+    function saveWatchlistToStorage() {
+      localStorage.setItem('vinyl_price_hunter_watchlist', JSON.stringify(watchlist));
+    }
+
+    function loadWishlist() {
+      try {
+        const stored = localStorage.getItem('vinyl_price_hunter_watchlist');
+        if (stored) {
+          watchlist = JSON.parse(stored);
+        } else {
+          // Defaults for demo
+          watchlist = [
+            {
+              id: 'wl_demo_1',
+              artist: 'Daft Punk',
+              title: 'Discovery',
+              targetPrice: 28.00,
+              format: 'lp',
+              notes: '2xLP Gatefold Japanese or Parlophone pressing',
+              found: false,
+              dateAdded: new Date().toISOString()
+            },
+            {
+              id: 'wl_demo_2',
+              artist: 'Aphex Twin',
+              title: 'Selected Ambient Works 85-92',
+              targetPrice: 26.50,
+              format: 'lp',
+              notes: 'Apollo / R&S Records',
+              found: false,
+              dateAdded: new Date().toISOString()
+            }
+          ];
+          saveWatchlistToStorage();
+        }
+      } catch (e) {
+        watchlist = [];
+      }
+      renderWatchlist();
+    }
+
+    // Export & Import
+    function exportWishlistJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(watchlist, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `vinyl_watchlist_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast('Exported Watchlist to JSON file.');
+    }
+
+    function exportWishlistCSV() {
+      if (watchlist.length === 0) {
+        showToast('Watchlist is empty.', 'alert');
+        return;
+      }
+      const headers = ['Artist', 'Title', 'Format', 'TargetPrice', 'Notes', 'Found', 'DateAdded'];
+      const rows = watchlist.map(i => [
+        `"${(i.artist || '').replace(/"/g, '""')}"`,
+        `"${(i.title || '').replace(/"/g, '""')}"`,
+        `"${i.format || ''}"`,
+        i.targetPrice || '',
+        `"${(i.notes || '').replace(/"/g, '""')}"`,
+        i.found ? 'true' : 'false',
+        `"${i.dateAdded || ''}"`
+      ]);
+
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", encodeURI(csvContent));
+      downloadAnchor.setAttribute("download", `vinyl_watchlist_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast('Exported Watchlist to CSV file.');
+    }
+
+    function importWishlistJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (Array.isArray(parsed)) {
+            watchlist = parsed;
+            saveWatchlistToStorage();
+            renderWatchlist();
+            showToast(`Imported ${parsed.length} watchlist items successfully!`);
+          } else {
+            showToast('Invalid JSON file format.', 'alert');
+          }
+        } catch (err) {
+          showToast('Failed to parse JSON file.', 'alert');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    // Copy to clipboard helper
+    function copyLink(url) {
+      const dummy = document.createElement('input');
+      document.body.appendChild(dummy);
+      dummy.value = url;
+      dummy.select();
+      document.execCommand('copy');
+      document.body.removeChild(dummy);
+      showToast('Search URL copied to clipboard!');
+    }
+
+    // Toast UI
+    let toastTimeout;
+    function showToast(msg, type = 'success') {
+      const toast = document.getElementById('toast');
+      const msgEl = document.getElementById('toastMessage');
+      const iconEl = document.getElementById('toastIcon');
+
+      msgEl.textContent = msg;
+      if (type === 'alert') {
+        iconEl.innerHTML = '<i data-lucide="alert-circle" class="w-5 h-5 text-rose-400"></i>';
+      } else {
+        iconEl.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5 text-amber-400"></i>';
+      }
+      if (window.lucide) lucide.createIcons();
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3500);
+    }
+  </script>
+</body>
+</html>
