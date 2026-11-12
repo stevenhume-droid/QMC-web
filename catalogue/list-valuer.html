@@ -672,6 +672,95 @@ Siouxsie And The Banshees - Hong Kong Garden"
       showToast('Loaded 8 classic 7" singles for valuation', 'info');
     }
 
+    // Parse a single raw text line into artist and title with support for:
+    // - Standard spaced hyphen ('Artist - Title')
+    // - Unicode dashes (en-dash '–', em-dash '—', minus '−')
+    // - Unspaced or partially spaced hyphen ('Artist-Title', 'Artist -Title', 'Artist- Title')
+    // - Tab separation ('Artist\tTitle')
+    // - Slashes/pipes/colons ('Artist / Title', 'Artist | Title', 'Artist: Title')
+    // - "Title by Artist" ('"Heroes" by David Bowie')
+    // - Comma separation ('Artist, Title')
+    // - Leading track numbers, list bullets, or disc sides ('01 -', '1.', 'A1.', '- ', '• ')
+    function parseTrackLine(line) {
+      if (!line || !line.trim()) return null;
+
+      // 1. Normalize unicode spaces (non-breaking space, thin space, etc.)
+      let raw = line.replace(/[\u00A0\u1680\u180E\u2000-\u200B\u202F\u205F\u3000\uFEFF]/g, ' ').trim();
+
+      // 2. Strip leading numbers, list bullets, or vinyl side markers:
+      // e.g. '1.', '01.', '01 -', '1 - ', 'A1.', 'A1 -', '- ', '* ', '• ', '[1]', '1)'
+      let clean = raw.replace(/^(\s*[-*•–—>]+\s+|\s*\[?\d+[\].)\-:]\s*(?:[-–—:]\s*)?|\s*\d+\s+[-–—:]\s*|\s*[A-D]\d*[\].)\-:]\s*)/i, '').trim();
+      if (!clean) clean = raw;
+
+      let artist = '';
+      let title = '';
+
+      // 3. Tab separation (Excel / Google Sheets)
+      if (clean.includes('\t')) {
+        const parts = clean.split('\t').map(p => p.trim()).filter(Boolean);
+        artist = parts[0] || '';
+        title = parts.slice(1).join(' - ').trim();
+      }
+      // 4. Any spaced dash / hyphen / en-dash / em-dash / minus: e.g. ' - ', ' – ', ' — ', ' − '
+      else if (/\s+[\u2010-\u2015\u2212\-]+\s+/.test(clean)) {
+        const match = clean.match(/\s+[\u2010-\u2015\u2212\-]+\s+/);
+        const splitIdx = match.index;
+        artist = clean.slice(0, splitIdx).trim();
+        title = clean.slice(splitIdx + match[0].length).trim();
+      }
+      // 5. Slash, pipe, or colon separator with spaces: ' / ', ' // ', ' | ', ' : '
+      else if (/\s+[\/|:]+\s+/.test(clean)) {
+        const match = clean.match(/\s+[\/|:]+\s+/);
+        const splitIdx = match.index;
+        artist = clean.slice(0, splitIdx).trim();
+        title = clean.slice(splitIdx + match[0].length).trim();
+      }
+      // 6. Colon without trailing space: 'Artist:Title' or 'Artist: Title'
+      else if (/:\s*/.test(clean) && !/^https?:/i.test(clean)) {
+        const splitIdx = clean.indexOf(':');
+        artist = clean.slice(0, splitIdx).trim();
+        title = clean.slice(splitIdx + 1).trim();
+      }
+      // 7. Unspaced or partially spaced hyphen / dash between words: e.g. 'Artist-Title' or 'Artist –Title' or 'Artist- Title'
+      else if (/[\u2010-\u2015\u2212\-]/.test(clean)) {
+        const match = clean.match(/\s*[\u2010-\u2015\u2212\-]+\s*/);
+        if (match && match.index > 0 && match.index + match[0].length < clean.length) {
+          artist = clean.slice(0, match.index).trim();
+          title = clean.slice(match.index + match[0].length).trim();
+        } else {
+          artist = clean;
+        }
+      }
+      // 8. Quoted title e.g. Artist "Song Title"
+      else if (/^(.+?)\s+["“](.+)["”]$/.test(clean)) {
+        const m = clean.match(/^(.+?)\s+["“](.+)["”]$/);
+        artist = m[1].trim();
+        title = m[2].trim();
+      }
+      // 9. 'Title by Artist'
+      else if (/\s+by\s+/i.test(clean)) {
+        const m = clean.split(/\s+by\s+/i);
+        title = m[0].trim();
+        artist = m.slice(1).join(' by ').trim();
+      }
+      // 10. Comma separation 'Artist, Title'
+      else if (clean.includes(',')) {
+        const parts = clean.split(',');
+        artist = parts[0].trim();
+        title = parts.slice(1).join(',').trim();
+      }
+      else {
+        artist = clean;
+        title = '';
+      }
+
+      // Strip wrapping quotes around artist or title
+      artist = artist.replace(/^["“](.+)["”]$/, '$1').trim();
+      title = title.replace(/^["“](.+)["”]$/, '$1').trim();
+
+      return { artist, title };
+    }
+
     // Parsing List
     function parseRawInput() {
       const text = document.getElementById('rawListInput').value;
@@ -686,40 +775,13 @@ Siouxsie And The Banshees - Hong Kong Garden"
       stagedItems = [];
 
       lines.forEach((line, idx) => {
-        // Strip leading numbering e.g. "1. ", "01 - ", "[1]"
-        let clean = line.replace(/^\[?\d+[\].)\-:]\s*/, '').trim();
-
-        let artist = '';
-        let title = '';
-
-        // Check for tab separation (Excel / Sheets copy)
-        if (clean.includes('\t')) {
-          const parts = clean.split('\t').map(p => p.trim());
-          artist = parts[0] || '';
-          title = parts[1] || '';
-        }
-        // Check for standard " - " separator
-        else if (clean.includes(' - ')) {
-          const parts = clean.split(' - ');
-          artist = parts[0].trim();
-          title = parts.slice(1).join(' - ').trim();
-        }
-        // Check for comma separation "Artist, Song"
-        else if (clean.includes(',')) {
-          const parts = clean.split(',');
-          artist = parts[0].trim();
-          title = parts.slice(1).join(',').trim();
-        }
-        // Fallback: whole line as title or search query
-        else {
-          artist = clean;
-          title = '';
-        }
+        const parsed = parseTrackLine(line);
+        if (!parsed) return;
 
         stagedItems.push({
           id: `item_${Date.now()}_${idx}`,
-          artist: artist,
-          title: title,
+          artist: parsed.artist,
+          title: parsed.title,
           format: defaultFormat
         });
       });
