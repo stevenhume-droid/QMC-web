@@ -666,8 +666,8 @@
           </button>
 
           <!-- Search Bar Toggle Button (next to Gallery expand/minimise toggle) -->
-          <button type="button" id="searchToggleBtn" onclick="toggleSearchBar()" aria-expanded="false"
-            aria-controls="globalSearchWrapper"
+          <button type="button" id="searchToggleBtn" onclick="toggleSearchBar()"
+            aria-expanded="false" aria-controls="globalSearchWrapper"
             class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-brass-500/50 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-slate-300 font-semibold flex items-center gap-1 transition shadow-sm"
             title="Toggle Search Bar">
             <i id="searchToggleIcon" class="fa-solid fa-magnifying-glass text-xs text-slate-300"></i>
@@ -773,8 +773,7 @@
           <input type="text" id="globalSearch" oninput="handleSearchFilterChange()"
             placeholder="Search Artist, Album, Title, Label, Cat #, Matrix..."
             class="w-full pl-8 pr-9 py-2 bg-vinyl-850/95 backdrop-blur-md border border-vinyl-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brass-500 focus:ring-1 focus:ring-brass-500 shadow-md">
-          <button type="button"
-            onclick="if (document.getElementById('globalSearch')?.value) { clearSearchInput(); } else { toggleSearchBar(false); }"
+          <button type="button" onclick="if (document.getElementById('globalSearch')?.value) { clearSearchInput(); } else { toggleSearchBar(false); }"
             class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 text-xs p-1"
             title="Clear or hide search">
             <i class="fa-solid fa-xmark"></i>
