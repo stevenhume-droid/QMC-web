@@ -344,25 +344,32 @@
       color: #1c1917 !important;
     }
 
-    html.theme-light [class*="bg-vinyl-950"] {
+    html.theme-light [class^="bg-vinyl-950"],
+    html.theme-light [class*=" bg-vinyl-950"] {
       background-color: #f6f2eb !important;
     }
 
-    html.theme-light [class*="bg-vinyl-900"] {
+    html.theme-light [class^="bg-vinyl-900"],
+    html.theme-light [class*=" bg-vinyl-900"] {
       background-color: #ffffff !important;
     }
 
-    html.theme-light [class*="bg-vinyl-850"] {
+    html.theme-light [class^="bg-vinyl-850"],
+    html.theme-light [class*=" bg-vinyl-850"] {
       background-color: #efe9df !important;
     }
 
-    html.theme-light [class*="bg-vinyl-800"] {
+    html.theme-light [class^="bg-vinyl-800"],
+    html.theme-light [class*=" bg-vinyl-800"] {
       background-color: #e6ddd0 !important;
     }
 
-    html.theme-light [class*="bg-vinyl-750"],
-    html.theme-light [class*="bg-vinyl-700"],
-    html.theme-light [class*="bg-vinyl-600"] {
+    html.theme-light [class^="bg-vinyl-750"],
+    html.theme-light [class*=" bg-vinyl-750"],
+    html.theme-light [class^="bg-vinyl-700"],
+    html.theme-light [class*=" bg-vinyl-700"],
+    html.theme-light [class^="bg-vinyl-600"],
+    html.theme-light [class*=" bg-vinyl-600"] {
       background-color: #ddd2c1 !important;
     }
 
@@ -410,14 +417,33 @@
       color: #78716c !important;
     }
 
-    html.theme-light td.table-action-sticky,
-    html.theme-light th.table-action-sticky {
+    /* Table & Archival List View in Light Theme */
+    html.theme-light tbody tr {
       background-color: #ffffff !important;
-      border-color: #dfd5c5 !important;
     }
 
-    html.theme-light tr:hover td.table-action-sticky {
+    html.theme-light thead th.table-action-sticky,
+    html.theme-light tfoot td.table-action-sticky {
       background-color: #efe9df !important;
+      border-color: #dfd5c5 !important;
+      box-shadow: -4px 0 8px rgba(0, 0, 0, 0.04);
+    }
+
+    html.theme-light tbody td.table-action-sticky {
+      background-color: #ffffff !important;
+      border-color: #dfd5c5 !important;
+      box-shadow: -4px 0 8px rgba(0, 0, 0, 0.04);
+    }
+
+    html.theme-light tbody tr:hover,
+    html.theme-light tbody tr:hover td.table-action-sticky {
+      background-color: #f5efe6 !important;
+    }
+
+    /* Dark Theme Table Action Sticky Elevation Shadow */
+    th.table-action-sticky,
+    td.table-action-sticky {
+      box-shadow: -4px 0 8px rgba(0, 0, 0, 0.25);
     }
 
     html.theme-light [class*="text-cyan-"] {
@@ -513,8 +539,76 @@
       color: #047857 !important;
     }
 
-    html.theme-light .bg-emerald-950\/90 {
-      background-color: rgba(236, 253, 245, 0.96) !important;
+    html.theme-light [class*="bg-emerald-950"],
+    html.theme-light [class*="from-emerald-950"],
+    html.theme-light [class*="to-emerald-950"] {
+      background-color: #ecfdf5 !important;
+      background-image: none !important;
+      border-color: #a7f3d0 !important;
+      color: #047857 !important;
+    }
+
+    html.theme-light [class*="bg-amber-950"],
+    html.theme-light [class*="from-amber-950"],
+    html.theme-light [class*="to-amber-950"] {
+      background-color: #fef3c7 !important;
+      background-image: none !important;
+      border-color: #fde68a !important;
+      color: #b45309 !important;
+    }
+
+    /* Platform buttons in Light Theme */
+    html.theme-light .platform-btn-spotify {
+      background-color: #ecfdf5 !important;
+      border-color: #a7f3d0 !important;
+      color: #047857 !important;
+    }
+    html.theme-light .platform-btn-apple {
+      background-color: #fff1f2 !important;
+      border-color: #fecdd3 !important;
+      color: #be123c !important;
+    }
+    html.theme-light .platform-btn-youtube {
+      background-color: #fef2f2 !important;
+      border-color: #fecaca !important;
+      color: #b91c1c !important;
+    }
+    html.theme-light .platform-btn-bandcamp {
+      background-color: #f0f9ff !important;
+      border-color: #bae6fd !important;
+      color: #0369a1 !important;
+    }
+
+    /* Isolated Audiophile Hi-Fi Deck styling (consistent dark chassis in both Dark & Light themes) */
+    .audition-hi-fi-deck,
+    html.theme-light .audition-hi-fi-deck {
+      background-color: #0d1117 !important;
+      border-color: rgba(16, 185, 129, 0.4) !important;
+      color: #f8fafc !important;
+    }
+    .audition-hi-fi-deck #dossierActiveTrack,
+    html.theme-light .audition-hi-fi-deck #dossierActiveTrack,
+    .audition-hi-fi-deck .text-white,
+    html.theme-light .audition-hi-fi-deck .text-white {
+      color: #ffffff !important;
+    }
+    .audition-hi-fi-deck #dossierTimeCurrent,
+    .audition-hi-fi-deck #dossierTimeTotal,
+    html.theme-light .audition-hi-fi-deck #dossierTimeCurrent,
+    html.theme-light .audition-hi-fi-deck #dossierTimeTotal,
+    .audition-hi-fi-deck .text-slate-400,
+    html.theme-light .audition-hi-fi-deck .text-slate-400 {
+      color: #94a3b8 !important;
+    }
+    .audition-hi-fi-deck .text-slate-300,
+    html.theme-light .audition-hi-fi-deck .text-slate-300 {
+      color: #cbd5e1 !important;
+    }
+    .audition-hi-fi-deck #toggleEmbedBtn,
+    html.theme-light .audition-hi-fi-deck #toggleEmbedBtn {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+      color: #34d399 !important;
+      border-color: rgba(16, 185, 129, 0.4) !important;
     }
 
     html.theme-light [class*="text-teal-"] {
@@ -10242,10 +10336,15 @@
       duration: 30,
       recordId: null,
       trackIndex: 0,
-      tracks: []
+      tracks: [],
+      audio: null,
+      currentTrackTitle: ''
     };
 
     function stopDossierPlayback() {
+      if (dossierPlaybackState.audio) {
+        try { dossierPlaybackState.audio.pause(); } catch (_) {}
+      }
       if (dossierPlaybackState.timer) {
         clearInterval(dossierPlaybackState.timer);
         dossierPlaybackState.timer = null;
@@ -10262,7 +10361,7 @@
       }
     }
 
-    function startDossierPlayback() {
+    async function startDossierPlayback() {
       dossierPlaybackState.isPlaying = true;
       const playIcon = document.getElementById('dossierPlayIcon');
       if (playIcon) {
@@ -10274,6 +10373,55 @@
         eqBars.classList.add('inline-flex');
       }
 
+      const rec = (typeof records !== 'undefined' ? records : []).find(r => String(r.id) === String(dossierPlaybackState.recordId));
+      const currentTrack = dossierPlaybackState.tracks[dossierPlaybackState.trackIndex];
+      const trackTitle = currentTrack?.title || (rec ? rec.title : '');
+      const artist = rec ? rec.artist : '';
+
+      // If audio already initialized for this track, resume playback
+      if (dossierPlaybackState.audio && dossierPlaybackState.currentTrackTitle === trackTitle) {
+        try {
+          await dossierPlaybackState.audio.play();
+          return;
+        } catch (_) {}
+      }
+
+      // Try fetching live 30s audio preview via public Apple Music / iTunes API (zero auth required, 100% open CORS)
+      if (artist && trackTitle && typeof window !== 'undefined' && window.Audio) {
+        try {
+          if (dossierPlaybackState.audio) {
+            try { dossierPlaybackState.audio.pause(); } catch (_) {}
+            dossierPlaybackState.audio = null;
+          }
+          const q = encodeURIComponent(`${artist} ${trackTitle}`);
+          const res = await fetch(`https://itunes.apple.com/search?term=${q}&entity=song&limit=1`);
+          if (res.ok) {
+            const data = await res.json();
+            const previewUrl = data.results?.[0]?.previewUrl;
+            if (previewUrl) {
+              const audio = new Audio(previewUrl);
+              dossierPlaybackState.audio = audio;
+              dossierPlaybackState.currentTrackTitle = trackTitle;
+              audio.ontimeupdate = () => {
+                if (audio.currentTime !== undefined) {
+                  dossierPlaybackState.progress = Math.floor(audio.currentTime);
+                  dossierPlaybackState.duration = Math.floor(audio.duration || 30);
+                  updateDossierPlaybackUI();
+                }
+              };
+              audio.onended = () => {
+                stopDossierPlayback();
+                dossierPlaybackState.progress = 0;
+                updateDossierPlaybackUI();
+              };
+              await audio.play();
+              return;
+            }
+          }
+        } catch (_) {}
+      }
+
+      // Visual timer fallback if audio stream is unavailable
       if (dossierPlaybackState.timer) clearInterval(dossierPlaybackState.timer);
       dossierPlaybackState.timer = setInterval(() => {
         dossierPlaybackState.progress += 1;
@@ -10326,6 +10474,9 @@
       const clickX = event.clientX - rect.left;
       const ratio = Math.max(0, Math.min(1, clickX / rect.width));
       dossierPlaybackState.progress = Math.round(ratio * (dossierPlaybackState.duration || 30));
+      if (dossierPlaybackState.audio) {
+        try { dossierPlaybackState.audio.currentTime = dossierPlaybackState.progress; } catch (_) {}
+      }
       updateDossierPlaybackUI();
     }
 
@@ -10358,7 +10509,7 @@
       if (!container) return;
       if (container.classList.contains('hidden')) {
         container.classList.remove('hidden');
-        if (btn) btn.innerHTML = '<i class="fa-solid fa-compress text-[9px]"></i><span class="hidden sm:inline">Close Embed</span>';
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-compress text-[9px]"></i><span class="hidden sm:inline">Close Preview</span>';
         
         const rec = (typeof records !== 'undefined' ? records : []).find(r => String(r.id) === String(recordId));
         if (!rec) return;
@@ -10392,7 +10543,7 @@
           }
         }
 
-        if (spotifyUri) {
+        if (spotifyUri && typeof spotifyUri === 'string') {
           let embedPath = '';
           if (spotifyUri.startsWith('spotify:')) {
             const parts = spotifyUri.split(':');
@@ -10400,12 +10551,19 @@
           } else if (spotifyUri.includes('open.spotify.com/')) {
             const match = spotifyUri.match(/(track|album|playlist)\/([a-zA-Z0-9]+)/);
             if (match) embedPath = `${match[1]}/${match[2]}`;
-          } else {
-            embedPath = `album/${spotifyUri}`;
+          } else if (/^[a-zA-Z0-9]{22}$/.test(spotifyUri.trim())) {
+            embedPath = `album/${spotifyUri.trim()}`;
           }
 
           if (embedPath) {
             container.innerHTML = `
+              <div class="mb-2 px-2.5 py-1 bg-vinyl-900 rounded-lg flex items-center justify-between text-[10px] text-slate-400 border border-white/5">
+                <span class="flex items-center gap-1.5"><i class="fa-brands fa-spotify text-emerald-400"></i> Spotify Web Player (30s preview)</span>
+                <a href="https://open.spotify.com/${embedPath}" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 transition">
+                  <span>Play Full in Spotify</span>
+                  <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
+                </a>
+              </div>
               <iframe style="border-radius:12px" src="https://open.spotify.com/embed/${embedPath}?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
             `;
             return;
@@ -10421,19 +10579,20 @@
               </div>
               <div class="min-w-0">
                 <div class="font-bold text-white truncate">${safeArtist} — ${safeTitle}</div>
-                <div class="text-[11px] text-slate-400">Direct in-app embed requires a Spotify URI. Open to stream in Spotify:</div>
+                <div class="text-[11px] text-slate-400">Direct web embed requires a resolved Spotify URI. Stream full release:</div>
               </div>
             </div>
             <a href="https://open.spotify.com/search/${query}" target="_blank" rel="noopener noreferrer"
-              class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-1.5 flex-shrink-0 shadow transition">
+              class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-1.5 flex-shrink-0 shadow transition"
+              title="Stream in Spotify app">
               <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-              <span>Open in Spotify</span>
+              <span>Play Full in Spotify</span>
             </a>
           </div>
         `;
       } else {
         container.classList.add('hidden');
-        if (btn) btn.innerHTML = '<i class="fa-solid fa-window-maximize text-[9px]"></i><span class="hidden sm:inline">Spotify Embed</span>';
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-window-maximize text-[9px]"></i><span class="hidden sm:inline">Spotify 30s Preview</span>';
       }
     }
 
@@ -10797,7 +10956,7 @@
                 <th class="py-3 px-3">Est. Value</th>
                 <th class="py-3 px-3">Cat #</th>
                 <th class="py-3 px-3">Label</th>
-                <th class="py-3 px-3">Market Checks</th>
+                <th class="py-3 px-3 whitespace-nowrap min-w-[125px]">Market Checks</th>
                 <th class="py-3 px-3 text-right sticky right-0 bg-vinyl-850 border-l border-vinyl-800 table-action-sticky z-10">Actions</th>
               </tr>
             </thead>
@@ -10870,18 +11029,18 @@
                 </button>
               ` : '--'}
             </td>
-            <td class="py-2.5 px-3 whitespace-nowrap">
+            <td class="py-2.5 px-3 whitespace-nowrap min-w-[125px]">
               <div class="flex items-center gap-2">
-                <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-blue-400" title="eBay Sold Listings">
+                <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-blue-400 p-0.5 inline-flex items-center justify-center transition-transform hover:scale-110" title="eBay Sold Listings">
                   <i class="fa-brands fa-ebay text-sm"></i>
                 </a>
-                <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-amber-400" title="Discogs Marketplace">
+                <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-amber-400 p-0.5 inline-flex items-center justify-center transition-transform hover:scale-110" title="Discogs Marketplace">
                   <i class="fa-solid fa-compact-disc"></i>
                 </a>
-                <a href="${streamLinks.spotify}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-emerald-400" title="Audition on Spotify">
+                <a href="${streamLinks.spotify}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-emerald-400 p-0.5 inline-flex items-center justify-center transition-transform hover:scale-110" title="Audition on Spotify">
                   <i class="fa-brands fa-spotify text-sm"></i>
                 </a>
-                <a href="${streamLinks.youtube}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-red-400" title="Search on YouTube">
+                <a href="${streamLinks.youtube}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-red-400 p-0.5 inline-flex items-center justify-center transition-transform hover:scale-110" title="Search on YouTube">
                   <i class="fa-brands fa-youtube text-sm"></i>
                 </a>
               </div>
@@ -12566,7 +12725,21 @@
               </div>
 
               <!-- Interactive Audition Player -->
-              <div class="bg-vinyl-950/90 border border-emerald-500/30 rounded-xl overflow-hidden shadow-inner">
+              <div class="audition-hi-fi-deck bg-vinyl-950/90 border border-emerald-500/30 rounded-xl overflow-hidden shadow-inner">
+                <!-- Spotify 30s Preview Notice Strip -->
+                <div class="px-3.5 py-1.5 bg-[#080b11] flex items-center justify-between text-[10px] border-b border-white/5 flex-wrap gap-1">
+                  <span class="flex items-center gap-1.5 text-slate-400">
+                    <i class="fa-brands fa-spotify text-emerald-400"></i>
+                    <span>Web audition provides 30s preview</span>
+                  </span>
+                  <a href="${streamLinks.spotify}" target="_blank" rel="noopener noreferrer"
+                    class="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 transition"
+                    title="Open full album or track in the Spotify app">
+                    <span>Play Full in Spotify</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
+                  </a>
+                </div>
+
                 <!-- Player Header -->
                 <div class="px-3.5 py-2.5 bg-gradient-to-r from-emerald-950/40 via-vinyl-900 to-vinyl-950 border-b border-vinyl-800 flex items-center justify-between gap-3">
                   <div class="flex items-center gap-3 min-w-0">
@@ -12582,13 +12755,13 @@
                           <span class="w-0.5 bg-emerald-400 eq-bar"></span>
                         </span>
                       </div>
-                      <p class="text-[10px] text-slate-400 truncate">Spotify Audition Preview • <span class="text-slate-300 font-medium">${escapeHtml(item.artist)} — ${escapeHtml(item.title)}</span></p>
+                      <p class="text-[10px] text-slate-400 truncate">Audition Preview (30s Stream) • <span class="text-slate-300 font-medium">${escapeHtml(item.artist)} — ${escapeHtml(item.title)}</span></p>
                     </div>
                   </div>
                   <div class="flex items-center gap-1.5 flex-shrink-0">
                     <button type="button" onclick="toggleSpotifyEmbedView('${safeId}')" id="toggleEmbedBtn" class="px-2 py-1 rounded bg-vinyl-850 hover:bg-vinyl-800 text-[10px] font-mono text-emerald-400 border border-emerald-500/30 flex items-center gap-1 transition" title="Toggle between interactive preview and official Spotify Embed player">
                       <i class="fa-solid fa-window-maximize text-[9px]"></i>
-                      <span class="hidden sm:inline">Spotify Embed</span>
+                      <span class="hidden sm:inline">Spotify Preview</span>
                     </button>
                   </div>
                 </div>
@@ -12608,19 +12781,20 @@
 
               <!-- Major Streaming Platform Audition Hub -->
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-                <a href="${streamLinks.spotify}" target="_blank" rel="noopener noreferrer" class="p-2.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center gap-2 text-xs font-bold transition shadow-sm">
+                <a href="${streamLinks.spotify}" target="_blank" rel="noopener noreferrer" class="platform-btn-spotify p-2.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm" title="Stream full track or album in Spotify app">
                   <i class="fa-brands fa-spotify text-base"></i>
-                  <span>Spotify</span>
+                  <span>Spotify (Full)</span>
+                  <i class="fa-solid fa-arrow-up-right-from-square text-[9px] opacity-75"></i>
                 </a>
-                <a href="${streamLinks.apple}" target="_blank" rel="noopener noreferrer" class="p-2.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center justify-center gap-2 text-xs font-bold transition shadow-sm">
+                <a href="${streamLinks.apple}" target="_blank" rel="noopener noreferrer" class="platform-btn-apple p-2.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center justify-center gap-2 text-xs font-bold transition shadow-sm">
                   <i class="fa-brands fa-apple text-base"></i>
                   <span>Apple Music</span>
                 </a>
-                <a href="${streamLinks.youtube}" target="_blank" rel="noopener noreferrer" class="p-2.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 flex items-center justify-center gap-2 text-xs font-bold transition shadow-sm">
+                <a href="${streamLinks.youtube}" target="_blank" rel="noopener noreferrer" class="platform-btn-youtube p-2.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 flex items-center justify-center gap-2 text-xs font-bold transition shadow-sm">
                   <i class="fa-brands fa-youtube text-base"></i>
                   <span>YouTube</span>
                 </a>
-                <a href="${streamLinks.bandcamp}" target="_blank" rel="noopener noreferrer" class="p-2.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 flex items-center justify-center gap-2 text-xs font-bold transition shadow-sm">
+                <a href="${streamLinks.bandcamp}" target="_blank" rel="noopener noreferrer" class="platform-btn-bandcamp p-2.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 flex items-center justify-center gap-2 text-xs font-bold transition shadow-sm">
                   <i class="fa-brands fa-bandcamp text-base"></i>
                   <span>Bandcamp</span>
                 </a>
