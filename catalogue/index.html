@@ -1019,6 +1019,9 @@
         <span class="text-slate-600">·</span>
         <span class="text-slate-300 text-[11px]"><span class="text-slate-500">Grade:</span> <strong
             id="mobileStatAvgGrade" class="text-emerald-400 font-mono">VG+</strong></span>
+        <span class="text-slate-600">·</span>
+        <span class="text-slate-300 text-[11px]"><span class="text-slate-500">Box:</span> <strong
+            id="mobileRecordBoxBadge" class="text-amber-400 font-mono record-box-count">0</strong></span>
       </div>
       <button type="button" onclick="toggleMobileStatsStrip()" id="mobileStatsToggleBtn"
         class="text-[11px] text-brass-400 hover:text-brass-300 flex items-center gap-1.5 py-0.5 px-2 rounded bg-vinyl-800 border border-vinyl-700 shadow-sm">
@@ -1142,6 +1145,15 @@
             title="Toggle Est. Value Visibility across catalog">
             <i id="toggleValueBtnIcon" class="fa-solid fa-eye text-xs text-emerald-400"></i>
             <span id="toggleValueBtnLabel" class="text-[11px] font-mono hidden sm:inline">Values: On</span>
+          </button>
+
+          <!-- Record Box Trigger Button -->
+          <button type="button" id="btnRecordBoxDrawer" onclick="showToast('Record Box: ' + getQmcRecordBox().length + ' records packed for session.')"
+            class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-amber-500/50 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-amber-300 font-semibold flex items-center gap-1 sm:gap-1.5 transition shadow-sm"
+            title="Active Record Box (Session Working Bag)">
+            <span>🧳</span>
+            <span class="text-[11px] font-mono hidden sm:inline">Box</span>
+            <span id="recordBoxBadgeCount" class="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-mono record-box-count">0</span>
           </button>
 
           <!-- Mobile-only filters toggle -->
@@ -3155,7 +3167,7 @@
           </div>
           <div>
             <h2 id="authModalTitle" class="text-base font-bold text-white tracking-tight">QMC Member Portal</h2>
-            <p class="text-[11px] text-slate-400">Multi-User Music Media Archive &amp; Cloud Crates</p>
+            <p class="text-[11px] text-slate-400">Multi-User Music Media Archive &amp; Cloud Archive</p>
           </div>
         </div>
         <button type="button" onclick="closeAuthModal()"
@@ -3214,7 +3226,7 @@
               <label
                 class="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-vinyl-900 border border-vinyl-700 cursor-pointer">
                 <div>
-                  <div class="text-xs font-semibold text-slate-200">Cloud Crate Auto-Sync</div>
+                  <div class="text-xs font-semibold text-slate-200">Cloud Archive Auto-Sync</div>
                   <div class="text-[10px] text-slate-400">Automatically sync records &amp; profile on sign-in</div>
                 </div>
                 <input type="checkbox" id="authCloudAutoSync" checked class="w-4 h-4 accent-amber-500 rounded">
@@ -3236,10 +3248,10 @@
           <!-- Cloud Sync Options -->
           <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-2">
             <div class="font-bold text-slate-200 flex items-center gap-1.5">
-              <i class="fa-solid fa-cloud-arrow-up text-amber-400"></i> Local Crate Sync
+              <i class="fa-solid fa-cloud-arrow-up text-amber-400"></i> Local Archive Sync
             </div>
             <p class="text-[11px] text-slate-400 leading-relaxed">
-              If you cataloged records in this browser before logging in, push them into your personal cloud crate.
+              If you cataloged records in this browser before logging in, push them into your personal cloud archive.
             </p>
             <button type="button" onclick="syncLocalRecordsToCloud()"
               class="w-full py-2 px-3 bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 rounded-lg font-semibold flex items-center justify-center gap-2 border border-brass-500/30 transition">
@@ -3277,7 +3289,7 @@
               </div>
             </div>
             <label class="flex items-center justify-between gap-2 text-[11px] text-slate-300 cursor-pointer">
-              <span>Auto-sync Cloud Crate on sign-in</span>
+              <span>Auto-sync Cloud Archive on sign-in</span>
               <input type="checkbox" id="localCloudAutoSync" checked class="w-4 h-4 accent-amber-500 rounded">
             </label>
             <button type="submit" id="localSaveProfileBtn"
@@ -4012,7 +4024,7 @@
         <!-- Summary Stats Card -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           <div class="p-3 bg-vinyl-850 rounded-xl border border-vinyl-800 text-center">
-            <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Total Crate</div>
+            <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Total Archive</div>
             <div id="batchRefreshTotalRecords" class="text-xl font-bold font-mono text-white mt-0.5">0</div>
           </div>
           <div class="p-3 bg-vinyl-850 rounded-xl border border-purple-500/30 text-center">
@@ -7483,7 +7495,7 @@
         return;
       }
 
-      const proceed = confirm(`Push ${records.length} records from this browser to your personal QMC cloud crate?`);
+      const proceed = confirm(`Push ${records.length} records from this browser to your personal QMC cloud archive?`);
       if (!proceed) return;
 
       try {
@@ -7558,6 +7570,7 @@
 
       initMemberProfile();
       loadRecordsFromStorage();
+      initQmcCurationStorage();
       backfillMissingValuations();
       populateMemberFilter(records);
       updateGridDensityUI();
@@ -7820,6 +7833,238 @@
           console.warn("localStorage completely full; IndexedDB and Supabase Cloud serving as active stores:", innerE);
         }
       }
+    }
+
+    /* =========================================================
+       QMC CRATES, RECORD BOX & SAVED SETS STORAGE ENGINE
+       ========================================================= */
+    const QMC_CRATES_KEY = 'qmc_crates_v1';
+    const QMC_RECORD_BOX_KEY = 'qmc_record_box_v1';
+    const QMC_SAVED_SETS_KEY = 'qmc_saved_sets_v1';
+
+    let qmcCrates = [];
+    let qmcRecordBox = [];
+    let qmcSavedSets = [];
+
+    function notifyQmcCurationUpdate(type) {
+      if (typeof window !== 'undefined' && window.dispatchEvent) {
+        try {
+          window.dispatchEvent(new CustomEvent('qmc-curation-updated', { detail: { type } }));
+        } catch (_) {}
+      }
+      updateRecordBoxBadges();
+    }
+
+    function getQmcCrates() {
+      if (Array.isArray(qmcCrates) && qmcCrates.length > 0) return qmcCrates;
+      try {
+        const raw = localStorage.getItem(QMC_CRATES_KEY);
+        qmcCrates = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(qmcCrates)) qmcCrates = [];
+      } catch (e) {
+        qmcCrates = [];
+      }
+      return qmcCrates;
+    }
+
+    function saveQmcCrates(crates) {
+      qmcCrates = Array.isArray(crates) ? crates : [];
+      try {
+        localStorage.setItem(QMC_CRATES_KEY, JSON.stringify(qmcCrates));
+      } catch (e) {
+        console.warn('Failed to save qmcCrates to localStorage', e);
+      }
+      notifyQmcCurationUpdate('crates');
+      return qmcCrates;
+    }
+
+    function createQmcCrate(name, description = '', recordIds = []) {
+      const crates = getQmcCrates();
+      const newCrate = {
+        crate_id: 'crate_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        name: (name || 'Untitled Crate').trim(),
+        description: (description || '').trim(),
+        created_at: new Date().toISOString(),
+        record_ids: Array.isArray(recordIds) ? Array.from(new Set(recordIds.map(String))) : []
+      };
+      crates.push(newCrate);
+      saveQmcCrates(crates);
+      return newCrate;
+    }
+
+    function deleteQmcCrate(crateId) {
+      let crates = getQmcCrates();
+      crates = crates.filter(c => String(c.crate_id) !== String(crateId));
+      saveQmcCrates(crates);
+      return crates;
+    }
+
+    function addRecordToCrate(crateId, recordId) {
+      const crates = getQmcCrates();
+      const crate = crates.find(c => String(c.crate_id) === String(crateId));
+      if (!crate) return false;
+      if (!Array.isArray(crate.record_ids)) crate.record_ids = [];
+      const sId = String(recordId);
+      if (!crate.record_ids.includes(sId)) {
+        crate.record_ids.push(sId);
+        saveQmcCrates(crates);
+      }
+      return true;
+    }
+
+    function removeRecordFromCrate(crateId, recordId) {
+      const crates = getQmcCrates();
+      const crate = crates.find(c => String(c.crate_id) === String(crateId));
+      if (!crate || !Array.isArray(crate.record_ids)) return false;
+      const sId = String(recordId);
+      crate.record_ids = crate.record_ids.filter(id => String(id) !== sId);
+      saveQmcCrates(crates);
+      return true;
+    }
+
+    function getQmcRecordBox() {
+      if (Array.isArray(qmcRecordBox) && qmcRecordBox.length > 0) return qmcRecordBox;
+      try {
+        const raw = localStorage.getItem(QMC_RECORD_BOX_KEY);
+        qmcRecordBox = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(qmcRecordBox)) qmcRecordBox = [];
+      } catch (e) {
+        qmcRecordBox = [];
+      }
+      return qmcRecordBox;
+    }
+
+    function saveQmcRecordBox(box) {
+      qmcRecordBox = Array.isArray(box) ? box : [];
+      try {
+        localStorage.setItem(QMC_RECORD_BOX_KEY, JSON.stringify(qmcRecordBox));
+      } catch (e) {
+        console.warn('Failed to save qmcRecordBox to localStorage', e);
+      }
+      notifyQmcCurationUpdate('record_box');
+      return qmcRecordBox;
+    }
+
+    function addRecordToBox(recordId, boxNote = '') {
+      const box = getQmcRecordBox();
+      const sId = String(recordId);
+      const existing = box.find(item => String(item.record_id) === sId);
+      if (existing) {
+        if (boxNote) existing.box_note = boxNote;
+      } else {
+        box.push({
+          record_id: sId,
+          added_at: new Date().toISOString(),
+          box_note: boxNote || ''
+        });
+      }
+      saveQmcRecordBox(box);
+      return box;
+    }
+
+    function removeRecordFromBox(recordId) {
+      let box = getQmcRecordBox();
+      const sId = String(recordId);
+      box = box.filter(item => String(item.record_id) !== sId);
+      saveQmcRecordBox(box);
+      return box;
+    }
+
+    function isRecordInBox(recordId) {
+      const box = getQmcRecordBox();
+      const sId = String(recordId);
+      return box.some(item => String(item.record_id) === sId);
+    }
+
+    function clearRecordBox() {
+      saveQmcRecordBox([]);
+      return [];
+    }
+
+    function getQmcSavedSets() {
+      if (Array.isArray(qmcSavedSets) && qmcSavedSets.length > 0) return qmcSavedSets;
+      try {
+        const raw = localStorage.getItem(QMC_SAVED_SETS_KEY);
+        qmcSavedSets = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(qmcSavedSets)) qmcSavedSets = [];
+      } catch (e) {
+        qmcSavedSets = [];
+      }
+      return qmcSavedSets;
+    }
+
+    function saveQmcSavedSets(sets) {
+      qmcSavedSets = Array.isArray(sets) ? sets : [];
+      try {
+        localStorage.setItem(QMC_SAVED_SETS_KEY, JSON.stringify(qmcSavedSets));
+      } catch (e) {
+        console.warn('Failed to save qmcSavedSets to localStorage', e);
+      }
+      notifyQmcCurationUpdate('saved_sets');
+      return qmcSavedSets;
+    }
+
+    function saveActiveSet(setTitle, tracks = [], description = '', setId = null) {
+      const sets = getQmcSavedSets();
+      const targetId = setId || ('set_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6));
+      const existing = sets.find(s => String(s.set_id) === String(targetId));
+      const payload = {
+        set_id: targetId,
+        title: (setTitle || 'Untitled Set').trim(),
+        description: (description || '').trim(),
+        created_at: existing ? existing.created_at : new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        spotify_playlist_id: existing ? (existing.spotify_playlist_id || null) : null,
+        spotify_playlist_url: existing ? (existing.spotify_playlist_url || null) : null,
+        tracks: Array.isArray(tracks) ? tracks.map((t, idx) => ({
+          position: idx + 1,
+          record_id: t.record_id || '',
+          artist: t.artist || '',
+          title: t.title || '',
+          side_index: t.side_index || '',
+          duration: t.duration || '',
+          bpm: t.bpm || '',
+          rpm: t.rpm || '',
+          cue_note: t.cue_note || '',
+          spotify_uri: t.spotify_uri || null
+        })) : []
+      };
+
+      if (existing) {
+        Object.assign(existing, payload);
+      } else {
+        sets.push(payload);
+      }
+      saveQmcSavedSets(sets);
+      return payload;
+    }
+
+    function deleteSavedSet(setId) {
+      let sets = getQmcSavedSets();
+      sets = sets.filter(s => String(s.set_id) !== String(setId));
+      saveQmcSavedSets(sets);
+      return sets;
+    }
+
+    function updateRecordBoxBadges() {
+      const box = getQmcRecordBox();
+      const count = box.length;
+      if (typeof document !== 'undefined' && document.querySelectorAll) {
+        document.querySelectorAll('.record-box-count').forEach(el => {
+          el.textContent = String(count);
+        });
+        const badge = document.getElementById('recordBoxBadgeCount');
+        if (badge) badge.textContent = String(count);
+        const mBadge = document.getElementById('mobileRecordBoxBadge');
+        if (mBadge) mBadge.textContent = String(count);
+      }
+    }
+
+    function initQmcCurationStorage() {
+      getQmcCrates();
+      getQmcRecordBox();
+      getQmcSavedSets();
+      updateRecordBoxBadges();
     }
 
     /* =========================================================
@@ -18648,7 +18893,7 @@
             console.warn("Cloud batch upload error:", error);
             showToast("Saved locally, but cloud sync warning: " + error.message, "error");
           } else {
-            showToast(`Synced ${dbRows.length} imported records to your cloud crate!`);
+            showToast(`Synced ${dbRows.length} imported records to your cloud archive!`);
             fetchRecordsFromCloud(true);
           }
         });
@@ -18897,7 +19142,7 @@
             console.warn("Cloud Discogs batch upload error:", error);
             showToast("Saved locally, but cloud sync warning: " + error.message, "error");
           } else {
-            showToast(`Synced ${dbRows.length} imported Discogs records to your cloud crate!`);
+            showToast(`Synced ${dbRows.length} imported Discogs records to your cloud archive!`);
             fetchRecordsFromCloud(true);
           }
         });
@@ -19280,14 +19525,24 @@
     }
 
     function exportToJSON() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(records, null, 2));
+      const backupPayload = {
+        version: 2,
+        exportedAt: new Date().toISOString(),
+        archiveType: "QMC Music Media Archive",
+        totalRecords: records.length,
+        records: records,
+        crates: (typeof getQmcCrates === 'function') ? getQmcCrates() : [],
+        recordBox: (typeof getQmcRecordBox === 'function') ? getQmcRecordBox() : [],
+        savedSets: (typeof getQmcSavedSets === 'function') ? getQmcSavedSets() : []
+      };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPayload, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
       downloadAnchor.setAttribute("download", `QMC_Vinyl_Archive_Backup_${new Date().toISOString().slice(0, 10)}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-      showToast("JSON archive backup created!");
+      showToast("JSON archive backup created (Records, Crates, Box & Sets)!");
     }
 
     function importFromJSON(event) {
@@ -19299,11 +19554,30 @@
         try {
           const imported = JSON.parse(e.target.result);
           if (Array.isArray(imported)) {
+            // Legacy backup format: direct array of records
             records = imported;
             saveRecordsToStorage();
             renderStats();
             renderRecords();
             showToast(`Imported ${imported.length} records!`);
+          } else if (imported && typeof imported === 'object' && Array.isArray(imported.records)) {
+            // Modern v2 envelope containing records, crates, box, and sets
+            records = imported.records;
+            saveRecordsToStorage();
+            if (Array.isArray(imported.crates) && typeof saveQmcCrates === 'function') {
+              saveQmcCrates(imported.crates);
+            }
+            if (Array.isArray(imported.recordBox) && typeof saveQmcRecordBox === 'function') {
+              saveQmcRecordBox(imported.recordBox);
+            }
+            if (Array.isArray(imported.savedSets) && typeof saveQmcSavedSets === 'function') {
+              saveQmcSavedSets(imported.savedSets);
+            }
+            renderStats();
+            renderRecords();
+            const cratesCount = Array.isArray(imported.crates) ? imported.crates.length : 0;
+            const setsCount = Array.isArray(imported.savedSets) ? imported.savedSets.length : 0;
+            showToast(`Imported ${records.length} records, ${cratesCount} crates & ${setsCount} sets!`);
           } else {
             showToast("Invalid JSON file format", "error");
           }
