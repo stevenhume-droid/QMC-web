@@ -250,7 +250,9 @@
       #exportModalContent,
       #exportModal .overflow-y-auto,
       #gapModalContent,
-      #gapModal .overflow-y-auto {
+      #gapModal .overflow-y-auto,
+      #crateAssignModalContent,
+      #crateAssignModal .overflow-y-auto {
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch;
       }
@@ -1045,7 +1047,7 @@
             id="mobileStatAvgGrade" class="text-emerald-400 font-mono">VG+</strong></span>
         <span class="text-slate-600">·</span>
         <span class="text-slate-300 text-[11px]"><span class="text-slate-500">Box:</span> <strong
-            id="mobileRecordBoxBadge" class="text-amber-400 font-mono record-box-count">0</strong></span>
+            id="mobileQuickStripBoxBadge" class="text-amber-400 font-mono record-box-count">0</strong></span>
       </div>
       <button type="button" onclick="toggleMobileStatsStrip()" id="mobileStatsToggleBtn"
         class="text-[11px] text-brass-400 hover:text-brass-300 flex items-center gap-1.5 py-0.5 px-2 rounded bg-vinyl-800 border border-vinyl-700 shadow-sm">
@@ -3790,6 +3792,72 @@
   </div>
 
   <!-- ============================================== -->
+  <!-- MODAL: THEMATIC CRATE ASSIGNMENT & CREATION    -->
+  <!-- ============================================== -->
+  <div id="crateAssignModal"
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[75] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto"
+    style="z-index: 75;">
+    <div id="crateAssignModalContent"
+      class="bg-vinyl-900 border border-brass-500/30 rounded-2xl w-full max-w-md max-h-[90vh] sm:max-h-[85vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-fadeIn">
+      
+      <!-- Header -->
+      <div class="px-5 sm:px-6 py-4 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-brass-500/10 border border-brass-500/30 flex items-center justify-center text-brass-400">
+            <i class="fa-solid fa-layer-group text-sm"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-white text-sm sm:text-base tracking-tight">Thematic Crates</h3>
+            <p class="text-[11px] text-slate-400">Curated release buckets &amp; DJ bags</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeCrateAssignModal()"
+          class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+          <span>Exit</span>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-4 sm:p-6 space-y-4 overflow-y-auto overscroll-contain flex-1 pb-24 sm:pb-6">
+        <!-- Target Record Info Strip -->
+        <div id="crateAssignRecordStrip" class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl flex items-center gap-3">
+          <!-- Populated dynamically via openCrateAssignModal(recordId) -->
+        </div>
+
+        <!-- Crates List -->
+        <div>
+          <label class="block text-[11px] uppercase font-mono text-slate-400 mb-2">Assign to Crates</label>
+          <div id="crateAssignList" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Create New Crate Form -->
+        <div class="p-3 bg-vinyl-850/80 rounded-xl border border-vinyl-800 space-y-2">
+          <span class="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
+            <i class="fa-solid fa-plus text-brass-400 text-[10px]"></i> Create New Crate
+          </span>
+          <div class="flex gap-2">
+            <input type="text" id="newCrateNameInput" placeholder="e.g. 90s Trip-Hop, Warmup Vinyl..."
+              class="flex-1 bg-vinyl-900 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-brass-500">
+            <button type="button" onclick="handleCreateAndAddCrate()"
+              class="px-3 py-1.5 rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold text-xs cursor-pointer transition shadow">
+              Create &amp; Add
+            </button>
+          </div>
+        </div>
+
+        <button type="button" onclick="closeCrateAssignModal()"
+          class="w-full py-2.5 px-4 rounded-xl bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+          <span>Done</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================== -->
   <!-- MODAL: SHARE READ-ONLY ARCHIVE LINK             -->
   <!-- ============================================== -->
   <div id="shareModal"
@@ -4545,23 +4613,25 @@
   <nav id="mobileBottomNav"
     class="md:hidden fixed bottom-0 inset-x-0 z-[60] bg-vinyl-900/98 backdrop-blur-md border-t border-vinyl-800 grid grid-cols-5 items-end text-[10px] font-semibold text-slate-400"
     style="z-index:60;">
-    <button type="button" id="mnav-crate" onclick="mobileNav('crate')"
+    <button type="button" id="mnav-crate" onclick="mobileNav('archive')"
       class="mnav-btn active flex flex-col items-center justify-center gap-0.5"><i
-        class="fa-solid fa-grip text-lg"></i>Crate</button>
-    <button type="button" id="mnav-search" onclick="mobileNav('search')"
+        class="fa-solid fa-compact-disc text-lg"></i>Archive</button>
+    <button type="button" id="mnav-crates" onclick="mobileNav('crates')"
       class="mnav-btn flex flex-col items-center justify-center gap-0.5"><i
-        class="fa-solid fa-magnifying-glass text-lg"></i>Search</button>
-    <button type="button" onclick="mobileNav('add')"
-      class="mnav-btn flex flex-col items-center justify-center gap-0.5 text-vinyl-950" aria-label="Add record">
+        class="fa-solid fa-layer-group text-lg"></i>Crates</button>
+    <button type="button" id="mnav-box" onclick="mobileNav('box')"
+      class="mnav-btn flex flex-col items-center justify-center gap-0.5 -mb-1" aria-label="Record Box working bag">
       <span
-        class="w-12 h-12 -mt-5 rounded-full bg-gradient-to-r from-brass-500 to-amber-500 flex items-center justify-center shadow-lg shadow-brass-500/30 border-4 border-vinyl-900"><i
-          class="fa-solid fa-plus text-lg"></i></span>
-      <span class="text-slate-400">Add</span>
+        class="w-12 h-12 -mt-5 rounded-full bg-gradient-to-r from-brass-500 to-amber-500 flex items-center justify-center shadow-lg shadow-brass-500/30 border-4 border-vinyl-900 text-vinyl-950 font-bold relative">
+        <span class="text-xl">🧳</span>
+        <span id="mobileRecordBoxBadge" class="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-amber-500 text-black border border-vinyl-900 text-[10px] font-mono font-black record-box-count">0</span>
+      </span>
+      <span class="text-slate-400">Box</span>
     </button>
-    <button type="button" id="mnav-stats" onclick="mobileNav('stats')"
+    <button type="button" id="mnav-sets" onclick="mobileNav('sets')"
       class="mnav-btn flex flex-col items-center justify-center gap-0.5"><i
-        class="fa-solid fa-chart-pie text-lg"></i>Stats</button>
-    <button type="button" onclick="mobileNav('more')"
+        class="fa-solid fa-list-ol text-lg"></i>Sets</button>
+    <button type="button" id="mnav-more" onclick="mobileNav('more')"
       class="mnav-btn flex flex-col items-center justify-center gap-0.5"><i
         class="fa-solid fa-ellipsis text-lg"></i>More</button>
   </nav>
@@ -8122,6 +8192,8 @@
         if (badge) badge.textContent = String(count);
         const mBadge = document.getElementById('mobileRecordBoxBadge');
         if (mBadge) mBadge.textContent = String(count);
+        const qBadge = document.getElementById('mobileQuickStripBoxBadge');
+        if (qBadge) qBadge.textContent = String(count);
       }
     }
 
@@ -8130,6 +8202,178 @@
       getQmcRecordBox();
       getQmcSavedSets();
       updateRecordBoxBadges();
+    }
+
+    /* =========================================================
+       PHASE 2: CRATES & RECORD BOX INTERACTIVE ACTIONS
+       ========================================================= */
+    function toggleBoxForRecord(recordId) {
+      const rec = (typeof records !== 'undefined' ? records : []).find(r => String(r.id) === String(recordId));
+      const title = rec ? `${rec.artist} — ${rec.title}` : 'Record';
+      const inBox = isRecordInBox(recordId);
+      if (inBox) {
+        removeRecordFromBox(recordId);
+        showToast(`Removed "${title}" from Record Box.`, 'neutral');
+      } else {
+        addRecordToBox(recordId);
+        const count = getQmcRecordBox().length;
+        showToast(`Packed "${title}" into Record Box! (Total: ${count})`, 'success');
+      }
+      updateBoxButtonElements(recordId);
+    }
+
+    function updateBoxButtonElements(recordId) {
+      const inBox = isRecordInBox(recordId);
+      const sId = String(recordId);
+
+      // Detailed card box button
+      const cardBtn = document.getElementById(`cardBoxBtn-${sId}`);
+      if (cardBtn) {
+        cardBtn.className = `px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border-vinyl-700'}`;
+        cardBtn.title = inBox ? 'Remove from Record Box' : 'Pack into Record Box';
+        cardBtn.innerHTML = `<span>${inBox ? '✓ In Box' : '+ Box'}</span>`;
+      }
+
+      // Compact card box button
+      const compactBtn = document.getElementById(`compactBoxBtn-${sId}`);
+      if (compactBtn) {
+        compactBtn.className = `px-1 py-0.2 rounded text-[9px] font-mono transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 text-amber-300 border-vinyl-700'}`;
+        compactBtn.title = inBox ? 'Remove from Record Box' : 'Pack into Record Box';
+        compactBtn.textContent = inBox ? '✓ Box' : '+ Box';
+      }
+
+      // Table row box button
+      const tableBtn = document.getElementById(`tableBoxBtn-${sId}`);
+      if (tableBtn) {
+        tableBtn.className = `min-w-[34px] min-h-[34px] p-1.5 rounded-lg border transition active:scale-95 inline-flex items-center justify-center shadow-sm ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850/80 hover:bg-vinyl-750 text-amber-300 border-vinyl-700/60'}`;
+        tableBtn.title = inBox ? 'In Record Box (Click to remove)' : 'Pack into Record Box';
+        tableBtn.innerHTML = `<i class="fa-solid fa-box-archive text-xs"></i>`;
+      }
+
+      // Dossier modal box button
+      const dossierBtn = document.getElementById(`dossierBoxBtn-${sId}`);
+      if (dossierBtn) {
+        dossierBtn.className = `px-3 py-2 rounded-lg font-semibold text-xs flex items-center gap-1.5 transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border-amber-500/30'}`;
+        dossierBtn.title = inBox ? 'Remove from Record Box' : 'Pack into Record Box';
+        dossierBtn.innerHTML = `<span>${inBox ? '✓ In Box' : '🧳 + Box'}</span>`;
+      }
+    }
+
+    let currentCrateAssignRecordId = null;
+
+    function openCrateAssignModal(recordId = null) {
+      currentCrateAssignRecordId = recordId;
+      const modal = document.getElementById('crateAssignModal');
+      const strip = document.getElementById('crateAssignRecordStrip');
+      const input = document.getElementById('newCrateNameInput');
+      if (input) input.value = '';
+
+      if (strip) {
+        if (recordId) {
+          const rec = (typeof records !== 'undefined' ? records : []).find(r => String(r.id) === String(recordId));
+          const coverSrc = rec?.coverImage || (typeof getDefaultCover === 'function' ? getDefaultCover(rec?.format, rec?.artist, rec?.title) : '');
+          strip.innerHTML = `
+            <img src="${coverSrc}" class="w-10 h-10 object-cover rounded-lg bg-vinyl-950 border border-vinyl-700" alt="Cover" onerror="if(typeof getDefaultCover==='function')this.src=getDefaultCover('','','',true)">
+            <div class="min-w-0 flex-1">
+              <div class="text-xs font-bold text-white truncate">${escapeHtml(rec ? rec.artist : 'Record')}</div>
+              <div class="text-[11px] text-slate-300 truncate">${escapeHtml(rec ? rec.title : '')}</div>
+            </div>
+          `;
+        } else {
+          strip.innerHTML = `
+            <div class="flex items-center gap-2.5 text-xs text-brass-400 font-bold">
+              <i class="fa-solid fa-boxes-stacked text-base"></i>
+              <div>
+                <div class="text-white">Thematic Crates Library</div>
+                <div class="text-[10px] text-slate-400 font-normal">Browse and manage your curated release pools</div>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      renderCrateAssignList();
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeCrateAssignModal() {
+      const modal = document.getElementById('crateAssignModal');
+      if (modal) modal.classList.add('hidden');
+      currentCrateAssignRecordId = null;
+    }
+
+    function renderCrateAssignList() {
+      const listEl = document.getElementById('crateAssignList');
+      if (!listEl) return;
+      const crates = getQmcCrates();
+      const recId = currentCrateAssignRecordId ? String(currentCrateAssignRecordId) : null;
+
+      if (crates.length === 0) {
+        listEl.innerHTML = `
+          <div class="p-3 bg-vinyl-900/60 rounded-lg border border-vinyl-800 text-center text-xs text-slate-400">
+            No thematic crates created yet. Type a name below to create your first crate!
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = crates.map(c => {
+        const inCrate = recId ? (Array.isArray(c.record_ids) && c.record_ids.includes(recId)) : false;
+        const count = Array.isArray(c.record_ids) ? c.record_ids.length : 0;
+        return `
+          <div class="flex items-center justify-between p-2.5 rounded-lg border transition ${inCrate ? 'bg-amber-500/10 border-amber-500/30' : 'bg-vinyl-850 border-vinyl-800'}">
+            <div class="min-w-0 flex-1 pr-2">
+              <div class="font-bold text-xs text-white truncate flex items-center gap-1.5">
+                <i class="fa-solid fa-box text-brass-400 text-[10px]"></i>
+                <span>${escapeHtml(c.name)}</span>
+              </div>
+              <div class="text-[10px] text-slate-400 font-mono">${count} release${count === 1 ? '' : 's'}</div>
+            </div>
+            ${recId ? `
+              <button type="button" onclick="toggleRecordCrateMembership('${c.crate_id}')" class="px-2.5 py-1 rounded text-xs font-mono font-bold transition border ${inCrate ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-red-950/50 hover:text-red-300 hover:border-red-500/30' : 'bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border-vinyl-700'}">
+                ${inCrate ? '✓ In Crate' : '+ Add'}
+              </button>
+            ` : `
+              <span class="text-[10px] text-brass-400 font-mono px-2 py-0.5 rounded bg-vinyl-900 border border-vinyl-800">Crate</span>
+            `}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleRecordCrateMembership(crateId) {
+      if (!currentCrateAssignRecordId) return;
+      const crates = getQmcCrates();
+      const crate = crates.find(c => String(c.crate_id) === String(crateId));
+      if (!crate) return;
+      const sId = String(currentCrateAssignRecordId);
+      if (Array.isArray(crate.record_ids) && crate.record_ids.includes(sId)) {
+        removeRecordFromCrate(crateId, sId);
+        showToast(`Removed from crate "${crate.name}".`, 'neutral');
+      } else {
+        addRecordToCrate(crateId, sId);
+        showToast(`Added to crate "${crate.name}"!`, 'success');
+      }
+      renderCrateAssignList();
+    }
+
+    function handleCreateAndAddCrate() {
+      const input = document.getElementById('newCrateNameInput');
+      if (!input) return;
+      const val = input.value.trim();
+      if (!val) {
+        showToast('Please enter a name for the new crate.', 'warning');
+        return;
+      }
+      const initialIds = currentCrateAssignRecordId ? [String(currentCrateAssignRecordId)] : [];
+      const newCrate = createQmcCrate(val, '', initialIds);
+      input.value = '';
+      showToast(`Created crate "${newCrate.name}"${currentCrateAssignRecordId ? ' and added release' : ''}!`, 'success');
+      renderCrateAssignList();
+    }
+
+    function openThematicCratesExplorer() {
+      openCrateAssignModal(null);
     }
 
     /* =========================================================
@@ -9002,9 +9246,13 @@
        ========================================================= */
     function updateMobileNavActive(mode) {
       const crate = document.getElementById('mnav-crate');
-      const stats = document.getElementById('mnav-stats');
-      if (crate) crate.classList.toggle('active', mode !== 'analytics');
-      if (stats) stats.classList.toggle('active', mode === 'analytics');
+      const crates = document.getElementById('mnav-crates');
+      const box = document.getElementById('mnav-box');
+      const sets = document.getElementById('mnav-sets');
+      if (crate) crate.classList.toggle('active', mode === 'archive' || mode === 'grid' || mode === 'list');
+      if (crates) crates.classList.toggle('active', mode === 'crates');
+      if (box) box.classList.toggle('active', mode === 'box');
+      if (sets) sets.classList.toggle('active', mode === 'sets');
     }
 
     function toggleTheme() {
@@ -9089,7 +9337,7 @@
       const modalIds = [
         'extendedArchivalModal', 'visualMatcherModal',
         'detailModal', 'recordModal', 'scannerModal', 'authModal',
-        'spotifyAuthModal', 'exportModal', 'gapModal',
+        'spotifyAuthModal', 'exportModal', 'gapModal', 'crateAssignModal',
         'shareModal', 'valuationModal', 'batchUploadModal',
         'discogsImportModal', 'batchGenreModal', 'artworkChooserModal',
         'addToHomeScreenModal', 'insuranceModal'
@@ -9153,9 +9401,19 @@
     function mobileNav(target) {
       closeMobileMore();
       if (target !== 'more') closeAllModals();
-      if (target === 'crate') {
+      if (target === 'archive' || target === 'crate') {
         switchView(currentView === 'analytics' ? 'grid' : currentView);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (target === 'crates') {
+        openThematicCratesExplorer();
+      } else if (target === 'box') {
+        if (typeof toggleRecordBoxDrawer === 'function') {
+          toggleRecordBoxDrawer();
+        } else {
+          showToast(`Record Box: ${getQmcRecordBox().length} records packed for active session.`, 'info');
+        }
+      } else if (target === 'sets') {
+        openExportModal();
       } else if (target === 'search') {
         if (currentView === 'analytics') switchView('grid');
         if (typeof toggleSearchBar === 'function') toggleSearchBar(true);
@@ -10939,6 +11197,7 @@
           const hasVal = areValuesVisible && item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
           const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
           const telemetry = deriveRecordTelemetry(item);
+          const inBox = (typeof isRecordInBox === 'function') ? isRecordInBox(item.id) : false;
 
           html += `
             <div class="bg-vinyl-900 rounded-xl border border-vinyl-800 hover:border-brass-500/50 transition-all duration-200 overflow-hidden shadow-md flex flex-col group cursor-pointer" onclick="viewRecordDetail('${safeId}')">
@@ -11006,9 +11265,14 @@
 
                 <!-- Quick Action Bar -->
                 <div class="pt-1.5 border-t border-vinyl-800 flex items-center justify-between text-[10px] text-slate-400" onclick="event.stopPropagation()">
-                  <span class="text-brass-400 hover:text-brass-300 flex items-center gap-1 font-semibold cursor-pointer" onclick="viewRecordDetail('${safeId}')">
-                    <i class="fa-solid fa-file-lines text-[9px]"></i> Dossier
-                  </span>
+                  <div class="flex items-center gap-1">
+                    <span class="text-brass-400 hover:text-brass-300 flex items-center gap-0.5 font-semibold cursor-pointer" onclick="viewRecordDetail('${safeId}')">
+                      <i class="fa-solid fa-file-lines text-[9px]"></i> Dossier
+                    </span>
+                    <button type="button" onclick="event.stopPropagation(); toggleBoxForRecord('${safeId}')" id="compactBoxBtn-${safeId}" class="px-1 py-0.2 rounded text-[9px] font-mono transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border-vinyl-700'}" title="${inBox ? 'Remove from Record Box' : 'Pack into Record Box'}">
+                      ${inBox ? '✓ Box' : '+ Box'}
+                    </button>
+                  </div>
                   <div class="flex items-center gap-1.5">
                     <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center p-0.5 hover:text-blue-400 transition" title="eBay Sold"><i class="fa-brands fa-ebay text-xs"></i></a>
                     <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center p-0.5 hover:text-amber-400 transition" title="Discogs"><i class="fa-solid fa-compact-disc text-[10px]"></i></a>
@@ -11038,6 +11302,7 @@
         const hasVal = areValuesVisible && item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
         const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
         const telemetry = deriveRecordTelemetry(item);
+        const inBox = (typeof isRecordInBox === 'function') ? isRecordInBox(item.id) : false;
 
         html += `
           <div class="bg-vinyl-900 rounded-2xl border border-vinyl-800 hover:border-brass-500/50 transition-all duration-200 overflow-hidden shadow-lg hover:shadow-2xl flex flex-col group">
@@ -11210,9 +11475,17 @@
 
               <!-- Action Bar Footer with 1-Click Market Checks -->
               <div class="card-action-bar mt-4 pt-3 border-t border-vinyl-800 flex items-center justify-between flex-wrap gap-2 text-xs text-slate-400">
-                <button type="button" onclick="viewRecordDetail('${safeId}')" class="hover:text-brass-400 transition flex items-center gap-1 flex-shrink-0">
-                  <i class="fa-solid fa-file-lines"></i> Dossier
-                </button>
+                <div class="flex items-center gap-1.5 flex-wrap flex-shrink-0">
+                  <button type="button" onclick="viewRecordDetail('${safeId}')" class="hover:text-brass-400 transition flex items-center gap-1 flex-shrink-0">
+                    <i class="fa-solid fa-file-lines"></i> Dossier
+                  </button>
+                  <button type="button" onclick="event.stopPropagation(); toggleBoxForRecord('${safeId}')" id="cardBoxBtn-${safeId}" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border-vinyl-700'}" title="${inBox ? 'Remove from Record Box' : 'Pack into Record Box'}">
+                    <span>${inBox ? '✓ In Box' : '+ Box'}</span>
+                  </button>
+                  <button type="button" onclick="event.stopPropagation(); openCrateAssignModal('${safeId}')" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-vinyl-850 hover:bg-vinyl-800 text-slate-300 hover:text-white border border-vinyl-700 transition" title="Assign to Thematic Crate">
+                    <span>+ Crate</span>
+                  </button>
+                </div>
 
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <!-- 1-Click eBay Sold Link -->
@@ -11300,6 +11573,7 @@
         const streamLinks = getStreamingLinks(item);
         const safeId = escapeJsString(String(item.id));
         const telemetry = deriveRecordTelemetry(item);
+        const inBox = (typeof isRecordInBox === 'function') ? isRecordInBox(item.id) : false;
 
         html += `
           <tr class="hover:bg-vinyl-850/60 transition group cursor-pointer" onclick="viewRecordDetail('${safeId}')">
@@ -11379,6 +11653,12 @@
               <div class="flex items-center justify-end gap-1">
                 <button type="button" onclick="event.stopPropagation(); viewRecordDetail('${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-brass-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Inspect dossier">
                   <i class="fa-solid fa-eye text-xs"></i>
+                </button>
+                <button type="button" onclick="event.stopPropagation(); toggleBoxForRecord('${safeId}')" id="tableBoxBtn-${safeId}" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg border transition active:scale-95 inline-flex items-center justify-center shadow-sm ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850/80 hover:bg-vinyl-750 text-amber-300 border-vinyl-700/60'}" title="${inBox ? 'In Record Box (Click to remove)' : 'Pack into Record Box'}">
+                  <i class="fa-solid fa-box-archive text-xs"></i>
+                </button>
+                <button type="button" onclick="event.stopPropagation(); openCrateAssignModal('${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-brass-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Assign to Thematic Crate">
+                  <i class="fa-solid fa-layer-group text-xs"></i>
                 </button>
                 ${isOwner ? `
                   <button type="button" onclick="event.stopPropagation(); openArtworkChooserModal('record', '${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-sky-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Choose Cover Sleeve">
@@ -12562,6 +12842,7 @@
       const normalizedTracks = normalizeTracklist(item.tracks || item.tracklist || [], item.format) || [];
       const safeId = escapeJsString(String(item.id));
       const telemetry = deriveRecordTelemetry(item);
+      const inBox = (typeof isRecordInBox === 'function') ? isRecordInBox(item.id) : false;
 
       // Initialize Dossier Audition Playback State
       const allPlaybackTracks = normalizedTracks.length > 0 ? normalizedTracks : [
@@ -13157,6 +13438,13 @@
             Record ID: ${escapeHtml(item.id)}
           </div>
           <div class="flex gap-2 w-full sm:w-auto justify-end flex-wrap">
+            <button type="button" onclick="toggleBoxForRecord('${safeId}')" id="dossierBoxBtn-${safeId}" class="px-3 py-2 rounded-lg font-semibold text-xs flex items-center gap-1.5 transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border-amber-500/30'}" title="${inBox ? 'Remove from Record Box' : 'Pack into Record Box'}">
+              <span>${inBox ? '✓ In Box' : '🧳 + Box'}</span>
+            </button>
+            <button type="button" onclick="openCrateAssignModal('${safeId}')" class="px-3 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 font-semibold text-xs flex items-center gap-1.5 transition shadow" title="Assign to Thematic Crate">
+              <i class="fa-solid fa-layer-group text-brass-400"></i>
+              <span>+ Crate</span>
+            </button>
             <button type="button" onclick="openExtendedArchivalModal('${safeId}')" class="px-3 py-2 rounded-lg bg-cyan-950/60 hover:bg-cyan-900/70 text-cyan-300 border border-cyan-500/40 text-xs font-semibold flex items-center gap-1.5 transition">
               <span>🔬 Extended Archival Details</span>
             </button>
