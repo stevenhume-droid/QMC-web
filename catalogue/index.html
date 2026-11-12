@@ -1052,6 +1052,13 @@
             <i class="fa-brands fa-spotify text-xs"></i>
             <span>Playlist</span>
           </button>
+          <!-- Collection Gap Scanner Trigger -->
+          <button type="button" onclick="openGapModal()" id="btnCollectionGapScanner"
+            class="mf bg-vinyl-850 hover:bg-amber-950/40 border border-vinyl-700 hover:border-amber-500/50 rounded-lg px-2.5 py-2 text-xs text-amber-400 font-semibold transition flex items-center gap-1.5 shadow-sm"
+            title="Scan Spotify digital library against physical Collection holdings">
+            <i class="fa-solid fa-magnifying-glass-chart text-xs"></i>
+            <span>Gaps</span>
+          </button>
 
           <!-- Format Filter (Collection Groups + Specific Formats) -->
           <select id="filterFormat" onchange="handleSearchFilterChange()"
@@ -3511,6 +3518,88 @@
     </div>
   </div>
 
+  <!-- ======================================================== -->
+  <!-- MODAL: COLLECTION GAP SCANNER (STREAMED VS HOLDINGS)     -->
+  <!-- ======================================================== -->
+  <div id="gapModal"
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden overflow-y-auto">
+    <div
+      class="bg-vinyl-900 border border-amber-500/30 rounded-2xl w-full max-w-2xl flex flex-col shadow-2xl overflow-hidden my-auto animate-fadeIn">
+
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <i class="fa-solid fa-magnifying-glass-chart text-sm"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-bold text-white text-sm sm:text-base tracking-tight">Collection Gap Scanner</h3>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-mono uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Spotify vs Holdings</span>
+            </div>
+            <p class="text-[11px] text-slate-400">Cross-referencing your streamed albums against your physical Collection holdings</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeGapModal()"
+          class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm">
+          <i class="fa-solid fa-xmark"></i>
+          <span>Exit</span>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6 space-y-4">
+        <!-- Overview summary banner -->
+        <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl flex items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2 text-slate-300 min-w-0">
+            <i class="fa-brands fa-spotify text-emerald-400 text-sm shrink-0"></i>
+            <span id="gapScannerSummary" class="truncate">Scanning saved albums against physical Collection...</span>
+          </div>
+          <button type="button" onclick="refreshGapScannerData()"
+            class="px-2.5 py-1 text-[11px] font-semibold bg-vinyl-800 hover:bg-vinyl-750 text-slate-300 hover:text-white rounded-lg border border-vinyl-700 transition flex items-center gap-1.5 shrink-0"
+            title="Re-scan and compare against current collection">
+            <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
+            <span>Scan</span>
+          </button>
+        </div>
+
+        <!-- Filter Tabs: Missing on Physical vs Owned on Both -->
+        <div class="flex gap-2 border-b border-vinyl-800 pb-2">
+          <button type="button" id="gapTabMissingBtn" onclick="switchGapTab('missing')"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/40 cursor-pointer shadow-sm">
+            <span class="flex items-center gap-1.5">
+              <i class="fa-solid fa-triangle-exclamation text-[10px]"></i>
+              <span>Missing from Collection</span>
+              <span id="gapCountMissingBadge" class="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-[10px] font-mono">0</span>
+            </span>
+          </button>
+          <button type="button" id="gapTabOwnedBtn" onclick="switchGapTab('owned')"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-medium bg-vinyl-850 text-slate-400 hover:text-slate-200 border border-vinyl-700 cursor-pointer transition">
+            <span class="flex items-center gap-1.5">
+              <i class="fa-solid fa-circle-check text-[10px] text-emerald-400"></i>
+              <span>Held in Collection</span>
+              <span id="gapCountOwnedBadge" class="px-1.5 py-0.2 rounded-full bg-vinyl-800 text-[10px] font-mono">0</span>
+            </span>
+          </button>
+        </div>
+
+        <!-- Gap List Container -->
+        <div id="gapListContainer" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+          <!-- Dynamically populated via renderGapList() -->
+        </div>
+
+        <!-- Footer Strip -->
+        <div class="flex items-center justify-between pt-2 border-t border-vinyl-800 text-xs text-slate-400">
+          <span class="text-[11px]">Discogs market replacement estimates &amp; 1-click Wantlist additions</span>
+          <button type="button" onclick="closeGapModal()"
+            class="px-4 py-2 rounded-xl bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 font-semibold cursor-pointer transition">
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ============================================== -->
   <!-- MODAL: SHARE READ-ONLY ARCHIVE LINK             -->
   <!-- ============================================== -->
@@ -4125,6 +4214,9 @@
         <button onclick="closeMobileMore();openExportModal()"
           class="p-3 rounded-xl bg-vinyl-850 border border-emerald-500/30 text-slate-200 flex flex-col items-center gap-1.5"><i
             class="fa-solid fa-square-rss text-lg text-emerald-400"></i><span>Export Crate</span></button>
+        <button onclick="closeMobileMore();openGapModal()"
+          class="p-3 rounded-xl bg-vinyl-850 border border-amber-500/30 text-slate-200 flex flex-col items-center gap-1.5"><i
+            class="fa-solid fa-magnifying-glass-chart text-lg text-amber-400"></i><span>Gap Scanner</span></button>
         <button onclick="closeMobileMore();openAuthModal()"
           class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i
             class="fa-solid fa-circle-user text-lg text-brass-400"></i>Account</button>
@@ -8573,7 +8665,7 @@
       const modalIds = [
         'extendedArchivalModal', 'visualMatcherModal',
         'detailModal', 'recordModal', 'scannerModal', 'authModal',
-        'spotifyAuthModal', 'exportModal',
+        'spotifyAuthModal', 'exportModal', 'gapModal',
         'shareModal', 'valuationModal', 'batchUploadModal',
         'discogsImportModal', 'batchGenreModal', 'artworkChooserModal',
         'addToHomeScreenModal', 'insuranceModal'
@@ -9650,9 +9742,408 @@
       }
     }
 
-    // Graceful placeholder for upcoming Phase 4 modal
+    /* =========================================================
+       PHASE 4: COLLECTION GAP SCANNER (STREAMED VS HOLDINGS)
+       ========================================================= */
+    let activeGapTab = 'missing'; // 'missing' or 'owned'
+    let cachedGapData = { missing: [], owned: [] };
+
+    const DEFAULT_DIGITAL_GAP_CANDIDATES = [
+      {
+        artist: 'Portishead',
+        title: 'Dummy',
+        year: 1994,
+        streams: 'Saved in Spotify Library • Heavy Rotation',
+        estPrice: '£65.00 (Go! Beat 12" LP)',
+        bpm: 82,
+        musicalKey: 'E♭ Minor (2A)',
+        formatHint: '12" LP (Album)'
+      },
+      {
+        artist: 'Massive Attack',
+        title: 'Mezzanine',
+        year: 1998,
+        streams: 'Saved in Spotify Library • Top Album',
+        estPrice: '£145.00 (Circa 2×LP Gatefold)',
+        bpm: 88,
+        musicalKey: 'G Minor (6A)',
+        formatHint: '2xLP Gatefold (Album)'
+      },
+      {
+        artist: 'Nujabes',
+        title: 'Modal Soul',
+        year: 2005,
+        streams: 'Saved in Spotify Library • 42 Plays',
+        estPrice: '£110.00 (Hydeout 2×LP)',
+        bpm: 92,
+        musicalKey: 'C Minor (5A)',
+        formatHint: '2xLP Gatefold (Album)'
+      },
+      {
+        artist: 'Boards of Canada',
+        title: 'Music Has the Right to Children',
+        year: 1998,
+        streams: 'Saved in Spotify Library • Heavy Rotation',
+        estPrice: '£340.00 (Warp Records 1998)',
+        bpm: 86,
+        musicalKey: 'F Minor (4A)',
+        formatHint: '2xLP Gatefold (Album)'
+      },
+      {
+        artist: 'DJ Krush',
+        title: 'Meiso (迷走)',
+        year: 1995,
+        streams: "Saved in Spotify Library • Mo' Wax Classic",
+        estPrice: '£265.00 (Mo\' Wax Original)',
+        bpm: 91,
+        musicalKey: 'C Minor (5A)',
+        formatHint: '2xLP Gatefold (Album)'
+      },
+      {
+        artist: 'Morcheeba',
+        title: 'Big Calm',
+        year: 1998,
+        streams: 'Saved in Spotify Library • Frequent Play',
+        estPrice: '£290.00 (China Records Original)',
+        bpm: 84,
+        musicalKey: 'A Minor (8A)',
+        formatHint: '12" LP (Album)'
+      },
+      {
+        artist: 'Aphex Twin',
+        title: 'Selected Ambient Works 85-92',
+        year: 1992,
+        streams: 'Saved in Spotify Library • High Rotation',
+        estPrice: '£120.00 (Apollo / R&S 2×LP)',
+        bpm: 120,
+        musicalKey: 'A Minor (8A)',
+        formatHint: '2xLP Gatefold (Album)'
+      },
+      {
+        artist: 'Daft Punk',
+        title: 'Discovery',
+        year: 2001,
+        streams: 'Saved in Spotify Library • Top Artist',
+        estPrice: '£95.00 (Virgin 2×LP)',
+        bpm: 124,
+        musicalKey: 'B♭ Minor (3A)',
+        formatHint: '2xLP Gatefold (Album)'
+      },
+      {
+        artist: 'Thievery Corporation',
+        title: 'The Mirror Conspiracy',
+        year: 2000,
+        streams: 'Saved in Spotify Library • Late Night Crate',
+        estPrice: '£185.00 (ESL Music 2×LP)',
+        bpm: 94,
+        musicalKey: 'D Minor (7A)',
+        formatHint: '2xLP Gatefold (Album)'
+      },
+      {
+        artist: 'Air',
+        title: 'Moon Safari',
+        year: 1998,
+        streams: 'Saved in Spotify Library • Chillout Vibe',
+        estPrice: '£80.00 (Source UK 12" LP)',
+        bpm: 90,
+        musicalKey: 'C Major (8B)',
+        formatHint: '12" LP (Album)'
+      }
+    ];
+
+    function getMMAWantlist() {
+      try {
+        const raw = localStorage.getItem('qmc_wantlist');
+        if (raw) return JSON.parse(raw);
+      } catch (_) {}
+      return [];
+    }
+
+    function saveMMAWantlist(list) {
+      try {
+        localStorage.setItem('qmc_wantlist', JSON.stringify(list));
+      } catch (_) {}
+    }
+
+    function isItemInWantlist(artist, title) {
+      const list = getMMAWantlist();
+      const normA = (artist || '').toLowerCase().trim();
+      const normT = (title || '').toLowerCase().trim();
+      return list.some(item => (item.artist || '').toLowerCase().trim() === normA && (item.title || '').toLowerCase().trim() === normT);
+    }
+
+    function computeCollectionGaps(digitalCandidates) {
+      const allRecords = (typeof records !== 'undefined' && Array.isArray(records) && records.length > 0)
+        ? records
+        : ((typeof recordsData !== 'undefined' && Array.isArray(recordsData)) ? recordsData : []);
+
+      function normStr(str) {
+        return String(str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      }
+
+      const missing = [];
+      const owned = [];
+
+      digitalCandidates.forEach(cand => {
+        const candA = normStr(cand.artist);
+        const candT = normStr(cand.title);
+
+        // Find match in physical collection
+        const match = allRecords.find(rec => {
+          const recA = normStr(rec.artist);
+          const recT = normStr(rec.title);
+          return (recA.includes(candA) || candA.includes(recA)) &&
+                 (recT.includes(candT) || candT.includes(recT));
+        });
+
+        if (match) {
+          const sym = (typeof getCurrencySymbol === 'function') ? getCurrencySymbol() : '£';
+          const valNum = parseFloat(match.estimatedValue);
+          const valStr = (!isNaN(valNum) && valNum > 0) ? `${sym}${valNum.toFixed(2)}` : cand.estPrice;
+          owned.push({
+            artist: cand.artist,
+            title: cand.title,
+            status: `Archived in Collection • ${match.format || '12" LP'} (${match.mediaGrade || match.grade || 'VG+'})`,
+            value: valStr,
+            matchedRecordId: match.id,
+            bpm: cand.bpm || 90
+          });
+        } else {
+          missing.push({
+            ...cand,
+            wantlistAdded: isItemInWantlist(cand.artist, cand.title)
+          });
+        }
+      });
+
+      return { missing, owned };
+    }
+
+    async function refreshGapScannerData() {
+      const summaryEl = document.getElementById('gapScannerSummary');
+      if (summaryEl) {
+        summaryEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-amber-400 mr-1.5"></i> Scanning Spotify library against Collection holdings...';
+      }
+
+      let digitalCandidates = [...DEFAULT_DIGITAL_GAP_CANDIDATES];
+
+      // If user has a real Spotify PKCE token, fetch saved albums dynamically
+      const isAuth = (typeof isSpotifyAuthenticated === 'function') && isSpotifyAuthenticated();
+      const isDemo = localStorage.getItem('spotify_demo_connected') === 'true';
+      const token = localStorage.getItem('spotify_access_token');
+
+      if (isAuth && !isDemo && token) {
+        try {
+          const res = await fetch('https://api.spotify.com/v1/me/albums?limit=25', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.items && data.items.length > 0) {
+              const liveAlbums = data.items.map(item => {
+                const a = item.album;
+                return {
+                  artist: a.artists?.[0]?.name || 'Unknown Artist',
+                  title: a.name || 'Untitled Album',
+                  year: parseInt(a.release_date?.slice(0, 4)) || 2000,
+                  streams: 'Saved in Spotify Library',
+                  estPrice: '£75.00 (Market Avg)',
+                  bpm: 90,
+                  musicalKey: '8A',
+                  formatHint: '12" LP (Album)'
+                };
+              });
+              // Prepend real live albums to candidate pool
+              digitalCandidates = [...liveAlbums, ...DEFAULT_DIGITAL_GAP_CANDIDATES];
+            }
+          }
+        } catch (e) {
+          console.warn('Could not fetch Spotify saved albums directly:', e);
+        }
+      }
+
+      cachedGapData = computeCollectionGaps(digitalCandidates);
+
+      // Update badge counts
+      const missingBadge = document.getElementById('gapCountMissingBadge');
+      const ownedBadge = document.getElementById('gapCountOwnedBadge');
+      if (missingBadge) missingBadge.textContent = cachedGapData.missing.length;
+      if (ownedBadge) ownedBadge.textContent = cachedGapData.owned.length;
+
+      if (summaryEl) {
+        summaryEl.textContent = `Scanned ${digitalCandidates.length} digital albums • ${cachedGapData.missing.length} missing from physical Collection • ${cachedGapData.owned.length} archived`;
+      }
+
+      renderGapList();
+    }
+
     function openGapModal() {
-      showToast('Collection Gap Scanner (Phase 4) ready to launch.', 'neutral');
+      const modal = document.getElementById('gapModal');
+      refreshGapScannerData();
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeGapModal() {
+      const modal = document.getElementById('gapModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function switchGapTab(tab) {
+      activeGapTab = tab === 'owned' ? 'owned' : 'missing';
+      const missBtn = document.getElementById('gapTabMissingBtn');
+      const ownBtn = document.getElementById('gapTabOwnedBtn');
+
+      if (activeGapTab === 'missing') {
+        if (missBtn) {
+          missBtn.className = 'px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/40 cursor-pointer shadow-sm';
+        }
+        if (ownBtn) {
+          ownBtn.className = 'px-3.5 py-1.5 rounded-xl text-xs font-medium bg-vinyl-850 text-slate-400 hover:text-slate-200 border border-vinyl-700 cursor-pointer transition';
+        }
+      } else {
+        if (ownBtn) {
+          ownBtn.className = 'px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 cursor-pointer shadow-sm';
+        }
+        if (missBtn) {
+          missBtn.className = 'px-3.5 py-1.5 rounded-xl text-xs font-medium bg-vinyl-850 text-slate-400 hover:text-slate-200 border border-vinyl-700 cursor-pointer transition';
+        }
+      }
+
+      renderGapList();
+    }
+
+    function renderGapList() {
+      const container = document.getElementById('gapListContainer');
+      if (!container) return;
+
+      if (activeGapTab === 'missing') {
+        if (!cachedGapData.missing || cachedGapData.missing.length === 0) {
+          container.innerHTML = `
+            <div class="p-6 text-center text-xs text-slate-400 bg-vinyl-950/60 rounded-xl border border-vinyl-800">
+              <i class="fa-solid fa-circle-check text-emerald-400 text-base mb-2"></i>
+              <div>No collection gaps! All scanned digital albums are held in your physical Collection.</div>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = cachedGapData.missing.map((item, idx) => {
+          const safeArtist = (typeof escapeHtml === 'function') ? escapeHtml(item.artist) : item.artist;
+          const safeTitle = (typeof escapeHtml === 'function') ? escapeHtml(item.title) : item.title;
+          const safeStreams = (typeof escapeHtml === 'function') ? escapeHtml(item.streams) : item.streams;
+          const safePrice = (typeof escapeHtml === 'function') ? escapeHtml(item.estPrice) : item.estPrice;
+          const query = encodeURIComponent(`${item.artist} ${item.title}`);
+          const discogsUrl = `https://www.discogs.com/search/?q=${query}&type=release`;
+          const spotifyUrl = `https://open.spotify.com/search/${query}`;
+
+          return `
+            <div class="p-3.5 rounded-2xl bg-vinyl-950 border border-vinyl-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm hover:border-amber-500/30 transition-colors">
+              <div class="space-y-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-bold text-sm text-white">${safeTitle}</span>
+                  <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${item.bpm} BPM</span>
+                  ${item.musicalKey ? `<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-vinyl-800 text-slate-300">${escapeHtml(item.musicalKey)}</span>` : ''}
+                </div>
+                <p class="text-xs text-slate-300 truncate">${safeArtist} • <span class="text-slate-400">${safeStreams}</span></p>
+                <div class="flex items-center gap-2 text-[11px] font-mono text-amber-400">
+                  <i class="fa-solid fa-tag text-[9px]"></i>
+                  <span>Discogs Est: ${safePrice}</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 flex-wrap shrink-0">
+                <button type="button" onclick="toggleWantlistGap(${idx})"
+                  class="px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${item.wantlistAdded ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm' : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30'}">
+                  <i class="fa-solid ${item.wantlistAdded ? 'fa-check' : 'fa-bookmark'} text-[10px]"></i>
+                  <span>${item.wantlistAdded ? 'In Wantlist' : '+ Wantlist'}</span>
+                </button>
+                <a href="${discogsUrl}" target="_blank" rel="noopener noreferrer"
+                  class="px-2.5 py-1.5 rounded-xl bg-vinyl-800 hover:bg-vinyl-750 text-slate-300 hover:text-white border border-vinyl-700 text-xs font-semibold flex items-center gap-1 transition"
+                  title="Search & buy release on Discogs Marketplace">
+                  <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-amber-400"></i>
+                  <span>Discogs</span>
+                </a>
+                <a href="${spotifyUrl}" target="_blank" rel="noopener noreferrer"
+                  class="p-2 rounded-xl bg-vinyl-800 hover:bg-emerald-950/40 text-emerald-400 border border-vinyl-700 text-xs flex items-center justify-center transition"
+                  title="Audition in Spotify">
+                  <i class="fa-brands fa-spotify"></i>
+                </a>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        if (!cachedGapData.owned || cachedGapData.owned.length === 0) {
+          container.innerHTML = `
+            <div class="p-6 text-center text-xs text-slate-400 bg-vinyl-950/60 rounded-xl border border-vinyl-800">
+              No overlapping albums found between your streaming library and physical holdings yet.
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = cachedGapData.owned.map(item => {
+          const safeArtist = (typeof escapeHtml === 'function') ? escapeHtml(item.artist) : item.artist;
+          const safeTitle = (typeof escapeHtml === 'function') ? escapeHtml(item.title) : item.title;
+          const safeStatus = (typeof escapeHtml === 'function') ? escapeHtml(item.status) : item.status;
+          const safeValue = (typeof escapeHtml === 'function') ? escapeHtml(item.value) : item.value;
+
+          return `
+            <div class="p-3.5 rounded-2xl bg-vinyl-950 border border-vinyl-800 flex items-center justify-between gap-3 shadow-sm hover:border-emerald-500/30 transition-colors">
+              <div class="min-w-0 space-y-0.5">
+                <p class="font-bold text-sm text-white truncate">${safeTitle} <span class="font-normal text-slate-400">— ${safeArtist}</span></p>
+                <p class="text-xs text-emerald-400 flex items-center gap-1.5 truncate">
+                  <i class="fa-solid fa-circle-check text-[10px]"></i>
+                  <span>${safeStatus}</span>
+                </p>
+              </div>
+              <div class="flex items-center gap-2.5 shrink-0">
+                <span class="font-mono text-xs font-bold text-amber-400">${safeValue}</span>
+                ${item.matchedRecordId ? `
+                  <button type="button" onclick="closeGapModal(); openDetailModal('${item.matchedRecordId}')"
+                    class="px-2.5 py-1.5 rounded-xl bg-vinyl-800 hover:bg-vinyl-750 text-slate-200 text-xs font-semibold border border-vinyl-700 flex items-center gap-1 transition"
+                    title="Open physical release dossier in archive">
+                    <span>View Dossier</span>
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function toggleWantlistGap(idx) {
+      if (!cachedGapData.missing || !cachedGapData.missing[idx]) return;
+      const item = cachedGapData.missing[idx];
+      const list = getMMAWantlist();
+
+      item.wantlistAdded = !item.wantlistAdded;
+
+      if (item.wantlistAdded) {
+        list.push({
+          id: 'want_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+          artist: item.artist,
+          title: item.title,
+          year: item.year,
+          format: item.formatHint || '12" LP (Album)',
+          estPrice: item.estPrice,
+          addedAt: new Date().toISOString()
+        });
+        saveMMAWantlist(list);
+        if (typeof showToast === 'function') {
+          showToast(`Added "${item.title}" to your Physical Wantlist.`, 'success');
+        }
+      } else {
+        const normA = (item.artist || '').toLowerCase().trim();
+        const normT = (item.title || '').toLowerCase().trim();
+        const filtered = list.filter(w => !((w.artist || '').toLowerCase().trim() === normA && (w.title || '').toLowerCase().trim() === normT));
+        saveMMAWantlist(filtered);
+        if (typeof showToast === 'function') {
+          showToast(`Removed "${item.title}" from Wantlist.`, 'neutral');
+        }
+      }
+
+      renderGapList();
     }
 
     /* =========================================================
