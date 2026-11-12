@@ -8259,6 +8259,7 @@
                   <div class="flex items-center gap-1.5">
                     <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener" class="p-0.5 hover:text-blue-400 transition" title="eBay Sold"><i class="fa-brands fa-ebay text-xs"></i></a>
                     <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener" class="p-0.5 hover:text-amber-400 transition" title="Discogs"><i class="fa-solid fa-compact-disc text-[10px]"></i></a>
+                    <a href="${getStreamingLinks(item).spotify}" target="_blank" rel="noopener" class="p-0.5 hover:text-emerald-400 transition" title="Audition on Spotify"><i class="fa-brands fa-spotify text-[11px]"></i></a>
                     ${isOwner ? `
                       <button onclick="editRecord('${item.id}')" class="p-0.5 hover:text-amber-400 transition" title="Edit"><i class="fa-solid fa-pen-to-square text-[10px]"></i></button>
                     ` : ''}
@@ -8428,6 +8429,11 @@
                   <!-- 1-Click Discogs Market Link -->
                   <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener" class="p-1 hover:text-amber-400 transition" title="Check Discogs Marketplace Average">
                     <i class="fa-solid fa-compact-disc"></i>
+                  </a>
+
+                  <!-- 1-Click Spotify Audition Link -->
+                  <a href="${getStreamingLinks(item).spotify}" target="_blank" rel="noopener" class="p-1 hover:text-emerald-400 transition" title="Audition on Spotify">
+                    <i class="fa-brands fa-spotify text-sm"></i>
                   </a>
 
                   ${isOwner ? `
