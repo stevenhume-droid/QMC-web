@@ -588,14 +588,10 @@
         <img src="qmc-logo.jpg" alt="Queensferry Music Collective" class="w-full h-full object-cover rounded-full">
       </a>
       <div class="min-w-0">
-        <div class="flex items-center gap-1.5 sm:gap-2">
-          <h1 class="text-base sm:text-xl font-bold tracking-tight text-white flex items-center gap-1.5 truncate">
-            QMC <span
-              class="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-brass-500/20 text-brass-400 font-mono font-medium border border-brass-500/30 truncate">Archive</span>
-          </h1>
-        </div>
-        <p class="hidden sm:block text-xs text-slate-400 truncate">Music Media Archive · Vinyl, CDs, Tapes &amp;
-          Rarities</p>
+        <h1 class="text-base sm:text-lg lg:text-xl font-bold tracking-tight text-white truncate">
+          <span class="sm:hidden">MMA</span>
+          <span class="hidden sm:inline">Music Media Archive</span>
+        </h1>
       </div>
     </div>
 
@@ -9490,11 +9486,7 @@
         decadeMap['Unknown'].val += (parseFloat(r.estimatedValue) || 0);
       });
 
-      const sortedDecades = Object.keys(decadeMap).sort((a, b) => {
-        if (a === 'Unknown') return 1;
-        if (b === 'Unknown') return -1;
-        return a.localeCompare(b);
-      });
+      const sortedDecades = _sortDecadeList(Object.keys(decadeMap));
 
       let maxDecadeCount = 1;
       let topDecadeKey = '';
@@ -9564,52 +9556,10 @@
       });
 
       const activeFormats = formatCategories.filter(f => f.count > 0);
-      const highValueValPct = totalMedian > 0 ? Math.round((highValueSum / totalMedian) * 100) : 0;
-      const standardSharePct = totalMedian > 0 ? Math.round((standardValueSum / totalMedian) * 100) : 0;
-      const highSharePct = totalMedian > 0 ? (100 - standardSharePct) : 0;
 
-      // 5. Decades Breakdown Calculations
-      const decadeMap = {};
-      let minYear = 9999;
-      let maxYear = 0;
-
-      list.forEach(r => {
-        let y = parseInt(r.year);
-        let dec = 'Unknown';
-        if (!isNaN(y) && y > 1900 && y < 2100) {
-          dec = `${Math.floor(y / 10) * 10}s`;
-          if (y < minYear) minYear = y;
-          if (y > maxYear) maxYear = y;
-        }
-        if (!decadeMap[dec]) {
-          decadeMap[dec] = { count: 0, val: 0 };
-        }
-        decadeMap[dec].count++;
-        decadeMap[dec].val += (parseFloat(r.estimatedValue) || 0);
-      });
-
-      const sortedDecades = _sortDecadeList(Object.keys(decadeMap));
-      let maxDecadeCount = 1;
-      let topDecadeKey = null;
-      let topDecadeCount = 0;
-      sortedDecades.forEach(d => {
-        if (decadeMap[d].count > maxDecadeCount) maxDecadeCount = decadeMap[d].count;
-        if (d !== 'Unknown' && decadeMap[d].count > topDecadeCount) {
-          topDecadeCount = decadeMap[d].count;
-          topDecadeKey = d;
-        }
-      });
-      if (!topDecadeKey && sortedDecades.length > 0) topDecadeKey = sortedDecades[0];
-
-      const decadeColors = [
-        { badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40', bar: 'from-amber-500 to-amber-600' },
-        { badge: 'bg-sky-500/20 text-sky-300 border-sky-500/40', bar: 'from-sky-500 to-blue-600' },
-        { badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', bar: 'from-emerald-500 to-teal-600' },
-        { badge: 'bg-purple-500/20 text-purple-300 border-purple-500/40', bar: 'from-purple-500 to-indigo-600' },
-        { badge: 'bg-rose-500/20 text-rose-300 border-rose-500/40', bar: 'from-rose-500 to-pink-600' },
-        { badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40', bar: 'from-cyan-500 to-sky-600' },
-        { badge: 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/40', bar: 'from-fuchsia-500 to-purple-600' }
-      ];
+      // 5. Digital Preservation / FLAC Status
+      const digitizedCount = list.filter(r => r.transferStatus && r.transferStatus !== 'Not Digitized' && r.transferStatus !== 'Pending').length;
+      const digitizedPct = Math.round((digitizedCount / total) * 100);
 
       // 6. Top 5 Most Valuable Gems
       const rankedGems = [...list]
