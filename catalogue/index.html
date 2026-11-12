@@ -924,7 +924,7 @@
               <option value="CD Single">CD Single</option>
               <option value="MiniDisc">MiniDisc</option>
               <option value="Cassette Tape">Cassette Tape</option>
-              <option value="CD / Other">CD / Other</option>
+              <option value="CD LP">CD LP</option>
             </optgroup>
           </select>
 
@@ -2078,7 +2078,7 @@
                 <option value="CD Single">CD Single</option>
                 <option value="MiniDisc">MiniDisc</option>
                 <option value="Cassette Tape">Cassette Tape</option>
-                <option value="CD / Other">CD / Other</option>
+                <option value="CD LP">CD LP</option>
               </select>
             </div>
             <div class="text-[11px] text-slate-400" id="formatHintText">
@@ -3402,7 +3402,7 @@
               <div>
                 <span class="font-semibold text-slate-200">Audit &amp; Reclassify Potential Misclassifications
                   (Recommended)</span>
-                <p class="text-[11px] text-slate-400 mt-0.5">Checks records saved as 12" LP or CD/Other with
+                <p class="text-[11px] text-slate-400 mt-0.5">Checks records saved as 12" LP or CD LP with
                   single/maxi/cassette/MD titles, 45 RPM speeds, short tracklists, missing metadata, or series
                   candidates.</p>
               </div>
@@ -4317,7 +4317,7 @@
       if (groupDef) return groupDef.matcher(recordFormat);
       const recFmt = String(recordFormat || '');
       if (recFmt === filterVal) return true;
-      if (filterVal === 'CD Album (LP)' && (recFmt === 'CD / Other' || recFmt === 'CD')) return true;
+      if ((filterVal === 'CD Album (LP)' || filterVal === 'CD LP') && (recFmt === 'CD LP' || recFmt === 'CD Album (LP)' || recFmt === 'CD / Other' || recFmt === 'CD')) return true;
       if (filterVal.toLowerCase().includes('box') && recFmt.toLowerCase().includes('box')) return true;
       return false;
     }
@@ -7309,12 +7309,12 @@
           matcher: r => _classifyFormatTokens(r.format || '').isCDLP
         },
         {
-          key: 'CD / Other',
-          label: 'CD / Other',
-          shortLabel: 'Other',
+          key: 'CD LP',
+          label: 'CD LP',
+          shortLabel: 'CD LP',
           color: 'text-slate-400',
           activeBg: 'bg-slate-500/20 border-slate-500/40 text-slate-300',
-          filterVal: 'CD / Other',
+          filterVal: 'CD LP',
           alwaysShow: false,
           count: 0,
           matcher: () => true
@@ -9345,7 +9345,7 @@
         { key: 'CD Single', label: 'CD Singles', icon: 'fa-solid fa-compact-disc', color: 'text-indigo-300', barBg: 'bg-indigo-400', count: 0, val: 0, matcher: r => _classifyFormatTokens(r.format || '').isCDSingle },
         { key: 'Cassette', label: 'Cassettes', icon: 'fa-solid fa-tape', color: 'text-teal-400', barBg: 'bg-teal-400', count: 0, val: 0, matcher: r => _classifyFormatTokens(r.format || '').isCassette },
         { key: 'MiniDisc', label: 'Minidiscs', icon: 'fa-solid fa-floppy-disk', color: 'text-fuchsia-400', barBg: 'bg-fuchsia-400', count: 0, val: 0, matcher: r => _classifyFormatTokens(r.format || '').isMiniDisc },
-        { key: 'CD / Other', label: 'CD / Other', icon: 'fa-solid fa-compact-disc', color: 'text-slate-400', barBg: 'bg-slate-500', count: 0, val: 0, matcher: () => true }
+        { key: 'CD LP', label: 'CD LP', icon: 'fa-solid fa-compact-disc', color: 'text-slate-400', barBg: 'bg-slate-500', count: 0, val: 0, matcher: () => true }
       ];
 
       list.forEach(r => {
