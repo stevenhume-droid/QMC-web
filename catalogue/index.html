@@ -876,8 +876,8 @@
           </button>
 
           <!-- Search Bar Toggle Button (next to Gallery expand/minimise toggle) -->
-          <button type="button" id="searchToggleBtn" onclick="toggleSearchBar()"
-            aria-expanded="false" aria-controls="globalSearchWrapper"
+          <button type="button" id="searchToggleBtn" onclick="toggleSearchBar()" aria-expanded="false"
+            aria-controls="globalSearchWrapper"
             class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-brass-500/50 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-slate-300 font-semibold flex items-center gap-1 transition shadow-sm"
             title="Toggle Search Bar">
             <i id="searchToggleIcon" class="fa-solid fa-magnifying-glass text-xs text-slate-300"></i>
@@ -983,7 +983,8 @@
           <input type="text" id="globalSearch" oninput="handleSearchFilterChange()"
             placeholder="Search Artist, Album, Title, Label, Cat #, Matrix..."
             class="w-full pl-8 pr-9 py-2 bg-vinyl-850/95 backdrop-blur-md border border-vinyl-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brass-500 focus:ring-1 focus:ring-brass-500 shadow-md">
-          <button type="button" onclick="if (document.getElementById('globalSearch')?.value) { clearSearchInput(); } else { toggleSearchBar(false); }"
+          <button type="button"
+            onclick="if (document.getElementById('globalSearch')?.value) { clearSearchInput(); } else { toggleSearchBar(false); }"
             class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 text-xs p-1"
             title="Clear or hide search">
             <i class="fa-solid fa-xmark"></i>
@@ -992,7 +993,8 @@
       </div>
 
       <!-- Active Tag & Filter Indicators -->
-      <div id="filterPillsContainer" class="flex flex-wrap items-center gap-1.5 empty:hidden text-[11px] sm:text-xs text-slate-400">
+      <div id="filterPillsContainer"
+        class="flex flex-wrap items-center gap-1.5 empty:hidden text-[11px] sm:text-xs text-slate-400">
       </div>
     </div>
 
@@ -3730,7 +3732,8 @@
             onchange="closeMobileMore();importFromJSON(event)" class="hidden"></label>
         <button onclick="closeMobileMore();toggleTheme()"
           class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i
-            id="mobileThemeToggleIcon" class="fa-solid fa-sun text-lg text-amber-400"></i><span id="mobileThemeToggleLabel">Light Theme</span></button>
+            id="mobileThemeToggleIcon" class="fa-solid fa-sun text-lg text-amber-400"></i><span
+            id="mobileThemeToggleLabel">Light Theme</span></button>
         <button onclick="closeMobileMore();forceBustCache()"
           class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i
             class="fa-solid fa-arrows-rotate text-lg text-sky-400"></i>Hard Reload</button>
@@ -8646,18 +8649,18 @@
 
                 <!-- Tracks Summary Quick Info (click to expand full tracklist) -->
                 ${(() => {
-                  const recKey = String(item.id || '');
-                  const safeDomId = escapeHtml(recKey);
-                  const isTracksExpanded = expandedCardTracklists.has(recKey);
-                  const hasTracks = item.tracks && item.tracks.length > 0;
-                  const tracksRowsHtml = hasTracks
-                    ? item.tracks.map((t, idx) => `
+            const recKey = String(item.id || '');
+            const safeDomId = escapeHtml(recKey);
+            const isTracksExpanded = expandedCardTracklists.has(recKey);
+            const hasTracks = item.tracks && item.tracks.length > 0;
+            const tracksRowsHtml = hasTracks
+              ? item.tracks.map((t, idx) => `
                         <div class="flex items-center justify-between gap-2 text-[10px] py-0.5 border-b border-vinyl-800/50 last:border-b-0">
                           <span class="text-slate-200 truncate"><span class="text-brass-400/90 font-mono mr-1.5">${escapeHtml(t.position || t.side || String(idx + 1))}</span>${escapeHtml(t.title || 'Untitled Track')}</span>
                           ${t.duration ? `<span class="text-slate-500 font-mono flex-shrink-0">${escapeHtml(t.duration)}</span>` : ''}
                         </div>
                       `).join('')
-                    : `
+              : `
                         <div class="flex items-center justify-between gap-2 text-[10px] py-0.5 border-b border-vinyl-800/50">
                           <span class="text-slate-200 truncate"><span class="text-brass-400 font-mono mr-1.5">A</span>${escapeHtml(item.sideATitle || item.title)}</span>
                           ${item.sideADuration ? `<span class="text-slate-500 font-mono flex-shrink-0">${escapeHtml(item.sideADuration)}</span>` : ''}
@@ -8667,7 +8670,7 @@
                           ${item.sideBDuration ? `<span class="text-slate-500 font-mono flex-shrink-0">${escapeHtml(item.sideBDuration)}</span>` : ''}
                         </div>
                       `;
-                  return `
+            return `
                     <div id="cardTracksToggle-${safeDomId}" role="button" tabindex="0" aria-expanded="${isTracksExpanded ? 'true' : 'false'}" onclick="toggleCardTracklist(event, '${safeId}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleCardTracklist(event,'${safeId}');}" class="bg-vinyl-850 hover:bg-vinyl-850/80 p-2.5 rounded-lg border border-vinyl-800 hover:border-brass-500/40 space-y-1 text-[11px] cursor-pointer transition select-none" title="Click to show/hide full tracklist">
                       ${hasTracks ? `
                         <div class="flex items-center justify-between text-slate-300 gap-1.5">
@@ -8700,7 +8703,7 @@
                       </div>
                     </div>
                   `;
-                })()}
+          })()}
 
                 <!-- Matrix snippet -->
                 ${item.matrixA ? `
