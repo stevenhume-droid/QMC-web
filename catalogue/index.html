@@ -483,6 +483,24 @@
       border-color: #dfd5c5 !important;
     }
 
+    /* MMA Logo Black Shell - preserve deep black backdrop in both light & dark themes */
+    .mma-logo-shell,
+    html.theme-light .mma-logo-shell {
+      background-color: #0c0a09 !important;
+      border-color: rgba(212, 175, 55, 0.45) !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    html.theme-light #memberAuthContainer {
+      background-color: #f7f3ec !important;
+      border-color: #dfd5c5 !important;
+    }
+
+    html.theme-light #memberAuthContainer button:hover,
+    html.theme-light #memberAuthContainer div:hover {
+      background-color: #ede5d8 !important;
+    }
+
     /* Dark Theme Table Action Sticky Elevation Shadow */
     th.table-action-sticky,
     td.table-action-sticky {
@@ -795,23 +813,46 @@
         title="Queensferry Music Club (QMC) Home">
         <img src="qmc-logo.jpg" alt="Queensferry Music Club" class="w-full h-full object-cover rounded-full">
       </a>
-      <!-- MMA Graphic Logo (Replacing MMA text alongside, sized a bit bigger) -->
+      <!-- MMA Graphic Logo in Protective Black Shell (Guarantees high contrast on both Dark & Light themes) -->
       <a href="index.html" class="flex items-center group flex-shrink-0" title="Music Media Archive">
-        <img src="mma-logo-trans.png" alt="MMA Music Media Archive" id="appHeaderLogoMMA"
-          class="h-9 sm:h-11 md:h-12 w-auto object-contain transition-transform group-hover:scale-105 drop-shadow-md">
+        <div class="mma-logo-shell bg-[#0a0a0c] px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border border-brass-500/40 shadow-md flex items-center justify-center group-hover:border-brass-400 group-hover:scale-105 transition-all duration-200">
+          <img src="mma-logo-trans.png" alt="MMA Music Media Archive" id="appHeaderLogoMMA"
+            class="h-7 sm:h-8 md:h-9 w-auto object-contain drop-shadow">
+        </div>
         <h1 class="sr-only">Music Media Archive</h1>
       </a>
     </div>
 
     <!-- Global Actions -->
     <div class="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
-      <!-- Member Sign-In / User Profile Button -->
-      <div id="memberAuthContainer">
-        <button onclick="openAuthModal()" id="authNavBtn"
-          class="px-2 sm:px-3.5 py-1.5 sm:py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 hover:border-brass-400 transition flex items-center gap-1 sm:gap-2 shadow-sm">
-          <i class="fa-solid fa-circle-user text-xs sm:text-sm text-brass-400"></i>
-          <span id="authNavText" class="max-w-[70px] sm:max-w-none truncate text-[11px] sm:text-xs">Sign In</span>
+      <!-- Member Sign-In / User Profile Button (Minimized to user icon, expands on click) -->
+      <div id="memberAuthContainer"
+        class="flex items-stretch rounded-lg bg-vinyl-850 border border-vinyl-700 hover:border-brass-400/50 shadow-sm overflow-hidden transition-all duration-200">
+        <!-- Collapsed Trigger Button: User Icon -->
+        <button type="button" onclick="handleAuthNavBtnClick()" id="authNavBtn"
+          class="px-2 sm:px-2.5 py-1 sm:py-1.5 hover:bg-vinyl-800 text-slate-200 transition flex items-center gap-1 sm:gap-1.5 focus:outline-none select-none cursor-pointer"
+          title="Member Profile &amp; Cloud Sync — Click to expand" aria-expanded="false">
+          <div class="relative flex items-center justify-center">
+            <i class="fa-solid fa-circle-user text-xs sm:text-sm text-brass-400"></i>
+            <span id="authUserSyncDot" class="hidden absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border border-vinyl-900"></span>
+          </div>
+          <i id="authNavChevron"
+            class="fa-solid fa-chevron-right text-[8px] sm:text-[9px] text-slate-400/70 transition-transform duration-200"></i>
         </button>
+
+        <!-- Expandable Content: Username, Cloud Sync status & Profile Link -->
+        <div id="memberAuthBody" class="hidden items-stretch border-l border-vinyl-700/60">
+          <div onclick="openAuthModal()"
+            class="px-2 sm:px-2.5 py-1 sm:py-1.5 hover:bg-vinyl-800 cursor-pointer transition flex items-center gap-1.5"
+            title="Click to view Member Profile &amp; Cloud Settings">
+            <span id="authNavText" class="max-w-[90px] sm:max-w-[140px] truncate text-[11px] sm:text-xs font-semibold text-slate-200">Sign In</span>
+          </div>
+          <button type="button" onclick="event.stopPropagation(); openAuthModal()"
+            class="px-1.5 sm:px-2 py-1 sm:py-1.5 hover:bg-brass-500/20 text-brass-400 hover:text-brass-300 border-l border-vinyl-700/60 transition flex items-center justify-center text-[10px] font-bold"
+            title="Open Member Portal">
+            <i class="fa-solid fa-sliders text-[9px] sm:text-[10px]"></i>
+          </button>
+        </div>
       </div>
 
       <!-- Spotify Connection Status Pill (PKCE OAuth Session) -->
@@ -7388,10 +7429,53 @@
       renderRecords();
     }
 
+    function toggleMemberAuthExpanded(force) {
+      const body = document.getElementById('memberAuthBody');
+      const chevron = document.getElementById('authNavChevron');
+      const btn = document.getElementById('authNavBtn');
+      if (!body) return;
+      const willExpand = force !== undefined ? force : body.classList.contains('hidden');
+      if (willExpand) {
+        body.classList.remove('hidden');
+        body.classList.add('flex');
+        if (chevron) chevron.style.transform = 'rotate(90deg)';
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+      } else {
+        body.classList.add('hidden');
+        body.classList.remove('flex');
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      }
+    }
+
+    function handleAuthNavBtnClick() {
+      const body = document.getElementById('memberAuthBody');
+      if (body && !body.classList.contains('hidden')) {
+        openAuthModal();
+      } else {
+        toggleMemberAuthExpanded(true);
+      }
+    }
+
     function updateAuthUI() {
       const navBtn = document.getElementById('authNavBtn');
       const navText = document.getElementById('authNavText');
+      const syncDot = document.getElementById('authUserSyncDot');
       if (!navBtn || !navText) return;
+
+      if (syncDot) {
+        if (currentUser) {
+          syncDot.classList.remove('hidden');
+          syncDot.className = memberProfile.cloud_auto_sync === false
+            ? 'absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 border border-vinyl-900'
+            : 'absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border border-vinyl-900 animate-pulse';
+        } else if (memberProfile && memberProfile.display_name) {
+          syncDot.classList.remove('hidden');
+          syncDot.className = 'absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-brass-400 border border-vinyl-900';
+        } else {
+          syncDot.classList.add('hidden');
+        }
+      }
 
       if (currentUser) {
         const name = memberProfile.display_name || currentUserProfile?.display_name || currentUser.user_metadata?.display_name || currentUser.email.split('@')[0];
@@ -10379,6 +10463,11 @@
       const dd = document.getElementById('moreActionsDropdown');
       if (dd && dd.classList.contains('menu-open') && !dd.contains(e.target)) dd.classList.remove('menu-open');
       else if (dd && dd.classList.contains('menu-open') && e.target.closest('#moreActionsPanel button, #moreActionsPanel label')) dd.classList.remove('menu-open');
+
+      const authContainer = document.getElementById('memberAuthContainer');
+      if (authContainer && !authContainer.contains(e.target)) {
+        if (typeof toggleMemberAuthExpanded === 'function') toggleMemberAuthExpanded(false);
+      }
     });
 
     function closeMobileMore() {
