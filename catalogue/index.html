@@ -441,15 +441,21 @@
     }
 
     /* Table & Archival List View in Light Theme */
-    html.theme-light tbody tr {
-      background-color: #ffffff !important;
-    }
-
     html.theme-light thead th.table-action-sticky,
     html.theme-light tfoot td.table-action-sticky {
       background-color: #efe9df !important;
       border-color: #dfd5c5 !important;
+      color: #57534e !important;
       box-shadow: -4px 0 8px rgba(0, 0, 0, 0.04);
+    }
+
+    html.theme-light thead th {
+      color: #57534e !important;
+      border-color: #dfd5c5 !important;
+    }
+
+    html.theme-light tbody tr {
+      background-color: #ffffff !important;
     }
 
     html.theme-light tbody td.table-action-sticky {
@@ -461,6 +467,20 @@
     html.theme-light tbody tr:hover,
     html.theme-light tbody tr:hover td.table-action-sticky {
       background-color: #f5efe6 !important;
+    }
+
+    /* Modal Cards and Sticky Action Footers in Light Theme */
+    html.theme-light #detailModalContent,
+    html.theme-light #crateAssignModalContent,
+    html.theme-light #gapModalContent,
+    html.theme-light #recordModalContent {
+      background-color: #fbf9f5 !important;
+      border-color: #dfd5c5 !important;
+    }
+
+    html.theme-light #detailModalContent .sticky.bottom-0 {
+      background-color: rgba(251, 249, 245, 0.98) !important;
+      border-color: #dfd5c5 !important;
     }
 
     /* Dark Theme Table Action Sticky Elevation Shadow */
@@ -494,6 +514,24 @@
     html.theme-light [class*="hover:from-cyan-900"]:hover {
       background-color: #bae6fd !important;
       background-image: none !important;
+    }
+
+    html.theme-light [class*="bg-emerald-950"],
+    html.theme-light [class*="from-emerald-950"],
+    html.theme-light [class*="to-emerald-950"] {
+      background-color: #dcfce7 !important;
+      background-image: none !important;
+      color: #15803d !important;
+      border-color: #86efac !important;
+    }
+
+    html.theme-light [class*="bg-amber-950"],
+    html.theme-light [class*="from-amber-950"],
+    html.theme-light [class*="to-amber-950"] {
+      background-color: #fef3c7 !important;
+      background-image: none !important;
+      color: #b45309 !important;
+      border-color: #fde68a !important;
     }
 
     html.theme-light [class*="text-yellow-"] {
@@ -1175,8 +1213,8 @@
 
           <!-- Record Box Trigger Button -->
           <button type="button" id="btnRecordBoxDrawer"
-            onclick="showToast('Record Box: ' + getQmcRecordBox().length + ' records packed for session.')"
-            class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-amber-500/50 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-amber-300 font-semibold flex items-center gap-1 sm:gap-1.5 transition shadow-sm"
+            onclick="openRecordBoxDrawer()"
+            class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-amber-500/50 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-amber-300 font-semibold flex items-center gap-1 sm:gap-1.5 transition shadow-sm cursor-pointer"
             title="Active Record Box (Session Working Bag)">
             <span>🧳</span>
             <span class="text-[11px] font-mono hidden sm:inline">Box</span>
@@ -3852,6 +3890,129 @@
           class="w-full py-2.5 px-4 rounded-xl bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 font-bold text-xs flex items-center justify-center gap-1.5 transition">
           <span>Done</span>
         </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- DRAWER: RECORD BOX & SET BUILDER WORKSPACE     -->
+  <!-- ============================================== -->
+  <div id="recordBoxDrawer"
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[75] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto"
+    style="z-index: 75;" onclick="if(event.target === this) closeRecordBoxDrawer()">
+    <div id="recordBoxDrawerContent"
+      class="bg-vinyl-900 border border-brass-500/40 rounded-2xl w-full max-w-6xl max-h-[96vh] sm:max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-fadeIn">
+      
+      <!-- Drawer Top Bar -->
+      <div class="px-5 sm:px-6 py-3.5 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-amber-600/30 to-brass-500/30 border border-brass-500/40 flex items-center justify-center text-amber-300 text-lg shadow-sm">
+            <span>🧳</span>
+          </div>
+          <div>
+            <h2 class="font-bold text-white text-base sm:text-lg tracking-tight flex items-center gap-2">
+              <span>Active Record Box &amp; Set Builder</span>
+            </h2>
+            <p class="text-[11px] text-slate-400">Curated gig bag releases &amp; strictly sequenced track timeline</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="saveCurrentActiveSet()"
+            class="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold text-xs items-center gap-1.5 transition shadow cursor-pointer">
+            <i class="fa-solid fa-floppy-disk text-xs"></i>
+            <span>Save Set</span>
+          </button>
+          <button type="button" onclick="closeRecordBoxDrawer()"
+            class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm cursor-pointer">
+            <i class="fa-solid fa-xmark"></i>
+            <span>Exit</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Split-Pane Body -->
+      <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-vinyl-800 overflow-hidden min-h-0">
+        
+        <!-- LEFT PANE: PACKED RECORD BOX (Physical Holdings Working Bag) -->
+        <div id="recordBoxPane" class="flex flex-col h-full min-h-0 bg-vinyl-900/60">
+          <div class="p-3.5 sm:p-4 border-b border-vinyl-800 bg-vinyl-850/60 flex items-center justify-between shrink-0">
+            <div>
+              <span class="text-xs uppercase font-mono font-bold text-brass-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-box-archive text-amber-400"></i> Packed Record Box
+              </span>
+              <span id="recordBoxPaneSubheading" class="text-[11px] text-slate-400">Physical releases packed for this session</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button type="button" onclick="saveRecordBoxAsCrate()"
+                class="px-2.5 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-brass-300 border border-brass-500/30 flex items-center gap-1 transition cursor-pointer"
+                title="Archive these packed records into a new Thematic Crate">
+                <i class="fa-solid fa-layer-group text-[10px]"></i>
+                <span class="hidden sm:inline">Save as Crate</span>
+                <span class="sm:hidden">+ Crate</span>
+              </button>
+              <button type="button" onclick="clearRecordBoxConfirm()"
+                class="px-2 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-400 hover:text-red-300 border border-vinyl-700 transition cursor-pointer"
+                title="Unpack all releases from Record Box">
+                <i class="fa-solid fa-trash-can text-[10px]"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Packed Releases List -->
+          <div id="recordBoxList" class="flex-1 p-3.5 sm:p-4 space-y-3 overflow-y-auto overscroll-contain">
+            <!-- Dynamically populated via renderRecordBoxPane() -->
+          </div>
+        </div>
+
+        <!-- RIGHT PANE: SEQUENCED SET BUILDER (Ordered Track Timeline) -->
+        <div id="setBuilderPane" class="flex flex-col h-full min-h-0 bg-vinyl-900/40">
+          <!-- Set Header & Title -->
+          <div class="p-3.5 sm:p-4 border-b border-vinyl-800 bg-vinyl-850/60 shrink-0 space-y-2.5">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex-1 flex items-center gap-2">
+                <i class="fa-solid fa-list-ol text-amber-400 text-xs"></i>
+                <input type="text" id="activeSetTitleInput" value="Session Set"
+                  placeholder="Name your set (e.g. Friday Late Night Warmup)..."
+                  class="flex-1 bg-vinyl-950/80 border border-vinyl-700 focus:border-amber-500 rounded-lg px-2.5 py-1 text-xs text-white font-semibold focus:outline-none transition"
+                  oninput="handleActiveSetTitleChange(event)">
+              </div>
+              <button type="button" onclick="clearActiveSetTimeline()"
+                class="px-2 py-1 text-[11px] rounded bg-vinyl-800 hover:bg-red-950/50 text-slate-400 hover:text-red-300 border border-vinyl-700 transition cursor-pointer"
+                title="Clear current set timeline">
+                Clear
+              </button>
+            </div>
+            <!-- Telemetry & Runtime Strip -->
+            <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 pt-0.5">
+              <span id="activeSetTrackCount" class="text-amber-300 font-bold">0 Tracks</span>
+              <span class="text-slate-600">·</span>
+              <span id="activeSetRuntime" class="text-emerald-400 font-bold">Runtime: 00:00</span>
+              <span class="text-slate-600">·</span>
+              <span id="activeSetSpeedAlert" class="text-slate-400">Ready</span>
+            </div>
+          </div>
+
+          <!-- Ordered Set Timeline -->
+          <div id="activeSetTimeline" class="flex-1 p-3.5 sm:p-4 space-y-2.5 overflow-y-auto overscroll-contain">
+            <!-- Dynamically populated via renderSetBuilderPane() -->
+          </div>
+
+          <!-- Bottom Action Bar -->
+          <div class="p-3 sm:p-4 border-t border-vinyl-800 bg-vinyl-850/80 shrink-0 flex items-center justify-between gap-2">
+            <button type="button" onclick="saveCurrentActiveSet()"
+              class="flex-1 py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow cursor-pointer">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Save Set</span>
+            </button>
+            <button type="button" onclick="triggerSpotifySetExport()"
+              class="flex-1 py-2 px-3 rounded-xl bg-[#1DB954] hover:bg-[#1ed760] active:scale-95 text-black font-black text-xs flex items-center justify-center gap-1.5 transition shadow cursor-pointer">
+              <i class="fa-brands fa-spotify text-sm"></i>
+              <span>Export to Spotify</span>
+            </button>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -8140,6 +8301,13 @@
     }
 
     function saveActiveSet(setTitle, tracks = [], description = '', setId = null) {
+      if (typeof setTitle === 'object' && setTitle !== null) {
+        const obj = setTitle;
+        setTitle = obj.title;
+        tracks = obj.tracks || [];
+        description = obj.description || '';
+        setId = obj.id || obj.set_id || null;
+      }
       const sets = getQmcSavedSets();
       const targetId = setId || ('set_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6));
       const existing = sets.find(s => String(s.set_id) === String(targetId));
@@ -8374,6 +8542,442 @@
 
     function openThematicCratesExplorer() {
       openCrateAssignModal(null);
+    }
+
+    /* =========================================================
+       PHASE 3: RECORD BOX & SET BUILDER WORKSPACE
+       ========================================================= */
+    let activeSetState = {
+      id: null,
+      title: 'Session Set ' + new Date().toLocaleDateString('en-GB'),
+      description: 'QMC Vinyl Session',
+      tracks: []
+    };
+    const expandedBoxRecordIds = new Set();
+
+    function openRecordBoxDrawer(initialFocus = 'box') {
+      const drawer = document.getElementById('recordBoxDrawer');
+      if (drawer) {
+        drawer.classList.remove('hidden');
+        renderRecordBoxDrawer();
+        if (initialFocus === 'sets') {
+          const titleInput = document.getElementById('activeSetTitleInput');
+          if (titleInput) {
+            setTimeout(() => {
+              titleInput.focus();
+              titleInput.select();
+            }, 150);
+          }
+        }
+      }
+    }
+
+    function closeRecordBoxDrawer() {
+      const drawer = document.getElementById('recordBoxDrawer');
+      if (drawer) drawer.classList.add('hidden');
+    }
+
+    function toggleRecordBoxDrawer() {
+      const drawer = document.getElementById('recordBoxDrawer');
+      if (drawer && !drawer.classList.contains('hidden')) {
+        closeRecordBoxDrawer();
+      } else {
+        openRecordBoxDrawer();
+      }
+    }
+
+    function renderRecordBoxDrawer() {
+      renderRecordBoxPane();
+      renderSetBuilderPane();
+    }
+
+    function renderRecordBoxPane() {
+      const listEl = document.getElementById('recordBoxList');
+      const subheadEl = document.getElementById('recordBoxPaneSubheading');
+      if (!listEl) return;
+
+      const boxItems = getQmcRecordBox();
+      const allRecords = (typeof records !== 'undefined' ? records : []);
+      
+      if (subheadEl) {
+        subheadEl.textContent = `${boxItems.length} release${boxItems.length === 1 ? '' : 's'} packed for active gig/session`;
+      }
+
+      if (boxItems.length === 0) {
+        listEl.innerHTML = `
+          <div class="py-12 px-4 text-center space-y-3">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-300 text-2xl">
+              <span>🧳</span>
+            </div>
+            <h4 class="font-bold text-white text-sm">Your Record Box is Empty</h4>
+            <p class="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+              Pack physical releases from your Archive or Crates by clicking <span class="font-mono text-amber-300 font-semibold">[ + Box ]</span> on any album or single card.
+            </p>
+            <button type="button" onclick="closeRecordBoxDrawer()" class="px-4 py-2 rounded-xl bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 text-xs font-semibold inline-flex items-center gap-1.5 transition cursor-pointer">
+              <i class="fa-solid fa-magnifying-glass text-[10px]"></i> Browse Physical Archive
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      boxItems.forEach(b => {
+        const rec = allRecords.find(r => String(r.id) === String(b.record_id));
+        const safeId = escapeJsString(String(b.record_id));
+        const artist = escapeHtml(rec?.artist || 'Unknown Artist');
+        const title = escapeHtml(rec?.title || 'Unknown Title');
+        const format = escapeHtml(rec?.format || 'Vinyl');
+        const speed = escapeHtml(rec?.speed || (format.includes('45') ? '45 RPM' : '33 1/3 RPM'));
+        const is45 = speed.includes('45');
+        const coverSrc = rec?.coverImage || (typeof getDefaultCover === 'function' ? getDefaultCover(rec?.format, rec?.artist, rec?.title) : '');
+        const isExpanded = expandedBoxRecordIds.has(String(b.record_id));
+        const rawTracks = rec?.tracklist || [];
+        const normTracks = (typeof normalizeTracklist === 'function') ? normalizeTracklist(rawTracks) : (Array.isArray(rawTracks) ? rawTracks : []);
+
+        html += `
+          <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-2.5 transition hover:border-amber-500/30">
+            <div class="flex items-start gap-3">
+              <img src="${coverSrc}" alt="" class="w-12 h-12 rounded object-cover border border-vinyl-700 shrink-0 bg-vinyl-900" onerror="this.src=getDefaultCover('', '', '', true)">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between gap-1">
+                  <div class="font-bold text-white text-xs truncate" title="${artist}">${artist}</div>
+                  <span class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold ${is45 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}" title="Playback Speed">
+                    ${speed}
+                  </span>
+                </div>
+                <div class="text-[11px] text-slate-300 truncate" title="${title}">${title}</div>
+                <div class="text-[10px] text-slate-500 font-mono mt-0.5 truncate">
+                  ${format} ${rec?.catNo ? `· Cat: ${escapeHtml(rec.catNo)}` : ''}
+                </div>
+              </div>
+            </div>
+
+            <!-- Box Action Row: Expand Tracks & Remove from Box -->
+            <div class="flex items-center justify-between pt-1 border-t border-vinyl-800/80 text-[11px]">
+              <button type="button" onclick="toggleRecordBoxTracklist('${safeId}')"
+                class="text-brass-400 hover:text-brass-300 font-semibold flex items-center gap-1 transition cursor-pointer">
+                <i class="fa-solid fa-chevron-${isExpanded ? 'down' : 'right'} text-[9px]"></i>
+                <span>${isExpanded ? 'Hide Tracks' : `Show Tracks (${normTracks.length || '?'})`}</span>
+              </button>
+              <div class="flex items-center gap-1.5">
+                <button type="button" onclick="viewRecordDetail('${safeId}')" class="text-slate-400 hover:text-slate-200 text-[10px] px-1.5 py-0.5 rounded bg-vinyl-800 hover:bg-vinyl-700 transition cursor-pointer" title="Inspect Dossier">
+                  Dossier
+                </button>
+                <button type="button" onclick="removeRecordFromBox('${safeId}'); renderRecordBoxDrawer();"
+                  class="text-red-400 hover:text-red-300 text-[10px] px-1.5 py-0.5 rounded bg-vinyl-800 hover:bg-red-950/60 transition cursor-pointer" title="Remove from Record Box">
+                  Remove
+                </button>
+              </div>
+            </div>
+
+            <!-- Expanded Tracklist with [+ Set] button -->
+            ${isExpanded ? `
+              <div class="pt-2 border-t border-vinyl-800 space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                ${normTracks.length > 0 ? normTracks.map((tr, tIdx) => {
+                  const trPos = escapeHtml(tr.position || tr.pos || tr.index || (tIdx + 1));
+                  const trTitle = escapeHtml(tr.title || 'Untitled Track');
+                  const trDur = escapeHtml(tr.duration || '');
+                  const inSet = activeSetState.tracks.some(st => String(st.record_id) === String(b.record_id) && String(st.title).toLowerCase() === String(tr.title).toLowerCase());
+                  const trSafeJson = escapeJsString(JSON.stringify({
+                    position: trPos,
+                    title: tr.title || 'Untitled Track',
+                    artist: rec?.artist || 'Unknown Artist',
+                    duration: tr.duration || '',
+                    bpm: rec?.bpm || '',
+                    speed: speed,
+                    format: format,
+                    record_id: String(b.record_id)
+                  }));
+
+                  return `
+                    <div class="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-vinyl-900/90 text-xs border border-vinyl-800/60 hover:border-vinyl-700 transition">
+                      <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="w-6 text-center font-mono text-[10px] font-bold text-amber-400 bg-vinyl-800/80 px-1 py-0.2 rounded shrink-0">${trPos}</span>
+                        <span class="truncate font-medium text-slate-200" title="${trTitle}">${trTitle}</span>
+                        ${trDur ? `<span class="text-[10px] font-mono text-slate-500 shrink-0">(${trDur})</span>` : ''}
+                      </div>
+                      <button type="button" onclick="addTrackToActiveSet('${safeId}', JSON.parse('${trSafeJson}'))"
+                        class="px-2 py-0.5 rounded text-[10px] font-semibold transition shrink-0 cursor-pointer ${inSet ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border border-amber-500/30'}">
+                        ${inSet ? '✓ In Set' : '+ Set'}
+                      </button>
+                    </div>
+                  `;
+                }).join('') : `
+                  <div class="text-[11px] text-slate-500 italic p-2 text-center">
+                    No tracklist data available. Click "Dossier" to fetch tracks via Discogs.
+                  </div>
+                `}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      });
+
+      listEl.innerHTML = html;
+    }
+
+    function toggleRecordBoxTracklist(recordId) {
+      const sId = String(recordId);
+      if (expandedBoxRecordIds.has(sId)) {
+        expandedBoxRecordIds.delete(sId);
+      } else {
+        expandedBoxRecordIds.add(sId);
+      }
+      renderRecordBoxPane();
+    }
+
+    function renderSetBuilderPane() {
+      const timelineEl = document.getElementById('activeSetTimeline');
+      const titleInput = document.getElementById('activeSetTitleInput');
+      const countEl = document.getElementById('activeSetTrackCount');
+      const runtimeEl = document.getElementById('activeSetRuntime');
+      const speedAlertEl = document.getElementById('activeSetSpeedAlert');
+      if (!timelineEl) return;
+
+      if (titleInput && titleInput.value !== activeSetState.title) {
+        titleInput.value = activeSetState.title || '';
+      }
+
+      const totalTracks = activeSetState.tracks.length;
+      if (countEl) countEl.textContent = `${totalTracks} Track${totalTracks === 1 ? '' : 's'}`;
+      
+      const runtimeStr = calculateActiveSetRuntime();
+      if (runtimeEl) runtimeEl.textContent = `Runtime: ${runtimeStr}`;
+
+      // Analyze RPM changes in sequence
+      let has33 = false;
+      let has45 = false;
+      activeSetState.tracks.forEach(t => {
+        if (String(t.speed || t.format || '').includes('45')) has45 = true;
+        else has33 = true;
+      });
+      if (speedAlertEl) {
+        if (has33 && has45) {
+          speedAlertEl.innerHTML = `<span class="text-rose-400 font-bold flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation text-[10px]"></i> Mixed 33/45 RPM</span>`;
+        } else if (has45) {
+          speedAlertEl.innerHTML = `<span class="text-rose-300 font-medium">All 45 RPM</span>`;
+        } else if (totalTracks > 0) {
+          speedAlertEl.innerHTML = `<span class="text-emerald-400 font-medium">All 33⅓ RPM</span>`;
+        } else {
+          speedAlertEl.textContent = 'Ready';
+        }
+      }
+
+      if (totalTracks === 0) {
+        timelineEl.innerHTML = `
+          <div class="py-12 px-4 text-center space-y-3">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-300 text-2xl">
+              <i class="fa-solid fa-list-ol"></i>
+            </div>
+            <h4 class="font-bold text-white text-sm">Set Timeline is Empty</h4>
+            <p class="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+              Click <span class="font-mono text-amber-300 font-semibold">[+ Set]</span> on any track in your Record Box on the left to sequence it into this timeline.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      activeSetState.tracks.forEach((track, index) => {
+        const posNum = index + 1;
+        const safeTitle = escapeHtml(track.title || 'Untitled Track');
+        const safeArtist = escapeHtml(track.artist || 'Unknown Artist');
+        const safeSide = escapeHtml(track.side_index || track.position || '');
+        const safeDur = escapeHtml(track.duration || '--:--');
+        const safeSpeed = escapeHtml(track.speed || '33 1/3 RPM');
+        const is45 = safeSpeed.includes('45');
+        const cueNote = escapeHtml(track.cue_note || '');
+
+        html += `
+          <div class="p-2.5 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-1.5 transition hover:border-amber-500/40">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="w-6 h-6 rounded-md bg-amber-500 text-vinyl-950 font-bold font-mono text-xs flex items-center justify-center shrink-0">
+                  ${posNum}
+                </span>
+                <div class="min-w-0">
+                  <div class="font-bold text-white text-xs truncate" title="${safeTitle}">${safeTitle}</div>
+                  <div class="text-[11px] text-slate-400 truncate">${safeArtist}</div>
+                </div>
+              </div>
+
+              <!-- Reorder & Remove Controls -->
+              <div class="flex items-center gap-1 shrink-0">
+                <button type="button" onclick="moveTrackInActiveSet(${index}, ${index - 1})"
+                  ${index === 0 ? 'disabled class="opacity-25 p-1 text-slate-500 text-xs cursor-not-allowed"' : 'class="p-1 hover:text-amber-300 text-slate-400 text-xs transition cursor-pointer"'} title="Move Track Up">
+                  <i class="fa-solid fa-chevron-up"></i>
+                </button>
+                <button type="button" onclick="moveTrackInActiveSet(${index}, ${index + 1})"
+                  ${index === totalTracks - 1 ? 'disabled class="opacity-25 p-1 text-slate-500 text-xs cursor-not-allowed"' : 'class="p-1 hover:text-amber-300 text-slate-400 text-xs transition cursor-pointer"'} title="Move Track Down">
+                  <i class="fa-solid fa-chevron-down"></i>
+                </button>
+                <button type="button" onclick="removeTrackFromActiveSet(${index})"
+                  class="p-1 hover:text-red-400 text-slate-500 text-xs transition ml-1 cursor-pointer" title="Remove Track from Set">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Cue Badges & Inline Note Bar -->
+            <div class="flex items-center justify-between text-[10px] font-mono pt-1 border-t border-vinyl-800/60 flex-wrap gap-1">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                ${safeSide ? `<span class="px-1.5 py-0.2 rounded bg-vinyl-800 text-brass-300 border border-vinyl-700 font-bold" title="Physical Side / Track Index">[${safeSide}]</span>` : ''}
+                <span class="px-1.5 py-0.2 rounded ${is45 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-vinyl-800 text-slate-300 border border-vinyl-700'}" title="Playback Speed">${safeSpeed}</span>
+                <span class="text-slate-400 font-medium">${safeDur}</span>
+              </div>
+              <div class="flex-1 max-w-[200px] text-right">
+                <input type="text" value="${cueNote}" placeholder="+ Add cue / transition note..."
+                  onchange="updateTrackCueNote(${index}, this.value)"
+                  class="w-full bg-vinyl-900 border border-vinyl-700 focus:border-amber-500 rounded px-1.5 py-0.5 text-[10px] text-amber-200 focus:outline-none transition">
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      timelineEl.innerHTML = html;
+    }
+
+    function addTrackToActiveSet(recordId, trackObj) {
+      if (!trackObj) return;
+      const allRecords = (typeof records !== 'undefined' ? records : []);
+      const rec = allRecords.find(r => String(r.id) === String(recordId));
+      const pos = activeSetState.tracks.length + 1;
+
+      activeSetState.tracks.push({
+        position: pos,
+        record_id: String(recordId),
+        artist: trackObj.artist || rec?.artist || 'Unknown Artist',
+        title: trackObj.title || 'Untitled Track',
+        side_index: trackObj.position || trackObj.side_index || '',
+        duration: trackObj.duration || '',
+        bpm: trackObj.bpm || rec?.bpm || '',
+        rpm: trackObj.speed || rec?.speed || (rec?.format?.includes('45') ? '45 RPM' : '33 1/3 RPM'),
+        speed: trackObj.speed || rec?.speed || (rec?.format?.includes('45') ? '45 RPM' : '33 1/3 RPM'),
+        cue_note: '',
+        spotify_uri: rec?.spotify_uri || null
+      });
+
+      renderRecordBoxDrawer();
+      showToast(`Added "${trackObj.title || 'Track'}" to active set!`, 'success');
+    }
+
+    function removeTrackFromActiveSet(index) {
+      if (index >= 0 && index < activeSetState.tracks.length) {
+        const removed = activeSetState.tracks.splice(index, 1)[0];
+        // Renumber positions
+        activeSetState.tracks.forEach((t, i) => { t.position = i + 1; });
+        renderRecordBoxDrawer();
+        showToast(`Removed "${removed?.title || 'Track'}" from set.`, 'info');
+      }
+    }
+
+    function moveTrackInActiveSet(fromIndex, toIndex) {
+      if (fromIndex < 0 || fromIndex >= activeSetState.tracks.length) return;
+      if (toIndex < 0 || toIndex >= activeSetState.tracks.length) return;
+      const item = activeSetState.tracks.splice(fromIndex, 1)[0];
+      activeSetState.tracks.splice(toIndex, 0, item);
+      activeSetState.tracks.forEach((t, i) => { t.position = i + 1; });
+      renderSetBuilderPane();
+    }
+
+    function updateTrackCueNote(index, note) {
+      if (activeSetState.tracks[index]) {
+        activeSetState.tracks[index].cue_note = String(note || '').trim();
+      }
+    }
+
+    function handleActiveSetTitleChange(event) {
+      activeSetState.title = (event.target.value || '').trim() || 'Session Set';
+    }
+
+    function calculateActiveSetRuntime(tracks = activeSetState.tracks) {
+      let totalSeconds = 0;
+      tracks.forEach(t => {
+        const dur = String(t.duration || '').trim();
+        if (dur.includes(':')) {
+          const parts = dur.split(':');
+          const m = parseInt(parts[0], 10) || 0;
+          const s = parseInt(parts[1], 10) || 0;
+          totalSeconds += (m * 60) + s;
+        }
+      });
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    function saveCurrentActiveSet() {
+      if (activeSetState.tracks.length === 0) {
+        showToast('Add at least one track before saving the set.', 'warning');
+        return;
+      }
+      const titleInput = document.getElementById('activeSetTitleInput');
+      if (titleInput && titleInput.value.trim()) {
+        activeSetState.title = titleInput.value.trim();
+      }
+      const saved = saveActiveSet(activeSetState);
+      activeSetState.id = saved.set_id;
+      showToast(`Set "${saved.title}" saved successfully!`, 'success');
+      return saved;
+    }
+
+    function saveRecordBoxAsCrate(customName = null) {
+      const box = getQmcRecordBox();
+      if (box.length === 0) {
+        showToast('Your Record Box is empty. Pack records first.', 'warning');
+        return;
+      }
+      const defaultName = customName || `Session Crate ${new Date().toLocaleDateString('en-GB')}`;
+      const name = customName || prompt('Enter a name for this new Thematic Crate:', defaultName);
+      if (!name) return;
+
+      const recordIds = box.map(b => String(b.record_id));
+      const crate = createQmcCrate(name.trim(), 'Archived from Record Box session', recordIds);
+      showToast(`Archived Record Box into crate "${crate.name}" (${recordIds.length} releases)!`, 'success');
+      return crate;
+    }
+
+    function clearRecordBoxConfirm() {
+      const box = getQmcRecordBox();
+      if (box.length === 0) return;
+      if (confirm(`Unpack all ${box.length} release(s) from your active Record Box?`)) {
+        clearRecordBox();
+        renderRecordBoxDrawer();
+        showToast('Record Box unpacked.', 'info');
+      }
+    }
+
+    function clearActiveSetTimeline() {
+      if (activeSetState.tracks.length === 0) return;
+      if (confirm('Clear all tracks from the active set timeline?')) {
+        activeSetState.tracks = [];
+        renderRecordBoxDrawer();
+        showToast('Set timeline cleared.', 'info');
+      }
+    }
+
+    function triggerSpotifySetExport() {
+      if (activeSetState.tracks.length === 0) {
+        showToast('Add tracks to your active set before exporting to Spotify.', 'warning');
+        return;
+      }
+      if (typeof isSpotifyAuthenticated === 'function' && isSpotifyAuthenticated()) {
+        if (typeof exportSetToSpotify === 'function') {
+          saveCurrentActiveSet();
+          exportSetToSpotify(activeSetState.id || activeSetState);
+        } else {
+          saveCurrentActiveSet();
+          showToast(`Set "${activeSetState.title}" saved! Ready for Phase 5 Spotify Playlist Export.`, 'success');
+        }
+      } else {
+        saveCurrentActiveSet();
+        if (confirm(`Set "${activeSetState.title}" is saved!\n\nTo export this sequenced playlist to Spotify, connect your Spotify account in Member Portal.\n\nOpen Spotify Connection now?`)) {
+          openSpotifyAuthModal();
+        }
+      }
     }
 
     /* =========================================================
@@ -9335,7 +9939,7 @@
     function closeAllModals() {
       let closedAny = false;
       const modalIds = [
-        'extendedArchivalModal', 'visualMatcherModal',
+        'recordBoxDrawer', 'extendedArchivalModal', 'visualMatcherModal',
         'detailModal', 'recordModal', 'scannerModal', 'authModal',
         'spotifyAuthModal', 'exportModal', 'gapModal', 'crateAssignModal',
         'shareModal', 'valuationModal', 'batchUploadModal',
@@ -9407,13 +10011,9 @@
       } else if (target === 'crates') {
         openThematicCratesExplorer();
       } else if (target === 'box') {
-        if (typeof toggleRecordBoxDrawer === 'function') {
-          toggleRecordBoxDrawer();
-        } else {
-          showToast(`Record Box: ${getQmcRecordBox().length} records packed for active session.`, 'info');
-        }
+        openRecordBoxDrawer();
       } else if (target === 'sets') {
-        openExportModal();
+        openRecordBoxDrawer('sets');
       } else if (target === 'search') {
         if (currentView === 'analytics') switchView('grid');
         if (typeof toggleSearchBar === 'function') toggleSearchBar(true);
