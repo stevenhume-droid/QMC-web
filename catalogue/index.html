@@ -5386,12 +5386,13 @@
               duration: ''
             };
           }
-          const index = String(t.index || t.pos || (idx + 1)).trim();
+          const index = String(t.position || t.pos || t.index || (idx + 1)).trim();
           const section = String(t.section || deriveTrackSection(index, format)).trim();
           return {
             section,
             index,
             pos: index,
+            position: index,
             title: String(t.title || `Track ${idx + 1}`).trim(),
             duration: String(t.duration || '').trim()
           };
@@ -5457,6 +5458,11 @@
     }
 
     function getDefaultCover(format = '', artist = '', title = '', isEncoded = false) {
+      if (Array.isArray(format)) format = format.join(' ');
+      else if (typeof format !== 'string') format = String(format || '');
+      if (typeof artist !== 'string') artist = String(artist || '');
+      if (typeof title !== 'string') title = String(title || '');
+
       if (isEncoded) {
         try {
           format = decodeURIComponent(format);
@@ -8348,8 +8354,11 @@
     function addRecordToBox(recordId, boxNote = '') {
       const box = getQmcRecordBox();
       const sId = String(recordId);
-      const existing = box.find(item => String(item.record_id) === sId);
-      if (existing) {
+      const existing = box.find(item => {
+        const itemId = typeof item === 'object' && item !== null ? String(item.record_id || item.id || '') : String(item || '');
+        return itemId === sId;
+      });
+      if (existing && typeof existing === 'object') {
         if (boxNote) existing.box_note = boxNote;
       } else {
         box.push({
@@ -8365,7 +8374,10 @@
     function removeRecordFromBox(recordId) {
       let box = getQmcRecordBox();
       const sId = String(recordId);
-      box = box.filter(item => String(item.record_id) !== sId);
+      box = box.filter(item => {
+        const itemId = typeof item === 'object' && item !== null ? String(item.record_id || item.id || '') : String(item || '');
+        return itemId !== sId;
+      });
       saveQmcRecordBox(box);
       return box;
     }
@@ -8373,7 +8385,10 @@
     function isRecordInBox(recordId) {
       const box = getQmcRecordBox();
       const sId = String(recordId);
-      return box.some(item => String(item.record_id) === sId);
+      return box.some(item => {
+        const itemId = typeof item === 'object' && item !== null ? String(item.record_id || item.id || '') : String(item || '');
+        return itemId === sId;
+      });
     }
 
     function clearRecordBox() {
@@ -8701,7 +8716,7 @@
       if (!listEl) return;
 
       const boxItems = getQmcRecordBox();
-      const allRecords = (typeof records !== 'undefined' ? records : []);
+      const allRecords = (typeof records !== 'undefined' && Array.isArray(records) ? records : []);
 
       if (subheadEl) {
         subheadEl.textContent = `${boxItems.length} release${boxItems.length === 1 ? '' : 's'} packed for active gig/session`;
@@ -8727,98 +8742,112 @@
 
       let html = '';
       boxItems.forEach(b => {
-        const rec = allRecords.find(r => String(r.id) === String(b.record_id));
-        const safeId = escapeJsString(String(b.record_id));
-        const artist = escapeHtml(rec?.artist || 'Unknown Artist');
-        const title = escapeHtml(rec?.title || 'Unknown Title');
-        const format = escapeHtml(rec?.format || 'Vinyl');
-        const speed = escapeHtml(rec?.speed || (format.includes('45') ? '45 RPM' : '33 1/3 RPM'));
-        const is45 = speed.includes('45');
-        const coverSrc = rec?.coverImage || (typeof getDefaultCover === 'function' ? getDefaultCover(rec?.format, rec?.artist, rec?.title) : '');
-        const isExpanded = expandedBoxRecordIds.has(String(b.record_id));
-        const rawTracks = rec?.tracklist || [];
-        const normTracks = (typeof normalizeTracklist === 'function') ? normalizeTracklist(rawTracks) : (Array.isArray(rawTracks) ? rawTracks : []);
+        try {
+          const recId = typeof b === 'object' && b !== null ? String(b.record_id || b.id || '') : String(b || '');
+          if (!recId) return;
 
-        html += `
-          <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-2.5 transition hover:border-amber-500/30">
-            <div class="flex items-start gap-3">
-              <img src="${coverSrc}" alt="" class="w-12 h-12 rounded object-cover border border-vinyl-700 shrink-0 bg-vinyl-900" onerror="this.src=getDefaultCover('', '', '', true)">
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center justify-between gap-1">
-                  <div class="font-bold text-white text-xs truncate" title="${artist}">${artist}</div>
-                  <span class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold ${is45 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}" title="Playback Speed">
-                    ${speed}
-                  </span>
-                </div>
-                <div class="text-[11px] text-slate-300 truncate" title="${title}">${title}</div>
-                <div class="text-[10px] text-slate-500 font-mono mt-0.5 truncate">
-                  ${format} ${rec?.catNo ? `· Cat: ${escapeHtml(rec.catNo)}` : ''}
-                </div>
-              </div>
-            </div>
+          const rec = allRecords.find(r => String(r.id) === recId);
+          const safeId = escapeJsString(recId);
+          const artist = escapeHtml(rec?.artist || 'Unknown Artist');
+          const title = escapeHtml(rec?.title || (rec ? 'Unknown Title' : `Uncataloged Release (${recId})`));
+          const formatStr = Array.isArray(rec?.format) ? rec.format.join(', ') : String(rec?.format || 'Vinyl');
+          const format = escapeHtml(formatStr);
+          const speed = escapeHtml(rec?.speed || (formatStr.includes('45') ? '45 RPM' : '33 1/3 RPM'));
+          const is45 = speed.includes('45');
+          const coverSrc = rec?.coverImage || (typeof getDefaultCover === 'function' ? getDefaultCover(formatStr, rec?.artist, rec?.title) : '');
+          const isExpanded = expandedBoxRecordIds.has(recId);
 
-            <!-- Box Action Row: Expand Tracks & Remove from Box -->
-            <div class="flex items-center justify-between pt-1 border-t border-vinyl-800/80 text-[11px]">
-              <button type="button" onclick="toggleRecordBoxTracklist('${safeId}')"
-                class="text-brass-400 hover:text-brass-300 font-semibold flex items-center gap-1 transition cursor-pointer">
-                <i class="fa-solid fa-chevron-${isExpanded ? 'down' : 'right'} text-[9px]"></i>
-                <span>${isExpanded ? 'Hide Tracks' : `Show Tracks (${normTracks.length || '?'})`}</span>
-              </button>
-              <div class="flex items-center gap-1.5">
-                <button type="button" onclick="viewRecordDetail('${safeId}')" class="text-slate-400 hover:text-slate-200 text-[10px] px-1.5 py-0.5 rounded bg-vinyl-800 hover:bg-vinyl-700 transition cursor-pointer" title="Inspect Dossier">
-                  Dossier
-                </button>
-                <button type="button" onclick="removeRecordFromBox('${safeId}'); renderRecordBoxDrawer();"
-                  class="text-red-400 hover:text-red-300 text-[10px] px-1.5 py-0.5 rounded bg-vinyl-800 hover:bg-red-950/60 transition cursor-pointer" title="Remove from Record Box">
-                  Remove
-                </button>
-              </div>
-            </div>
+          const rawTracks = rec?.tracklist || rec?.tracks || [];
+          let normTracks = [];
+          if (typeof normalizeTracklist === 'function') {
+            const res = normalizeTracklist(rawTracks, formatStr);
+            normTracks = Array.isArray(res) ? res : [];
+          } else if (Array.isArray(rawTracks)) {
+            normTracks = rawTracks;
+          }
 
-            <!-- Expanded Tracklist with [+ Set] button -->
-            ${isExpanded ? `
-              <div class="pt-2 border-t border-vinyl-800 space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                ${normTracks.length > 0 ? normTracks.map((tr, tIdx) => {
-          const trPos = escapeHtml(tr.position || tr.pos || tr.index || (tIdx + 1));
-          const trTitle = escapeHtml(tr.title || 'Untitled Track');
-          const trDur = escapeHtml(tr.duration || '');
-          const inSet = activeSetState.tracks.some(st => String(st.record_id) === String(b.record_id) && String(st.title).toLowerCase() === String(tr.title).toLowerCase());
-          const trSafeJson = escapeJsString(JSON.stringify({
-            position: trPos,
-            title: tr.title || 'Untitled Track',
-            artist: rec?.artist || 'Unknown Artist',
-            duration: tr.duration || '',
-            bpm: rec?.bpm || '',
-            speed: speed,
-            format: format,
-            record_id: String(b.record_id)
-          }));
-
-          return `
-                    <div class="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-vinyl-900/90 text-xs border border-vinyl-800/60 hover:border-vinyl-700 transition">
-                      <div class="flex items-center gap-1.5 min-w-0">
-                        <span class="w-6 text-center font-mono text-[10px] font-bold text-amber-400 bg-vinyl-800/80 px-1 py-0.2 rounded shrink-0">${trPos}</span>
-                        <span class="truncate font-medium text-slate-200" title="${trTitle}">${trTitle}</span>
-                        ${trDur ? `<span class="text-[10px] font-mono text-slate-500 shrink-0">(${trDur})</span>` : ''}
-                      </div>
-                      <button type="button" onclick="addTrackToActiveSet('${safeId}', JSON.parse('${trSafeJson}'))"
-                        class="px-2 py-0.5 rounded text-[10px] font-semibold transition shrink-0 cursor-pointer ${inSet ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border border-amber-500/30'}">
-                        ${inSet ? '✓ In Set' : '+ Set'}
-                      </button>
-                    </div>
-                  `;
-        }).join('') : `
-                  <div class="text-[11px] text-slate-500 italic p-2 text-center">
-                    No tracklist data available. Click "Dossier" to fetch tracks via Discogs.
+          html += `
+            <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-2.5 transition hover:border-amber-500/30">
+              <div class="flex items-start gap-3">
+                <img src="${coverSrc}" alt="" class="w-12 h-12 rounded object-cover border border-vinyl-700 shrink-0 bg-vinyl-900" onerror="this.src=getDefaultCover('', '', '', true)">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-1">
+                    <div class="font-bold text-white text-xs truncate" title="${artist}">${artist}</div>
+                    <span class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold ${is45 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}" title="Playback Speed">
+                      ${speed}
+                    </span>
                   </div>
-                `}
+                  <div class="text-[11px] text-slate-300 truncate" title="${title}">${title}</div>
+                  <div class="text-[10px] text-slate-500 font-mono mt-0.5 truncate">
+                    ${format} ${rec?.catNo ? `· Cat: ${escapeHtml(rec.catNo)}` : ''}
+                  </div>
+                </div>
               </div>
-            ` : ''}
-          </div>
-        `;
+
+              <!-- Box Action Row: Expand Tracks & Remove from Box -->
+              <div class="flex items-center justify-between pt-1 border-t border-vinyl-800/80 text-[11px]">
+                <button type="button" onclick="toggleRecordBoxTracklist('${safeId}')"
+                  class="text-brass-400 hover:text-brass-300 font-semibold flex items-center gap-1 transition cursor-pointer">
+                  <i class="fa-solid fa-chevron-${isExpanded ? 'down' : 'right'} text-[9px]"></i>
+                  <span>${isExpanded ? 'Hide Tracks' : `Show Tracks (${normTracks.length || '?'})`}</span>
+                </button>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="viewRecordDetail('${safeId}')" class="text-slate-400 hover:text-slate-200 text-[10px] px-1.5 py-0.5 rounded bg-vinyl-800 hover:bg-vinyl-700 transition cursor-pointer" title="Inspect Dossier">
+                    Dossier
+                  </button>
+                  <button type="button" onclick="removeRecordFromBox('${safeId}'); renderRecordBoxDrawer();"
+                    class="text-red-400 hover:text-red-300 text-[10px] px-1.5 py-0.5 rounded bg-vinyl-800 hover:bg-red-950/60 transition cursor-pointer" title="Remove from Record Box">
+                    Remove
+                  </button>
+                </div>
+              </div>
+
+              <!-- Expanded Tracklist with [+ Set] button -->
+              ${isExpanded ? `
+                <div class="pt-2 border-t border-vinyl-800 space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                  ${normTracks.length > 0 ? normTracks.map((tr, tIdx) => {
+            const trPos = escapeHtml(tr.position || tr.pos || tr.index || (tIdx + 1));
+            const trTitle = escapeHtml(tr.title || `Track ${tIdx + 1}`);
+            const trDur = escapeHtml(tr.duration || '');
+            const inSet = activeSetState.tracks.some(st => String(st.record_id) === recId && String(st.title).toLowerCase() === String(tr.title || '').toLowerCase());
+
+            return `
+                      <div class="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-vinyl-900/90 text-xs border border-vinyl-800/60 hover:border-vinyl-700 transition">
+                        <div class="flex items-center gap-1.5 min-w-0">
+                          <span class="w-6 text-center font-mono text-[10px] font-bold text-amber-400 bg-vinyl-800/80 px-1 py-0.2 rounded shrink-0">${trPos}</span>
+                          <span class="truncate font-medium text-slate-200" title="${trTitle}">${trTitle}</span>
+                          ${trDur ? `<span class="text-[10px] font-mono text-slate-500 shrink-0">(${trDur})</span>` : ''}
+                        </div>
+                        <button type="button" onclick="addTrackToActiveSet('${safeId}', ${tIdx})"
+                          class="px-2 py-0.5 rounded text-[10px] font-semibold transition shrink-0 cursor-pointer ${inSet ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border border-amber-500/30'}">
+                          ${inSet ? '✓ In Set' : '+ Set'}
+                        </button>
+                      </div>
+                    `;
+          }).join('') : `
+                    <div class="text-[11px] text-slate-500 italic p-2 text-center">
+                      No tracklist data available. Click "Dossier" to fetch tracks via Discogs.
+                    </div>
+                  `}
+                </div>
+              ` : ''}
+            </div>
+          `;
+        } catch (itemErr) {
+          console.warn('Error rendering record box item:', itemErr, b);
+        }
       });
 
-      listEl.innerHTML = html;
+      if (boxItems.length > 0 && html.trim() === '') {
+        listEl.innerHTML = `
+          <div class="py-8 px-4 text-center space-y-2 text-xs text-slate-400">
+            <p>Packed releases could not be displayed. Click below to inspect your archive.</p>
+            <button type="button" onclick="closeRecordBoxDrawer()" class="px-3 py-1.5 rounded bg-vinyl-800 text-amber-300 text-xs font-semibold">Browse Archive</button>
+          </div>
+        `;
+      } else {
+        listEl.innerHTML = html;
+      }
     }
 
     function toggleRecordBoxTracklist(recordId) {
@@ -8944,11 +8973,54 @@
       timelineEl.innerHTML = html;
     }
 
-    function addTrackToActiveSet(recordId, trackObj) {
-      if (!trackObj) return;
-      const allRecords = (typeof records !== 'undefined' ? records : []);
+    function addTrackToActiveSet(recordId, trackRef) {
+      if (trackRef === undefined || trackRef === null) return;
+      const allRecords = (typeof records !== 'undefined' && Array.isArray(records) ? records : []);
       const rec = allRecords.find(r => String(r.id) === String(recordId));
+
+      let trackObj = null;
+      if (typeof trackRef === 'number' || (typeof trackRef === 'string' && /^\d+$/.test(trackRef.trim()))) {
+        const idx = parseInt(trackRef, 10);
+        const rawTracks = rec?.tracklist || rec?.tracks || [];
+        let normTracks = [];
+        if (typeof normalizeTracklist === 'function') {
+          const res = normalizeTracklist(rawTracks, rec?.format || '');
+          normTracks = Array.isArray(res) ? res : [];
+        } else if (Array.isArray(rawTracks)) {
+          normTracks = rawTracks;
+        }
+        const tr = normTracks[idx] || (Array.isArray(rawTracks) ? rawTracks[idx] : null) || {};
+        const trPos = tr.position || tr.pos || tr.index || (idx + 1);
+        const formatStr = Array.isArray(rec?.format) ? rec.format.join(', ') : String(rec?.format || 'Vinyl');
+        const recSpeed = rec?.speed || (formatStr.includes('45') ? '45 RPM' : '33 1/3 RPM');
+
+        trackObj = {
+          position: trPos,
+          side_index: trPos,
+          title: tr.title || `Track ${idx + 1}`,
+          artist: rec?.artist || 'Unknown Artist',
+          duration: tr.duration || '',
+          bpm: rec?.bpm || '',
+          speed: recSpeed,
+          rpm: recSpeed,
+          format: formatStr,
+          record_id: String(recordId)
+        };
+      } else if (typeof trackRef === 'object' && trackRef !== null) {
+        trackObj = trackRef;
+      } else if (typeof trackRef === 'string') {
+        try {
+          trackObj = JSON.parse(trackRef);
+        } catch (_) {
+          trackObj = { title: trackRef, position: activeSetState.tracks.length + 1 };
+        }
+      }
+
+      if (!trackObj) return;
+
       const pos = activeSetState.tracks.length + 1;
+      const recFormat = Array.isArray(rec?.format) ? rec.format.join(', ') : String(rec?.format || 'Vinyl');
+      const recSpeed = rec?.speed || (recFormat.includes('45') ? '45 RPM' : '33 1/3 RPM');
 
       activeSetState.tracks.push({
         position: pos,
@@ -8958,9 +9030,9 @@
         side_index: trackObj.position || trackObj.side_index || '',
         duration: trackObj.duration || '',
         bpm: trackObj.bpm || rec?.bpm || '',
-        rpm: trackObj.speed || rec?.speed || (rec?.format?.includes('45') ? '45 RPM' : '33 1/3 RPM'),
-        speed: trackObj.speed || rec?.speed || (rec?.format?.includes('45') ? '45 RPM' : '33 1/3 RPM'),
-        cue_note: '',
+        rpm: trackObj.speed || trackObj.rpm || recSpeed,
+        speed: trackObj.speed || trackObj.rpm || recSpeed,
+        cue_note: trackObj.cue_note || '',
         spotify_uri: rec?.spotify_uri || null
       });
 
