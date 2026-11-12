@@ -3251,6 +3251,50 @@
     }
     const CURRENCY_KEY = 'qmc_archive_currency';
     const PROFILE_STORAGE_KEY = 'qmc_member_profile';
+    const SAMPLES_DISMISSED_KEY = 'qmc_samples_dismissed';
+    const SAMPLES_AUTO_SEEDED_KEY = 'qmc_samples_auto_seeded';
+    const SAMPLES_CLOUD_DELETE_PENDING_KEY = 'qmc_pending_sample_cloud_delete';
+
+    function getSampleRecordIds() {
+      return new Set(SAMPLE_RECORDS.map(s => s.id));
+    }
+
+    function areSamplesDismissed() {
+      try { return localStorage.getItem(SAMPLES_DISMISSED_KEY) === 'true'; } catch (e) { return false; }
+    }
+
+    function setSamplesDismissed(dismissed) {
+      try {
+        if (dismissed) {
+          localStorage.setItem(SAMPLES_DISMISSED_KEY, 'true');
+          localStorage.removeItem(SAMPLES_AUTO_SEEDED_KEY);
+        } else {
+          localStorage.removeItem(SAMPLES_DISMISSED_KEY);
+        }
+      } catch (e) {}
+    }
+
+    async function deleteSampleRecordsFromCloud() {
+      const sampleIds = [...getSampleRecordIds()];
+      if (!supabaseClient || !currentUser || sampleIds.length === 0) {
+        try { localStorage.setItem(SAMPLES_CLOUD_DELETE_PENDING_KEY, 'true'); } catch (e) {}
+        return { synced: false, pending: true };
+      }
+      try {
+        const { error } = await supabaseClient
+          .from('records')
+          .delete()
+          .eq('user_id', currentUser.id)
+          .in('id', sampleIds);
+        if (error) throw error;
+        try { localStorage.removeItem(SAMPLES_CLOUD_DELETE_PENDING_KEY); } catch (e) {}
+        return { synced: true, pending: false };
+      } catch (err) {
+        console.warn("Could not delete sample records from cloud:", err);
+        try { localStorage.setItem(SAMPLES_CLOUD_DELETE_PENDING_KEY, 'true'); } catch (e) {}
+        return { synced: false, pending: true, error: err };
+      }
+    }
 
     let memberProfile = {
       display_name: '',
@@ -5815,6 +5859,13 @@
       }
 
       try {
+        // Flush any queued sample-record deletion before downloading cloud rows
+        let pendingSampleDelete = false;
+        try { pendingSampleDelete = localStorage.getItem(SAMPLES_CLOUD_DELETE_PENDING_KEY) === 'true'; } catch (e) {}
+        if (pendingSampleDelete) {
+          await deleteSampleRecordsFromCloud();
+        }
+
         let res = await supabaseClient
           .from('records')
           .select('*, profiles(display_name, city)')
@@ -5833,11 +5884,24 @@
 
         const data = res.data;
         if (data && data.length > 0) {
-          const cloudRecords = data.map(mapDbToRecord);
-          // Preserve any local records that haven't synced to cloud yet
+          const sampleIds = getSampleRecordIds();
+          const dismissed = areSamplesDismissed();
+          let autoSeeded = false;
+          try { autoSeeded = localStorage.getItem(SAMPLES_AUTO_SEEDED_KEY) === 'true'; } catch (e) {}
+
+          let cloudRecords = data.map(mapDbToRecord);
+          if (dismissed) {
+            cloudRecords = cloudRecords.filter(r => !sampleIds.has(r.id));
+          }
+          // Preserve local unsynced records, but never merge back auto-seeded or dismissed samples
           const cloudIds = new Set(cloudRecords.map(r => r.id));
-          const localOnly = records.filter(r => !cloudIds.has(r.id));
+          const localOnly = records.filter(r => {
+            if (cloudIds.has(r.id)) return false;
+            if ((autoSeeded || dismissed) && sampleIds.has(r.id)) return false;
+            return true;
+          });
           records = [...cloudRecords, ...localOnly];
+          try { localStorage.removeItem(SAMPLES_AUTO_SEEDED_KEY); } catch (e) {}
           backfillMissingValuations();
           saveRecordsToStorage();
           renderStats();
@@ -6115,16 +6179,27 @@
     }
 
     function loadRecordsFromStorage() {
+      const sampleIds = getSampleRecordIds();
+      const dismissed = areSamplesDismissed();
       try {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored !== null) {
           records = sanitizeLoadedRecords(JSON.parse(stored));
+          if (dismissed) {
+            records = records.filter(r => !sampleIds.has(r.id));
+          }
         } else {
           const legacy = localStorage.getItem('rpm7_vinyl_catalogue_v1');
           if (legacy !== null) {
             records = sanitizeLoadedRecords(JSON.parse(legacy));
-          } else {
+            if (dismissed) {
+              records = records.filter(r => !sampleIds.has(r.id));
+            }
+          } else if (!dismissed) {
             records = sanitizeLoadedRecords([...SAMPLE_RECORDS]);
+            try { localStorage.setItem(SAMPLES_AUTO_SEEDED_KEY, 'true'); } catch (e) {}
+          } else {
+            records = [];
           }
           saveRecordsToStorage();
         }
@@ -6135,9 +6210,12 @@
 
       // Check IndexedDB asynchronously for full records or missing high-res covers
       loadRecordsFromIndexedDB().then(idbRecords => {
-        if (Array.isArray(idbRecords) && idbRecords.length >= records.length) {
-          const merged = sanitizeLoadedRecords(idbRecords);
-          if (merged.length > records.length || (records.length > 0 && !records[0].coverImage && merged[0].coverImage)) {
+        if (Array.isArray(idbRecords)) {
+          let merged = sanitizeLoadedRecords(idbRecords);
+          if (areSamplesDismissed()) {
+            merged = merged.filter(r => !sampleIds.has(r.id));
+          }
+          if (merged.length > records.length || (records.length > 0 && merged.length >= records.length && !records[0].coverImage && merged[0]?.coverImage)) {
             records = merged;
             renderStats();
             renderRecords();
@@ -10902,9 +10980,13 @@
 
       const proceed = window.confirm(`Permanently remove "${record.title}" by ${record.artist} from your research catalogue?`);
       if (proceed) {
-        if (supabaseClient && record.userId && currentUser) {
+        if (supabaseClient && currentUser && (!record.userId || record.userId === currentUser.id)) {
           try {
-            const { error } = await supabaseClient.from('records').delete().eq('id', id);
+            const { error } = await supabaseClient
+              .from('records')
+              .delete()
+              .eq('id', id)
+              .eq('user_id', currentUser.id);
             if (error) throw error;
           } catch (err) {
             showToast("Cloud delete error: " + err.message, "error");
@@ -10912,6 +10994,10 @@
           }
         }
         records = records.filter(r => r.id !== id);
+        const sampleIds = getSampleRecordIds();
+        if (sampleIds.has(id) && !records.some(r => sampleIds.has(r.id))) {
+          setSamplesDismissed(true);
+        }
         saveRecordsToStorage();
         populateMemberFilter(records);
         renderStats();
@@ -15874,31 +15960,56 @@
       event.target.value = '';
     }
 
-    function removeSampleDataOnly() {
-      const sampleIds = new Set(SAMPLE_RECORDS.map(s => s.id));
+    async function removeSampleDataOnly() {
+      const sampleIds = getSampleRecordIds();
+      setSamplesDismissed(true);
       const countBefore = records.length;
       records = records.filter(r => !sampleIds.has(r.id));
       const removedCount = countBefore - records.length;
 
-      if (removedCount === 0) {
-        showToast("No sample records found in your archive.", "info");
-        return;
-      }
-
       saveRecordsToStorage();
       populateMemberFilter(records);
       recalculateArchiveTotals(false);
-      showToast(`Removed ${removedCount} sample records. Custom records preserved!`);
+
+      let cloudSynced = false;
+      if (supabaseClient && currentUser) {
+        const res = await deleteSampleRecordsFromCloud();
+        cloudSynced = res.synced;
+      } else {
+        try { localStorage.setItem(SAMPLES_CLOUD_DELETE_PENDING_KEY, 'true'); } catch (e) {}
+      }
+
+      if (removedCount === 0 && !cloudSynced) {
+        showToast("No sample records found locally; future auto-seeding disabled.", "info");
+        return;
+      }
+
+      if (cloudSynced) {
+        showToast(`Removed ${removedCount > 0 ? removedCount + ' ' : ''}sample records locally and from Supabase Cloud!`);
+      } else {
+        showToast(`Removed ${removedCount} sample records locally. Custom records preserved!`);
+      }
     }
 
-    function clearAllRecordsPrompt() {
+    async function clearAllRecordsPrompt() {
       if (records.length === 0) {
+        setSamplesDismissed(true);
         showToast("Archive is already empty.", "info");
         return;
       }
 
       const proceed = window.confirm(`Are you sure you want to completely CLEAR all ${records.length} records from your archive? This cannot be undone unless you have exported a backup.`);
       if (proceed) {
+        if (supabaseClient && currentUser) {
+          try {
+            const { error } = await supabaseClient.from('records').delete().eq('user_id', currentUser.id);
+            if (error) throw error;
+          } catch (err) {
+            showToast("Cloud clear error: " + (err.message || err), "error");
+            return;
+          }
+        }
+        setSamplesDismissed(true);
         records = [];
         saveRecordsToStorage();
         populateMemberFilter(records);
@@ -15910,7 +16021,12 @@
 
     function loadSampleDataset() {
       if (confirm("Reset current catalogue back to standard sample albums & singles?")) {
-        records = [...SAMPLE_RECORDS];
+        setSamplesDismissed(false);
+        try {
+          localStorage.removeItem(SAMPLES_AUTO_SEEDED_KEY);
+          localStorage.removeItem(SAMPLES_CLOUD_DELETE_PENDING_KEY);
+        } catch (e) {}
+        records = sanitizeLoadedRecords([...SAMPLE_RECORDS]);
         saveRecordsToStorage();
         populateMemberFilter(records);
         renderStats();
