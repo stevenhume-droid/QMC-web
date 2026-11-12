@@ -381,15 +381,64 @@
     }
 
     html.theme-light #viewsControlsBar {
-      background-color: rgba(246, 242, 235, 0.88) !important;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border-color: #dfd5c5 !important;
+      background-color: rgba(246, 242, 235, 0.98) !important;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid #dfd5c5 !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
     }
 
     html.theme-light #mobileBottomNav {
-      background-color: rgba(255, 255, 255, 0.97) !important;
+      background-color: rgba(255, 255, 255, 0.98) !important;
       border-color: #dfd5c5 !important;
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    html.theme-light #mobileBottomNav .mnav-btn {
+      color: #78716c !important;
+    }
+
+    html.theme-light #mobileBottomNav .mnav-btn:hover {
+      color: #1c1917 !important;
+    }
+
+    html.theme-light #mobileBottomNav .mnav-btn.active {
+      color: #8b1e1a !important;
+    }
+
+    html.theme-light #mobileBottomNav .mnav-btn span.text-slate-400 {
+      color: #78716c !important;
+    }
+
+    html.theme-light td.table-action-sticky,
+    html.theme-light th.table-action-sticky {
+      background-color: #ffffff !important;
+      border-color: #dfd5c5 !important;
+    }
+
+    html.theme-light tr:hover td.table-action-sticky {
+      background-color: #efe9df !important;
+    }
+
+    html.theme-light [class*="text-cyan-"] {
+      color: #0e7490 !important;
+    }
+
+    html.theme-light [class*="border-cyan-"] {
+      border-color: #0891b2 !important;
+    }
+
+    html.theme-light [class*="bg-cyan-500/"] {
+      background-color: rgba(6, 182, 212, 0.16) !important;
+      font-weight: 600 !important;
+    }
+
+    html.theme-light [class*="text-yellow-"] {
+      color: #854d0e !important;
+    }
+
+    html.theme-light [class*="text-lime-"] {
+      color: #3f6212 !important;
     }
 
     html.theme-light [class*="border-vinyl-"] {
@@ -893,7 +942,7 @@
   </section>
 
   <!-- CONTROLS, SEARCH, AND VIEW TOGGLES -->
-  <main class="flex-1 p-3 sm:p-4 lg:p-8 max-w-[1600px] w-full mx-auto flex flex-col gap-3 sm:gap-4">
+  <main class="flex-1 p-3 sm:p-4 lg:p-8 pb-28 md:pb-8 max-w-[1600px] w-full mx-auto flex flex-col gap-3 sm:gap-4">
 
     <!-- Persistent Sticky Views, Search & Filters Toolbar -->
     <div id="viewsControlsBar"
@@ -3892,8 +3941,8 @@
   </div>
 
   <nav id="mobileBottomNav"
-    class="sm:hidden fixed bottom-0 inset-x-0 z-[45] bg-vinyl-900/95 backdrop-blur border-t border-vinyl-800 grid grid-cols-5 items-end text-[10px] font-semibold text-slate-400"
-    style="z-index:45;">
+    class="md:hidden fixed bottom-0 inset-x-0 z-[60] bg-vinyl-900/98 backdrop-blur-md border-t border-vinyl-800 grid grid-cols-5 items-end text-[10px] font-semibold text-slate-400"
+    style="z-index:60;">
     <button type="button" id="mnav-crate" onclick="mobileNav('crate')"
       class="mnav-btn active flex flex-col items-center justify-center gap-0.5"><i
         class="fa-solid fa-grip text-lg"></i>Crate</button>
@@ -8932,7 +8981,7 @@
                 <th class="py-3 px-3">Cat #</th>
                 <th class="py-3 px-3">Label</th>
                 <th class="py-3 px-3">Market Checks</th>
-                <th class="py-3 px-3 text-right">Actions</th>
+                <th class="py-3 px-3 text-right sticky right-0 bg-vinyl-850 border-l border-vinyl-800 table-action-sticky z-10">Actions</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-vinyl-800">
@@ -8941,14 +8990,15 @@
       list.forEach(item => {
         const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
         const hasVal = areValuesVisible && item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
-        const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
+        const isOwner = !isReadOnlyShareView && (!item.userId || !currentUser || item.userId === currentUser.id);
         const streamLinks = getStreamingLinks(item);
+        const safeId = escapeJsString(String(item.id));
 
         html += `
-          <tr class="hover:bg-vinyl-850/60 transition group">
+          <tr class="hover:bg-vinyl-850/60 transition group cursor-pointer" onclick="viewRecordDetail('${safeId}')">
             <td class="py-2.5 px-3">
               <div class="flex items-center gap-2.5">
-                <div class="relative group/thumb cursor-pointer flex-shrink-0" onclick="${isOwner ? `openArtworkChooserModal('record', '${item.id}')` : `viewRecordDetail('${item.id}')`}" title="${isOwner ? 'Click to choose cover sleeve' : 'View dossier'}">
+                <div class="relative group/thumb cursor-pointer flex-shrink-0" onclick="event.stopPropagation(); ${isOwner ? `openArtworkChooserModal('record', '${safeId}')` : `viewRecordDetail('${safeId}')`}" title="${isOwner ? 'Click to choose cover sleeve' : 'View dossier'}">
                   <img src="${coverSrc}" alt="" class="w-9 h-9 rounded object-cover border border-vinyl-700 bg-vinyl-950 group-hover/thumb:border-brass-400 transition" onerror="this.onerror=null; this.src=getDefaultCover('${encodeURIComponent(item.format || '')}', '${encodeURIComponent(item.artist || '')}', '${encodeURIComponent(item.title || '')}', true)">
                   ${isOwner ? `
                     <div class="absolute inset-0 bg-black/60 rounded opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center text-sky-400 transition">
@@ -8957,15 +9007,15 @@
                   ` : ''}
                 </div>
                 <div class="min-w-0">
-                  <div class="font-bold text-white hover:text-brass-400 cursor-pointer truncate transition" onclick="filterByArtist('${escapeJsString(item.artist)}')" title="Filter archive for all by ${escapeHtml(item.artist)}">
+                  <div class="font-bold text-white hover:text-brass-400 cursor-pointer truncate transition" onclick="event.stopPropagation(); filterByArtist('${escapeJsString(item.artist)}')" title="Filter archive for all by ${escapeHtml(item.artist)}">
                     ${item.artist}
                   </div>
-                  <div class="text-slate-300 hover:text-brass-400 text-[11px] font-medium truncate cursor-pointer transition" onclick="viewRecordDetail('${item.id}')" title="View dossier for ${escapeHtml(item.title)}">
+                  <div class="text-slate-300 hover:text-brass-400 text-[11px] font-medium truncate cursor-pointer transition" onclick="event.stopPropagation(); viewRecordDetail('${safeId}')" title="View dossier for ${escapeHtml(item.title)}">
                     ${item.title}
                   </div>
                   ${formatSeriesLabel(item) ? `
                     <div class="mt-0.5">
-                      <button type="button" onclick="filterBySeries('${escapeJsString(item.seriesName || item.series_name)}')" class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-pink-500/10 text-pink-300 border border-pink-500/30 text-[9px] font-mono hover:border-pink-400 transition">
+                      <button type="button" onclick="event.stopPropagation(); filterBySeries('${escapeJsString(item.seriesName || item.series_name)}')" class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-pink-500/10 text-pink-300 border border-pink-500/30 text-[9px] font-mono hover:border-pink-400 transition">
                         <i class="fa-solid fa-layer-group text-[8px]"></i> ${escapeHtml(formatSeriesLabel(item))}
                       </button>
                     </div>
@@ -8996,46 +9046,48 @@
             </td>
             <td class="py-2.5 px-3 whitespace-nowrap">
               ${item.label && String(item.label).trim() ? `
-                <button type="button" onclick="filterByLabel('${escapeJsString(item.label)}')" class="text-left text-brass-400/90 hover:text-brass-300 hover:underline cursor-pointer transition" title="Filter archive by label: ${escapeHtml(item.label)}">
+                <button type="button" onclick="event.stopPropagation(); filterByLabel('${escapeJsString(item.label)}')" class="text-left text-brass-400/90 hover:text-brass-300 hover:underline cursor-pointer transition" title="Filter archive by label: ${escapeHtml(item.label)}">
                   ${escapeHtml(item.label)}
                 </button>
               ` : '--'}
             </td>
             <td class="py-2.5 px-3 whitespace-nowrap">
               <div class="flex items-center gap-2">
-                <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener" class="text-slate-400 hover:text-blue-400" title="eBay Sold Listings">
+                <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-blue-400" title="eBay Sold Listings">
                   <i class="fa-brands fa-ebay text-sm"></i>
                 </a>
-                <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener" class="text-slate-400 hover:text-amber-400" title="Discogs Marketplace">
+                <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-amber-400" title="Discogs Marketplace">
                   <i class="fa-solid fa-compact-disc"></i>
                 </a>
-                <a href="${streamLinks.spotify}" target="_blank" rel="noopener" class="text-slate-400 hover:text-emerald-400" title="Audition on Spotify">
+                <a href="${streamLinks.spotify}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-emerald-400" title="Audition on Spotify">
                   <i class="fa-brands fa-spotify text-sm"></i>
                 </a>
-                <a href="${streamLinks.youtube}" target="_blank" rel="noopener" class="text-slate-400 hover:text-red-400" title="Search on YouTube">
+                <a href="${streamLinks.youtube}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-red-400" title="Search on YouTube">
                   <i class="fa-brands fa-youtube text-sm"></i>
                 </a>
               </div>
             </td>
-            <td class="py-2.5 px-3 text-right whitespace-nowrap">
-              <button onclick="viewRecordDetail('${item.id}')" class="p-1 hover:text-brass-400 transition" title="Inspect">
-                <i class="fa-solid fa-eye"></i>
-              </button>
-              ${isOwner ? `
-                <button onclick="openArtworkChooserModal('record', '${item.id}')" class="p-1 hover:text-sky-400 text-slate-400 transition ml-1" title="Choose Cover Sleeve">
-                  <i class="fa-solid fa-images"></i>
+            <td class="py-2.5 px-3 text-right whitespace-nowrap sticky right-0 bg-vinyl-900 border-l border-vinyl-800 table-action-sticky z-10 shadow-md">
+              <div class="flex items-center justify-end gap-1">
+                <button type="button" onclick="event.stopPropagation(); viewRecordDetail('${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-brass-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Inspect dossier">
+                  <i class="fa-solid fa-eye text-xs"></i>
                 </button>
-                <button onclick="editRecord('${item.id}')" class="p-1 hover:text-amber-400 transition ml-1" title="Edit Metadata">
-                  <i class="fa-solid fa-pen"></i>
-                </button>
-                <button onclick="deleteRecordPrompt('${item.id}')" class="p-1 hover:text-red-400 transition ml-1" title="Delete Entry">
-                  <i class="fa-solid fa-trash-can"></i>
-                </button>
-              ` : `
-                <span class="p-1 text-slate-600 ml-1 inline-block" title="Contributed by ${item.ownerName || 'another member'}">
-                  <i class="fa-solid fa-shield-halved"></i>
-                </span>
-              `}
+                ${isOwner ? `
+                  <button type="button" onclick="event.stopPropagation(); openArtworkChooserModal('record', '${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-sky-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Choose Cover Sleeve">
+                    <i class="fa-solid fa-images text-xs"></i>
+                  </button>
+                  <button type="button" onclick="event.stopPropagation(); editRecord('${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-amber-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Edit Metadata">
+                    <i class="fa-solid fa-pen text-xs"></i>
+                  </button>
+                  <button type="button" onclick="event.stopPropagation(); deleteRecordPrompt('${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-rose-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Delete Entry">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                  </button>
+                ` : `
+                  <span class="min-w-[34px] min-h-[34px] p-1.5 text-slate-500 inline-flex items-center justify-center" title="Contributed by ${escapeHtml(item.ownerName || 'another member')}">
+                    <i class="fa-solid fa-shield-halved text-xs"></i>
+                  </span>
+                `}
+              </div>
             </td>
           </tr>
         `;
@@ -9066,7 +9118,7 @@
                     <span>Live sum of all releases currently visible in table</span>
                   </div>
                 </td>
-                <td class="py-3 px-3 text-right">
+                <td class="py-3 px-3 text-right sticky right-0 bg-vinyl-850/95 border-l border-vinyl-800 table-action-sticky z-10">
                   <button type="button" onclick="recalculateArchiveTotals(true)" class="px-2.5 py-1 text-[11px] bg-brass-500 hover:bg-brass-400 active:scale-95 text-vinyl-950 rounded font-bold transition flex items-center gap-1.5 ml-auto shadow" title="Recalculate and backfill any missing valuations now">
                     <i class="fa-solid fa-arrows-rotate"></i>
                     <span>Recalculate</span>
@@ -9483,39 +9535,7 @@
       const formatCategories = [
         { key: '12" LP', label: '12" LP (Album)', icon: 'fa-solid fa-compact-disc', color: 'text-amber-400', barBg: 'bg-amber-400', count: 0, val: 0, matcher: r => _classifyFormatTokens(r.format || '').isVinylAlbum && !(r.format || '').includes('2x') && !(r.format || '').toLowerCase().includes('gatefold') && !(r.format || '').toLowerCase().includes('box') },
         { key: '2xLP Gatefold', label: '2xLP Gatefold', icon: 'fa-solid fa-book-open', color: 'text-purple-400', barBg: 'bg-purple-400', count: 0, val: 0, matcher: r => !_classifyFormatTokens(r.format || '').isCDLike && ((r.format || '').includes('2x') || (r.format || '').toLowerCase().includes('gatefold')) },
-        { key: 'Box Set', label: 'Box Set', icon: 'fa-solid fa-box-archive', color: 'text-brass-400', barBg: 'bg-brass-400', count: 0, val: 0, matcher: r => !_classifyFormatTokens(r.format || '').isCDLike && (r.format || '').toLowerCase().includes('box') },
-        { key: '12" Single', label: '12" Maxi / Single', icon: 'fa-solid fa-circle-dot', color: 'text-sky-400', barBg: 'bg-sky-400', count: 0, val: 0, matcher: r => { const t = _classifyFormatTokens(r.format || ''); const f = (r.format || '').toLowerCase(); return !t.isCDLike && !t.isCassette && !t.isMiniDisc && (f.includes('maxi') || (f.includes('12"') && (f.includes('single') || f.includes('ep')))); } },
-        { key: '7" Single', label: '7" Single (45 RPM)', icon: 'fa-solid fa-record-vinyl', color: 'text-emerald-400', barBg: 'bg-emerald-400', count: 0, val: 0, matcher: r => { const t = _classifyFormatTokens(r.format || ''); const f = (r.format || '').toLowerCase(); return !t.isCDLike && !t.isCassette && !t.isMiniDisc && (f.includes('7"') || (f.includes('single') && !f.includes('12"'))); } },
-        { key: '10" Vinyl', label: '10" Vinyl', icon: 'fa-solid fa-circle', color: 'text-pink-400', barBg: 'bg-pink-400', count: 0, val: 0, matcher: r => (r.format || '').includes('10"') },
-        { key: 'CD Album (LP)', label: "CD LP's", icon: 'fa-solid fa-compact-disc', color: 'text-slate-300', barBg: 'bg-slate-400', count: 0, val: 0, matcher: r => _classifyFormatTokens(r.format || '').isCDLP },
-        { key: 'CD Single', label: 'CD Singles', icon: 'fa-solid fa-compact-disc', color: 'text-indigo-300', barBg: 'bg-indigo-400', count: 0, val: 0, matcher: r => _classifyFormatTokens(r.format || '').isCDSingle },
-        { key: 'Cassette', label: 'Cassettes', icon: 'fa-solid fa-tape', color: 'text-teal-400', barBg: 'bg-teal-400', count: 0, val: 0, matcher: r => _classifyFormatTokens(r.format || '').isCassette },
-        { key: 'MiniDisc', label: 'Minidiscs', icon: 'fa-solid fa-floppy-disk', color: 'text-fuchsia-400', barBg: 'bg-fuchsia-400', count: 0, val: 0, matcher: r => _classifyFormatTokens(r.format || '').isMiniDisc },
-        { key: 'CD LP', label: 'CD LP', icon: 'fa-solid fa-compact-disc', color: 'text-slate-400', barBg: 'bg-slate-500', count: 0, val: 0, matcher: () => true }
-      ];
-
-      list.forEach(r => {
-        const val = parseFloat(r.estimatedValue) || 0;
-        let matched = false;
-        for (let i = 0; i < formatCategories.length - 1; i++) {
-          if (formatCategories[i].matcher(r)) {
-            formatCategories[i].count++;
-            formatCategories[i].val += val;
-            matched = true;
-            break;
-          }
-        }
-        if (!matched) {
-          formatCategories[formatCategories.length - 1].count++;
-          formatCategories[formatCategories.length - 1].val += val;
-        }
-      });
-
-      const activeFormats = formatCategories.filter(f => f.count > 0);
-
-      // 5. Digital Preservation / FLAC Status
-      const digitizedCount = list.filter(r => r.transferStatus && r.transferStatus !== 'Not Digitized' && r.transferStatus !== 'Pending').length;
-      const digitizedPct = Math.round((digitizedCount / total) * 100);
+        { key: 'Box Set', label: 'Box Set', icon: 'fa-solid fa-box-archive', color: 'text-brass-400', barBg: 'bg-brass-400', count: 0,
 
       // 6. Top 5 Most Valuable Gems
       const rankedGems = [...list]
@@ -12148,7 +12168,7 @@
     }
 
     async function deleteRecordPrompt(id) {
-      const record = records.find(r => r.id === id);
+      const record = records.find(r => String(r.id) === String(id));
       if (!record) return;
 
       if (currentUser && record.userId && record.userId !== currentUser.id) {
@@ -12171,9 +12191,9 @@
             return;
           }
         }
-        records = records.filter(r => r.id !== id);
+        records = records.filter(r => String(r.id) !== String(id));
         const sampleIds = getSampleRecordIds();
-        if (sampleIds.has(id) && !records.some(r => sampleIds.has(r.id))) {
+        if (sampleIds.has(String(id)) && !records.some(r => sampleIds.has(String(r.id)))) {
           setSamplesDismissed(true);
         }
         saveRecordsToStorage();
