@@ -302,6 +302,42 @@
       }
     }
 
+    /* Hardware Barcode Scanner & Camera Viewfinder */
+    #qr-reader {
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 220px !important;
+      position: relative !important;
+      overflow: hidden !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    #qr-reader video {
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 220px !important;
+      object-fit: cover !important;
+      display: block !important;
+    }
+    #qr-reader__scan_region {
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 220px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    #qr-reader__scan_region video {
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 220px !important;
+      object-fit: cover !important;
+    }
+    #qr-reader img {
+      display: none !important;
+    }
+
     /* ===== ALTERNATIVE LIGHT THEME (Forth Bridge Crimson & Archival Paper) ===== */
     html.theme-light body {
       background-color: #f6f2eb !important;
@@ -2368,7 +2404,18 @@
                 </div>
                 <div class="sm:col-span-3">
                   <input type="text" id="formSideBDuration" placeholder="Duration (e.g. 3:12)"
-                    class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-brasumbering
+                    class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-brass-500">
+                </div>
+              </div>
+            </div>
+
+            <!-- Multi-Track Listing Textarea (Adapts placeholder for Vinyl / CD / Tape) -->
+            <div id="tracksAlbumContainer" class="space-y-2">
+              <textarea id="formAlbumTracks" rows="4"
+                placeholder="Enter or paste tracks (one per line, e.g.):&#10;A1. Speak to Me / Breathe (3:58)&#10;A2. On the Run (3:35)&#10;B1. Money (6:22)"
+                class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg p-2.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-brass-500 leading-relaxed"></textarea>
+              <div class="flex justify-between items-center text-[10px] text-slate-500">
+                <span id="tracksHelperHint">Accepts Side A/B (A1, B1), Disc/Track (01, 02), or Tape Side 1/2 numbering
                   with durations.</span>
                 <button type="button" onclick="formatTracklistText()" class="text-brass-400 hover:underline">Clean
                   Format</button>
@@ -2718,8 +2765,8 @@
   <!-- MODAL: OPTIMIZED BARCODE SCANNER & ALTERNATIVES -->
   <!-- ============================================== -->
   <div id="scannerModal"
-    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[70] flex items-center justify-center p-3 sm:p-4 hidden overflow-y-auto"
-    style="z-index: 70;">
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[95] flex items-center justify-center p-3 sm:p-4 hidden overflow-y-auto"
+    style="z-index: 95;">
     <div
       class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-lg p-5 sm:p-6 flex flex-col shadow-2xl relative my-auto">
 
@@ -2731,8 +2778,8 @@
             <i class="fa-solid fa-barcode text-base"></i>
           </div>
           <div>
-            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Barcode & Archival Identifier</h3>
-            <p class="text-[11px] text-slate-400">Hardware-accelerated camera stream, photo upload & laser wedge</p>
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Barcode &amp; Archival Identifier</h3>
+            <p class="text-[11px] text-slate-400">Hardware-accelerated camera stream, photo upload &amp; laser wedge</p>
           </div>
         </div>
         <button type="button" onclick="closeScannerModal()"
@@ -2748,11 +2795,15 @@
         <div class="flex-1">
           <span class="text-amber-300 font-semibold">Vinyl pressed before ~1979 has no barcode:</span>
           <span class="text-slate-300 ml-1">Commercial vinyl barcodes were only introduced in 1979. For 60s/70s
-            originals, use Cat # or Artist & Title lookup instead.</span>
-          <div class="mt-1.5 flex gap-2">
+            originals, use Cat # or Artist &amp; Title lookup instead.</span>
+          <div class="mt-1.5 flex gap-3 flex-wrap">
             <button type="button" onclick="closeScannerModal(); openAddEditModal();"
               class="text-[11px] font-bold text-brass-400 hover:text-brass-300 underline flex items-center gap-1">
-              <i class="fa-solid fa-wand-magic-sparkles"></i> Switch to Artist & Title Quick Lookup
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Switch to Artist &amp; Title Quick Lookup
+            </button>
+            <button type="button" onclick="closeScannerModal(); openVisualMatcher();"
+              class="text-[11px] font-bold text-amber-300 hover:text-amber-200 underline flex items-center gap-1">
+              <i class="fa-solid fa-camera-retro"></i> Launch Visual Matcher Page
             </button>
           </div>
         </div>
@@ -2785,8 +2836,8 @@
 
       <!-- Viewfinder Stream -->
       <div
-        class="relative w-full aspect-[4/3] bg-black rounded-xl overflow-hidden border border-vinyl-700 flex items-center justify-center">
-        <div id="qr-reader" class="w-full h-full"></div>
+        class="relative w-full aspect-[4/3] bg-black rounded-xl overflow-hidden border border-vinyl-700 flex items-center justify-center min-h-[220px]">
+        <div id="qr-reader" class="w-full h-full min-h-[220px]"></div>
         <div id="scannerOverlay"
           class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-4">
           <!-- Laser Viewfinder Box (Wide horizontal aspect matching vinyl 1D barcodes) -->
@@ -6937,6 +6988,7 @@
       populateMemberFilter(records);
       updateGridDensityUI();
       updateValueVisibilityUI();
+      initTopValuationCollapse();
       renderStats();
       renderRecords();
       initSupabase();
@@ -7460,6 +7512,7 @@
           totalValEl.innerText = `${sym}${totalVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         }
       }
+      if (typeof updateTopValuationUI === 'function') updateTopValuationUI();
 
       const avgVal = valuedCount > 0 ? (totalVal / valuedCount).toFixed(2) : '0.00';
       const avgValEl = document.getElementById('statAvgValue');
@@ -7971,6 +8024,72 @@
         } else {
           filterBtn.classList.remove('hidden');
         }
+      }
+    }
+
+    /* =========================================================
+       COLLAPSIBLE TOP VALUATION PILL (£ ICON EXPAND/COLLAPSE)
+       ========================================================= */
+    function toggleTopValuationExpanded(forceState) {
+      const body = document.getElementById('topValuationBody');
+      const btn = document.getElementById('topValuationToggleBtn');
+      const chevron = document.getElementById('topValuationChevron');
+      const currIcon = document.getElementById('topValuationCurrencyIcon');
+      if (!body) return;
+
+      if (currIcon && typeof getCurrencySymbol === 'function') {
+        currIcon.textContent = getCurrencySymbol();
+      }
+
+      const willExpand = (typeof forceState === 'boolean')
+        ? forceState
+        : body.classList.contains('hidden');
+
+      if (willExpand) {
+        body.classList.remove('hidden');
+        body.classList.add('flex');
+      } else {
+        body.classList.add('hidden');
+        body.classList.remove('flex');
+      }
+
+      if (btn) {
+        btn.setAttribute('aria-expanded', willExpand ? 'true' : 'false');
+        btn.title = willExpand ? 'Archive Valuation — Click to collapse' : 'Archive Valuation — Click to show price';
+      }
+
+      if (chevron) {
+        chevron.className = willExpand
+          ? 'fa-solid fa-chevron-left text-[8px] sm:text-[9px] text-emerald-400/60 transition-transform duration-200'
+          : 'fa-solid fa-chevron-right text-[8px] sm:text-[9px] text-emerald-400/60 transition-transform duration-200';
+      }
+
+      try {
+        localStorage.setItem('qmc_top_val_expanded', willExpand ? 'true' : 'false');
+      } catch (e) { }
+    }
+
+    function initTopValuationCollapse() {
+      try {
+        const isExp = localStorage.getItem('qmc_top_val_expanded') === 'true';
+        toggleTopValuationExpanded(isExp);
+      } catch (e) {
+        toggleTopValuationExpanded(false);
+      }
+    }
+
+    function updateTopValuationUI() {
+      const currIcon = document.getElementById('topValuationCurrencyIcon');
+      if (currIcon && typeof getCurrencySymbol === 'function') {
+        currIcon.textContent = getCurrencySymbol();
+      }
+      const body = document.getElementById('topValuationBody');
+      const btn = document.getElementById('topValuationToggleBtn');
+      const totalValEl = document.getElementById('statTotalValue');
+      if (btn && body) {
+        const isExp = !body.classList.contains('hidden');
+        const priceStr = (totalValEl && totalValEl.innerText) ? ` (${totalValEl.innerText})` : '';
+        btn.title = isExp ? 'Archive Valuation — Click to collapse' : `Archive Valuation${priceStr} — Click to show price`;
       }
     }
 
@@ -15313,9 +15432,14 @@
         video.setAttribute('playsinline', 'true');
         video.setAttribute('webkit-playsinline', 'true');
         video.setAttribute('muted', 'true');
+        video.setAttribute('autoplay', 'true');
         video.muted = true;
         video.playsInline = true;
         video.style.objectFit = 'cover';
+        video.style.width = '100%';
+        video.style.height = '100%';
+        video.style.minHeight = '220px';
+        video.style.display = 'block';
         if (video.paused) {
           video.play().catch(err => {
             console.warn("Autoplay attempt handled:", err);
@@ -15416,7 +15540,7 @@
           formatsToSupport: formats,
           verbose: false,
           experimentalFeatures: {
-            useBarCodeDetectorIfSupported: true
+            useBarCodeDetectorIfSupported: false
           }
         });
 
@@ -15729,7 +15853,12 @@
     }
 
     async function openScannerModal() {
-      document.getElementById('scannerModal').classList.remove('hidden');
+      const modal = document.getElementById('scannerModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        modal.style.zIndex = '95';
+      }
       isBarcodeScanningPaused = false;
       await startScannerStream(currentScannerCameraId);
       await populateScannerCameras();
@@ -15743,7 +15872,11 @@
     async function closeScannerModal() {
       await terminateCameraStream('#qr-reader');
       isScannerTorchOn = false;
-      document.getElementById('scannerModal').classList.add('hidden');
+      const modal = document.getElementById('scannerModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
     }
 
     async function handleBarcodeScanned(code) {
