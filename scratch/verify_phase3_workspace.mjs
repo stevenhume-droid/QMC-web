@@ -96,14 +96,14 @@ function makeEl(id = '', tag = 'DIV') {
     },
     children: [],
     appendChild: function (child) { this.children.push(child); return child; },
-    remove: function () {},
-    setAttribute: () => {},
+    remove: function () { },
+    setAttribute: () => { },
     getAttribute: () => null,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    scrollIntoView: () => {},
-    click: () => {},
-    focus: () => {}
+    addEventListener: () => { },
+    removeEventListener: () => { },
+    scrollIntoView: () => { },
+    click: () => { },
+    focus: () => { }
   };
 }
 
@@ -111,15 +111,15 @@ const toastMessages = [];
 const sandbox = {
   console,
   setTimeout: (fn) => fn(),
-  clearTimeout: () => {},
-  setInterval: () => {},
-  clearInterval: () => {},
+  clearTimeout: () => { },
+  setInterval: () => { },
+  clearInterval: () => { },
   localStorage: mockLocalStorage,
   window: {
     location: { origin: 'http://localhost', pathname: '/catalogue/' },
-    addEventListener: () => {},
+    addEventListener: () => { },
     dispatchEvent: () => true,
-    scrollTo: () => {}
+    scrollTo: () => { }
   },
   document: {
     getElementById: (id) => {
@@ -133,7 +133,7 @@ const sandbox = {
       }
       return [];
     },
-    addEventListener: () => {},
+    addEventListener: () => { },
     createElement: (tag) => makeEl('', tag.toUpperCase()),
     body: makeEl('body', 'BODY')
   },

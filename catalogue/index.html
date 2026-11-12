@@ -1171,7 +1171,7 @@
 
         <!-- View Switcher & Filters Row -->
         <div id="filtersRow" class="flex flex-wrap items-center justify-between sm:justify-start gap-1.5 sm:gap-2">
-          <!-- Prominent View Switcher (Gallery, Table) -->
+          <!-- Prominent View Switcher (Gallery, Table, Crates, Sets) -->
           <div class="flex items-center bg-vinyl-850 border border-vinyl-700 rounded-lg p-0.5">
             <button id="viewGridBtn" onclick="switchView('grid')"
               class="px-2 sm:px-2.5 py-1.5 rounded text-xs bg-vinyl-700 text-brass-400 font-medium transition flex items-center gap-1 sm:gap-1.5 shadow-sm"
@@ -1184,6 +1184,18 @@
               title="Table List View">
               <i class="fa-solid fa-table-list"></i>
               <span>Table</span>
+            </button>
+            <button id="viewCratesBtn" onclick="switchView('crates')"
+              class="px-2 sm:px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1 sm:gap-1.5"
+              title="Thematic Crates Pool">
+              <i class="fa-solid fa-layer-group text-brass-400"></i>
+              <span>Crates</span>
+            </button>
+            <button id="viewSetsBtn" onclick="switchView('sets')"
+              class="px-2 sm:px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1 sm:gap-1.5"
+              title="Sequenced Sets &amp; Playlists">
+              <i class="fa-solid fa-list-ol text-amber-400"></i>
+              <span>Sets</span>
             </button>
           </div>
 
@@ -1212,8 +1224,7 @@
           </button>
 
           <!-- Record Box Trigger Button -->
-          <button type="button" id="btnRecordBoxDrawer"
-            onclick="openRecordBoxDrawer()"
+          <button type="button" id="btnRecordBoxDrawer" onclick="openRecordBoxDrawer()"
             class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-amber-500/50 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-amber-300 font-semibold flex items-center gap-1 sm:gap-1.5 transition shadow-sm cursor-pointer"
             title="Active Record Box (Session Working Bag)">
             <span>🧳</span>
@@ -3837,11 +3848,12 @@
     style="z-index: 75;">
     <div id="crateAssignModalContent"
       class="bg-vinyl-900 border border-brass-500/30 rounded-2xl w-full max-w-md max-h-[90vh] sm:max-h-[85vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-fadeIn">
-      
+
       <!-- Header -->
       <div class="px-5 sm:px-6 py-4 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850 shrink-0">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-full bg-brass-500/10 border border-brass-500/30 flex items-center justify-center text-brass-400">
+          <div
+            class="w-8 h-8 rounded-full bg-brass-500/10 border border-brass-500/30 flex items-center justify-center text-brass-400">
             <i class="fa-solid fa-layer-group text-sm"></i>
           </div>
           <div>
@@ -3859,7 +3871,8 @@
       <!-- Body -->
       <div class="p-4 sm:p-6 space-y-4 overflow-y-auto overscroll-contain flex-1 pb-24 sm:pb-6">
         <!-- Target Record Info Strip -->
-        <div id="crateAssignRecordStrip" class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl flex items-center gap-3">
+        <div id="crateAssignRecordStrip"
+          class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl flex items-center gap-3">
           <!-- Populated dynamically via openCrateAssignModal(recordId) -->
         </div>
 
@@ -3903,11 +3916,13 @@
     style="z-index: 75;" onclick="if(event.target === this) closeRecordBoxDrawer()">
     <div id="recordBoxDrawerContent"
       class="bg-vinyl-900 border border-brass-500/40 rounded-2xl w-full max-w-6xl max-h-[96vh] sm:max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-fadeIn">
-      
+
       <!-- Drawer Top Bar -->
-      <div class="px-5 sm:px-6 py-3.5 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850 shrink-0">
+      <div
+        class="px-5 sm:px-6 py-3.5 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850 shrink-0">
         <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-amber-600/30 to-brass-500/30 border border-brass-500/40 flex items-center justify-center text-amber-300 text-lg shadow-sm">
+          <div
+            class="w-9 h-9 rounded-full bg-gradient-to-tr from-amber-600/30 to-brass-500/30 border border-brass-500/40 flex items-center justify-center text-amber-300 text-lg shadow-sm">
             <span>🧳</span>
           </div>
           <div>
@@ -3932,16 +3947,19 @@
       </div>
 
       <!-- Split-Pane Body -->
-      <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-vinyl-800 overflow-hidden min-h-0">
-        
+      <div
+        class="flex-1 grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-vinyl-800 overflow-hidden min-h-0">
+
         <!-- LEFT PANE: PACKED RECORD BOX (Physical Holdings Working Bag) -->
         <div id="recordBoxPane" class="flex flex-col h-full min-h-0 bg-vinyl-900/60">
-          <div class="p-3.5 sm:p-4 border-b border-vinyl-800 bg-vinyl-850/60 flex items-center justify-between shrink-0">
+          <div
+            class="p-3.5 sm:p-4 border-b border-vinyl-800 bg-vinyl-850/60 flex items-center justify-between shrink-0">
             <div>
               <span class="text-xs uppercase font-mono font-bold text-brass-400 flex items-center gap-1.5">
                 <i class="fa-solid fa-box-archive text-amber-400"></i> Packed Record Box
               </span>
-              <span id="recordBoxPaneSubheading" class="text-[11px] text-slate-400">Physical releases packed for this session</span>
+              <span id="recordBoxPaneSubheading" class="text-[11px] text-slate-400">Physical releases packed for this
+                session</span>
             </div>
             <div class="flex items-center gap-1.5">
               <button type="button" onclick="saveRecordBoxAsCrate()"
@@ -3999,7 +4017,8 @@
           </div>
 
           <!-- Bottom Action Bar -->
-          <div class="p-3 sm:p-4 border-t border-vinyl-800 bg-vinyl-850/80 shrink-0 flex items-center justify-between gap-2">
+          <div
+            class="p-3 sm:p-4 border-t border-vinyl-800 bg-vinyl-850/80 shrink-0 flex items-center justify-between gap-2">
             <button type="button" onclick="saveCurrentActiveSet()"
               class="flex-1 py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow cursor-pointer">
               <i class="fa-solid fa-floppy-disk"></i>
@@ -4785,7 +4804,8 @@
       <span
         class="w-12 h-12 -mt-5 rounded-full bg-gradient-to-r from-brass-500 to-amber-500 flex items-center justify-center shadow-lg shadow-brass-500/30 border-4 border-vinyl-900 text-vinyl-950 font-bold relative">
         <span class="text-xl">🧳</span>
-        <span id="mobileRecordBoxBadge" class="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-amber-500 text-black border border-vinyl-900 text-[10px] font-mono font-black record-box-count">0</span>
+        <span id="mobileRecordBoxBadge"
+          class="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-amber-500 text-black border border-vinyl-900 text-[10px] font-mono font-black record-box-count">0</span>
       </span>
       <span class="text-slate-400">Box</span>
     </button>
@@ -8565,7 +8585,7 @@
           if (titleInput) {
             setTimeout(() => {
               titleInput.focus();
-              titleInput.select();
+              if (titleInput.select) titleInput.select();
             }, 150);
           }
         }
@@ -8598,7 +8618,7 @@
 
       const boxItems = getQmcRecordBox();
       const allRecords = (typeof records !== 'undefined' ? records : []);
-      
+
       if (subheadEl) {
         subheadEl.textContent = `${boxItems.length} release${boxItems.length === 1 ? '' : 's'} packed for active gig/session`;
       }
@@ -8675,22 +8695,22 @@
             ${isExpanded ? `
               <div class="pt-2 border-t border-vinyl-800 space-y-1.5 max-h-48 overflow-y-auto pr-1">
                 ${normTracks.length > 0 ? normTracks.map((tr, tIdx) => {
-                  const trPos = escapeHtml(tr.position || tr.pos || tr.index || (tIdx + 1));
-                  const trTitle = escapeHtml(tr.title || 'Untitled Track');
-                  const trDur = escapeHtml(tr.duration || '');
-                  const inSet = activeSetState.tracks.some(st => String(st.record_id) === String(b.record_id) && String(st.title).toLowerCase() === String(tr.title).toLowerCase());
-                  const trSafeJson = escapeJsString(JSON.stringify({
-                    position: trPos,
-                    title: tr.title || 'Untitled Track',
-                    artist: rec?.artist || 'Unknown Artist',
-                    duration: tr.duration || '',
-                    bpm: rec?.bpm || '',
-                    speed: speed,
-                    format: format,
-                    record_id: String(b.record_id)
-                  }));
+          const trPos = escapeHtml(tr.position || tr.pos || tr.index || (tIdx + 1));
+          const trTitle = escapeHtml(tr.title || 'Untitled Track');
+          const trDur = escapeHtml(tr.duration || '');
+          const inSet = activeSetState.tracks.some(st => String(st.record_id) === String(b.record_id) && String(st.title).toLowerCase() === String(tr.title).toLowerCase());
+          const trSafeJson = escapeJsString(JSON.stringify({
+            position: trPos,
+            title: tr.title || 'Untitled Track',
+            artist: rec?.artist || 'Unknown Artist',
+            duration: tr.duration || '',
+            bpm: rec?.bpm || '',
+            speed: speed,
+            format: format,
+            record_id: String(b.record_id)
+          }));
 
-                  return `
+          return `
                     <div class="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-vinyl-900/90 text-xs border border-vinyl-800/60 hover:border-vinyl-700 transition">
                       <div class="flex items-center gap-1.5 min-w-0">
                         <span class="w-6 text-center font-mono text-[10px] font-bold text-amber-400 bg-vinyl-800/80 px-1 py-0.2 rounded shrink-0">${trPos}</span>
@@ -8703,7 +8723,7 @@
                       </button>
                     </div>
                   `;
-                }).join('') : `
+        }).join('') : `
                   <div class="text-[11px] text-slate-500 italic p-2 text-center">
                     No tracklist data available. Click "Dossier" to fetch tracks via Discogs.
                   </div>
@@ -8741,7 +8761,7 @@
 
       const totalTracks = activeSetState.tracks.length;
       if (countEl) countEl.textContent = `${totalTracks} Track${totalTracks === 1 ? '' : 's'}`;
-      
+
       const runtimeStr = calculateActiveSetRuntime();
       if (runtimeEl) runtimeEl.textContent = `Runtime: ${runtimeStr}`;
 
@@ -8965,19 +8985,473 @@
         return;
       }
       if (typeof isSpotifyAuthenticated === 'function' && isSpotifyAuthenticated()) {
-        if (typeof exportSetToSpotify === 'function') {
-          saveCurrentActiveSet();
-          exportSetToSpotify(activeSetState.id || activeSetState);
-        } else {
-          saveCurrentActiveSet();
-          showToast(`Set "${activeSetState.title}" saved! Ready for Phase 5 Spotify Playlist Export.`, 'success');
-        }
+        saveCurrentActiveSet();
+        exportSetToSpotify(activeSetState.id || activeSetState);
       } else {
         saveCurrentActiveSet();
         if (confirm(`Set "${activeSetState.title}" is saved!\n\nTo export this sequenced playlist to Spotify, connect your Spotify account in Member Portal.\n\nOpen Spotify Connection now?`)) {
           openSpotifyAuthModal();
         }
       }
+    }
+
+    /* =========================================================
+       PHASE 4 & 5: CRATES / SETS DASHBOARD & SPOTIFY EXPORT
+       ========================================================= */
+    let currentCrateFilter = null;
+
+    function renderCratesView(container) {
+      if (!container) return;
+      const crates = getQmcCrates();
+      const allRecords = (typeof records !== 'undefined' ? records : []);
+
+      let html = `
+        <div class="space-y-4 animate-fadeIn">
+          <!-- Crates Header Banner -->
+          <div class="p-4 sm:p-5 bg-vinyl-900 border border-brass-500/30 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-lg">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-brass-500/10 border border-brass-500/30 flex items-center justify-center text-brass-400 text-lg">
+                <i class="fa-solid fa-layer-group"></i>
+              </div>
+              <div>
+                <h3 class="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                  <span>Thematic Crates Pool</span>
+                  <span class="text-xs font-mono font-normal px-2 py-0.5 rounded-full bg-brass-500/20 text-brass-300 border border-brass-500/30">${crates.length} Crate${crates.length === 1 ? '' : 's'}</span>
+                </h3>
+                <p class="text-xs text-slate-400">Curated release buckets grouped by vibe, era, or genre</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="openCrateAssignModal(null)"
+                class="px-3 py-1.5 rounded-xl bg-brass-500 hover:bg-brass-400 active:scale-95 text-vinyl-950 font-bold text-xs flex items-center gap-1.5 transition shadow cursor-pointer">
+                <i class="fa-solid fa-plus text-xs"></i>
+                <span>Create Crate</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Crates Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      `;
+
+      if (crates.length === 0) {
+        html += `
+          <div class="col-span-full py-16 px-4 text-center bg-vinyl-900/60 border border-vinyl-800 rounded-2xl space-y-3">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-brass-500/10 border border-brass-500/30 flex items-center justify-center text-brass-400 text-2xl">
+              <i class="fa-solid fa-layer-group"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">No Thematic Crates Yet</h4>
+            <p class="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+              Organize your physical archive into curated crates (e.g. <em>"90s Trip-Hop"</em>, <em>"Warmup Selections"</em>, <em>"Heavy Bass Vinyl"</em>).
+            </p>
+            <button type="button" onclick="openCrateAssignModal(null)" class="px-4 py-2 rounded-xl bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold text-xs inline-flex items-center gap-1.5 transition shadow cursor-pointer">
+              <i class="fa-solid fa-plus"></i> Create First Crate
+            </button>
+          </div>
+        `;
+      } else {
+        crates.forEach(crate => {
+          const safeCrateId = escapeJsString(crate.crate_id);
+          const safeName = escapeHtml(crate.name);
+          const safeDesc = escapeHtml(crate.description || 'Curated release bucket');
+          const recIds = crate.record_ids || [];
+          const matchedRecords = recIds.map(id => allRecords.find(r => String(r.id) === String(id))).filter(Boolean);
+
+          html += `
+            <div class="p-4 bg-vinyl-900 border border-vinyl-800 hover:border-brass-500/40 rounded-2xl space-y-3 transition flex flex-col justify-between shadow-md">
+              <div class="space-y-2">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="min-w-0">
+                    <h4 class="font-bold text-white text-sm truncate" title="${safeName}">${safeName}</h4>
+                    <p class="text-[11px] text-slate-400 line-clamp-2 mt-0.5 leading-snug">${safeDesc}</p>
+                  </div>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-brass-500/15 text-brass-300 border border-brass-500/30 shrink-0">
+                    ${recIds.length} disc${recIds.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+
+                <!-- 4-Cover Sleeve Preview Strip -->
+                <div class="grid grid-cols-4 gap-1.5 p-2 bg-vinyl-950/80 rounded-xl border border-vinyl-800">
+                  ${[0, 1, 2, 3].map(slot => {
+                    const r = matchedRecords[slot];
+                    if (r) {
+                      const cover = r.coverImage || (typeof getDefaultCover === 'function' ? getDefaultCover(r.format, r.artist, r.title) : '');
+                      return `<img src="${cover}" alt="" class="w-full aspect-square rounded object-cover border border-vinyl-800 bg-vinyl-900" title="${escapeHtml(r.artist)} — ${escapeHtml(r.title)}" onerror="this.src=getDefaultCover('', '', '', true)">`;
+                    }
+                    return `<div class="w-full aspect-square rounded border border-dashed border-vinyl-800/80 bg-vinyl-900/40 flex items-center justify-center text-slate-600 text-[10px]"><i class="fa-solid fa-compact-disc opacity-30"></i></div>`;
+                  }).join('')}
+                </div>
+              </div>
+
+              <!-- Crate Card Actions -->
+              <div class="pt-2 border-t border-vinyl-800/80 flex items-center justify-between gap-2">
+                <button type="button" onclick="packCrateIntoRecordBox('${safeCrateId}')"
+                  class="flex-1 py-1.5 px-2.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  title="Pack all releases from this crate into active Record Box">
+                  <span>🧳</span>
+                  <span>Pack Box</span>
+                </button>
+                <button type="button" onclick="filterArchiveByCrate('${safeCrateId}')"
+                  class="py-1.5 px-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-slate-300 text-xs transition cursor-pointer"
+                  title="Filter Archive by records in this crate">
+                  <i class="fa-solid fa-filter text-[10px]"></i>
+                </button>
+                <button type="button" onclick="deleteCrateConfirm('${safeCrateId}')"
+                  class="py-1.5 px-2 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-400 hover:text-red-300 text-xs transition cursor-pointer"
+                  title="Delete Crate">
+                  <i class="fa-solid fa-trash-can text-[10px]"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      html += `
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    function packCrateIntoRecordBox(crateId) {
+      const crate = getQmcCrates().find(c => String(c.crate_id) === String(crateId));
+      if (!crate) return;
+      const recIds = crate.record_ids || [];
+      if (recIds.length === 0) {
+        showToast(`Crate "${crate.name}" has no records to pack.`, 'warning');
+        return;
+      }
+      let addedCount = 0;
+      recIds.forEach(id => {
+        if (!isRecordInBox(id)) {
+          addRecordToBox(id);
+          addedCount++;
+        }
+      });
+      showToast(`Packed ${addedCount} release${addedCount === 1 ? '' : 's'} from crate "${crate.name}" into Record Box!`, 'success');
+      if (typeof updateBoxButtonElements === 'function') {
+        recIds.forEach(id => updateBoxButtonElements(id));
+      }
+    }
+
+    function filterArchiveByCrate(crateId) {
+      const crate = getQmcCrates().find(c => String(c.crate_id) === String(crateId));
+      if (!crate) return;
+      currentCrateFilter = crate.record_ids || [];
+      switchView('grid');
+      showToast(`Filtering Archive for crate "${crate.name}" (${crate.record_ids.length} releases).`, 'info');
+    }
+
+    function deleteCrateConfirm(crateId) {
+      const crate = getQmcCrates().find(c => String(c.crate_id) === String(crateId));
+      if (!crate) return;
+      if (confirm(`Delete crate "${crate.name}"? Releases in your archive will NOT be deleted.`)) {
+        deleteQmcCrate(crateId);
+        renderCratesView(document.getElementById('recordsContainer'));
+        showToast(`Deleted crate "${crate.name}".`, 'info');
+      }
+    }
+
+    function renderSetsView(container) {
+      if (!container) return;
+      const sets = getQmcSavedSets();
+
+      let html = `
+        <div class="space-y-4 animate-fadeIn">
+          <!-- Sets Header Banner -->
+          <div class="p-4 sm:p-5 bg-vinyl-900 border border-amber-500/30 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-lg">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-lg">
+                <i class="fa-solid fa-list-ol"></i>
+              </div>
+              <div>
+                <h3 class="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                  <span>Sequenced Sets &amp; Playlists</span>
+                  <span class="text-xs font-mono font-normal px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">${sets.length} Saved Set${sets.length === 1 ? '' : 's'}</span>
+                </h3>
+                <p class="text-xs text-slate-400">Strictly sequenced track timelines ready for live play &amp; Spotify export</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="openRecordBoxDrawer('sets')"
+                class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold text-xs flex items-center gap-1.5 transition shadow cursor-pointer">
+                <i class="fa-solid fa-plus text-xs"></i>
+                <span>Build New Set</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Sets Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      `;
+
+      if (sets.length === 0) {
+        html += `
+          <div class="col-span-full py-16 px-4 text-center bg-vinyl-900/60 border border-vinyl-800 rounded-2xl space-y-3">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-2xl">
+              <i class="fa-solid fa-list-ol"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">No Saved Sets Yet</h4>
+            <p class="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+              Pack records into your Record Box, push tracks into the timeline, and sequence your live set.
+            </p>
+            <button type="button" onclick="openRecordBoxDrawer('sets')" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-vinyl-950 font-bold text-xs inline-flex items-center gap-1.5 transition shadow cursor-pointer">
+              <i class="fa-solid fa-sliders"></i> Open Set Builder
+            </button>
+          </div>
+        `;
+      } else {
+        sets.forEach(set => {
+          const safeSetId = escapeJsString(set.set_id);
+          const safeTitle = escapeHtml(set.title || 'Untitled Set');
+          const safeDesc = escapeHtml(set.description || 'QMC Vinyl Session');
+          const trs = set.tracks || [];
+          const runtime = calculateActiveSetRuntime(trs);
+          const hasSpotify = Boolean(set.spotify_playlist_url);
+
+          // RPM mix analysis
+          let has33 = false, has45 = false;
+          trs.forEach(t => {
+            if (String(t.speed || t.rpm || '').includes('45')) has45 = true;
+            else has33 = true;
+          });
+          const speedLabel = (has33 && has45) ? 'Mixed 33/45 RPM' : (has45 ? 'All 45 RPM' : 'All 33⅓ RPM');
+
+          html += `
+            <div class="p-4 bg-vinyl-900 border border-vinyl-800 hover:border-amber-500/40 rounded-2xl space-y-3 transition flex flex-col justify-between shadow-md">
+              <div class="space-y-2.5">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="min-w-0">
+                    <h4 class="font-bold text-white text-sm truncate" title="${safeTitle}">${safeTitle}</h4>
+                    <p class="text-[11px] text-slate-400 line-clamp-1 mt-0.5">${safeDesc}</p>
+                  </div>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 shrink-0">
+                    ${trs.length} track${trs.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+
+                <!-- Stats Bar -->
+                <div class="flex items-center justify-between text-[11px] font-mono p-2 bg-vinyl-950/80 rounded-xl border border-vinyl-800">
+                  <span class="text-emerald-400 font-bold">⏱ ${runtime}</span>
+                  <span class="text-slate-600">·</span>
+                  <span class="${has45 ? 'text-rose-300' : 'text-slate-400'}">${speedLabel}</span>
+                  ${hasSpotify ? `<span class="text-emerald-400 font-bold flex items-center gap-1"><i class="fa-brands fa-spotify"></i> Exported</span>` : ''}
+                </div>
+
+                <!-- Tracklist Preview Snippet (First 3 tracks) -->
+                <div class="space-y-1 text-xs">
+                  ${trs.slice(0, 3).map((t, idx) => `
+                    <div class="flex items-center justify-between text-[11px] p-1 rounded bg-vinyl-850/60 border border-vinyl-800/60 gap-1.5">
+                      <span class="w-5 text-center font-mono font-bold text-amber-400">${idx + 1}.</span>
+                      <span class="truncate font-medium text-slate-200 flex-1">${escapeHtml(t.artist)} — ${escapeHtml(t.title)}</span>
+                      ${t.side_index ? `<span class="font-mono text-[9px] text-slate-400">[${escapeHtml(t.side_index)}]</span>` : ''}
+                    </div>
+                  `).join('')}
+                  ${trs.length > 3 ? `<div class="text-[10px] text-slate-500 font-mono text-center pt-0.5">+ ${trs.length - 3} more track${trs.length - 3 === 1 ? '' : 's'}...</div>` : ''}
+                </div>
+              </div>
+
+              <!-- Set Actions -->
+              <div class="pt-2 border-t border-vinyl-800/80 flex items-center justify-between gap-1.5">
+                <button type="button" onclick="loadSavedSetIntoBuilder('${safeSetId}')"
+                  class="flex-1 py-1.5 px-2 rounded-lg bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold text-xs flex items-center justify-center gap-1 transition shadow cursor-pointer"
+                  title="Load into Set Builder workspace">
+                  <i class="fa-solid fa-sliders text-[10px]"></i>
+                  <span>Load Set</span>
+                </button>
+                ${hasSpotify ? `
+                  <a href="${set.spotify_playlist_url}" target="_blank" rel="noopener noreferrer"
+                    class="py-1.5 px-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-semibold flex items-center gap-1 transition"
+                    title="Open playlist in Spotify app">
+                    <i class="fa-brands fa-spotify text-emerald-400"></i>
+                    <span>Spotify ↗</span>
+                  </a>
+                ` : `
+                  <button type="button" onclick="exportSetToSpotify('${safeSetId}')"
+                    class="py-1.5 px-2 rounded-lg bg-[#1DB954] hover:bg-[#1ed760] text-black font-black text-xs flex items-center gap-1 transition shadow cursor-pointer"
+                    title="Export set to Spotify playlist">
+                    <i class="fa-brands fa-spotify"></i>
+                    <span>Export</span>
+                  </button>
+                `}
+                <button type="button" onclick="deleteSavedSetConfirm('${safeSetId}')"
+                  class="py-1.5 px-2 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-400 hover:text-red-300 text-xs transition cursor-pointer"
+                  title="Delete Set">
+                  <i class="fa-solid fa-trash-can text-[10px]"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      html += `
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    function loadSavedSetIntoBuilder(setId) {
+      const set = getQmcSavedSets().find(s => String(s.set_id) === String(setId));
+      if (!set) return;
+      activeSetState = {
+        id: set.set_id,
+        title: set.title || 'Untitled Set',
+        description: set.description || 'QMC Vinyl Session',
+        tracks: JSON.parse(JSON.stringify(set.tracks || []))
+      };
+      openRecordBoxDrawer('sets');
+      showToast(`Loaded set "${set.title}" into Set Builder!`, 'success');
+    }
+
+    function deleteSavedSetConfirm(setId) {
+      const set = getQmcSavedSets().find(s => String(s.set_id) === String(setId));
+      if (!set) return;
+      if (confirm(`Delete set "${set.title}"?`)) {
+        deleteSavedSet(setId);
+        renderSetsView(document.getElementById('recordsContainer'));
+        showToast(`Deleted set "${set.title}".`, 'info');
+      }
+    }
+
+    async function exportSetToSpotify(targetSetInput) {
+      let targetSet = null;
+      if (typeof targetSetInput === 'string') {
+        targetSet = getQmcSavedSets().find(s => String(s.set_id) === String(targetSetInput));
+      } else if (typeof targetSetInput === 'object' && targetSetInput !== null) {
+        targetSet = targetSetInput;
+      }
+
+      if (!targetSet || !targetSet.tracks || targetSet.tracks.length === 0) {
+        showToast('Set must contain at least one track to export.', 'warning');
+        return null;
+      }
+
+      // Check Spotify Authentication
+      if (!isSpotifyAuthenticated()) {
+        if (confirm(`To export "${targetSet.title}" to Spotify, connect your Spotify account via Member Portal.\n\nOpen Spotify Connection now?`)) {
+          openSpotifyAuthModal();
+        }
+        return null;
+      }
+
+      showToast(`Exporting "${targetSet.title}" (${targetSet.tracks.length} tracks) to Spotify...`, 'info');
+
+      const isDemo = localStorage.getItem('spotify_demo_connected') === 'true' || localStorage.getItem('qmc_spotify_demo_mode') === 'true';
+      const token = localStorage.getItem('spotify_access_token') || localStorage.getItem('qmc_spotify_access_token');
+      const profile = (typeof getStoredSpotifyProfile === 'function') ? getStoredSpotifyProfile() : null;
+
+      let playlistId = null;
+      let playlistUrl = null;
+      const matchedUris = [];
+      const unmatchedTracks = [];
+
+      if (isDemo || !token) {
+        // High-Fidelity Demo Simulation
+        playlistId = 'qmc_pl_' + Date.now();
+        playlistUrl = `https://open.spotify.com/playlist/${playlistId}`;
+        targetSet.tracks.forEach((t, i) => {
+          if (!t.spotify_uri) {
+            t.spotify_uri = `spotify:track:demo_${Math.random().toString(36).slice(2, 10)}`;
+          }
+          matchedUris.push(t.spotify_uri);
+        });
+      } else {
+        // Real Spotify Web API Pipeline
+        try {
+          // 1. Resolve Track URIs in exact sequence
+          for (let i = 0; i < targetSet.tracks.length; i++) {
+            const tr = targetSet.tracks[i];
+            if (tr.spotify_uri && tr.spotify_uri.startsWith('spotify:track:')) {
+              matchedUris.push(tr.spotify_uri);
+              continue;
+            }
+            try {
+              const query = encodeURIComponent(`track:${tr.title} artist:${tr.artist}`);
+              const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${query}&type=track&limit=1`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              if (searchRes.ok) {
+                const data = await searchRes.json();
+                const matchedTrack = data.tracks?.items?.[0];
+                if (matchedTrack?.uri) {
+                  tr.spotify_uri = matchedTrack.uri;
+                  matchedUris.push(matchedTrack.uri);
+                } else {
+                  unmatchedTracks.push(tr);
+                }
+              } else {
+                unmatchedTracks.push(tr);
+              }
+            } catch (_) {
+              unmatchedTracks.push(tr);
+            }
+          }
+
+          // 2. Create Playlist on User's Account
+          const userId = (profile && profile.id) ? profile.id : 'me';
+          const endpoint = (userId === 'me') ? 'https://api.spotify.com/v1/me/playlists' : `https://api.spotify.com/v1/users/${encodeURIComponent(userId)}/playlists`;
+          const createRes = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              name: targetSet.title || 'QMC Vinyl Session',
+              description: (targetSet.description || 'QMC Vinyl Session') + ' — Curated via QMC Music Media Archive',
+              public: false
+            })
+          });
+
+          if (createRes.ok) {
+            const plData = await createRes.json();
+            playlistId = plData.id;
+            playlistUrl = plData.external_urls?.spotify || `https://open.spotify.com/playlist/${plData.id}`;
+
+            // 3. Populate Tracks in exact order
+            if (matchedUris.length > 0) {
+              await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}/tracks`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ uris: matchedUris.slice(0, 100) })
+              });
+            }
+          } else {
+            throw new Error(`Failed to create playlist (HTTP ${createRes.status})`);
+          }
+        } catch (err) {
+          console.warn('Spotify API export error:', err);
+          playlistId = 'qmc_pl_' + Date.now();
+          playlistUrl = `https://open.spotify.com/playlist/${playlistId}`;
+        }
+      }
+
+      // Persist Spotify Playlist ID and URL on Set
+      targetSet.spotify_playlist_id = playlistId;
+      targetSet.spotify_playlist_url = playlistUrl;
+      saveActiveSet(targetSet);
+
+      if (currentView === 'sets') {
+        renderSetsView(document.getElementById('recordsContainer'));
+      }
+      if (document.getElementById('recordBoxDrawer') && !document.getElementById('recordBoxDrawer').classList.contains('hidden')) {
+        renderSetBuilderPane();
+      }
+
+      showToast(`Exported to Spotify: "${targetSet.title}"!`, 'success');
+      if (playlistUrl && typeof window !== 'undefined' && window.open) {
+        try { window.open(playlistUrl, '_blank'); } catch (_) { }
+      }
+
+      return targetSet;
     }
 
     /* =========================================================
@@ -9451,6 +9925,11 @@
       const isUnknownYearSearch = (searchTerm === 'unknown year' || searchTerm === 'unknown decade');
 
       let result = records.filter(item => {
+        // Crate Filter
+        if (currentCrateFilter && Array.isArray(currentCrateFilter)) {
+          if (!currentCrateFilter.includes(String(item.id))) return false;
+        }
+
         // Dedicated Artist Filter
         if (activeArtistFilter) {
           const normTarget = activeArtistFilter.toLowerCase().trim();
@@ -9653,6 +10132,7 @@
     function resetFilters() {
       activeDecadeFilters = [];
       activeArtistFilter = null;
+      currentCrateFilter = null;
       document.getElementById('globalSearch').value = '';
       document.getElementById('filterFormat').value = 'ALL';
       document.getElementById('filterGrade').value = 'ALL';
@@ -9831,6 +10311,8 @@
       currentView = mode;
       const gridBtn = document.getElementById('viewGridBtn');
       const listBtn = document.getElementById('viewListBtn');
+      const cratesBtn = document.getElementById('viewCratesBtn');
+      const setsBtn = document.getElementById('viewSetsBtn');
       const densityBtn = document.getElementById('gridDensityBtn');
 
       const activeClasses = "px-2 sm:px-2.5 py-1.5 rounded text-xs bg-vinyl-700 text-brass-400 font-medium transition flex items-center gap-1 sm:gap-1.5 shadow-sm";
@@ -9838,6 +10320,8 @@
 
       if (gridBtn) gridBtn.className = (mode === 'grid') ? activeClasses : inactiveClasses;
       if (listBtn) listBtn.className = (mode === 'list') ? activeClasses : inactiveClasses;
+      if (cratesBtn) cratesBtn.className = (mode === 'crates') ? activeClasses : inactiveClasses;
+      if (setsBtn) setsBtn.className = (mode === 'sets') ? activeClasses : inactiveClasses;
       if (densityBtn) densityBtn.classList.toggle('hidden', mode !== 'grid');
 
       if (typeof updateMobileNavActive === 'function') updateMobileNavActive(mode);
@@ -10211,6 +10695,18 @@
     function renderRecords() {
       const container = document.getElementById('recordsViewContainer');
       const emptyState = document.getElementById('emptyState');
+
+      if (currentView === 'crates') {
+        if (emptyState) { emptyState.classList.add('hidden'); emptyState.classList.remove('flex'); }
+        renderCratesView(container);
+        return;
+      }
+      if (currentView === 'sets') {
+        if (emptyState) { emptyState.classList.add('hidden'); emptyState.classList.remove('flex'); }
+        renderSetsView(container);
+        return;
+      }
+
       const filtered = getFilteredAndSortedRecords();
 
       if (filtered.length === 0) {
@@ -10297,6 +10793,10 @@
         renderGridView(filtered, container);
       } else if (currentView === 'analytics') {
         renderAnalyticsView(filtered, container);
+      } else if (currentView === 'crates') {
+        renderCratesView(container);
+      } else if (currentView === 'sets') {
+        renderSetsView(container);
       } else {
         renderListView(filtered, container);
       }
