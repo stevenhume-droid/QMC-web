@@ -709,19 +709,19 @@
   <!-- TOP APP BAR -->
   <header id="appHeader"
     class="border-b border-vinyl-800 bg-vinyl-900/95 backdrop-blur sticky top-0 z-40 px-3 sm:px-4 lg:px-8 py-2 sm:py-3 flex items-center justify-between gap-2 sm:gap-4">
-    <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-      <!-- MMA Brand Logo Badge -->
+    <div class="flex items-center gap-2 sm:gap-3.5 min-w-0">
+      <!-- Original QMC Circular Brand Badge -->
       <a href="../index.html"
         class="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-vinyl-950 p-[1px] flex-shrink-0 flex items-center justify-center border border-brass-500/40 shadow-sm group hover:scale-105 transition overflow-hidden"
-        title="Music Media Archive">
-        <img src="qmc-logo.jpg" alt="Music Media Archive" class="w-full h-full object-cover rounded-full">
+        title="Queensferry Music Club (QMC) Home">
+        <img src="qmc-logo.jpg" alt="Queensferry Music Club" class="w-full h-full object-cover rounded-full">
       </a>
-      <div class="min-w-0">
-        <h1 class="text-base sm:text-lg lg:text-xl font-bold tracking-tight text-white truncate">
-          <span class="sm:hidden">MMA</span>
-          <span class="hidden sm:inline">Music Media Archive</span>
-        </h1>
-      </div>
+      <!-- MMA Graphic Logo (Replacing MMA text alongside, sized a bit bigger) -->
+      <a href="index.html" class="flex items-center group flex-shrink-0" title="Music Media Archive">
+        <img src="mma-logo-trans.png" alt="MMA Music Media Archive" id="appHeaderLogoMMA"
+          class="h-9 sm:h-11 md:h-12 w-auto object-contain transition-transform group-hover:scale-105 drop-shadow-md">
+        <h1 class="sr-only">Music Media Archive</h1>
+      </a>
     </div>
 
     <!-- Global Actions -->
