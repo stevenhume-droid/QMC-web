@@ -4155,34 +4155,61 @@
 
         <!-- LEFT PANE: PACKED RECORD BOX (Physical Holdings Working Bag) -->
         <div id="recordBoxPane" class="flex flex-col h-full min-h-0 bg-vinyl-900/60">
-          <div
-            class="p-3.5 sm:p-4 border-b border-vinyl-800 bg-vinyl-850/60 flex items-center justify-between shrink-0">
-            <div>
-              <span class="text-xs uppercase font-mono font-bold text-brass-400 flex items-center gap-1.5">
-                <i class="fa-solid fa-box-archive text-amber-400"></i> Packed Record Box
-              </span>
-              <span id="recordBoxPaneSubheading" class="text-[11px] text-slate-400">Physical releases packed for this
-                session</span>
+          <div class="p-3 sm:p-3.5 border-b border-vinyl-800 bg-vinyl-850/60 shrink-0 space-y-2">
+            <!-- Row 1: Choose Existing Box / Crate Dropdown & + New Box Button -->
+            <div class="flex items-center justify-between gap-2">
+              <div
+                class="flex-1 flex items-center gap-1.5 min-w-0 bg-vinyl-950/90 border border-vinyl-750 focus-within:border-amber-500/60 rounded-lg px-2.5 py-1 transition">
+                <i class="fa-solid fa-box-archive text-amber-400 text-xs shrink-0" title="Active Record Box"></i>
+                <select id="activeBoxSelectPicker" onchange="handleActiveBoxPickerChange(this.value)"
+                  class="flex-1 bg-transparent text-amber-300 text-xs font-semibold focus:outline-none cursor-pointer truncate"
+                  title="Choose an existing Record Box or Crate to make it active">
+                  <!-- Populated dynamically by renderActiveBoxPicker() -->
+                </select>
+              </div>
+              <button type="button" onclick="createNewActiveBoxPrompt()" id="btnRecordBoxNewBox"
+                class="px-2.5 py-1 text-xs rounded-lg bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold flex items-center gap-1 transition shadow shrink-0 cursor-pointer"
+                title="Create a brand new empty Record Box">
+                <i class="fa-solid fa-plus text-[10px]"></i>
+                <span>+ New Box</span>
+              </button>
             </div>
-            <div class="flex items-center gap-1.5">
-              <button type="button" onclick="toggleRecordBoxCompaction()" id="btnCompactRecordBox"
-                class="px-2 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-amber-300 border border-amber-500/30 flex items-center gap-1 transition cursor-pointer"
-                title="Compact Record Box to maximize screen real estate for Set sorting">
-                <i id="btnCompactRecordBoxIcon" class="fa-solid fa-compress text-[10px]"></i>
-                <span id="btnCompactRecordBoxLabel">Compact</span>
-              </button>
-              <button type="button" onclick="saveRecordBoxAsCrate()"
-                class="px-2.5 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-brass-300 border border-brass-500/30 flex items-center gap-1 transition cursor-pointer"
-                title="Archive these packed records into a new Thematic Crate">
-                <i class="fa-solid fa-layer-group text-[10px]"></i>
-                <span class="hidden sm:inline">Save as Crate</span>
-                <span class="sm:hidden">+ Crate</span>
-              </button>
-              <button type="button" onclick="clearRecordBoxConfirm()"
-                class="px-2 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-400 hover:text-red-300 border border-vinyl-700 transition cursor-pointer"
-                title="Unpack all releases from Record Box">
-                <i class="fa-solid fa-trash-can text-[10px]"></i>
-              </button>
+
+            <!-- Row 2: Active Box Title Edit & Controls -->
+            <div class="flex items-center justify-between gap-2">
+              <div
+                class="flex-1 flex items-center gap-2 min-w-0 bg-vinyl-950/80 border border-vinyl-700 focus-within:border-amber-500/60 rounded-lg px-2.5 py-1 transition">
+                <i class="fa-solid fa-pen text-slate-500 text-[10px] shrink-0" title="Rename Active Box"></i>
+                <input type="text" id="activeBoxTitleInput" value="Session Box"
+                  placeholder="Box name (e.g. Friday Funk 45s)..."
+                  class="flex-1 bg-transparent text-xs text-white font-semibold focus:outline-none transition min-w-0"
+                  oninput="handleActiveBoxTitleChange(event)">
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button type="button" onclick="toggleRecordBoxCompaction()" id="btnCompactRecordBox"
+                  class="px-2 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-amber-300 border border-amber-500/30 flex items-center gap-1 transition cursor-pointer"
+                  title="Compact Record Box to maximize screen real estate for Set sorting">
+                  <i id="btnCompactRecordBoxIcon" class="fa-solid fa-compress text-[10px]"></i>
+                  <span id="btnCompactRecordBoxLabel">Compact</span>
+                </button>
+                <button type="button" onclick="saveRecordBoxAsCrate()"
+                  class="px-2.5 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-brass-300 border border-brass-500/30 flex items-center gap-1 transition cursor-pointer"
+                  title="Archive these packed records into a new Thematic Crate">
+                  <i class="fa-solid fa-layer-group text-[10px]"></i>
+                  <span class="hidden sm:inline">Save as Crate</span>
+                  <span class="sm:hidden">+ Crate</span>
+                </button>
+                <button type="button" onclick="clearRecordBoxConfirm()"
+                  class="px-2 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-400 hover:text-red-300 border border-vinyl-700 transition cursor-pointer"
+                  title="Unpack all releases from Record Box">
+                  <i class="fa-solid fa-trash-can text-[10px]"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Row 3: Status Subheading -->
+            <div class="flex items-center justify-between text-[11px] text-slate-400 px-0.5">
+              <span id="recordBoxPaneSubheading">Physical releases packed for this session</span>
             </div>
           </div>
 
@@ -8595,11 +8622,18 @@
        ========================================================= */
     const QMC_CRATES_KEY = 'qmc_crates_v1';
     const QMC_RECORD_BOX_KEY = 'qmc_record_box_v1';
+    const QMC_SAVED_BOXES_KEY = 'qmc_saved_boxes_v1';
     const QMC_SAVED_SETS_KEY = 'qmc_saved_sets_v1';
 
     let qmcCrates = [];
     let qmcRecordBox = [];
+    let qmcSavedBoxes = [];
     let qmcSavedSets = [];
+    let activeBoxState = {
+      id: null,
+      title: 'Session Box ' + new Date().toLocaleDateString('en-GB'),
+      crate_id: null
+    };
 
     function notifyQmcCurationUpdate(type) {
       if (typeof window !== 'undefined' && window.dispatchEvent) {
@@ -8689,12 +8723,71 @@
       return qmcRecordBox;
     }
 
+    function getQmcSavedBoxes() {
+      if (Array.isArray(qmcSavedBoxes) && qmcSavedBoxes.length > 0) return qmcSavedBoxes;
+      try {
+        const raw = localStorage.getItem(QMC_SAVED_BOXES_KEY);
+        qmcSavedBoxes = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(qmcSavedBoxes)) qmcSavedBoxes = [];
+      } catch (e) {
+        qmcSavedBoxes = [];
+      }
+      return qmcSavedBoxes;
+    }
+
+    function saveQmcSavedBoxes(boxes) {
+      qmcSavedBoxes = Array.isArray(boxes) ? boxes : [];
+      try {
+        localStorage.setItem(QMC_SAVED_BOXES_KEY, JSON.stringify(qmcSavedBoxes));
+      } catch (e) {
+        console.warn('Failed to save qmcSavedBoxes to localStorage', e);
+      }
+      return qmcSavedBoxes;
+    }
+
+    function saveActiveBoxStateToStorage() {
+      const boxItems = getQmcRecordBox();
+      const boxes = getQmcSavedBoxes();
+      if (!activeBoxState.id && boxItems.length === 0) return null;
+      if (!activeBoxState.id) {
+        activeBoxState.id = 'box_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+      }
+      const existingIdx = boxes.findIndex(b => String(b.box_id) === String(activeBoxState.id));
+      const boxPayload = {
+        box_id: activeBoxState.id,
+        title: (activeBoxState.title || 'Session Box').trim(),
+        crate_id: activeBoxState.crate_id || null,
+        updated_at: new Date().toISOString(),
+        items: JSON.parse(JSON.stringify(boxItems))
+      };
+      if (existingIdx >= 0) {
+        boxes[existingIdx] = boxPayload;
+      } else {
+        boxes.push(boxPayload);
+      }
+      saveQmcSavedBoxes(boxes);
+
+      if (activeBoxState.crate_id) {
+        const crates = getQmcCrates();
+        const crate = crates.find(c => String(c.crate_id) === String(activeBoxState.crate_id));
+        if (crate) {
+          crate.name = boxPayload.title;
+          crate.record_ids = boxItems.map(it => typeof it === 'object' && it !== null ? String(it.record_id || it.id || '') : String(it || '')).filter(Boolean);
+          saveQmcCrates(crates);
+        }
+      }
+      return boxPayload;
+    }
+
     function saveQmcRecordBox(box) {
       qmcRecordBox = Array.isArray(box) ? box : [];
       try {
         localStorage.setItem(QMC_RECORD_BOX_KEY, JSON.stringify(qmcRecordBox));
       } catch (e) {
         console.warn('Failed to save qmcRecordBox to localStorage', e);
+      }
+      if (activeBoxState && (activeBoxState.id || qmcRecordBox.length > 0)) {
+        saveActiveBoxStateToStorage();
       }
       notifyQmcCurationUpdate('record_box');
       return qmcRecordBox;
@@ -9080,7 +9173,7 @@
         if (isCompact) {
           boxPane.className = 'flex flex-col h-auto shrink-0 bg-vinyl-900/80 transition cursor-pointer hover:bg-vinyl-850/80';
           boxPane.onclick = (e) => {
-            if (!e.target.closest('button') && !e.target.closest('input')) {
+            if (!e.target.closest('button') && !e.target.closest('input') && !e.target.closest('select')) {
               toggleRecordBoxCompaction();
             }
           };
@@ -9179,7 +9272,14 @@
     function renderRecordBoxPane() {
       const listEl = document.getElementById('recordBoxList');
       const subheadEl = document.getElementById('recordBoxPaneSubheading');
+      const boxTitleInput = document.getElementById('activeBoxTitleInput');
       if (!listEl) return;
+
+      renderActiveBoxPicker();
+
+      if (boxTitleInput && boxTitleInput.value !== activeBoxState.title) {
+        boxTitleInput.value = activeBoxState.title || 'Session Box';
+      }
 
       const boxItems = getQmcRecordBox();
       const allRecords = (typeof records !== 'undefined' && Array.isArray(records) ? records : []);
@@ -9188,7 +9288,7 @@
         if (typeof recordBoxDrawerMode !== 'undefined' && recordBoxDrawerMode === 'set-focus') {
           subheadEl.innerHTML = `<span class="text-amber-300 font-semibold">${boxItems.length} packed</span> · <span class="text-slate-400">Compacted for Set Sorting (Tap to expand)</span>`;
         } else {
-          subheadEl.textContent = `${boxItems.length} release${boxItems.length === 1 ? '' : 's'} packed for active gig/session`;
+          subheadEl.textContent = `${boxItems.length} release${boxItems.length === 1 ? '' : 's'} packed in "${activeBoxState.title || 'Session Box'}"`;
         }
       }
 
@@ -9939,6 +10039,170 @@
       }
     }
 
+    function renderActiveBoxPicker() {
+      const selectEl = document.getElementById('activeBoxSelectPicker');
+      if (!selectEl) return;
+      const savedBoxes = getQmcSavedBoxes();
+      const crates = getQmcCrates();
+      const currentBox = getQmcRecordBox();
+      let html = '';
+
+      if (activeBoxState && activeBoxState.id) {
+        html += `<option value="${escapeHtml(activeBoxState.id)}" selected>Active: ${escapeHtml(activeBoxState.title || 'Session Box')} (${currentBox.length} releases)</option>`;
+      } else {
+        html += `<option value="__UNSAVED__" selected>Active: ${escapeHtml((activeBoxState && activeBoxState.title) || 'Session Box')} (${currentBox.length} releases)</option>`;
+      }
+
+      const otherBoxes = savedBoxes.filter(b => String(b.box_id) !== String(activeBoxState && activeBoxState.id));
+      if (otherBoxes.length > 0) {
+        html += `<optgroup label="Switch Active Box (${otherBoxes.length})">`;
+        otherBoxes.forEach(b => {
+          html += `<option value="${escapeHtml(b.box_id)}">${escapeHtml(b.title || 'Session Box')} (${(b.items || []).length} releases)</option>`;
+        });
+        html += `</optgroup>`;
+      }
+
+      if (crates.length > 0) {
+        html += `<optgroup label="Pick from Thematic Crates (${crates.length})">`;
+        crates.forEach(c => {
+          const isLinked = activeBoxState && String(activeBoxState.crate_id) === String(c.crate_id);
+          const count = (c.record_ids || []).length;
+          html += `<option value="CRATE::${escapeHtml(c.crate_id)}">${isLinked ? '✓ ' : ''}Crate: ${escapeHtml(c.name || 'Untitled Crate')} (${count} releases)</option>`;
+        });
+        html += `</optgroup>`;
+      }
+
+      html += `<option value="__NEW__">+ Create New Box...</option>`;
+      selectEl.innerHTML = html;
+    }
+
+    function handleActiveBoxPickerChange(val) {
+      if (val === '__NEW__') {
+        createNewActiveBoxPrompt();
+      } else if (val === '__UNSAVED__' || val === String(activeBoxState && activeBoxState.id)) {
+        // already active
+      } else if (String(val).startsWith('CRATE::')) {
+        const crateId = String(val).replace('CRATE::', '');
+        chooseActiveBoxFromCrate(crateId);
+      } else {
+        chooseActiveBox(val);
+      }
+    }
+
+    function refreshAllBoxButtonsInDOM() {
+      document.querySelectorAll('[data-box-btn]').forEach(btn => {
+        const recordId = btn.getAttribute('data-box-btn');
+        if (recordId) updateBoxButtonElements(recordId);
+      });
+      if (typeof currentView !== 'undefined' && currentView === 'crates') {
+        const container = document.getElementById('recordsContainer');
+        if (container && typeof renderCratesView === 'function') renderCratesView(container);
+      }
+    }
+
+    function chooseActiveBox(boxId) {
+      // Save current box before switching
+      saveActiveBoxStateToStorage();
+
+      const boxes = getQmcSavedBoxes();
+      const target = boxes.find(b => String(b.box_id) === String(boxId));
+      if (!target) return;
+
+      activeBoxState = {
+        id: target.box_id,
+        title: target.title || 'Session Box',
+        crate_id: target.crate_id || null
+      };
+      qmcRecordBox = Array.isArray(target.items) ? JSON.parse(JSON.stringify(target.items)) : [];
+      saveQmcRecordBox(qmcRecordBox);
+      renderRecordBoxDrawer();
+      refreshAllBoxButtonsInDOM();
+      showToast(`Selected Active Box: "${activeBoxState.title}" (${qmcRecordBox.length} releases)`, 'info');
+    }
+
+    function chooseActiveBoxFromCrate(crateId) {
+      // Save current box before switching
+      saveActiveBoxStateToStorage();
+
+      const crate = getQmcCrates().find(c => String(c.crate_id) === String(crateId));
+      if (!crate) return;
+
+      const boxes = getQmcSavedBoxes();
+      let existingBox = boxes.find(b => String(b.crate_id) === String(crate.crate_id));
+      const nowIso = new Date().toISOString();
+      const items = (crate.record_ids || []).map((rid, idx) => ({
+        record_id: String(rid),
+        added_at: nowIso,
+        order_index: idx
+      }));
+
+      if (existingBox) {
+        activeBoxState = {
+          id: existingBox.box_id,
+          title: crate.name || existingBox.title || 'Crate Box',
+          crate_id: crate.crate_id
+        };
+      } else {
+        activeBoxState = {
+          id: 'box_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+          title: crate.name || 'Crate Box',
+          crate_id: crate.crate_id
+        };
+      }
+
+      qmcRecordBox = items;
+      saveQmcRecordBox(qmcRecordBox);
+      renderRecordBoxDrawer();
+      refreshAllBoxButtonsInDOM();
+      showToast(`Active Box set to "${activeBoxState.title}" (${qmcRecordBox.length} releases)`, 'success');
+    }
+
+    function createNewActiveBoxPrompt(customTitle = null) {
+      // Auto-save outgoing box
+      saveActiveBoxStateToStorage();
+
+      const todayStr = new Date().toLocaleDateString('en-GB');
+      const boxes = getQmcSavedBoxes();
+      const existingToday = boxes.filter(b => (b.title || '').includes(todayStr)).length;
+      const suffix = existingToday > 0 ? ` #${existingToday + 1}` : '';
+      const defaultTitle = `Session Box ${todayStr}${suffix}`;
+      const inputTitle = customTitle !== null ? customTitle : prompt('Enter a name for your new Record Box:', defaultTitle);
+      if (inputTitle === null) {
+        renderActiveBoxPicker();
+        return null;
+      }
+      const finalTitle = (inputTitle || '').trim() || defaultTitle;
+      activeBoxState = {
+        id: 'box_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        title: finalTitle,
+        crate_id: null
+      };
+      qmcRecordBox = [];
+      saveQmcRecordBox(qmcRecordBox);
+      renderRecordBoxDrawer();
+      refreshAllBoxButtonsInDOM();
+      showToast(`Created & activated new Box: "${finalTitle}"!`, 'success');
+      const titleInput = document.getElementById('activeBoxTitleInput');
+      if (titleInput) {
+        setTimeout(() => {
+          titleInput.focus();
+          if (titleInput.select) titleInput.select();
+        }, 120);
+      }
+      return activeBoxState;
+    }
+
+    function handleActiveBoxTitleChange(event) {
+      if (!activeBoxState) return;
+      activeBoxState.title = (event.target.value || '').trim() || 'Session Box';
+      saveActiveBoxStateToStorage();
+      const picker = document.getElementById('activeBoxSelectPicker');
+      if (picker && picker.options && picker.options[0]) {
+        const count = getQmcRecordBox().length;
+        picker.options[0].text = `Active: ${activeBoxState.title} (${count} releases)`;
+      }
+    }
+
     function renderActiveSetPicker() {
       const selectEl = document.getElementById('activeSetSelectPicker');
       if (!selectEl) return;
@@ -10088,12 +10352,18 @@
         showToast('Your Record Box is empty. Pack records first.', 'warning');
         return;
       }
-      const defaultName = customName || `Session Crate ${new Date().toLocaleDateString('en-GB')}`;
+      const defaultName = customName || (activeBoxState && activeBoxState.title) || `Session Crate ${new Date().toLocaleDateString('en-GB')}`;
       const name = customName || prompt('Enter a name for this new Thematic Crate:', defaultName);
       if (!name) return;
 
       const recordIds = box.map(b => String(b.record_id));
       const crate = createQmcCrate(name.trim(), 'Archived from Record Box session', recordIds);
+      if (activeBoxState) {
+        activeBoxState.title = crate.name;
+        activeBoxState.crate_id = crate.crate_id;
+        saveActiveBoxStateToStorage();
+        renderRecordBoxDrawer();
+      }
       showToast(`Archived Record Box into crate "${crate.name}" (${recordIds.length} releases)!`, 'success');
       return crate;
     }
@@ -10198,13 +10468,17 @@
           const safeDesc = escapeHtml(crate.description || 'Curated release bucket');
           const recIds = crate.record_ids || [];
           const matchedRecords = recIds.map(id => allRecords.find(r => String(r.id) === String(id))).filter(Boolean);
+          const isActiveBox = Boolean(activeBoxState && String(activeBoxState.crate_id) === String(crate.crate_id));
 
           html += `
-            <div class="p-4 bg-vinyl-900 border border-vinyl-800 hover:border-brass-500/40 rounded-2xl space-y-3 transition flex flex-col justify-between shadow-md">
+            <div class="p-4 bg-vinyl-900 border ${isActiveBox ? 'border-amber-500/80 ring-1 ring-amber-500/40' : 'border-vinyl-800 hover:border-brass-500/40'} rounded-2xl space-y-3 transition flex flex-col justify-between shadow-md">
               <div class="space-y-2">
                 <div class="flex items-start justify-between gap-2">
                   <div class="min-w-0">
-                    <h4 class="font-bold text-white text-sm truncate" title="${safeName}">${safeName}</h4>
+                    <h4 class="font-bold text-white text-sm truncate flex items-center gap-1.5" title="${safeName}">
+                      ${isActiveBox ? '<span class="px-1.5 py-0.5 rounded bg-amber-500 text-vinyl-950 text-[9px] font-extrabold uppercase tracking-wider shrink-0">Active</span>' : ''}
+                      <span class="truncate">${safeName}</span>
+                    </h4>
                     <p class="text-[11px] text-slate-400 line-clamp-2 mt-0.5 leading-snug">${safeDesc}</p>
                   </div>
                   <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-brass-500/15 text-brass-300 border border-brass-500/30 shrink-0">
@@ -10228,10 +10502,10 @@
               <!-- Crate Card Actions -->
               <div class="pt-2 border-t border-vinyl-800/80 flex items-center justify-between gap-2">
                 <button type="button" onclick="packCrateIntoRecordBox('${safeCrateId}')"
-                  class="flex-1 py-1.5 px-2.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
-                  title="Pack all releases from this crate into active Record Box">
+                  class="flex-1 py-1.5 px-2.5 rounded-lg ${isActiveBox ? 'bg-amber-500 text-vinyl-950 border-amber-400 font-bold' : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border-amber-500/30 font-semibold'} border text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  title="${isActiveBox ? 'Currently selected as Active Box' : 'Select this crate as your Active Record Box'}">
                   <span>🧳</span>
-                  <span>Pack Box</span>
+                  <span>${isActiveBox ? '✓ Active Box' : 'Select as Active Box'}</span>
                 </button>
                 <button type="button" onclick="filterArchiveByCrate('${safeCrateId}')"
                   class="py-1.5 px-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-slate-300 text-xs transition cursor-pointer"
@@ -10260,22 +10534,7 @@
     function packCrateIntoRecordBox(crateId) {
       const crate = getQmcCrates().find(c => String(c.crate_id) === String(crateId));
       if (!crate) return;
-      const recIds = crate.record_ids || [];
-      if (recIds.length === 0) {
-        showToast(`Crate "${crate.name}" has no records to pack.`, 'warning');
-        return;
-      }
-      let addedCount = 0;
-      recIds.forEach(id => {
-        if (!isRecordInBox(id)) {
-          addRecordToBox(id);
-          addedCount++;
-        }
-      });
-      showToast(`Packed ${addedCount} release${addedCount === 1 ? '' : 's'} from crate "${crate.name}" into Record Box!`, 'success');
-      if (typeof updateBoxButtonElements === 'function') {
-        recIds.forEach(id => updateBoxButtonElements(id));
-      }
+      chooseActiveBoxFromCrate(crateId);
     }
 
     function filterArchiveByCrate(crateId) {
@@ -23207,6 +23466,7 @@
         records: records,
         crates: (typeof getQmcCrates === 'function') ? getQmcCrates() : [],
         recordBox: (typeof getQmcRecordBox === 'function') ? getQmcRecordBox() : [],
+        savedBoxes: (typeof getQmcSavedBoxes === 'function') ? getQmcSavedBoxes() : [],
         savedSets: (typeof getQmcSavedSets === 'function') ? getQmcSavedSets() : []
       };
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPayload, null, 2));
@@ -23216,7 +23476,7 @@
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-      showToast("JSON archive backup created (Records, Crates, Box & Sets)!");
+      showToast("JSON archive backup created (Records, Crates, Boxes & Sets)!");
     }
 
     function importFromJSON(event) {
@@ -23240,6 +23500,9 @@
             saveRecordsToStorage();
             if (Array.isArray(imported.crates) && typeof saveQmcCrates === 'function') {
               saveQmcCrates(imported.crates);
+            }
+            if (Array.isArray(imported.savedBoxes) && typeof saveQmcSavedBoxes === 'function') {
+              saveQmcSavedBoxes(imported.savedBoxes);
             }
             if (Array.isArray(imported.recordBox) && typeof saveQmcRecordBox === 'function') {
               saveQmcRecordBox(imported.recordBox);
