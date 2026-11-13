@@ -4813,6 +4813,73 @@
   </div>
 
   <!-- ============================================== -->
+  <!-- MODAL: ARTIST & ALBUM BIOGRAPHY EDITOR         -->
+  <!-- ============================================== -->
+  <div id="bioEditorModal"
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[85] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto"
+    style="z-index: 85;">
+    <div
+      class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-2xl p-4 sm:p-6 shadow-2xl relative my-auto space-y-4">
+      <div class="flex items-center justify-between border-b border-vinyl-800 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-pen-nib"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">Edit Artist &amp; Album Biography</h3>
+            <p id="bioEditorSubtitle" class="text-xs text-slate-400">Custom liner notes, career history &amp; release story</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeBioEditorModal()"
+          class="px-2.5 py-1 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-300 hover:text-red-300 border border-vinyl-700 text-xs font-bold transition cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <input type="hidden" id="bioEditorRecordId" value="">
+
+      <!-- Artist Bio Input -->
+      <div class="space-y-1.5">
+        <label for="bioEditorArtistInput" class="text-xs font-bold uppercase tracking-wider text-brass-400 flex items-center justify-between">
+          <span>🎙️ Artist Biography</span>
+          <button type="button" onclick="autoFetchSpecificBio('artist')" class="text-[11px] text-sky-400 hover:underline font-normal flex items-center gap-1 cursor-pointer">
+            <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Auto-Fetch Artist
+          </button>
+        </label>
+        <textarea id="bioEditorArtistInput" rows="4"
+          placeholder="Enter artist background, career history, origin, musical era, and band member notes..."
+          class="w-full bg-vinyl-950 border border-vinyl-750 focus:border-amber-500 rounded-xl p-3 text-xs text-slate-200 focus:outline-none transition leading-relaxed"></textarea>
+      </div>
+
+      <!-- Album Story Input -->
+      <div class="space-y-1.5">
+        <label for="bioEditorAlbumInput" class="text-xs font-bold uppercase tracking-wider text-brass-400 flex items-center justify-between">
+          <span>💽 Album Story &amp; Recording Background</span>
+          <button type="button" onclick="autoFetchSpecificBio('album')" class="text-[11px] text-sky-400 hover:underline font-normal flex items-center gap-1 cursor-pointer">
+            <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Auto-Fetch Album
+          </button>
+        </label>
+        <textarea id="bioEditorAlbumInput" rows="4"
+          placeholder="Enter album backstory, studio sessions, personnel, concept, and historical impact..."
+          class="w-full bg-vinyl-950 border border-vinyl-750 focus:border-amber-500 rounded-xl p-3 text-xs text-slate-200 focus:outline-none transition leading-relaxed"></textarea>
+      </div>
+
+      <!-- Actions -->
+      <div class="pt-2 border-t border-vinyl-800 flex items-center justify-between gap-3">
+        <button type="button" onclick="closeBioEditorModal()"
+          class="px-4 py-2 rounded-xl bg-vinyl-800 hover:bg-vinyl-750 text-slate-300 font-semibold text-xs transition cursor-pointer">
+          Cancel
+        </button>
+        <button type="button" onclick="saveBioEditorModal()"
+          class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold text-xs flex items-center gap-1.5 transition shadow cursor-pointer">
+          <i class="fa-solid fa-floppy-disk text-xs"></i>
+          <span>Save Biography</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
   <!-- MODAL: VISUAL AI PRESSING MATCHER (visual.html)-->
   <!-- ============================================== -->
   <div id="visualMatcherModal"
@@ -5104,9 +5171,11 @@
         mediaGradeNotes: "Dead quiet backgrounds, flawless deep vinyl gloss. Pristine audiophile archive playback.",
         sleeveGrade: "VG+",
         sleeveGradeNotes: "Original gatefold with blue prism tint. Both original posters and crack-back stickers intact.",
-        coverImage: "https://images.unsplash.com/photo-1539185441755-769473a23570?auto=format&fit=crop&w=600&q=80",
-        labelAImage: "https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80",
-        labelBImage: "",
+        coverImage: "https://coverartarchive.org/release/956fbc58-362d-43b8-b880-3779e0508559/34025419985-500.jpg",
+        labelAImage: "https://coverartarchive.org/release/956fbc58-362d-43b8-b880-3779e0508559/34024007831-500.jpg",
+        labelBImage: "https://coverartarchive.org/release/956fbc58-362d-43b8-b880-3779e0508559/34024008234-500.jpg",
+        artistBio: "Pink Floyd were an English rock band formed in London in 1965. Gaining an early following as one of the first British psychedelic groups, they were distinguished for their extended compositions, sonic experimentation, philosophical lyrics, and elaborate live shows. They became a leading band of the progressive rock genre and one of the most commercially successful and influential groups in popular music history.",
+        albumBio: "The Dark Side of the Moon is the eighth studio album by Pink Floyd, released in March 1973. A concept album exploring themes of conflict, greed, time, death, and mental illness, it was developed during live performances and recorded at EMI Studios (now Abbey Road Studios). Engineered by Alan Parsons, it introduced advanced multi-track recording, tape loops, and analog synthesizers, spending an unprecedented 900+ weeks on the Billboard 200.",
         genres: "Progressive Rock, Art Rock",
         producer: "Pink Floyd & Alan Parsons",
         provenance: "Acquired from first-press collector estate, London 2012.",
@@ -5150,9 +5219,11 @@
         mediaGradeNotes: "Clean playback with light paper scuffs visible under direct light. No skips.",
         sleeveGrade: "VG+",
         sleeveGradeNotes: "Original Lightning company die-cut paper sleeve with slight crease.",
-        coverImage: "",
+        coverImage: "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/4d/95/62/4d956290-9899-85fe-bb5f-fb90bab149db/00724381032558.jpg/600x600bb.jpg",
         labelAImage: "",
         labelBImage: "",
+        artistBio: "Althea & Donna were a Jamaican reggae vocal duo consisting of Althea Forrest and Donna Reid. As teenagers in Kingston, they achieved international stardom in 1977 when their track 'Uptown Top Ranking' became a massive roots reggae anthem, famously championed by BBC Radio 1 DJ John Peel, propelling them to #1 on the UK Singles Chart in February 1978.",
+        albumBio: "Recorded at Joe Gibbs Recording Studio in Kingston, Jamaica, with legendary producers Joe Gibbs and Errol Thompson (The Mighty Two), 'Uptown Top Ranking' was voiced over the rhythm track from Alton Ellis's classic 'I'm Still In Love With You'. The single's cheeky lyrical patois and joyful roots bounce made it an iconic crossover milestone in reggae history.",
         genres: "Roots Reggae, Dub",
         producer: "Joe Gibbs & Errol Thompson (The Mighty Two)",
         provenance: "Acquired from specialist Kingston importer, Brixton 1982.",
@@ -5199,9 +5270,11 @@
         mediaGradeNotes: "Deep 6-eye mono pressing. Warm tube sound, occasional soft tick.",
         sleeveGrade: "VG",
         sleeveGradeNotes: "Classic paste-on sleeve with light corner wear.",
-        coverImage: "https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&w=600&q=80",
+        coverImage: "https://coverartarchive.org/release/e7ba3cb7-a074-45ee-870f-3baeb6d3e8bf/12708426541-500.jpg",
         labelAImage: "",
         labelBImage: "",
+        artistBio: "Miles Dewey Davis III was an American trumpeter, bandleader, and composer, widely considered one of the most influential and acclaimed figures in the history of jazz and 20th-century music. Davis was at the forefront of several major jazz innovations, including cool jazz, hard bop, modal jazz, and jazz fusion across a legendary five-decade career.",
+        albumBio: "Kind of Blue is a studio album by Miles Davis, released on August 17, 1959, by Columbia Records. Recorded at Columbia's 30th Street Studio in New York City with a legendary sextet comprising John Coltrane, Julian 'Cannonball' Adderley, Bill Evans, Wynton Kelly, Paul Chambers, and Jimmy Cobb, it is widely regarded as the greatest jazz record of all time and the definitive masterwork of modal jazz.",
         genres: "Modal Jazz, Hard Bop",
         producer: "Teo Macero & Irving Townsend",
         provenance: "Acquired from NYC jazz collector estate, 2015.",
@@ -5245,9 +5318,11 @@
         mediaGradeNotes: "Pristine archival unplayed copy.",
         sleeveGrade: "VG+",
         sleeveGradeNotes: "First press Delga flipback picture sleeve.",
-        coverImage: "",
-        labelAImage: "",
-        labelBImage: "",
+        coverImage: "https://coverartarchive.org/release/784a58ad-4ff0-4f9b-b4d0-ec221b7697b8/38325252173-500.jpg",
+        labelAImage: "https://coverartarchive.org/release/784a58ad-4ff0-4f9b-b4d0-ec221b7697b8/38325255223-500.jpg",
+        labelBImage: "https://coverartarchive.org/release/784a58ad-4ff0-4f9b-b4d0-ec221b7697b8/38325256732-500.jpg",
+        artistBio: "The Damned are an English rock band formed in London in 1976 by Dave Vanian, Brian James, Captain Sensible, and Rat Scabies. Renowned as high-energy pioneers who helped ignite the UK punk rock explosion, they were celebrated for their breakneck musicianship, dark theatricality, and irreverent humour, later becoming founding innovators of gothic rock.",
+        albumBio: "Released on 22 October 1976 by Stiff Records (BUY 6) and produced by Nick Lowe, 'New Rose' holds the historic honour of being the first UK punk single ever commercially released—beating the Sex Pistols' 'Anarchy in the UK' by five weeks. Opening with Vanian's immortal whisper 'Is she really going out with him?', it remains a furious blast of raw energy.",
         genres: "Punk Rock",
         producer: "Nick Lowe",
         provenance: "Purchased at Rough Trade Records, London in November 1976.",
@@ -5310,9 +5385,11 @@
         mediaGradeNotes: "Unplayed pristine heavyweight 180g audiophile black vinyl.",
         sleeveGrade: "NM",
         sleeveGradeNotes: "Deluxe lift-off lid rigid slipcase with foil debossed typography and 24-page archival booklet.",
-        coverImage: "",
-        labelAImage: "",
-        labelBImage: "",
+        coverImage: "https://coverartarchive.org/release/4862a5f1-1f99-4fc6-8007-945bbf0d880c/34169812974-500.jpg",
+        labelAImage: "https://coverartarchive.org/release/4862a5f1-1f99-4fc6-8007-945bbf0d880c/34169815160-500.jpg",
+        labelBImage: "https://coverartarchive.org/release/4862a5f1-1f99-4fc6-8007-945bbf0d880c/34169815853-500.jpg",
+        artistBio: "David Bowie (1947–2016) was an English singer, songwriter, and actor, regarded as one of the most influential musicians of the 20th century. Renowned for his dramatic visual and sonic reinventions—from Ziggy Stardust and Aladdin Sane to the Thin White Duke and Berlin Trilogy—his work seamlessly bridged glam rock, art rock, electronic avant-garde, and pop.",
+        albumBio: "Stage is a live album by David Bowie, recorded during the legendary 1978 'Isolar II' world tour across Philadelphia, Providence, and Boston, and released by RCA Victor in September 1978. Featuring an extraordinary band including guitarist Adrian Belew and pianist Sean Mayes, the concert captures landmark live renditions from 'Station to Station', 'Low', and 'Heroes'.",
         genres: "Art Rock, Glam Rock, Live",
         producer: "David Bowie & Tony Visconti",
         provenance: "Acquired direct from Parlophone archive subscription, London 2017.",
@@ -6874,7 +6951,9 @@
         seriesNumber: rec.seriesNumber || rec.series_number || '',
         duplicateHash: rec.duplicateHash || computeDuplicateHash(rec),
         genre: rec.genre || '',
-        styles: Array.isArray(rec.styles) ? rec.styles : []
+        styles: Array.isArray(rec.styles) ? rec.styles : [],
+        artistBio: rec.artistBio || '',
+        albumBio: rec.albumBio || ''
       });
       rNotes = (rNotes ? (rNotes + '\n') : '') + `<!--qmc_vspec:${vSpec}-->`;
 
@@ -6935,6 +7014,8 @@
       let duplicateHash = row.duplicate_hash || row.duplicateHash || '';
       let genre = row.genre || '';
       let styles = Array.isArray(row.styles) ? row.styles : [];
+      let artistBio = row.artist_bio || row.artistBio || '';
+      let albumBio = row.album_bio || row.albumBio || '';
 
       let cleanNotes = row.research_notes || '';
       const vSpecMatch = cleanNotes.match(/<!--qmc_vspec:(.*?)-->/);
@@ -6952,6 +7033,8 @@
           if (!duplicateHash && parsed.duplicateHash) duplicateHash = parsed.duplicateHash;
           if (!genre && parsed.genre) genre = parsed.genre;
           if (styles.length === 0 && Array.isArray(parsed.styles)) styles = parsed.styles;
+          if (!artistBio && parsed.artistBio) artistBio = parsed.artistBio;
+          if (!albumBio && parsed.albumBio) albumBio = parsed.albumBio;
           cleanNotes = cleanNotes.replace(/<!--qmc_vspec:.*?-->/g, '').trim();
         } catch (e) { }
       }
@@ -7017,6 +7100,8 @@
         transferStatus: row.transfer_status || 'Not Digitized',
         transferNotes: row.transfer_notes || '',
         researchNotes: cleanNotes,
+        artistBio: artistBio || '',
+        albumBio: albumBio || '',
         isPublic: row.is_public !== false,
         dateAdded: row.date_added || row.created_at || new Date().toISOString()
       };
@@ -8329,6 +8414,26 @@
             r.priceHigh = parseFloat(r.priceHigh);
           } else {
             r.priceHigh = Math.round(r.estimatedValue * 1.5 * 100) / 100;
+          }
+        }
+
+        // Auto-upgrade sample records if they hold legacy unsplash placeholders, empty sleeves, or missing bios
+        const sampleSeed = (typeof SAMPLE_RECORDS !== 'undefined' && Array.isArray(SAMPLE_RECORDS)) ? SAMPLE_RECORDS.find(s => s.id === r.id) : null;
+        if (sampleSeed) {
+          if (!r.coverImage || r.coverImage.includes('images.unsplash.com')) {
+            r.coverImage = sampleSeed.coverImage;
+          }
+          if (!r.labelAImage || r.labelAImage.includes('images.unsplash.com')) {
+            r.labelAImage = sampleSeed.labelAImage || '';
+          }
+          if (!r.labelBImage || r.labelBImage.includes('images.unsplash.com')) {
+            r.labelBImage = sampleSeed.labelBImage || '';
+          }
+          if (!r.artistBio) {
+            r.artistBio = sampleSeed.artistBio || '';
+          }
+          if (!r.albumBio) {
+            r.albumBio = sampleSeed.albumBio || '';
           }
         }
       });
@@ -15569,6 +15674,9 @@
                           <a href="${tStream.youtube}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-red-400 transition" title="Search on YouTube">
                             <i class="fa-brands fa-youtube text-xs"></i>
                           </a>
+                          <a href="https://www.whosampled.com/search/?q=${encodeURIComponent(item.artist + ' ' + t.title)}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-indigo-400 transition" title="Explore samples, covers &amp; remixes on WhoSampled">
+                            <i class="fa-solid fa-dna text-xs"></i>
+                          </a>
                         </div>
                       </div>
                     </div>
@@ -15617,6 +15725,9 @@
                 <a href="${aStream.youtube}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-red-400 transition" title="Search on YouTube">
                   <i class="fa-brands fa-youtube text-xs"></i>
                 </a>
+                <a href="https://www.whosampled.com/search/?q=${encodeURIComponent(item.artist + ' ' + (item.sideATitle || item.title))}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-indigo-400 transition" title="Explore samples, covers &amp; remixes on WhoSampled">
+                  <i class="fa-solid fa-dna text-xs"></i>
+                </a>
               </div>
             </div>
           </div>
@@ -15641,6 +15752,9 @@
                 </a>
                 <a href="${bStream.youtube}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-red-400 transition" title="Search on YouTube">
                   <i class="fa-brands fa-youtube text-xs"></i>
+                </a>
+                <a href="https://www.whosampled.com/search/?q=${encodeURIComponent(item.artist + ' ' + (item.sideBTitle || 'Side B Track'))}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-indigo-400 transition" title="Explore samples, covers &amp; remixes on WhoSampled">
+                  <i class="fa-solid fa-dna text-xs"></i>
                 </a>
               </div>
             </div>
@@ -15980,6 +16094,70 @@
               </div>
             </div>
 
+            <!-- ARTIST & ALBUM BIOGRAPHY & SAMPLE CONNECTIONS CARD -->
+            <div class="bg-vinyl-850 p-4 rounded-xl border border-vinyl-800 space-y-3" id="dossierBioSection">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center justify-center text-sm shadow-sm">
+                    <i class="fa-solid fa-book-open"></i>
+                  </span>
+                  <div>
+                    <h4 class="text-xs uppercase font-bold text-brass-400 tracking-wider flex items-center gap-1.5">
+                      Artist &amp; Album Biography
+                    </h4>
+                    <p class="text-[10px] text-slate-400">Archival backstory, personnel &amp; musical legacy</p>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <!-- Tab toggles: Artist Bio vs Album Story -->
+                  <div class="inline-flex rounded-lg bg-vinyl-900 p-0.5 border border-vinyl-750 text-[11px]">
+                    <button type="button" onclick="switchDossierBioTab('artist')" id="btnDossierBioTabArtist"
+                      class="px-2.5 py-1 rounded-md font-semibold text-white bg-amber-500/20 text-amber-300 border border-amber-500/30 transition cursor-pointer">
+                      🎙️ Artist Bio
+                    </button>
+                    <button type="button" onclick="switchDossierBioTab('album')" id="btnDossierBioTabAlbum"
+                      class="px-2.5 py-1 rounded-md font-semibold text-slate-400 hover:text-slate-200 transition cursor-pointer">
+                      💽 Album Story
+                    </button>
+                  </div>
+
+                  <a href="https://www.whosampled.com/search/?q=${encodeURIComponent(item.artist + ' ' + item.title)}" target="_blank" rel="noopener noreferrer"
+                    class="px-2.5 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 active:scale-95 text-indigo-300 border border-indigo-500/30 text-[11px] font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-sm"
+                    title="Explore who sampled this release or what this record sampled on WhoSampled">
+                    <i class="fa-solid fa-dna text-[10px] text-indigo-400"></i>
+                    <span>WhoSampled</span>
+                  </a>
+
+                  <button type="button" onclick="autoFetchBioForRecord('${safeId}')" id="btnDossierAutoFetchBio"
+                    class="px-2.5 py-1 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 active:scale-95 text-sky-300 border border-sky-500/30 text-[11px] font-semibold flex items-center gap-1 transition cursor-pointer shadow-sm"
+                    title="Automatically fetch biography and album context from Wikipedia">
+                    <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>
+                    <span>Auto-Fetch</span>
+                  </button>
+
+                  ${isOwner ? `
+                    <button type="button" onclick="openBioEditorModal('${safeId}')"
+                      class="px-2.5 py-1 rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-slate-300 hover:text-white border border-vinyl-700 text-[11px] font-semibold flex items-center gap-1 transition cursor-pointer"
+                      title="Edit bio text or write your own custom notes">
+                      <i class="fa-solid fa-pen text-[10px]"></i>
+                      <span>Edit</span>
+                    </button>
+                  ` : ''}
+                </div>
+              </div>
+
+              <!-- Artist Bio Content Pane -->
+              <div id="dossierArtistBioPane" class="text-xs text-slate-300 leading-relaxed bg-vinyl-900/80 p-3.5 rounded-xl border border-vinyl-800/80 whitespace-pre-line">
+                ${item.artistBio ? escapeHtml(item.artistBio) : `<div class="text-slate-400 italic flex items-center justify-between"><span>No artist biography logged yet. Tap <strong class="text-sky-300 font-semibold cursor-pointer" onclick="autoFetchBioForRecord('${safeId}')">Auto-Fetch</strong> to pull from Wikipedia or <strong class="text-amber-300 font-semibold cursor-pointer" onclick="openBioEditorModal('${safeId}')">Edit</strong> to write your own.</span></div>`}
+              </div>
+
+              <!-- Album Story Content Pane (Hidden by default) -->
+              <div id="dossierAlbumBioPane" class="hidden text-xs text-slate-300 leading-relaxed bg-vinyl-900/80 p-3.5 rounded-xl border border-vinyl-800/80 whitespace-pre-line">
+                ${item.albumBio ? escapeHtml(item.albumBio) : (item.researchNotes ? escapeHtml(item.researchNotes) : `<div class="text-slate-400 italic flex items-center justify-between"><span>No album backstory logged yet. Tap <strong class="text-sky-300 font-semibold cursor-pointer" onclick="autoFetchBioForRecord('${safeId}')">Auto-Fetch</strong> to pull from Wikipedia or <strong class="text-amber-300 font-semibold cursor-pointer" onclick="openBioEditorModal('${safeId}')">Edit</strong> to write your own.</span></div>`)}
+              </div>
+            </div>
+
             <!-- SPOTIFY AUDIO TELEMETRY & AUDITION PLATFORM -->
             <div class="bg-gradient-to-r from-vinyl-850 to-vinyl-800 p-4 rounded-xl border border-brass-500/30 space-y-3.5">
               <div class="flex items-center justify-between flex-wrap gap-2">
@@ -16147,6 +16325,10 @@
               <i class="fa-solid fa-layer-group text-brass-400"></i>
               <span>+ Crate</span>
             </button>
+            <a href="https://www.whosampled.com/search/?q=${encodeURIComponent(item.artist + ' ' + item.title)}" target="_blank" rel="noopener noreferrer" class="px-3 py-2 rounded-lg bg-indigo-950/60 hover:bg-indigo-900/70 text-indigo-300 border border-indigo-500/40 text-xs font-semibold flex items-center gap-1.5 transition" title="Explore samples, covers & remixes on WhoSampled">
+              <i class="fa-solid fa-dna text-indigo-400"></i>
+              <span>WhoSampled</span>
+            </a>
             <button type="button" onclick="openExtendedArchivalModal('${safeId}')" class="px-3 py-2 rounded-lg bg-cyan-950/60 hover:bg-cyan-900/70 text-cyan-300 border border-cyan-500/40 text-xs font-semibold flex items-center gap-1.5 transition">
               <span>🔬 Extended Archival Details</span>
             </button>
@@ -16306,6 +16488,232 @@
       if (drawer) drawer.classList.add('hidden');
     }
 
+    /* =========================================================
+       ARTIST & ALBUM BIOGRAPHY SYSTEM (WIKIPEDIA / CUSTOM NOTES)
+       ========================================================= */
+    let currentDossierBioTab = 'artist';
+
+    function switchDossierBioTab(tab) {
+      currentDossierBioTab = tab === 'album' ? 'album' : 'artist';
+      const artistPane = document.getElementById('dossierArtistBioPane');
+      const albumPane = document.getElementById('dossierAlbumBioPane');
+      const artistBtn = document.getElementById('btnDossierBioTabArtist');
+      const albumBtn = document.getElementById('btnDossierBioTabAlbum');
+
+      if (!artistPane || !albumPane || !artistBtn || !albumBtn) return;
+
+      if (currentDossierBioTab === 'artist') {
+        artistPane.classList.remove('hidden');
+        albumPane.classList.add('hidden');
+        artistBtn.className = 'px-2.5 py-1 rounded-md font-semibold text-white bg-amber-500/20 text-amber-300 border border-amber-500/30 transition cursor-pointer';
+        albumBtn.className = 'px-2.5 py-1 rounded-md font-semibold text-slate-400 hover:text-slate-200 border border-transparent transition cursor-pointer';
+      } else {
+        artistPane.classList.add('hidden');
+        albumPane.classList.remove('hidden');
+        albumBtn.className = 'px-2.5 py-1 rounded-md font-semibold text-white bg-amber-500/20 text-amber-300 border border-amber-500/30 transition cursor-pointer';
+        artistBtn.className = 'px-2.5 py-1 rounded-md font-semibold text-slate-400 hover:text-slate-200 border border-transparent transition cursor-pointer';
+      }
+    }
+
+    function updateDossierBioPanes(item) {
+      if (!item) return;
+      const artistPane = document.getElementById('dossierArtistBioPane');
+      const albumPane = document.getElementById('dossierAlbumBioPane');
+      const safeId = escapeJsString(String(item.id));
+
+      if (artistPane) {
+        artistPane.innerHTML = item.artistBio
+          ? escapeHtml(item.artistBio)
+          : `<div class="text-slate-400 italic flex items-center justify-between"><span>No artist biography logged yet. Tap <strong class="text-sky-300 font-semibold cursor-pointer" onclick="autoFetchBioForRecord('${safeId}')">Auto-Fetch</strong> to pull from Wikipedia or <strong class="text-amber-300 font-semibold cursor-pointer" onclick="openBioEditorModal('${safeId}')">Edit</strong> to write your own.</span></div>`;
+      }
+
+      if (albumPane) {
+        albumPane.innerHTML = item.albumBio
+          ? escapeHtml(item.albumBio)
+          : (item.researchNotes
+            ? escapeHtml(item.researchNotes)
+            : `<div class="text-slate-400 italic flex items-center justify-between"><span>No album backstory logged yet. Tap <strong class="text-sky-300 font-semibold cursor-pointer" onclick="autoFetchBioForRecord('${safeId}')">Auto-Fetch</strong> to pull from Wikipedia or <strong class="text-amber-300 font-semibold cursor-pointer" onclick="openBioEditorModal('${safeId}')">Edit</strong> to write your own.</span></div>`);
+      }
+    }
+
+    async function fetchWikipediaExtract(searchTerm) {
+      if (!searchTerm) return null;
+      const cleanTerm = String(searchTerm).replace(/[\(\)\[\]"]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (!cleanTerm) return null;
+
+      // 1. Direct Page Summary API
+      try {
+        const directUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanTerm.replace(/ /g, '_'))}`;
+        const res = await fetch(directUrl);
+        if (res.ok) {
+          const d = await res.json();
+          if (d.type !== 'disambiguation' && d.extract && d.extract.length > 30) {
+            return d.extract;
+          }
+        }
+      } catch (_) { }
+
+      // 2. Wikipedia Search API Cascade
+      try {
+        const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanTerm)}&format=json&origin=*`;
+        const res = await fetch(searchUrl);
+        if (res.ok) {
+          const sData = await res.json();
+          const firstHit = sData.query?.search?.[0];
+          if (firstHit && firstHit.title) {
+            const hitRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(firstHit.title.replace(/ /g, '_'))}`);
+            if (hitRes.ok) {
+              const hitData = await hitRes.json();
+              if (hitData.extract && hitData.extract.length > 30) {
+                return hitData.extract;
+              }
+            }
+          }
+        }
+      } catch (_) { }
+
+      return null;
+    }
+
+    async function autoFetchBioForRecord(recordId) {
+      const targetId = recordId || currentDetailRecordId;
+      const item = records.find(r => String(r.id) === String(targetId));
+      if (!item) return;
+
+      showToast(`Fetching Wikipedia biography for "${item.artist}"...`, 'info');
+
+      const btn = document.getElementById('btnDossierAutoFetchBio');
+      if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[10px]"></i> <span>Fetching...</span>';
+
+      try {
+        // Fetch Artist Bio
+        let artistBio = await fetchWikipediaExtract(item.artist);
+        if (!artistBio) {
+          artistBio = await fetchWikipediaExtract(`${item.artist} band`);
+        }
+        if (!artistBio) {
+          artistBio = await fetchWikipediaExtract(`${item.artist} musician`);
+        }
+
+        // Fetch Album Story
+        let albumBio = await fetchWikipediaExtract(`${item.title} ${item.artist}`);
+        if (!albumBio) {
+          albumBio = await fetchWikipediaExtract(`${item.title} album`);
+        }
+        if (!albumBio) {
+          albumBio = await fetchWikipediaExtract(item.title);
+        }
+
+        let updatedAny = false;
+        if (artistBio) {
+          item.artistBio = artistBio;
+          updatedAny = true;
+        }
+        if (albumBio) {
+          item.albumBio = albumBio;
+          updatedAny = true;
+        }
+
+        if (updatedAny) {
+          saveRecordsToStorage();
+          if (isCloudActive && currentUser && supabaseClient) {
+            syncRecordToCloud(item);
+          }
+          updateDossierBioPanes(item);
+          showToast(`Updated biography for "${item.artist}" & "${item.title}"!`, 'success');
+        } else {
+          showToast(`No Wikipedia bio found for "${item.artist}". You can write your own via Edit!`, 'warning');
+        }
+      } catch (err) {
+        console.warn('Auto-fetch bio error:', err);
+        showToast('Could not fetch bio. You can enter custom notes via Edit.', 'error');
+      } finally {
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> <span>Auto-Fetch</span>';
+      }
+    }
+
+    function openBioEditorModal(recordId) {
+      const targetId = recordId || currentDetailRecordId;
+      const item = records.find(r => String(r.id) === String(targetId));
+      if (!item) return;
+
+      const modal = document.getElementById('bioEditorModal');
+      const recIdInput = document.getElementById('bioEditorRecordId');
+      const subtitle = document.getElementById('bioEditorSubtitle');
+      const artistInput = document.getElementById('bioEditorArtistInput');
+      const albumInput = document.getElementById('bioEditorAlbumInput');
+
+      if (!modal) return;
+
+      if (recIdInput) recIdInput.value = item.id;
+      if (subtitle) subtitle.textContent = `${item.artist} — ${item.title}`;
+      if (artistInput) artistInput.value = item.artistBio || '';
+      if (albumInput) albumInput.value = item.albumBio || item.researchNotes || '';
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeBioEditorModal() {
+      const modal = document.getElementById('bioEditorModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    async function autoFetchSpecificBio(type) {
+      const recId = document.getElementById('bioEditorRecordId')?.value;
+      const item = records.find(r => String(r.id) === String(recId));
+      if (!item) return;
+
+      if (type === 'artist') {
+        showToast(`Fetching artist bio for "${item.artist}"...`, 'info');
+        let bio = await fetchWikipediaExtract(item.artist);
+        if (!bio) bio = await fetchWikipediaExtract(`${item.artist} band`);
+        if (!bio) bio = await fetchWikipediaExtract(`${item.artist} musician`);
+        if (bio) {
+          const input = document.getElementById('bioEditorArtistInput');
+          if (input) input.value = bio;
+          showToast('Artist biography populated from Wikipedia!', 'success');
+        } else {
+          showToast('Could not find artist page on Wikipedia.', 'warning');
+        }
+      } else {
+        showToast(`Fetching album background for "${item.title}"...`, 'info');
+        let bio = await fetchWikipediaExtract(`${item.title} ${item.artist}`);
+        if (!bio) bio = await fetchWikipediaExtract(`${item.title} album`);
+        if (!bio) bio = await fetchWikipediaExtract(item.title);
+        if (bio) {
+          const input = document.getElementById('bioEditorAlbumInput');
+          if (input) input.value = bio;
+          showToast('Album backstory populated from Wikipedia!', 'success');
+        } else {
+          showToast('Could not find album page on Wikipedia.', 'warning');
+        }
+      }
+    }
+
+    function saveBioEditorModal() {
+      const recId = document.getElementById('bioEditorRecordId')?.value;
+      const item = records.find(r => String(r.id) === String(recId));
+      if (!item) {
+        closeBioEditorModal();
+        return;
+      }
+
+      const artistVal = document.getElementById('bioEditorArtistInput')?.value.trim() || '';
+      const albumVal = document.getElementById('bioEditorAlbumInput')?.value.trim() || '';
+
+      item.artistBio = artistVal;
+      item.albumBio = albumVal;
+
+      saveRecordsToStorage();
+      if (isCloudActive && currentUser && supabaseClient) {
+        syncRecordToCloud(item);
+      }
+
+      updateDossierBioPanes(item);
+      closeBioEditorModal();
+      showToast('Biography & album notes saved!', 'success');
+    }
+
     async function syncRecordToCloud(item, { showErrorToast = false } = {}) {
       if (!item || isReadOnlyShareView || !currentUser || !supabaseClient) return false;
       if (item.userId && item.userId !== currentUser.id) return false;
@@ -16378,6 +16786,12 @@
 
       if (backBtn) backBtn.classList.toggle('hidden', targetPage !== 2);
       if (nextBtn) nextBtn.classList.toggle('hidden', targetPage !== 1);
+
+      const isEditing = !!(document.getElementById('recordId')?.value);
+      if (isEditing) {
+        document.getElementById('acquisitionToolbar')?.classList.add('hidden');
+        document.getElementById('quickLookupBar')?.classList.add('hidden');
+      }
 
       const formBody = document.getElementById('recordForm');
       if (formBody && formBody.scrollTop > 0) formBody.scrollTop = 0;

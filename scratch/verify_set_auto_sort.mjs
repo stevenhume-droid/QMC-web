@@ -120,3 +120,4 @@ assert.ok(html.includes("/tracks"), 'Must have fallback to /tracks');
 console.log('✓ Spotify in-place sync API call correctly configured.');
 
 console.log('\n--- ALL SET BUILDER AUTO-SORT & SPOTIFY SYNC TESTS PASSED! ---');
+
