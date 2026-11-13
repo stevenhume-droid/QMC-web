@@ -4114,7 +4114,7 @@
             <p class="text-[11px] text-slate-400">Curated gig bag releases &amp; strictly sequenced track timeline</p>
           </div>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap justify-end">
           <!-- View Switcher Pills -->
           <div class="inline-flex p-0.5 rounded-lg bg-vinyl-900 border border-vinyl-750 text-[11px] font-semibold">
             <button type="button" onclick="setRecordBoxDrawerMode('split')" id="btnDrawerModeSplit"
@@ -4123,13 +4123,26 @@
               <i class="fa-solid fa-table-columns text-[10px] sm:mr-1"></i>
               <span class="hidden sm:inline">Split</span>
             </button>
-            <button type="button" onclick="setRecordBoxDrawerMode('set-focus')" id="btnDrawerModeSetFocus"
+            <button type="button" onclick="setRecordBoxDrawerMode('box-full')" id="btnDrawerModeBoxFull"
               class="px-2 py-0.5 rounded transition text-slate-400 hover:text-white cursor-pointer"
-              title="Set Focus: Compact Record Box for Maximum Set Sorting Space">
+              title="Box Full Screen: Expand Record Box across the entire screen">
+              <i class="fa-solid fa-box-archive text-[10px] sm:mr-1"></i>
+              <span class="hidden sm:inline">Box Full</span>
+            </button>
+            <button type="button" onclick="setRecordBoxDrawerMode('set-full')" id="btnDrawerModeSetFocus"
+              class="px-2 py-0.5 rounded transition text-slate-400 hover:text-white cursor-pointer"
+              title="Set Full Screen: Expand Set Timeline across the entire screen">
               <i class="fa-solid fa-list-ol text-[10px] sm:mr-1"></i>
-              <span class="hidden sm:inline">Set Focus</span>
+              <span class="hidden sm:inline">Set Full</span>
             </button>
           </div>
+          <button type="button" onclick="popOutActiveSetWindow()" id="btnTopPopOutSet"
+            class="px-2.5 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-sky-300 border border-sky-500/30 text-xs font-bold inline-flex items-center gap-1.5 transition shadow cursor-pointer"
+            title="Push Set Builder to a standalone companion window (syncs live with Record Box)">
+            <i class="fa-solid fa-up-right-from-square text-[10px]"></i>
+            <span class="hidden sm:inline">Set to New Window</span>
+            <span class="sm:hidden">Pop Out</span>
+          </button>
           <button type="button" onclick="createNewActiveSetPrompt()" id="btnTopNewSet"
             class="hidden md:inline-flex px-2.5 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-amber-300 border border-amber-500/30 text-xs font-bold items-center gap-1 transition shadow cursor-pointer"
             title="Create a brand new empty Set">
@@ -4186,11 +4199,17 @@
                   oninput="handleActiveBoxTitleChange(event)">
               </div>
               <div class="flex items-center gap-1.5 shrink-0">
-                <button type="button" onclick="toggleRecordBoxCompaction()" id="btnCompactRecordBox"
+                <button type="button" onclick="toggleBoxFullScreen()" id="btnBoxFullScreen"
                   class="px-2 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-amber-300 border border-amber-500/30 flex items-center gap-1 transition cursor-pointer"
-                  title="Compact Record Box to maximize screen real estate for Set sorting">
+                  title="Toggle Record Box Full Screen">
+                  <i id="btnBoxFullScreenIcon" class="fa-solid fa-maximize text-[10px]"></i>
+                  <span id="btnBoxFullScreenLabel">Full Screen</span>
+                </button>
+                <button type="button" onclick="toggleRecordBoxCompaction()" id="btnCompactRecordBox"
+                  class="px-2 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-slate-300 border border-vinyl-700 flex items-center gap-1 transition cursor-pointer"
+                  title="Compact Record Box header to give Set Timeline more vertical room">
                   <i id="btnCompactRecordBoxIcon" class="fa-solid fa-compress text-[10px]"></i>
-                  <span id="btnCompactRecordBoxLabel">Compact</span>
+                  <span id="btnCompactRecordBoxLabel" class="hidden sm:inline">Compact</span>
                 </button>
                 <button type="button" onclick="saveRecordBoxAsCrate()"
                   class="px-2.5 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-brass-300 border border-brass-500/30 flex items-center gap-1 transition cursor-pointer"
@@ -4253,14 +4272,20 @@
                   oninput="handleActiveSetTitleChange(event)">
               </div>
               <div class="flex items-center gap-1.5 shrink-0">
-                <button type="button" onclick="toggleRecordBoxCompaction()" id="btnSetBuilderMaximize"
-                  class="px-2 py-1 text-[11px] rounded bg-vinyl-800 hover:bg-vinyl-750 text-amber-300 border border-amber-500/30 transition cursor-pointer flex items-center gap-1"
-                  title="Maximize Set Builder timeline for sorting">
+                <button type="button" onclick="toggleSetFullScreen()" id="btnSetBuilderMaximize"
+                  class="px-2 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-amber-300 border border-amber-500/30 transition cursor-pointer flex items-center gap-1"
+                  title="Toggle Set Builder Full Screen">
                   <i id="btnSetBuilderMaximizeIcon" class="fa-solid fa-maximize text-[10px]"></i>
-                  <span id="btnSetBuilderMaximizeLabel">Maximize</span>
+                  <span id="btnSetBuilderMaximizeLabel">Full Screen</span>
+                </button>
+                <button type="button" onclick="popOutActiveSetWindow()" id="btnPopOutSetWindow"
+                  class="px-2 py-1 text-[11px] rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 transition cursor-pointer flex items-center gap-1 font-semibold"
+                  title="Push Set Builder to a standalone companion window">
+                  <i class="fa-solid fa-up-right-from-square text-[10px]"></i>
+                  <span class="hidden sm:inline">New Window</span>
                 </button>
                 <button type="button" onclick="clearActiveSetTimeline()"
-                  class="px-2 py-1 text-[11px] rounded bg-vinyl-800 hover:bg-red-950/50 text-slate-400 hover:text-red-300 border border-vinyl-700 transition cursor-pointer"
+                  class="px-2 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-red-950/50 text-slate-400 hover:text-red-300 border border-vinyl-700 transition cursor-pointer"
                   title="Clear current set timeline">
                   Clear
                 </button>
@@ -9119,12 +9144,31 @@
       tracks: []
     };
     const expandedBoxRecordIds = new Set();
-    let recordBoxDrawerMode = 'split'; // 'split' or 'set-focus'
+    let recordBoxDrawerMode = 'split'; // 'split' | 'box-full' | 'set-full' | 'set-focus'
+    let qmcPopoutSetWindowRef = null;
+    const QMC_LIVE_ACTIVE_SET_KEY = 'qmc_live_active_set_v1';
 
     function setRecordBoxDrawerMode(mode) {
-      recordBoxDrawerMode = (mode === 'set-focus') ? 'set-focus' : 'split';
+      const validModes = ['split', 'box-full', 'set-full', 'set-focus'];
+      recordBoxDrawerMode = validModes.includes(mode) ? mode : 'split';
       try { localStorage.setItem('qmc_box_drawer_mode', recordBoxDrawerMode); } catch (_) { }
       applyRecordBoxDrawerMode();
+    }
+
+    function toggleBoxFullScreen() {
+      if (recordBoxDrawerMode === 'box-full') {
+        setRecordBoxDrawerMode('split');
+      } else {
+        setRecordBoxDrawerMode('box-full');
+      }
+    }
+
+    function toggleSetFullScreen() {
+      if (recordBoxDrawerMode === 'set-full') {
+        setRecordBoxDrawerMode('split');
+      } else {
+        setRecordBoxDrawerMode('set-full');
+      }
     }
 
     function toggleRecordBoxCompaction() {
@@ -9141,6 +9185,9 @@
       const boxList = document.getElementById('recordBoxList');
       const setPane = document.getElementById('setBuilderPane');
       const boxSubhead = document.getElementById('recordBoxPaneSubheading');
+      const boxFullBtn = document.getElementById('btnBoxFullScreen');
+      const boxFullIcon = document.getElementById('btnBoxFullScreenIcon');
+      const boxFullLabel = document.getElementById('btnBoxFullScreenLabel');
       const compactBtn = document.getElementById('btnCompactRecordBox');
       const compactIcon = document.getElementById('btnCompactRecordBoxIcon');
       const compactLabel = document.getElementById('btnCompactRecordBoxLabel');
@@ -9148,13 +9195,16 @@
       const setMaxIcon = document.getElementById('btnSetBuilderMaximizeIcon');
       const setMaxLabel = document.getElementById('btnSetBuilderMaximizeLabel');
       const pillSplit = document.getElementById('btnDrawerModeSplit');
+      const pillBoxFull = document.getElementById('btnDrawerModeBoxFull');
       const pillSetFocus = document.getElementById('btnDrawerModeSetFocus');
 
+      const isBoxFull = (recordBoxDrawerMode === 'box-full');
+      const isSetFull = (recordBoxDrawerMode === 'set-full');
       const isCompact = (recordBoxDrawerMode === 'set-focus');
       const count = (typeof getQmcRecordBox === 'function') ? getQmcRecordBox().length : 0;
 
       if (splitBody) {
-        if (isCompact) {
+        if (isBoxFull || isSetFull || isCompact) {
           splitBody.className = 'flex-1 flex flex-col divide-y divide-vinyl-800 overflow-hidden min-h-0';
         } else {
           splitBody.className = 'flex-1 grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-vinyl-800 overflow-hidden min-h-0';
@@ -9162,31 +9212,51 @@
       }
 
       if (boxList) {
-        if (isCompact) {
+        if (isCompact || isSetFull) {
           boxList.classList.add('hidden');
         } else {
           boxList.classList.remove('hidden');
+          if (isBoxFull && count > 0) {
+            boxList.className = 'flex-1 p-3.5 sm:p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 items-start content-start overflow-y-auto overscroll-contain';
+          } else {
+            boxList.className = 'flex-1 p-3.5 sm:p-4 space-y-3 overflow-y-auto overscroll-contain';
+          }
         }
       }
 
       if (boxPane) {
-        if (isCompact) {
+        if (isSetFull) {
+          boxPane.className = 'hidden';
+          boxPane.classList.add('hidden');
+          boxPane.onclick = null;
+        } else if (isCompact) {
+          boxPane.classList.remove('hidden');
           boxPane.className = 'flex flex-col h-auto shrink-0 bg-vinyl-900/80 transition cursor-pointer hover:bg-vinyl-850/80';
           boxPane.onclick = (e) => {
             if (!e.target.closest('button') && !e.target.closest('input') && !e.target.closest('select')) {
               toggleRecordBoxCompaction();
             }
           };
+        } else if (isBoxFull) {
+          boxPane.classList.remove('hidden');
+          boxPane.className = 'flex flex-col flex-1 h-full min-h-0 bg-vinyl-900/60';
+          boxPane.onclick = null;
         } else {
+          boxPane.classList.remove('hidden');
           boxPane.className = 'flex flex-col h-full min-h-0 bg-vinyl-900/60';
           boxPane.onclick = null;
         }
       }
 
       if (setPane) {
-        if (isCompact) {
+        if (isBoxFull) {
+          setPane.className = 'hidden';
+          setPane.classList.add('hidden');
+        } else if (isSetFull || isCompact) {
+          setPane.classList.remove('hidden');
           setPane.className = 'flex flex-col flex-1 h-full min-h-0 bg-vinyl-900/40';
         } else {
+          setPane.classList.remove('hidden');
           setPane.className = 'flex flex-col h-full min-h-0 bg-vinyl-900/40';
         }
       }
@@ -9199,27 +9269,32 @@
         }
       }
 
+      if (boxFullBtn) {
+        boxFullBtn.title = isBoxFull ? 'Restore Split View (Box + Set)' : 'Expand Record Box to Full Screen';
+        if (boxFullIcon) boxFullIcon.className = `fa-solid ${isBoxFull ? 'fa-down-left-and-up-right-to-center' : 'fa-maximize'} text-[10px]`;
+        if (boxFullLabel) boxFullLabel.textContent = isBoxFull ? 'Split View' : 'Full Screen';
+      }
+
       if (compactBtn) {
-        compactBtn.title = isCompact ? 'Expand Record Box to browse releases' : 'Compact Record Box to maximize screen real estate for Set sorting';
+        compactBtn.title = isCompact ? 'Expand Record Box to browse releases' : 'Compact Record Box header to give Set Timeline more vertical room';
         if (compactIcon) compactIcon.className = `fa-solid ${isCompact ? 'fa-expand' : 'fa-compress'} text-[10px]`;
         if (compactLabel) compactLabel.textContent = isCompact ? 'Expand' : 'Compact';
       }
 
       if (setMaxBtn) {
-        setMaxBtn.title = isCompact ? 'Restore split view' : 'Maximize Set Timeline workspace';
-        if (setMaxIcon) setMaxIcon.className = `fa-solid ${isCompact ? 'fa-down-left-and-up-right-to-center' : 'fa-maximize'} text-[10px]`;
-        if (setMaxLabel) setMaxLabel.textContent = isCompact ? 'Split' : 'Maximize';
+        const isSetMaximized = (isSetFull || isCompact);
+        setMaxBtn.title = isSetMaximized ? 'Restore Split View (Box + Set)' : 'Expand Set Builder to Full Screen';
+        if (setMaxIcon) setMaxIcon.className = `fa-solid ${isSetMaximized ? 'fa-down-left-and-up-right-to-center' : 'fa-maximize'} text-[10px]`;
+        if (setMaxLabel) setMaxLabel.textContent = isSetMaximized ? 'Split View' : 'Full Screen';
       }
 
-      if (pillSplit && pillSetFocus) {
-        if (isCompact) {
-          pillSplit.className = 'px-2 py-0.5 rounded transition text-slate-400 hover:text-white cursor-pointer';
-          pillSetFocus.className = 'px-2 py-0.5 rounded transition text-amber-300 bg-amber-500/20 border border-amber-500/40 shadow-sm cursor-pointer';
-        } else {
-          pillSplit.className = 'px-2 py-0.5 rounded transition text-white bg-vinyl-800 border border-vinyl-700 shadow-sm cursor-pointer';
-          pillSetFocus.className = 'px-2 py-0.5 rounded transition text-slate-400 hover:text-white cursor-pointer';
-        }
-      }
+      const activePillClass = 'px-2 py-0.5 rounded transition text-amber-300 bg-amber-500/20 border border-amber-500/40 shadow-sm cursor-pointer';
+      const activeSplitClass = 'px-2 py-0.5 rounded transition text-white bg-vinyl-800 border border-vinyl-700 shadow-sm cursor-pointer';
+      const inactivePillClass = 'px-2 py-0.5 rounded transition text-slate-400 hover:text-white cursor-pointer';
+
+      if (pillSplit) pillSplit.className = (!isBoxFull && !isSetFull && !isCompact) ? activeSplitClass : inactivePillClass;
+      if (pillBoxFull) pillBoxFull.className = isBoxFull ? activePillClass : inactivePillClass;
+      if (pillSetFocus) pillSetFocus.className = (isSetFull || isCompact) ? activePillClass : inactivePillClass;
     }
 
     function openRecordBoxDrawer(initialFocus = 'box') {
@@ -9227,11 +9302,13 @@
       if (drawer) {
         drawer.classList.remove('hidden');
         if (initialFocus === 'sets') {
-          setRecordBoxDrawerMode('set-focus');
+          setRecordBoxDrawerMode('set-full');
+        } else if (initialFocus === 'box-full') {
+          setRecordBoxDrawerMode('box-full');
         } else {
           try {
             const savedMode = localStorage.getItem('qmc_box_drawer_mode');
-            if (savedMode === 'set-focus' || savedMode === 'split') {
+            if (['split', 'box-full', 'set-full', 'set-focus'].includes(savedMode)) {
               recordBoxDrawerMode = savedMode;
             }
           } catch (_) { }
@@ -9430,7 +9507,482 @@
       renderRecordBoxPane();
     }
 
-    function renderSetBuilderPane() {
+    function syncLiveActiveSetToStorage() {
+      try {
+        if (activeSetState) {
+          localStorage.setItem(QMC_LIVE_ACTIVE_SET_KEY, JSON.stringify(activeSetState));
+        }
+      } catch (_) { }
+    }
+
+    if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+      window.addEventListener('storage', (ev) => {
+        if (!ev) return;
+        if (ev.key === QMC_LIVE_ACTIVE_SET_KEY && ev.newValue) {
+          try {
+            const incoming = JSON.parse(ev.newValue);
+            if (incoming && Array.isArray(incoming.tracks)) {
+              activeSetState = incoming;
+              renderSetBuilderPane(true);
+            }
+          } catch (_) { }
+        } else if (ev.key === QMC_SAVED_SETS_KEY) {
+          renderActiveSetPicker();
+          if (typeof currentView !== 'undefined' && currentView === 'sets') {
+            const container = document.getElementById('recordsContainer');
+            if (container && typeof renderSetsView === 'function') renderSetsView(container);
+          }
+        }
+      });
+    }
+
+    function popOutSavedSetWindow(setId) {
+      if (setId) {
+        chooseActiveSet(setId);
+      }
+      return popOutActiveSetWindow();
+    }
+
+    function popOutActiveSetWindow() {
+      syncLiveActiveSetToStorage();
+      const win = (typeof window !== 'undefined' && typeof window.open === 'function')
+        ? window.open('', 'QMC_Set_Companion_Window', 'width=960,height=820,resizable=yes,scrollbars=yes')
+        : null;
+
+      if (!win || !win.document) {
+        showToast('Pop-up blocked by browser — please allow pop-ups for this site to open the Set Window.', 'warning');
+        return null;
+      }
+
+      qmcPopoutSetWindowRef = win;
+
+      // When popping out Set to a companion window while the drawer is open, expand Box to Full Screen in the main window
+      const drawer = document.getElementById('recordBoxDrawer');
+      if (drawer && !drawer.classList.contains('hidden') && recordBoxDrawerMode !== 'box-full') {
+        setRecordBoxDrawerMode('box-full');
+      }
+
+      const popupHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QMC Set Builder — Live Companion Window</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --bg-950: #0c0e12;
+      --bg-900: #14171d;
+      --bg-850: #1b1f27;
+      --bg-800: #232934;
+      --border: #2e3646;
+      --amber: #f59e0b;
+      --amber-light: #fcd34d;
+      --brass: #d4af37;
+      --emerald: #34d399;
+      --sky: #38bdf8;
+      --rose: #fb7185;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg-950);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .header {
+      padding: 14px 18px;
+      background: var(--bg-900);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 15px;
+      color: var(--amber-light);
+    }
+    .badge-live {
+      font-size: 10px;
+      font-family: monospace;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(52, 211, 153, 0.15);
+      color: var(--emerald);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+    }
+    select, input[type="text"] {
+      background: var(--bg-950);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+    }
+    select:focus, input[type="text"]:focus {
+      border-color: var(--amber);
+    }
+    .btn {
+      padding: 7px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-800);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.15s;
+    }
+    .btn:hover { filter: brightness(1.15); }
+    .btn-amber {
+      background: var(--amber);
+      color: #0c0e12;
+      border-color: var(--amber);
+    }
+    .btn-sky {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--sky);
+      border-color: rgba(56, 189, 248, 0.35);
+    }
+    .btn-emerald {
+      background: rgba(52, 211, 153, 0.15);
+      color: var(--emerald);
+      border-color: rgba(52, 211, 153, 0.35);
+    }
+    .telemetry {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .timeline {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .track-card {
+      background: var(--bg-900);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .track-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .track-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      background: var(--amber);
+      color: #0c0e12;
+      font-family: monospace;
+      font-weight: 800;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .track-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-family: monospace;
+      font-size: 11px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .tag {
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: var(--bg-800);
+      border: 1px solid var(--border);
+      color: var(--amber-light);
+    }
+    .tag-45 {
+      background: rgba(251, 113, 133, 0.2);
+      color: var(--rose);
+      border-color: rgba(251, 113, 133, 0.4);
+    }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #fff; color: #000; height: auto; overflow: visible; }
+      .track-card { border: 1px solid #ccc; background: #fff; color: #000; page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="row">
+      <div class="brand">
+        <i class="fa-solid fa-list-ol"></i>
+        <span>QMC Sequenced Set Companion</span>
+        <span class="badge-live">● Live Synced with Record Box</span>
+      </div>
+      <div class="row no-print">
+        <button class="btn btn-sky" onclick="window.print()"><i class="fa-solid fa-print"></i> Print Gig Sheet</button>
+        <button class="btn btn-amber" onclick="saveSet()"><i class="fa-solid fa-floppy-disk"></i> Save Set</button>
+      </div>
+    </div>
+    <div class="row no-print">
+      <select id="popSetPicker" onchange="switchSet(this.value)" style="flex:1; min-width:200px;"></select>
+      <input type="text" id="popSetTitle" oninput="updateTitle(this.value)" placeholder="Set Title..." style="flex:1.5; min-width:220px;">
+      <button class="btn" onclick="sortTracks('bpm-asc')" title="Sort Ascending BPM"><i class="fa-solid fa-arrow-trend-up"></i> BPM ↑</button>
+      <button class="btn" onclick="sortTracks('bpm-desc')" title="Sort Descending BPM"><i class="fa-solid fa-arrow-trend-down"></i> BPM ↓</button>
+      <button class="btn" onclick="clearTracks()" title="Clear Timeline"><i class="fa-solid fa-trash-can"></i> Clear</button>
+    </div>
+    <div class="telemetry">
+      <span id="popTrackCount" style="color:var(--amber-light);font-weight:700;">0 Tracks</span>
+      <span>·</span>
+      <span id="popRuntime" style="color:var(--emerald);font-weight:700;">Runtime: 00:00</span>
+      <span>·</span>
+      <span id="popSpeedAlert">Ready</span>
+    </div>
+  </div>
+  <div id="popTimeline" class="timeline"></div>
+  <script>
+    const LIVE_KEY = 'qmc_live_active_set_v1';
+    const SETS_KEY = 'qmc_saved_sets_v1';
+
+    function esc(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function getLiveSet() {
+      try {
+        const raw = localStorage.getItem(LIVE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (_) {}
+      return { id: null, title: 'Session Set', tracks: [] };
+    }
+
+    function getSavedSets() {
+      try {
+        const raw = localStorage.getItem(SETS_KEY);
+        if (raw) return JSON.parse(raw) || [];
+      } catch (_) {}
+      return [];
+    }
+
+    function pushLiveSet(st) {
+      localStorage.setItem(LIVE_KEY, JSON.stringify(st));
+      render();
+    }
+
+    function calcRuntime(tracks) {
+      let sec = 0;
+      (tracks || []).forEach(t => {
+        const d = String(t.duration || '').trim();
+        if (d.includes(':')) {
+          const p = d.split(':');
+          sec += (parseInt(p[0],10)||0)*60 + (parseInt(p[1],10)||0);
+        }
+      });
+      const m = Math.floor(sec / 60), s = sec % 60;
+      return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    function moveTrack(from, to) {
+      const st = getLiveSet();
+      if (to < 0 || to >= st.tracks.length) return;
+      const [item] = st.tracks.splice(from, 1);
+      st.tracks.splice(to, 0, item);
+      pushLiveSet(st);
+    }
+
+    function removeTrack(idx) {
+      const st = getLiveSet();
+      st.tracks.splice(idx, 1);
+      pushLiveSet(st);
+    }
+
+    function updateCue(idx, val) {
+      const st = getLiveSet();
+      if (st.tracks[idx]) {
+        st.tracks[idx].cue_note = val;
+        pushLiveSet(st);
+      }
+    }
+
+    function updateTitle(val) {
+      const st = getLiveSet();
+      st.title = val.trim() || 'Session Set';
+      localStorage.setItem(LIVE_KEY, JSON.stringify(st));
+    }
+
+    function sortTracks(dir) {
+      const st = getLiveSet();
+      st.tracks.sort((a, b) => {
+        const ba = parseFloat(a.bpm) || 110;
+        const bb = parseFloat(b.bpm) || 110;
+        return dir === 'bpm-desc' ? (bb - ba) : (ba - bb);
+      });
+      pushLiveSet(st);
+    }
+
+    function clearTracks() {
+      const st = getLiveSet();
+      if (!st.tracks.length) return;
+      if (confirm('Clear all tracks from this set timeline?')) {
+        st.tracks = [];
+        pushLiveSet(st);
+      }
+    }
+
+    function switchSet(setId) {
+      const sets = getSavedSets();
+      const found = sets.find(s => String(s.set_id) === String(setId));
+      if (!found) return;
+      const st = {
+        id: found.set_id,
+        title: found.title || 'Untitled Set',
+        description: found.description || 'QMC Vinyl Session',
+        spotify_playlist_id: found.spotify_playlist_id || null,
+        spotify_playlist_url: found.spotify_playlist_url || null,
+        tracks: JSON.parse(JSON.stringify(found.tracks || []))
+      };
+      pushLiveSet(st);
+    }
+
+    function saveSet() {
+      const st = getLiveSet();
+      const sets = getSavedSets();
+      const setId = st.id || ('set_' + Date.now());
+      st.id = setId;
+      const entry = {
+        set_id: setId,
+        title: st.title || 'Session Set',
+        description: st.description || 'QMC Vinyl Session',
+        tracks: st.tracks || [],
+        updated_at: new Date().toISOString()
+      };
+      const idx = sets.findIndex(s => String(s.set_id) === String(setId));
+      if (idx >= 0) sets[idx] = { ...sets[idx], ...entry };
+      else sets.unshift(entry);
+      localStorage.setItem(SETS_KEY, JSON.stringify(sets));
+      pushLiveSet(st);
+    }
+
+    function render() {
+      const st = getLiveSet();
+      const sets = getSavedSets();
+      const picker = document.getElementById('popSetPicker');
+      if (picker) {
+        let opts = '<option value="' + esc(st.id || '') + '" selected>Active: ' + esc(st.title || 'Session Set') + ' (' + (st.tracks||[]).length + ' tracks)</option>';
+        sets.filter(s => String(s.set_id) !== String(st.id)).forEach(s => {
+          opts += '<option value="' + esc(s.set_id) + '">' + esc(s.title) + ' (' + (s.tracks||[]).length + ' tracks)</option>';
+        });
+        picker.innerHTML = opts;
+      }
+      const titleIn = document.getElementById('popSetTitle');
+      if (titleIn && document.activeElement !== titleIn) {
+        titleIn.value = st.title || 'Session Set';
+      }
+      const trs = st.tracks || [];
+      document.getElementById('popTrackCount').textContent = trs.length + ' Track' + (trs.length === 1 ? '' : 's');
+      document.getElementById('popRuntime').textContent = 'Runtime: ' + calcRuntime(trs);
+
+      let has33 = false, has45 = false;
+      trs.forEach(t => {
+        if (String(t.speed || t.rpm || '').includes('45')) has45 = true;
+        else has33 = true;
+      });
+      const alertEl = document.getElementById('popSpeedAlert');
+      if (has33 && has45) alertEl.innerHTML = '<span style="color:var(--rose);font-weight:700;">⚠ Mixed 33/45 RPM</span>';
+      else if (has45) alertEl.innerHTML = '<span style="color:var(--rose);">All 45 RPM</span>';
+      else if (trs.length > 0) alertEl.innerHTML = '<span style="color:var(--emerald);">All 33⅓ RPM</span>';
+      else alertEl.textContent = 'Ready';
+
+      const tl = document.getElementById('popTimeline');
+      if (!trs.length) {
+        tl.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--muted);">No tracks in timeline yet. Click <b>[+ Set]</b> on any track in your Record Box window to push it here live!</div>';
+        return;
+      }
+
+      tl.innerHTML = trs.map((t, i) => {
+        const spd = String(t.speed || t.rpm || '33 1/3 RPM');
+        const is45 = spd.includes('45');
+        return '<div class="track-card">' +
+          '<div class="track-top">' +
+            '<div style="display:flex;align-items:center;gap:10px;min-width:0;">' +
+              '<span class="track-num">' + (i + 1) + '</span>' +
+              '<div style="min-width:0;">' +
+                '<div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(t.title || 'Untitled') + '</div>' +
+                '<div style="font-size:12px;color:var(--muted);">' + esc(t.artist || 'Unknown Artist') + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="no-print" style="display:flex;align-items:center;gap:6px;">' +
+              '<button class="btn" onclick="moveTrack(' + i + ',' + (i - 1) + ')" ' + (i === 0 ? 'disabled style="opacity:0.3"' : '') + '><i class="fa-solid fa-chevron-up"></i></button>' +
+              '<button class="btn" onclick="moveTrack(' + i + ',' + (i + 1) + ')" ' + (i === trs.length - 1 ? 'disabled style="opacity:0.3"' : '') + '><i class="fa-solid fa-chevron-down"></i></button>' +
+              '<button class="btn" onclick="removeTrack(' + i + ')" style="color:var(--rose);"><i class="fa-solid fa-xmark"></i></button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="track-meta">' +
+            (t.side_index ? '<span class="tag">[' + esc(t.side_index) + ']</span>' : '') +
+            '<span class="tag ' + (is45 ? 'tag-45' : '') + '">' + esc(spd) + '</span>' +
+            '<span>' + esc(t.duration || '--:--') + '</span>' +
+            (t.bpm ? '<span class="tag" style="color:var(--emerald);">' + esc(t.bpm) + ' BPM</span>' : '') +
+            (t.key ? '<span class="tag" style="color:var(--sky);">' + esc(t.key) + (t.camelot ? ' · ' + esc(t.camelot) : '') + '</span>' : '') +
+            '<input type="text" value="' + esc(t.cue_note || '') + '" placeholder="+ Add transition / cue note..." onchange="updateCue(' + i + ', this.value)" style="margin-left:auto;min-width:220px;font-size:11px;padding:4px 8px;">' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === LIVE_KEY || e.key === SETS_KEY) render();
+    });
+    render();
+  <\/script>
+</body>
+</html>`;
+
+      win.document.open();
+      win.document.write(popupHtml);
+      win.document.close();
+      if (typeof win.focus === 'function') win.focus();
+      showToast('Pushed Set Builder to companion window (live synced with Record Box)!', 'info');
+      return win;
+    }
+
+    function renderSetBuilderPane(skipLiveSync = false) {
+      if (!skipLiveSync) {
+        syncLiveActiveSetToStorage();
+      }
       const timelineEl = document.getElementById('activeSetTimeline');
       const titleInput = document.getElementById('activeSetTitleInput');
       const countEl = document.getElementById('activeSetTrackCount');
@@ -10661,6 +11213,12 @@
                   title="Load into Set Builder workspace">
                   <i class="fa-solid fa-sliders text-[10px]"></i>
                   <span>Load Set</span>
+                </button>
+                <button type="button" onclick="popOutSavedSetWindow('${safeSetId}')"
+                  class="py-1.5 px-2 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 font-semibold text-xs flex items-center gap-1 transition cursor-pointer"
+                  title="Open this Set in a standalone companion window">
+                  <i class="fa-solid fa-up-right-from-square text-[10px]"></i>
+                  <span class="hidden sm:inline">Window</span>
                 </button>
                 ${hasSpotify ? `
                   <a href="${set.spotify_playlist_url}" target="_blank" rel="noopener noreferrer"

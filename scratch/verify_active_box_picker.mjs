@@ -97,6 +97,7 @@ function makeEl(id = '', tag = 'DIV') {
   };
 }
 
+let lastOpenedPopoutHtml = '';
 const sandbox = {
   console,
   setTimeout: (fn) => fn(),
@@ -109,7 +110,14 @@ const sandbox = {
     addEventListener: () => {},
     dispatchEvent: () => true,
     scrollTo: () => {},
-    open: () => {}
+    open: () => ({
+      document: {
+        open: () => {},
+        write: (html) => { lastOpenedPopoutHtml = html; },
+        close: () => {}
+      },
+      focus: () => {}
+    })
   },
   document: {
     getElementById: (id) => {
@@ -179,4 +187,41 @@ const updatedCrate = sandbox.getQmcCrates().find(c => c.crate_id === testCrate.c
 assert.ok(updatedCrate.record_ids.includes('rec_2'), 'Packing a record into an active Crate-linked Box updates the Crate');
 console.log('PASS: Packing records into an active Crate-linked Box syncs with the Thematic Crate.');
 
-console.log('=== ALL ACTIVE BOX PICKER VERIFICATIONS PASSED 100% ===');
+// 5. Test Box Full Screen, Set Full Screen, and Push Set to New Window
+assert.ok(staticIds.has('btnDrawerModeBoxFull'), 'btnDrawerModeBoxFull must exist in HTML');
+assert.ok(staticIds.has('btnBoxFullScreen'), 'btnBoxFullScreen must exist in HTML');
+assert.ok(staticIds.has('btnPopOutSetWindow'), 'btnPopOutSetWindow must exist in HTML');
+assert.ok(staticIds.has('btnTopPopOutSet'), 'btnTopPopOutSet must exist in HTML');
+
+const boxPane = sandbox.document.getElementById('recordBoxPane');
+const setPane = sandbox.document.getElementById('setBuilderPane');
+
+// Box Full Screen
+sandbox.toggleBoxFullScreen();
+assert.equal(vm.runInContext('recordBoxDrawerMode', sandbox), 'box-full');
+assert.equal(setPane.classList.contains('hidden'), true, 'Set Builder pane must be hidden when Box is Full Screen');
+assert.equal(boxPane.classList.contains('hidden'), false, 'Record Box pane must be visible when Box is Full Screen');
+
+// Toggle back to Split
+sandbox.toggleBoxFullScreen();
+assert.equal(vm.runInContext('recordBoxDrawerMode', sandbox), 'split');
+assert.equal(setPane.classList.contains('hidden'), false, 'Set Builder pane must be visible in Split mode');
+assert.equal(boxPane.classList.contains('hidden'), false, 'Record Box pane must be visible in Split mode');
+
+// Set Full Screen
+sandbox.toggleSetFullScreen();
+assert.equal(vm.runInContext('recordBoxDrawerMode', sandbox), 'set-full');
+assert.equal(boxPane.classList.contains('hidden'), true, 'Record Box pane must be hidden when Set is Full Screen');
+assert.equal(setPane.classList.contains('hidden'), false, 'Set Builder pane must be visible when Set is Full Screen');
+console.log('PASS: Box Full Screen and Set Full Screen modes verified.');
+
+// Push Set to a New Window
+sandbox.openRecordBoxDrawer();
+sandbox.popOutActiveSetWindow();
+assert.ok(lastOpenedPopoutHtml.includes('QMC Sequenced Set Companion'), 'Popout window must render QMC Sequenced Set Companion HTML');
+assert.equal(vm.runInContext('recordBoxDrawerMode', sandbox), 'box-full', 'Popping out Set while drawer is open automatically expands Record Box to Full Screen');
+assert.ok(mockStorage.has('qmc_live_active_set_v1'), 'Active set state must be synced to qmc_live_active_set_v1 in localStorage');
+console.log('PASS: Push Set to a New Window (live-synced companion window) verified.');
+
+console.log('=== ALL ACTIVE BOX PICKER & FULLSCREEN/POPOUT VERIFICATIONS PASSED 100% ===');
+
