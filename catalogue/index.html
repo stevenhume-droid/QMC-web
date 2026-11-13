@@ -934,7 +934,13 @@
         </div>
       </div>
 
-      <!-- Mobile Barcode Scan & Exit WebApp Buttons -->
+      <!-- Mobile Add Record, Barcode Scan & Exit WebApp Buttons -->
+      <button type="button" id="mobileHeaderAddBtn" onclick="openAddEditModal()"
+        class="md:hidden px-2 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-vinyl-950 transition flex items-center justify-center gap-1 shadow-sm"
+        title="Add Record Manually">
+        <i class="fa-solid fa-plus text-xs"></i>
+        <span class="text-[11px]">Add</span>
+      </button>
       <button type="button" onclick="openScannerModal()"
         class="md:hidden p-1.5 sm:p-2 text-xs rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 transition flex items-center justify-center shadow-sm"
         title="Scan Barcode via Camera">
@@ -4937,6 +4943,12 @@
           <span>Close</span>
         </button>
       </div>
+      <!-- Primary Mobile Action: Add Record Manually -->
+      <button onclick="closeMobileMore();openAddEditModal()" id="mobileMoreAddRecordBtn"
+        class="w-full p-2.5 mb-2 rounded-xl bg-gradient-to-r from-brass-500 to-amber-500 hover:from-brass-400 hover:to-amber-400 text-vinyl-950 font-bold text-xs flex items-center justify-center gap-2 shadow-md">
+        <i class="fa-solid fa-plus text-sm"></i>
+        <span>Add Record Manually</span>
+      </button>
       <!-- Featured Mobile Action: Add to Home Screen + Barcode Scan -->
       <div class="grid grid-cols-2 gap-2 mb-2 text-xs font-semibold">
         <button onclick="closeMobileMore();openAddToHomeScreenModal()"
@@ -5093,30 +5105,37 @@
   </div>
 
   <nav id="mobileBottomNav"
-    class="md:hidden fixed bottom-0 inset-x-0 z-[60] bg-vinyl-900/98 backdrop-blur-md border-t border-vinyl-800 grid grid-cols-5 items-end text-[10px] font-semibold text-slate-400"
+    class="md:hidden fixed bottom-0 inset-x-0 z-[60] bg-vinyl-900/98 backdrop-blur-md border-t border-vinyl-800 grid grid-cols-6 items-end text-[10px] font-semibold text-slate-400"
     style="z-index:60;">
     <button type="button" id="mnav-crate" onclick="mobileNav('archive')"
       class="mnav-btn active flex flex-col items-center justify-center gap-0.5"><i
-        class="fa-solid fa-compact-disc text-lg"></i>Archive</button>
+        class="fa-solid fa-compact-disc text-base"></i>Archive</button>
     <button type="button" id="mnav-crates" onclick="mobileNav('crates')"
       class="mnav-btn flex flex-col items-center justify-center gap-0.5"><i
-        class="fa-solid fa-layer-group text-lg"></i>Crates</button>
-    <button type="button" id="mnav-box" onclick="mobileNav('box')"
-      class="mnav-btn flex flex-col items-center justify-center gap-0.5 -mb-1" aria-label="Record Box working bag">
+        class="fa-solid fa-layer-group text-base"></i>Crates</button>
+    <button type="button" id="mnav-add" onclick="mobileNav('add')"
+      class="mnav-btn flex flex-col items-center justify-center gap-0.5 -mb-1" aria-label="Add Record Manually">
       <span
-        class="w-12 h-12 -mt-5 rounded-full bg-gradient-to-r from-brass-500 to-amber-500 flex items-center justify-center shadow-lg shadow-brass-500/30 border-4 border-vinyl-900 text-vinyl-950 font-bold relative">
-        <span class="text-xl">🧳</span>
-        <span id="mobileRecordBoxBadge"
-          class="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-amber-500 text-black border border-vinyl-900 text-[10px] font-mono font-black record-box-count">0</span>
+        class="w-11 h-11 -mt-5 rounded-full bg-gradient-to-r from-brass-500 to-amber-500 flex items-center justify-center shadow-lg shadow-brass-500/30 border-4 border-vinyl-900 text-vinyl-950 font-bold relative">
+        <i class="fa-solid fa-plus text-lg"></i>
       </span>
-      <span class="text-slate-400">Box</span>
+      <span class="text-brass-400 font-bold">Add</span>
+    </button>
+    <button type="button" id="mnav-box" onclick="mobileNav('box')"
+      class="mnav-btn flex flex-col items-center justify-center gap-0.5 relative" aria-label="Record Box working bag">
+      <span class="relative inline-flex items-center justify-center">
+        <span class="text-base leading-none">🧳</span>
+        <span id="mobileRecordBoxBadge"
+          class="absolute -top-1.5 -right-2.5 px-1 py-0 rounded-full bg-amber-500 text-black border border-vinyl-900 text-[9px] font-mono font-black record-box-count">0</span>
+      </span>
+      <span>Box</span>
     </button>
     <button type="button" id="mnav-sets" onclick="mobileNav('sets')"
       class="mnav-btn flex flex-col items-center justify-center gap-0.5"><i
-        class="fa-solid fa-list-ol text-lg"></i>Sets</button>
+        class="fa-solid fa-list-ol text-base"></i>Sets</button>
     <button type="button" id="mnav-more" onclick="mobileNav('more')"
       class="mnav-btn flex flex-col items-center justify-center gap-0.5"><i
-        class="fa-solid fa-ellipsis text-lg"></i>More</button>
+        class="fa-solid fa-ellipsis text-base"></i>More</button>
   </nav>
 
   <!-- TOAST NOTIFICATION CONTAINER -->
