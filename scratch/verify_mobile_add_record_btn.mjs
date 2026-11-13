@@ -50,4 +50,13 @@ assert.ok(mobileNavMatch, 'mobileNav function must exist');
 assert.ok(mobileNavMatch[0].includes("target === 'add'") && mobileNavMatch[0].includes('openAddEditModal()'), 'mobileNav("add") must invoke openAddEditModal()');
 console.log('  ✓ mobileNav("add") routes to openAddEditModal().');
 
-console.log('\n=== ALL MOBILE ADD RECORD BUTTON TESTS PASSED (5/5) ===');
+// Test 6: In #mobileMoreSheet, Clear Archive appears before Hard Reload (so Hard Reload is in bottom-right thumb corner)
+console.log('\nTest 6: Verifying Clear Archive and Hard Reload button order in #mobileMoreSheet...');
+const moreSheetMatch = html.match(/<div id="mobileMoreSheet"[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/);
+assert.ok(moreSheetMatch, '#mobileMoreSheet must exist');
+const clearIdx = moreSheetMatch[0].indexOf('clearAllRecordsPrompt()');
+const reloadIdx = moreSheetMatch[0].indexOf('forceBustCache()');
+assert.ok(clearIdx > -1 && reloadIdx > -1 && clearIdx < reloadIdx, 'Clear Archive must be positioned before Hard Reload in #mobileMoreSheet');
+console.log('  ✓ Clear Archive is placed before Hard Reload (least catastrophic in bottom-right thumb position).');
+
+console.log('\n=== ALL MOBILE ADD RECORD & MENU BUTTON TESTS PASSED (6/6) ===');
