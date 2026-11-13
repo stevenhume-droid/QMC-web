@@ -3905,11 +3905,17 @@
 
           <!-- User's Personal Playlists Dropdown + Quick Presets -->
           <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-1 text-[11px]">
-            <div class="flex-1 min-w-0">
+            <div class="flex-1 min-w-0 flex items-center gap-1.5">
               <select id="gapUserPlaylistsSelect" onchange="handleUserPlaylistSelect(event)"
-                class="w-full bg-vinyl-900 border border-vinyl-700 rounded-lg px-2.5 py-1 text-xs text-slate-300 focus:border-emerald-500 focus:outline-none transition">
+                class="flex-1 min-w-0 bg-vinyl-900 border border-vinyl-700 rounded-lg px-2.5 py-1 text-xs text-slate-300 focus:border-emerald-500 focus:outline-none transition">
                 <option value="">-- Or choose from your Spotify Library --</option>
               </select>
+              <button type="button" id="gapPlaylistRefreshBtn" onclick="loadUserSpotifyPlaylists(true)"
+                class="px-2 py-1 rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-emerald-400 border border-vinyl-700 hover:border-emerald-500/40 text-xs transition cursor-pointer shrink-0 flex items-center gap-1"
+                title="Refresh your Spotify playlists list">
+                <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
+                <span class="hidden sm:inline text-[10px]">Sync</span>
+              </button>
             </div>
             <div class="flex items-center gap-1 shrink-0 overflow-x-auto">
               <span class="text-[10px] text-slate-500 font-mono hidden sm:inline">Presets:</span>
@@ -3926,6 +3932,18 @@
                 Members Classics
               </button>
             </div>
+          </div>
+
+          <!-- Notice if user needs to authorize / re-authorize private playlist read scope -->
+          <div id="gapPlaylistScopeNotice" class="hidden p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-2 text-[11px] text-amber-200">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <i class="fa-solid fa-key text-amber-400 shrink-0"></i>
+              <span id="gapPlaylistScopeNoticeText">Connect or refresh Spotify permissions to list all your personal &amp; private playlists.</span>
+            </div>
+            <button type="button" onclick="initiateSpotifyPKCE()"
+              class="px-2.5 py-1 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] shrink-0 transition cursor-pointer shadow-sm">
+              Authorize Playlists
+            </button>
           </div>
         </div>
 
@@ -12138,6 +12156,8 @@
     const SPOTIFY_SCOPES = [
       'user-read-private',
       'user-read-email',
+      'playlist-read-private',
+      'playlist-read-collaborative',
       'playlist-modify-public',
       'playlist-modify-private',
       'user-library-read'
@@ -13093,15 +13113,54 @@
       scanSpotifyPlaylistGaps(val, pName);
     }
 
-    async function loadUserSpotifyPlaylists() {
+    async function loadUserSpotifyPlaylists(showFeedback = false) {
       const selectEl = document.getElementById('gapUserPlaylistsSelect');
+      const scopeNotice = document.getElementById('gapPlaylistScopeNotice');
+      const scopeNoticeText = document.getElementById('gapPlaylistScopeNoticeText');
       if (!selectEl) return;
 
-      const token = localStorage.getItem('spotify_access_token');
-      const isDemo = localStorage.getItem('spotify_demo_connected') === 'true';
+      let token = localStorage.getItem('spotify_access_token') || localStorage.getItem('qmc_spotify_access_token');
+      const isDemo = localStorage.getItem('spotify_demo_connected') === 'true' || localStorage.getItem('qmc_spotify_demo_mode') === 'true';
+
+      // Proactively refresh expired token if refresh_token is available
+      const expiresAt = parseInt(localStorage.getItem('spotify_token_expires_at') || '0', 10);
+      if (!isDemo && expiresAt && Date.now() > (expiresAt - 60000) && typeof refreshSpotifyAccessToken === 'function') {
+        try {
+          const refreshed = await refreshSpotifyAccessToken();
+          if (refreshed) token = refreshed;
+        } catch (e) { }
+      }
+
+      // Include any QMC Saved Sets that have been exported to Spotify
+      let qmcSetPlaylists = [];
+      try {
+        if (typeof getQmcSavedSets === 'function') {
+          const savedSets = getQmcSavedSets() || [];
+          savedSets.forEach(s => {
+            const pid = s.spotify_playlist_id || extractSpotifyPlaylistId(s.spotify_playlist_url || '');
+            if (pid && !String(pid).startsWith('sim_')) {
+              qmcSetPlaylists.push({
+                id: pid,
+                name: s.title || 'QMC Set',
+                total: Array.isArray(s.tracks) ? s.tracks.length : 0
+              });
+            }
+          });
+        }
+      } catch (e) { }
+
+      const buildQmcSetOpts = (excludeIds = new Set()) => {
+        const filtered = qmcSetPlaylists.filter(p => !excludeIds.has(p.id));
+        if (filtered.length === 0) return '';
+        let html = '<optgroup label="QMC Exported Sets">';
+        filtered.forEach(p => {
+          html += `<option value="${p.id}">🎵 ${escapeHtml(p.name)} (${p.total} tracks)</option>`;
+        });
+        html += '</optgroup>';
+        return html;
+      };
 
       const presetOpts = `
-        <option value="">-- Choose from your Spotify Library or Presets --</option>
         <optgroup label="QMC Collective Curated Playlists">
           <option value="6fRQLuqUxcXCgekTO5Lq1H">★ QMC - Picks from Los Hermanos Nights (7 tracks)</option>
           <option value="3n5WQyLxxhTK7JuzSTLoPp">★ QMC - Members Classics (5 tracks)</option>
@@ -13109,31 +13168,107 @@
       `;
 
       if (!token || isDemo) {
-        selectEl.innerHTML = presetOpts;
+        const qmcOpts = buildQmcSetOpts();
+        selectEl.innerHTML = `<option value="">-- Choose from your Spotify Library or Presets --</option>${qmcOpts}${presetOpts}`;
+        if (scopeNotice) {
+          scopeNotice.classList.remove('hidden');
+          if (scopeNoticeText) {
+            scopeNoticeText.textContent = isDemo
+              ? 'Demo Mode active: Connect your live Spotify account to list all your personal & private playlists.'
+              : 'Connect Spotify to list all your personal, collaborative & private playlists.';
+          }
+        }
         return;
       }
 
       try {
-        const res = await fetch('https://api.spotify.com/v1/me/playlists?limit=50', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
+        let allItems = [];
+        let seenIds = new Set();
+        let nextUrl = 'https://api.spotify.com/v1/me/playlists?limit=50';
+        let pageCount = 0;
+        let lastStatus = 200;
+
+        while (nextUrl && pageCount < 4) {
+          pageCount++;
+          let res = await fetch(nextUrl, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+
+          if (res.status === 401 && pageCount === 1 && typeof refreshSpotifyAccessToken === 'function') {
+            const refreshed = await refreshSpotifyAccessToken();
+            if (refreshed) {
+              token = refreshed;
+              res = await fetch(nextUrl, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+            }
+          }
+
+          lastStatus = res.status;
+          if (!res.ok) break;
+
           const data = await res.json();
-          const items = data.items || [];
-          let userOpts = '<optgroup label="Your Personal Spotify Playlists">';
-          items.forEach(p => {
-            if (p && p.name && p.id) {
-              userOpts += `<option value="${p.id}">${escapeHtml(p.name)} (${p.tracks?.total || 0} tracks)</option>`;
+          const pageItems = data.items || [];
+          pageItems.forEach(p => {
+            if (p && p.id && p.name && !seenIds.has(p.id)) {
+              seenIds.add(p.id);
+              allItems.push(p);
             }
           });
+          nextUrl = data.next || null;
+        }
+
+        // Fallback: if /v1/me/playlists returned 0 items or 403, try /v1/users/{id}/playlists
+        if (allItems.length === 0 && typeof getStoredSpotifyProfile === 'function') {
+          const profile = getStoredSpotifyProfile();
+          if (profile && profile.id) {
+            const uRes = await fetch(`https://api.spotify.com/v1/users/${encodeURIComponent(profile.id)}/playlists?limit=50`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (uRes.ok) {
+              const uData = await uRes.json();
+              (uData.items || []).forEach(p => {
+                if (p && p.id && p.name && !seenIds.has(p.id)) {
+                  seenIds.add(p.id);
+                  allItems.push(p);
+                }
+              });
+            }
+          }
+        }
+
+        const qmcOpts = buildQmcSetOpts(seenIds);
+
+        if (allItems.length > 0) {
+          let userOpts = '<optgroup label="Your Personal Spotify Playlists">';
+          allItems.forEach(p => {
+            const totalCount = p.tracks?.total ?? p.items?.total ?? 0;
+            userOpts += `<option value="${p.id}">${escapeHtml(p.name)} (${totalCount} tracks)</option>`;
+          });
           userOpts += '</optgroup>';
-          selectEl.innerHTML = `<option value="">-- Choose from your Spotify Library (${items.length} playlists) --</option>${userOpts}${presetOpts}`;
+          selectEl.innerHTML = `<option value="">-- Choose from your Spotify Library (${allItems.length} playlists) --</option>${userOpts}${qmcOpts}${presetOpts}`;
+          if (scopeNotice) scopeNotice.classList.add('hidden');
+          if (showFeedback && typeof showToast === 'function') {
+            showToast(`Loaded ${allItems.length} playlists from your Spotify library!`, 'success');
+          }
         } else {
-          selectEl.innerHTML = presetOpts;
+          selectEl.innerHTML = `<option value="">-- Choose from your Spotify Library or Presets --</option>${qmcOpts}${presetOpts}`;
+          if (scopeNotice) {
+            scopeNotice.classList.remove('hidden');
+            if (scopeNoticeText) {
+              scopeNoticeText.textContent = lastStatus === 403
+                ? 'Private playlist read permission needed: click Authorize Playlists to grant access to all your Spotify playlists.'
+                : 'Only seeing presets? Click Authorize Playlists to refresh Spotify permissions and load all your private & public playlists.';
+            }
+          }
+          if (showFeedback && typeof showToast === 'function') {
+            showToast('Click "Authorize Playlists" to grant private playlist read permission.', 'info');
+          }
         }
       } catch (e) {
         console.warn('Could not load user playlists:', e);
-        selectEl.innerHTML = presetOpts;
+        const qmcOpts = buildQmcSetOpts();
+        selectEl.innerHTML = `<option value="">-- Choose from your Spotify Library or Presets --</option>${qmcOpts}${presetOpts}`;
       }
     }
 
@@ -13155,43 +13290,78 @@
       }
 
       const isAuth = (typeof isSpotifyAuthenticated === 'function') && isSpotifyAuthenticated();
-      const isDemo = localStorage.getItem('spotify_demo_connected') === 'true';
-      const token = localStorage.getItem('spotify_access_token');
+      const isDemo = localStorage.getItem('spotify_demo_connected') === 'true' || localStorage.getItem('qmc_spotify_demo_mode') === 'true';
+      let token = localStorage.getItem('spotify_access_token') || localStorage.getItem('qmc_spotify_access_token');
+
+      const expiresAt = parseInt(localStorage.getItem('spotify_token_expires_at') || '0', 10);
+      if (!isDemo && expiresAt && Date.now() > (expiresAt - 60000) && typeof refreshSpotifyAccessToken === 'function') {
+        try {
+          const refreshed = await refreshSpotifyAccessToken();
+          if (refreshed) token = refreshed;
+        } catch (e) { }
+      }
 
       let playlistName = customPlaylistName || 'Spotify Playlist';
       let tracksData = [];
 
+      const mapRawTrackItems = (rawItems, pName) => {
+        if (!Array.isArray(rawItems)) return [];
+        return rawItems
+          .map(it => it?.track || it?.item || it)
+          .filter(t => t && t.name)
+          .map(t => {
+            const artistName = t.artists?.map(a => a.name).join(', ') || 'Unknown Artist';
+            return {
+              artist: artistName,
+              title: t.name || 'Untitled Track',
+              albumTitle: t.album?.name || '',
+              year: parseInt(t.album?.release_date?.slice(0, 4)) || 2020,
+              streams: `Playlist: ${pName}`,
+              estPrice: '£25.00 - £45.00 (Market Avg)',
+              bpm: 90,
+              musicalKey: '',
+              formatHint: '12" LP / 7" Single',
+              spotifyUri: t.uri,
+              coverImage: t.album?.images?.[0]?.url || ''
+            };
+          });
+      };
+
       if (token && !isDemo) {
         try {
-          const res = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}?fields=name,description,images,tracks.items(track(id,name,artists,album(name,release_date,images),duration_ms,popularity,uri))`, {
+          let res = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
+          if (res.status === 401 && typeof refreshSpotifyAccessToken === 'function') {
+            const refreshed = await refreshSpotifyAccessToken();
+            if (refreshed) {
+              token = refreshed;
+              res = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+            }
+          }
           if (res.ok) {
             const pData = await res.json();
             playlistName = pData.name || playlistName;
-            if (pData.tracks && Array.isArray(pData.tracks.items)) {
-              tracksData = pData.tracks.items
-                .filter(it => it && it.track && it.track.name)
-                .map(it => {
-                  const t = it.track;
-                  const artistName = t.artists?.map(a => a.name).join(', ') || 'Unknown Artist';
-                  return {
-                    artist: artistName,
-                    title: t.name || 'Untitled Track',
-                    albumTitle: t.album?.name || '',
-                    year: parseInt(t.album?.release_date?.slice(0, 4)) || 2020,
-                    streams: `Playlist: ${playlistName}`,
-                    estPrice: '£25.00 - £45.00 (Market Avg)',
-                    bpm: 90,
-                    musicalKey: '',
-                    formatHint: '12" LP / 7" Single',
-                    spotifyUri: t.uri,
-                    coverImage: t.album?.images?.[0]?.url || ''
-                  };
-                });
-            }
+            const rawItems = pData.tracks?.items || pData.items?.items || [];
+            tracksData = mapRawTrackItems(rawItems, playlistName);
           } else if (res.status === 401) {
             if (typeof showToast === 'function') showToast('Spotify token expired. Reconnect session in Spotify tab.', 'warning');
+          }
+
+          // Fallback to /items or /tracks endpoint if top-level playlist response omitted track items
+          if (tracksData.length === 0) {
+            for (const subPath of ['items', 'tracks']) {
+              const itemsRes = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/${subPath}?limit=100`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              if (itemsRes.ok) {
+                const itemsData = await itemsRes.json();
+                tracksData = mapRawTrackItems(itemsData.items || [], playlistName);
+                if (tracksData.length > 0) break;
+              }
+            }
           }
         } catch (err) {
           console.warn('Spotify playlist fetch error:', err);
@@ -15793,7 +15963,7 @@
         <div class="flex items-center justify-between pb-3 mb-4 border-b border-vinyl-800">
           <button type="button" onclick="closeDetailModal()" class="px-3.5 py-2 rounded-xl bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-brass-500/30 flex items-center gap-2 text-xs font-bold transition shadow">
             <i class="fa-solid fa-arrow-left"></i>
-            <span>Back to Crate</span>
+            <span>Back to Archive</span>
           </button>
           <button type="button" onclick="closeDetailModal()" class="px-3.5 py-2 rounded-xl bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center gap-1.5 text-xs font-bold transition shadow">
             <i class="fa-solid fa-xmark"></i>
