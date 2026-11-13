@@ -33,10 +33,10 @@ assert.ok(bottomNavMatch[0].includes('id="mnav-box"'), '#mobileBottomNav must al
 assert.ok(bottomNavMatch[0].includes('id="mobileRecordBoxBadge"'), '#mobileBottomNav must retain id="mobileRecordBoxBadge"');
 console.log('  ✓ #mobileBottomNav includes elevated + Add button and Box button.');
 
-// Test 3: Mobile header has quick + Add button
-console.log('\nTest 3: Verifying mobile header + Add button (#mobileHeaderAddBtn)...');
-assert.ok(html.includes('id="mobileHeaderAddBtn"'), 'mobileHeaderAddBtn must exist in top header');
-console.log('  ✓ Mobile header + Add button verified.');
+// Test 3: Mobile header does NOT have redundant + Add button
+console.log('\nTest 3: Verifying mobile top header has no redundant Add button...');
+assert.ok(!html.includes('id="mobileHeaderAddBtn"'), 'mobileHeaderAddBtn must not exist in top header');
+console.log('  ✓ Mobile top header is clean (Add button is on bottom bar).');
 
 // Test 4: Mobile More Sheet has Add Record Manually button
 console.log('\nTest 4: Verifying #mobileMoreSheet has Add Record Manually button...');
