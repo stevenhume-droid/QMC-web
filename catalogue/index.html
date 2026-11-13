@@ -9775,6 +9775,20 @@
       }
     }
 
+    function cleanSpotifySearchTerm(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/^[A-Za-z]?\d+[\.\-\s]+/, '')
+        .replace(/^Side\s+[A-Za-z0-9]+[\:\-\s]*/i, '')
+        .replace(/\s*[\(\[][^\)\]]*(?:remaster|rpm|mono|stereo|bonus|live|edit|single|version|mix)[^\)\]]*[\)\]]/gi, '')
+        .replace(/['’]/g, '')
+        .replace(/[\(\)\[\]\{\}\"]/g, ' ')
+        .replace(/&/g, ' and ')
+        .replace(/[\/\\]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
     async function exportSetToSpotify(targetSetInput) {
       let targetSet = null;
       if (typeof targetSetInput === 'string') {
@@ -9831,33 +9845,61 @@
             matchedUris.push(tr.spotify_uri);
             continue;
           }
-          try {
-            const queryExact = encodeURIComponent(`track:${tr.title} artist:${tr.artist}`);
-            let searchRes = await fetch(`https://api.spotify.com/v1/search?q=${queryExact}&type=track&limit=1`, {
-              headers: { 'Authorization': `Bearer ${token}` }
-            });
-            let matchedTrack = null;
-            if (searchRes.ok) {
-              const data = await searchRes.json();
-              matchedTrack = data.tracks?.items?.[0];
-            }
-            if (!matchedTrack?.uri) {
-              const queryGeneral = encodeURIComponent(`${tr.artist} ${tr.title}`);
-              searchRes = await fetch(`https://api.spotify.com/v1/search?q=${queryGeneral}&type=track&limit=1`, {
+
+          const rawTitle = String(tr.title || '').trim();
+          const rawArtist = String(tr.artist || '').trim();
+          const cleanTitle = cleanSpotifySearchTerm(rawTitle);
+          const cleanArtist = cleanSpotifySearchTerm(rawArtist);
+
+          let matchedTrack = null;
+
+          // Attempt 1: Combined Artist + Title search (most reliable in Spotify API)
+          const isGenericArtist = !cleanArtist || cleanArtist.toLowerCase() === 'various' || cleanArtist.toLowerCase() === 'unknown artist';
+          const primaryQuery = isGenericArtist ? cleanTitle : `${cleanArtist} ${cleanTitle}`;
+
+          if (primaryQuery) {
+            try {
+              const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(primaryQuery)}&type=track&limit=1`, {
                 headers: { 'Authorization': `Bearer ${token}` }
               });
-              if (searchRes.ok) {
-                const data = await searchRes.json();
-                matchedTrack = data.tracks?.items?.[0];
+              if (res.ok) {
+                const data = await res.json();
+                matchedTrack = data.tracks?.items?.[0] || null;
               }
-            }
-            if (matchedTrack?.uri) {
-              tr.spotify_uri = matchedTrack.uri;
-              matchedUris.push(matchedTrack.uri);
-            } else {
-              unmatchedTracks.push(tr);
-            }
-          } catch (_) {
+            } catch (_) {}
+          }
+
+          // Attempt 2: If no match and not generic artist, search by title alone
+          if (!matchedTrack && cleanTitle && !isGenericArtist) {
+            try {
+              const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(cleanTitle)}&type=track&limit=1`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              if (res.ok) {
+                const data = await res.json();
+                matchedTrack = data.tracks?.items?.[0] || null;
+              }
+            } catch (_) {}
+          }
+
+          // Attempt 3: If still no match, try raw title as fallback
+          if (!matchedTrack && rawTitle && rawTitle !== cleanTitle) {
+            try {
+              const rawClean = rawTitle.replace(/[\(\)\[\]\"]/g, ' ').replace(/\s+/g, ' ').trim();
+              const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(rawClean)}&type=track&limit=1`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              if (res.ok) {
+                const data = await res.json();
+                matchedTrack = data.tracks?.items?.[0] || null;
+              }
+            } catch (_) {}
+          }
+
+          if (matchedTrack?.uri) {
+            tr.spotify_uri = matchedTrack.uri;
+            matchedUris.push(matchedTrack.uri);
+          } else {
             unmatchedTracks.push(tr);
           }
         }
@@ -9938,7 +9980,7 @@
           if (matchedUris.length > 0) {
             for (let chunkIdx = 0; chunkIdx < matchedUris.length; chunkIdx += 100) {
               const chunk = matchedUris.slice(chunkIdx, chunkIdx + 100);
-              await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}/tracks`, {
+              const addRes = await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}/tracks`, {
                 method: 'POST',
                 headers: {
                   'Authorization': `Bearer ${token}`,
@@ -9946,7 +9988,14 @@
                 },
                 body: JSON.stringify({ uris: chunk })
               });
+              if (!addRes.ok) {
+                const addErr = await addRes.json().catch(() => ({}));
+                console.warn('Failed to add tracks chunk to playlist:', addRes.status, addErr);
+                throw new Error(`Playlist created, but adding tracks failed (HTTP ${addRes.status}: ${addErr?.error?.message || 'Error adding tracks'})`);
+              }
             }
+          } else {
+            throw new Error(`Playlist created on Spotify, but no tracks could be matched. Please verify track titles and artists in the set.`);
           }
         } else {
           const errJson = await createRes.json().catch(() => ({}));
@@ -9981,7 +10030,16 @@
         renderSetBuilderPane();
       }
 
-      showToast(`Exported to Spotify: "${targetSet.title}"!`, 'success');
+      if (matchedUris.length > 0) {
+        if (unmatchedTracks.length > 0) {
+          showToast(`Exported ${matchedUris.length} of ${targetSet.tracks.length} tracks to Spotify! (${unmatchedTracks.length} not found in Spotify catalogue)`, 'success');
+        } else {
+          showToast(`Exported all ${matchedUris.length} tracks to Spotify: "${targetSet.title}"!`, 'success');
+        }
+      } else {
+        showToast(`Exported to Spotify: "${targetSet.title}"!`, 'success');
+      }
+
       if (playlistUrl && !playlistUrl.includes('qmc_pl_') && typeof window !== 'undefined' && window.open) {
         try { window.open(playlistUrl, '_blank'); } catch (_) { }
       }

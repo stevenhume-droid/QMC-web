@@ -186,3 +186,4 @@ assert.ok(boxList.classList.contains('hidden'), 'Record Box list must be compact
 console.log('  ✓ Launching Set Builder automatically sets Set Focus mode for maximum sorting space.');
 
 console.log('\n=== ALL RECORD BOX COMPACTION TESTS PASSED (6/6) ===');
+
