@@ -69,7 +69,7 @@ global.QMC_SAVED_SETS_KEY = 'qmc_saved_sets';
 let toastMsg = null;
 global.showToast = (msg) => { toastMsg = msg; };
 global.escapeHtml = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-global.notifyQmcCurationUpdate = () => {};
+global.notifyQmcCurationUpdate = () => { };
 
 // Seed sample saved sets
 const sampleSavedSets = [

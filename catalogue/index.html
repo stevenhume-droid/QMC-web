@@ -165,6 +165,24 @@
       z-index: 75;
     }
 
+    /* Record Box Drawer Mobile Viewport & Safe-Area Optimization */
+    #recordBoxDrawer {
+      padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+      padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+    }
+
+    #recordBoxDrawerContent {
+      height: calc(100dvh - max(1rem, calc(env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px) + 0.5rem)));
+      max-height: calc(100dvh - max(1rem, calc(env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px) + 0.5rem)));
+    }
+
+    @media (min-width: 640px) {
+      #recordBoxDrawerContent {
+        height: auto;
+        max-height: 90vh;
+      }
+    }
+
     @media (max-width: 639px) {
 
       /* Prevent iOS focus-zoom and give comfortable tap targets */
@@ -4032,10 +4050,10 @@
   <!-- DRAWER: RECORD BOX & SET BUILDER WORKSPACE     -->
   <!-- ============================================== -->
   <div id="recordBoxDrawer"
-    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[75] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto"
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[75] flex items-center justify-center p-1.5 sm:p-4 hidden overflow-hidden"
     style="z-index: 75;" onclick="if(event.target === this) closeRecordBoxDrawer()">
     <div id="recordBoxDrawerContent"
-      class="bg-vinyl-900 border border-brass-500/40 rounded-2xl w-full max-w-6xl max-h-[96vh] sm:max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-fadeIn">
+      class="bg-vinyl-900 border border-brass-500/40 rounded-2xl w-full max-w-6xl flex flex-col shadow-2xl overflow-hidden my-auto animate-fadeIn">
 
       <!-- Drawer Top Bar -->
       <div
@@ -4186,20 +4204,20 @@
           </div>
 
           <!-- Ordered Set Timeline -->
-          <div id="activeSetTimeline" class="flex-1 p-3.5 sm:p-4 space-y-2.5 overflow-y-auto overscroll-contain">
+          <div id="activeSetTimeline" class="flex-1 p-3.5 sm:p-4 pb-8 space-y-2.5 overflow-y-auto overscroll-contain">
             <!-- Dynamically populated via renderSetBuilderPane() -->
           </div>
 
           <!-- Bottom Action Bar -->
           <div
-            class="p-3 sm:p-4 border-t border-vinyl-800 bg-vinyl-850/80 shrink-0 flex items-center justify-between gap-2">
+            class="p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:pb-3.5 border-t border-vinyl-800 bg-vinyl-850 shrink-0 flex items-center justify-between gap-2.5 shadow-xl">
             <button type="button" onclick="saveCurrentActiveSet()"
-              class="flex-1 py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow cursor-pointer">
-              <i class="fa-solid fa-floppy-disk"></i>
+              class="flex-1 py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow cursor-pointer">
+              <i class="fa-solid fa-floppy-disk text-xs"></i>
               <span>Save Set</span>
             </button>
             <button type="button" onclick="triggerSpotifySetExport()"
-              class="flex-1 py-2 px-3 rounded-xl bg-[#1DB954] hover:bg-[#1ed760] active:scale-95 text-black font-black text-xs flex items-center justify-center gap-1.5 transition shadow cursor-pointer">
+              class="flex-1 py-2.5 px-3 rounded-xl bg-[#1DB954] hover:bg-[#1ed760] active:scale-95 text-black font-black text-xs flex items-center justify-center gap-1.5 transition shadow cursor-pointer">
               <i class="fa-brands fa-spotify text-sm"></i>
               <span>Export to Spotify</span>
             </button>
