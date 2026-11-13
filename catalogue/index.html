@@ -4210,6 +4210,40 @@
               <span class="text-slate-600">·</span>
               <span id="activeSetSpeedAlert" class="text-slate-400">Ready</span>
             </div>
+
+            <!-- Row 3: Auto-Sort & DJ Camelot Sequencing Toolbar -->
+            <div class="flex items-center justify-between gap-1.5 pt-1 overflow-x-auto no-scrollbar text-xs">
+              <div class="flex items-center gap-1 shrink-0 text-[10px] uppercase font-bold text-slate-400">
+                <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i>
+                <span class="hidden sm:inline">Auto-Sort:</span>
+              </div>
+              <div class="flex items-center gap-1.5 flex-nowrap shrink-0">
+                <button type="button" onclick="autoSortActiveSet('harmonic')" id="btnAutoSortHarmonic"
+                  class="px-2 py-1 text-[10.5px] rounded-lg bg-sky-500/15 hover:bg-sky-500/25 active:scale-95 text-sky-300 border border-sky-500/30 font-semibold transition cursor-pointer flex items-center gap-1"
+                  title="Harmonic Camelot Flow: DJ Circle of Fifths key matching & smooth tempo transitions">
+                  <i class="fa-solid fa-compact-disc text-[10px] text-sky-400"></i>
+                  <span>Harmonic Flow</span>
+                </button>
+                <button type="button" onclick="autoSortActiveSet('bpm-asc')" id="btnAutoSortBpmAsc"
+                  class="px-2 py-1 text-[10.5px] rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 active:scale-95 text-emerald-300 border border-emerald-500/30 font-semibold transition cursor-pointer flex items-center gap-1"
+                  title="BPM Build: Ascending tempo progression from warmup to peak-time">
+                  <i class="fa-solid fa-arrow-trend-up text-[10px] text-emerald-400"></i>
+                  <span>BPM Build</span>
+                </button>
+                <button type="button" onclick="autoSortActiveSet('bpm-desc')" id="btnAutoSortBpmDesc"
+                  class="px-2 py-1 text-[10.5px] rounded-lg bg-amber-500/15 hover:bg-amber-500/25 active:scale-95 text-amber-300 border border-amber-500/30 font-semibold transition cursor-pointer flex items-center gap-1"
+                  title="Cool Down: Descending tempo progression">
+                  <i class="fa-solid fa-arrow-trend-down text-[10px] text-amber-400"></i>
+                  <span>Cool Down</span>
+                </button>
+                <button type="button" onclick="syncSortedSetToSpotify()" id="btnSyncSpotifySet"
+                  class="px-2 py-1 text-[10.5px] rounded-lg bg-[#1DB954]/20 hover:bg-[#1DB954]/30 active:scale-95 text-[#1ed760] border border-[#1DB954]/40 font-bold transition cursor-pointer flex items-center gap-1"
+                  title="Sync this track sequence to Spotify playlist in-place">
+                  <i class="fa-brands fa-spotify text-xs text-[#1DB954]"></i>
+                  <span id="btnSyncSpotifySetLabel">Sync Spotify</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Ordered Set Timeline -->
@@ -4225,10 +4259,10 @@
               <i class="fa-solid fa-floppy-disk text-xs"></i>
               <span>Save Set</span>
             </button>
-            <button type="button" onclick="triggerSpotifySetExport()"
+            <button type="button" onclick="triggerSpotifySetExport()" id="btnSetBuilderExportSpotify"
               class="flex-1 py-2.5 px-3 rounded-xl bg-[#1DB954] hover:bg-[#1ed760] active:scale-95 text-black font-black text-xs flex items-center justify-center gap-1.5 transition shadow cursor-pointer">
               <i class="fa-brands fa-spotify text-sm"></i>
-              <span>Export to Spotify</span>
+              <span id="btnSetBuilderExportSpotifyLabel">Export to Spotify</span>
             </button>
           </div>
         </div>
@@ -8596,8 +8630,8 @@
         description: (description || '').trim(),
         created_at: existing ? existing.created_at : new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        spotify_playlist_id: existing ? (existing.spotify_playlist_id || null) : null,
-        spotify_playlist_url: existing ? (existing.spotify_playlist_url || null) : null,
+        spotify_playlist_id: (typeof setTitle === 'object' && setTitle?.spotify_playlist_id) ? setTitle.spotify_playlist_id : (existing ? (existing.spotify_playlist_id || null) : null),
+        spotify_playlist_url: (typeof setTitle === 'object' && setTitle?.spotify_playlist_url) ? setTitle.spotify_playlist_url : (existing ? (existing.spotify_playlist_url || null) : null),
         tracks: Array.isArray(tracks) ? tracks.map((t, idx) => ({
           position: idx + 1,
           record_id: t.record_id || '',
@@ -8606,7 +8640,11 @@
           side_index: t.side_index || '',
           duration: t.duration || '',
           bpm: t.bpm || '',
-          rpm: t.rpm || '',
+          key: t.key || t.musical_key || '',
+          musical_key: t.musical_key || t.key || '',
+          camelot: t.camelot || '',
+          rpm: t.rpm || t.speed || '',
+          speed: t.speed || t.rpm || '',
           cue_note: t.cue_note || '',
           spotify_uri: t.spotify_uri || null
         })) : []
@@ -9176,6 +9214,32 @@
         }
       }
 
+      const syncBtn = document.getElementById('btnSyncSpotifySet');
+      const syncLabel = document.getElementById('btnSyncSpotifySetLabel');
+      if (syncBtn && syncLabel) {
+        if (activeSetState.spotify_playlist_id) {
+          syncLabel.textContent = 'Sync Spotify';
+          syncBtn.title = `Sync ordered sequence to linked Spotify playlist: "${activeSetState.title}"`;
+          syncBtn.classList.add('ring-1', 'ring-[#1DB954]/50');
+        } else {
+          syncLabel.textContent = 'Sync Spotify';
+          syncBtn.title = 'Sync this track sequence to Spotify (exports if not yet on Spotify)';
+          syncBtn.classList.remove('ring-1', 'ring-[#1DB954]/50');
+        }
+      }
+
+      const exportBottomBtn = document.getElementById('btnSetBuilderExportSpotify');
+      const exportBottomLabel = document.getElementById('btnSetBuilderExportSpotifyLabel');
+      if (exportBottomBtn && exportBottomLabel) {
+        if (activeSetState.spotify_playlist_id) {
+          exportBottomLabel.textContent = 'Sync to Spotify';
+          exportBottomBtn.title = `Sync ordered sequence to linked Spotify playlist: "${activeSetState.title}"`;
+        } else {
+          exportBottomLabel.textContent = 'Export to Spotify';
+          exportBottomBtn.title = 'Create a new Spotify playlist from this sequence';
+        }
+      }
+
       if (totalTracks === 0) {
         timelineEl.innerHTML = `
           <div class="py-12 px-4 text-center space-y-3">
@@ -9417,6 +9481,309 @@
       }
     }
 
+    /* =========================================================
+       HARMONIC CAMELOT & BPM AUTO-SORT ENGINE + SPOTIFY SYNC
+       ========================================================= */
+    function parseCamelotCode(codeStr) {
+      if (!codeStr || typeof codeStr !== 'string') return null;
+      const m = codeStr.trim().toUpperCase().match(/^(\d{1,2})\s*([AB])$/);
+      if (!m) return null;
+      const num = parseInt(m[1], 10);
+      if (num < 1 || num > 12) return null;
+      return { num, letter: m[2] };
+    }
+
+    function getTrackCamelotTelemetry(tr) {
+      let bpm = parseFloat(tr.bpm) || 0;
+      let rawKey = tr.musical_key || tr.musicalKey || tr.key || '';
+      let camelot = tr.camelot || '';
+
+      if ((!bpm || !camelot) && tr.record_id) {
+        const allRecords = (typeof records !== 'undefined' && Array.isArray(records) ? records : []);
+        const rec = allRecords.find(r => String(r.id) === String(tr.record_id));
+        if (rec) {
+          const telem = (typeof deriveRecordTelemetry === 'function') ? deriveRecordTelemetry(rec) : null;
+          if (!bpm) bpm = parseFloat(rec.bpm || telem?.bpm) || 0;
+          if (!rawKey) rawKey = rec.musical_key || rec.musicalKey || rec.key || telem?.musicalKey || '';
+          if (!camelot) camelot = rec.camelot || telem?.camelot || '';
+        }
+      }
+
+      if (!camelot && rawKey) {
+        let normKey = String(rawKey).trim();
+        normKey = normKey.replace(/#/g, '♯').replace(/b(?= |$|m|M)/g, '♭');
+        if (typeof CAMELOT_KEY_MAP !== 'undefined') {
+          camelot = CAMELOT_KEY_MAP[normKey] || CAMELOT_KEY_MAP[rawKey] || '';
+          if (!camelot) {
+            const entry = Object.entries(CAMELOT_KEY_MAP).find(([k]) => k.toLowerCase() === normKey.toLowerCase() || k.toLowerCase() === rawKey.toLowerCase());
+            if (entry) camelot = entry[1];
+          }
+        }
+      }
+
+      const parsed = parseCamelotCode(camelot);
+      return {
+        bpm: bpm || 115,
+        hasBpm: Boolean(bpm),
+        camelot: camelot || (parsed ? `${parsed.num}${parsed.letter}` : ''),
+        parsedCamelot: parsed,
+        rawKey
+      };
+    }
+
+    function calculateHarmonicCost(t1, t2) {
+      let keyDist = 6;
+      if (t1.telem?.parsedCamelot && t2.telem?.parsedCamelot) {
+        const c1 = t1.telem.parsedCamelot;
+        const c2 = t2.telem.parsedCamelot;
+        const diff = Math.abs(c1.num - c2.num);
+        const clock = Math.min(diff, 12 - diff);
+        const sameMode = c1.letter === c2.letter;
+        if (clock === 0) keyDist = sameMode ? 0 : 1;
+        else if (clock === 1) keyDist = sameMode ? 2 : 3;
+        else if (clock === 2) keyDist = sameMode ? 5 : 6;
+        else keyDist = clock * 4;
+      }
+      const bpmDiff = Math.abs(t1.telem.bpm - t2.telem.bpm);
+      return (keyDist * 8) + (bpmDiff * 1.2);
+    }
+
+    function autoSortActiveSet(mode = 'harmonic') {
+      if (!activeSetState || !Array.isArray(activeSetState.tracks) || activeSetState.tracks.length < 2) {
+        showToast('Add at least 2 tracks to active set to auto-sort.', 'info');
+        return;
+      }
+
+      const tracksWithTelem = activeSetState.tracks.map(t => ({
+        track: t,
+        telem: getTrackCamelotTelemetry(t)
+      }));
+
+      let sortedTracks = [];
+
+      if (mode === 'bpm-asc') {
+        tracksWithTelem.sort((a, b) => {
+          if (a.telem.bpm !== b.telem.bpm) return a.telem.bpm - b.telem.bpm;
+          return (a.telem.camelot || '').localeCompare(b.telem.camelot || '');
+        });
+        sortedTracks = tracksWithTelem.map(x => x.track);
+        const minBpm = Math.round(tracksWithTelem[0].telem.bpm);
+        const maxBpm = Math.round(tracksWithTelem[tracksWithTelem.length - 1].telem.bpm);
+        showToast(`Auto-Sorted Set: BPM Build (${minBpm} → ${maxBpm} BPM)`, 'success');
+      } else if (mode === 'bpm-desc') {
+        tracksWithTelem.sort((a, b) => {
+          if (a.telem.bpm !== b.telem.bpm) return b.telem.bpm - a.telem.bpm;
+          return (a.telem.camelot || '').localeCompare(b.telem.camelot || '');
+        });
+        sortedTracks = tracksWithTelem.map(x => x.track);
+        const maxBpm = Math.round(tracksWithTelem[0].telem.bpm);
+        const minBpm = Math.round(tracksWithTelem[tracksWithTelem.length - 1].telem.bpm);
+        showToast(`Auto-Sorted Set: Cool Down (${maxBpm} → ${minBpm} BPM)`, 'success');
+      } else {
+        // Harmonic Camelot Flow (Circle of Fifths + BPM proximity)
+        let unvisited = [...tracksWithTelem];
+        unvisited.sort((a, b) => a.telem.bpm - b.telem.bpm);
+        const ordered = [unvisited.shift()];
+
+        while (unvisited.length > 0) {
+          const current = ordered[ordered.length - 1];
+          let bestIdx = 0;
+          let bestCost = Infinity;
+
+          for (let i = 0; i < unvisited.length; i++) {
+            const cost = calculateHarmonicCost(current, unvisited[i]);
+            if (cost < bestCost) {
+              bestCost = cost;
+              bestIdx = i;
+            }
+          }
+          ordered.push(unvisited.splice(bestIdx, 1)[0]);
+        }
+
+        sortedTracks = ordered.map(x => x.track);
+        showToast(`Auto-Sorted Set: Harmonic Camelot Flow (${sortedTracks.length} tracks)`, 'success');
+      }
+
+      // Re-index positions
+      sortedTracks.forEach((t, idx) => {
+        t.position = idx + 1;
+      });
+      activeSetState.tracks = sortedTracks;
+
+      // Persist to storage
+      saveActiveSet(activeSetState);
+
+      // Re-render
+      renderSetBuilderPane();
+
+      // If connected to Spotify, remind user
+      if (activeSetState.spotify_playlist_id) {
+        showToast('Set sequence updated! Tap [Sync Spotify] to update your playlist in-place.', 'info');
+      }
+    }
+
+    async function syncSortedSetToSpotify() {
+      if (!activeSetState || !Array.isArray(activeSetState.tracks) || activeSetState.tracks.length === 0) {
+        showToast('Add tracks to your active set before syncing to Spotify.', 'warning');
+        return;
+      }
+
+      if (typeof isSpotifyAuthenticated === 'function' && !isSpotifyAuthenticated()) {
+        if (confirm(`To sync "${activeSetState.title}" to Spotify, connect your Spotify account in Member Portal.\n\nOpen Spotify Connection now?`)) {
+          openSpotifyAuthModal();
+        }
+        return;
+      }
+
+      // If set does not have a Spotify playlist yet, export as new playlist
+      if (!activeSetState.spotify_playlist_id) {
+        showToast(`Set "${activeSetState.title}" is not on Spotify yet. Creating playlist...`, 'info');
+        await exportSetToSpotify(activeSetState.id || activeSetState);
+        return;
+      }
+
+      showToast(`Syncing "${activeSetState.title}" (${activeSetState.tracks.length} tracks) to Spotify in new order...`, 'info');
+
+      const isDemo = localStorage.getItem('spotify_demo_connected') === 'true' || localStorage.getItem('qmc_spotify_demo_mode') === 'true';
+      let token = localStorage.getItem('spotify_access_token') || localStorage.getItem('qmc_spotify_access_token');
+
+      if (isDemo || !token) {
+        showToast('Demo Mode: Simulated Spotify playlist sequence synced successfully!', 'success');
+        saveActiveSet(activeSetState);
+        renderSetBuilderPane();
+        return;
+      }
+
+      // Ensure fresh token
+      const expiresAt = parseInt(localStorage.getItem('spotify_token_expires_at') || '0', 10);
+      if (expiresAt && Date.now() > (expiresAt - 60000)) {
+        try {
+          const refreshedToken = await refreshSpotifyAccessToken();
+          if (refreshedToken) {
+            token = refreshedToken;
+          }
+        } catch (_) { }
+      }
+
+      const playlistId = activeSetState.spotify_playlist_id;
+      const matchedUris = [];
+      const unmatchedTracks = [];
+
+      for (let i = 0; i < activeSetState.tracks.length; i++) {
+        const tr = activeSetState.tracks[i];
+        if (tr.spotify_uri && tr.spotify_uri.startsWith('spotify:track:')) {
+          matchedUris.push(tr.spotify_uri);
+          continue;
+        }
+
+        const rawTitle = String(tr.title || '').trim();
+        const rawArtist = String(tr.artist || '').trim();
+        const cleanTitle = (typeof cleanSpotifySearchTerm === 'function') ? cleanSpotifySearchTerm(rawTitle) : rawTitle;
+        const cleanArtist = (typeof cleanSpotifySearchTerm === 'function') ? cleanSpotifySearchTerm(rawArtist) : rawArtist;
+
+        let matchedTrack = null;
+        const isGenericArtist = !cleanArtist || cleanArtist.toLowerCase() === 'various' || cleanArtist.toLowerCase() === 'unknown artist';
+        const primaryQuery = isGenericArtist ? cleanTitle : `${cleanArtist} ${cleanTitle}`;
+
+        if (primaryQuery) {
+          try {
+            const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(primaryQuery)}&type=track&limit=1`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+              const data = await res.json();
+              matchedTrack = data.tracks?.items?.[0] || null;
+            }
+          } catch (_) { }
+        }
+
+        if (!matchedTrack && cleanTitle && !isGenericArtist) {
+          try {
+            const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(cleanTitle)}&type=track&limit=1`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+              const data = await res.json();
+              matchedTrack = data.tracks?.items?.[0] || null;
+            }
+          } catch (_) { }
+        }
+
+        if (matchedTrack?.uri) {
+          tr.spotify_uri = matchedTrack.uri;
+          matchedUris.push(matchedTrack.uri);
+        } else {
+          unmatchedTracks.push(tr);
+        }
+      }
+
+      if (matchedUris.length === 0) {
+        showToast('Could not match tracks to Spotify catalogue for sync.', 'warning');
+        return;
+      }
+
+      try {
+        // Spotify Web API PUT /v1/playlists/{playlist_id}/items replaces all items in-place!
+        const firstChunk = matchedUris.slice(0, 100);
+        let putRes = await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}/items`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ uris: firstChunk })
+        });
+
+        // Fallback to legacy PUT /tracks if /items returns 404 or 400
+        if (!putRes.ok && (putRes.status === 404 || putRes.status === 400)) {
+          putRes = await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}/tracks`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ uris: firstChunk })
+          });
+        }
+
+        if (!putRes.ok) {
+          const errJson = await putRes.json().catch(() => ({}));
+          console.warn('Spotify PUT /items error:', putRes.status, errJson);
+          if (putRes.status === 403) {
+            const reauth = confirm(`Spotify sync denied (403 Forbidden).\n\nYour Spotify session needs updated write permissions.\n\nReconnect Spotify now?`);
+            if (reauth) {
+              disconnectSpotify();
+              openSpotifyAuthModal();
+            }
+            return;
+          }
+          throw new Error(`Failed to update playlist on Spotify (HTTP ${putRes.status}: ${errJson?.error?.message || 'Error'})`);
+        }
+
+        // If more than 100 tracks, append the remaining chunks with POST /items
+        if (matchedUris.length > 100) {
+          for (let c = 100; c < matchedUris.length; c += 100) {
+            const extraChunk = matchedUris.slice(c, c + 100);
+            await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}/items`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ uris: extraChunk })
+            });
+          }
+        }
+
+        saveActiveSet(activeSetState);
+        renderSetBuilderPane();
+        showToast(`Synced ${matchedUris.length} tracks to Spotify playlist "${activeSetState.title}" in new order!`, 'success');
+      } catch (err) {
+        console.warn('Spotify sync error:', err);
+        showToast(`Spotify sync failed: ${err.message || err}`, 'error');
+      }
+    }
+
     function renderActiveSetPicker() {
       const selectEl = document.getElementById('activeSetSelectPicker');
       if (!selectEl) return;
@@ -9466,6 +9833,8 @@
         id: set.set_id,
         title: set.title || 'Untitled Set',
         description: set.description || 'QMC Vinyl Session',
+        spotify_playlist_id: set.spotify_playlist_id || null,
+        spotify_playlist_url: set.spotify_playlist_url || null,
         tracks: JSON.parse(JSON.stringify(set.tracks || []))
       };
 
@@ -9600,6 +9969,10 @@
       }
       if (typeof isSpotifyAuthenticated === 'function' && isSpotifyAuthenticated()) {
         saveCurrentActiveSet();
+        if (activeSetState.spotify_playlist_id) {
+          syncSortedSetToSpotify();
+          return;
+        }
         exportSetToSpotify(activeSetState.id || activeSetState);
       } else {
         saveCurrentActiveSet();
@@ -10231,6 +10604,10 @@
       // Persist Spotify Playlist ID and URL on Set
       targetSet.spotify_playlist_id = playlistId;
       targetSet.spotify_playlist_url = playlistUrl;
+      if (activeSetState && (!activeSetState.id || activeSetState.id === targetSet.set_id || activeSetState.id === targetSet.id)) {
+        activeSetState.spotify_playlist_id = playlistId;
+        activeSetState.spotify_playlist_url = playlistUrl;
+      }
       saveActiveSet(targetSet);
 
       if (currentView === 'sets') {
