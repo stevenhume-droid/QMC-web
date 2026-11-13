@@ -509,14 +509,20 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
     }
 
-    html.theme-light #memberAuthContainer {
-      background-color: #f7f3ec !important;
+    #memberAuthContainer,
+    #memberAuthBody {
+      background-color: #14171d !important;
+    }
+
+    html.theme-light #memberAuthContainer,
+    html.theme-light #memberAuthBody {
+      background-color: #ffffff !important;
       border-color: #dfd5c5 !important;
     }
 
     html.theme-light #memberAuthContainer button:hover,
     html.theme-light #memberAuthContainer div:hover {
-      background-color: #ede5d8 !important;
+      background-color: #f7f3ec !important;
     }
 
     /* Dark Theme Table Action Sticky Elevation Shadow */
@@ -844,26 +850,27 @@
 
     <!-- Global Actions -->
     <div class="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
-      <!-- Member Sign-In / User Profile Button (Minimized to user icon, expands on click) -->
+      <!-- Member Sign-In / User Profile Button (Opens Member Portal in separate frame) -->
       <div id="memberAuthContainer"
-        class="flex items-stretch rounded-lg bg-vinyl-850 border border-vinyl-700 hover:border-brass-400/50 shadow-sm overflow-hidden transition-all duration-200">
-        <!-- Collapsed Trigger Button: User Icon -->
-        <button type="button" onclick="handleAuthNavBtnClick()" id="authNavBtn"
+        class="relative z-30 flex items-stretch rounded-lg bg-vinyl-900 sm:bg-vinyl-850 border border-vinyl-700 hover:border-brass-400/50 shadow-md overflow-hidden transition-all duration-200">
+        <!-- Collapsed Trigger Button: User Icon (Directly opens Member Portal in separate frame) -->
+        <button type="button" onclick="openAuthModal()" id="authNavBtn"
           class="px-2 sm:px-2.5 py-1 sm:py-1.5 hover:bg-vinyl-800 text-slate-200 transition flex items-center gap-1 sm:gap-1.5 focus:outline-none select-none cursor-pointer"
-          title="Member Profile &amp; Cloud Sync — Click to expand" aria-expanded="false">
+          title="Open Member Portal &amp; Cloud Sync" aria-label="Member Profile">
           <div class="relative flex items-center justify-center">
             <i class="fa-solid fa-circle-user text-xs sm:text-sm text-brass-400"></i>
             <span id="authUserSyncDot"
               class="hidden absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border border-vinyl-900"></span>
           </div>
           <i id="authNavChevron"
-            class="fa-solid fa-chevron-right text-[8px] sm:text-[9px] text-slate-400/70 transition-transform duration-200"></i>
+            class="hidden sm:inline-block fa-solid fa-chevron-right text-[8px] sm:text-[9px] text-slate-400/70"></i>
         </button>
 
-        <!-- Expandable Content: Username, Cloud Sync status & Profile Link -->
-        <div id="memberAuthBody" class="hidden items-stretch border-l border-vinyl-700/60">
-          <div onclick="openAuthModal()"
-            class="px-2 sm:px-2.5 py-1 sm:py-1.5 hover:bg-vinyl-800 cursor-pointer transition flex items-center gap-1.5"
+        <!-- Expandable Content: Username, Cloud Sync status & Profile Link (Solid opaque background) -->
+        <div id="memberAuthBody" onclick="openAuthModal()"
+          class="hidden sm:flex items-stretch border-l border-vinyl-700/60 bg-vinyl-900 sm:bg-vinyl-850 cursor-pointer hover:bg-vinyl-800 transition">
+          <div
+            class="px-2 sm:px-2.5 py-1 sm:py-1.5 flex items-center gap-1.5"
             title="Click to view Member Profile &amp; Cloud Settings">
             <span id="authNavText"
               class="max-w-[90px] sm:max-w-[140px] truncate text-[11px] sm:text-xs font-semibold text-slate-200">Sign
@@ -7613,12 +7620,7 @@
     }
 
     function handleAuthNavBtnClick() {
-      const body = document.getElementById('memberAuthBody');
-      if (body && !body.classList.contains('hidden')) {
-        openAuthModal();
-      } else {
-        toggleMemberAuthExpanded(true);
-      }
+      openAuthModal();
     }
 
     function updateAuthUI() {

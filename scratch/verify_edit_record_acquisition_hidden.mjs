@@ -50,3 +50,4 @@ assert.ok(closeRecordMatch[0].includes("document.getElementById('acquisitionTool
 console.log('  ✓ closeAddEditModal resets acquisitionToolbar.');
 
 console.log('\n=== ALL EDIT RECORD ACQUISITION TESTS PASSED (5/5) ===');
+
