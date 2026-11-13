@@ -45,10 +45,11 @@ assert.ok(/function handleAuthNavBtnClick\(\)\s*\{\s*openAuthModal\(\);?\s*\}/.t
 console.log('  ✓ Tapping member icon directly opens Member Portal frame (openAuthModal).');
 
 // Test 4: Fully opaque background styling to guarantee logo never shows through
-console.log('\nTest 4: Verifying 100% solid opaque CSS background...');
-assert.ok(html.includes('#memberAuthContainer') && html.includes('#memberAuthBody'), 'Must target both container and body in CSS');
-assert.ok(/#memberAuthContainer,\s*#memberAuthBody\s*\{\s*background-color:\s*#14171d\s*!important;/.test(html), 'Must have solid opaque dark background');
-assert.ok(/html\.theme-light #memberAuthContainer,\s*html\.theme-light #memberAuthBody\s*\{\s*background-color:\s*#ffffff\s*!important;/.test(html), 'Must have solid opaque light background');
-console.log('  ✓ Both dark and light themes enforce solid opaque backgrounds (#14171d and #ffffff). Zero transparency.');
+console.log('\nTest 4: Verifying 100% solid opaque CSS background for Member Auth and Top Valuation...');
+assert.ok(html.includes('#memberAuthContainer') && html.includes('#memberAuthBody'), 'Must target both memberAuthContainer and memberAuthBody in CSS');
+assert.ok(html.includes('#topValuationContainer') && html.includes('#topValuationBody'), 'Must target both topValuationContainer and topValuationBody in CSS');
+assert.ok(/#memberAuthContainer,[\s\S]*?#topValuationBody[\s\S]*?\{\s*background-color:\s*#14171d\s*!important;/.test(html), 'Must have solid opaque dark background');
+assert.ok(/html\.theme-light #memberAuthContainer,[\s\S]*?html\.theme-light #topValuationBody[\s\S]*?\{\s*background-color:\s*#ffffff\s*!important;/.test(html), 'Must have solid opaque light background');
+console.log('  ✓ Both dark and light themes enforce solid opaque backgrounds (#14171d and #ffffff) on Member Auth and Top Valuation. Zero transparency.');
 
 console.log('\n=== ALL MEMBER AUTH TOP BAR VERIFICATIONS PASSED (4/4) ===');
