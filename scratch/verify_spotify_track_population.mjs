@@ -57,13 +57,17 @@ console.log('  ✓ Strips side prefix and slashes: "Side A: Speak to Me / Breath
 console.log('\n3. Verifying Spotify search cascade & track batching in exportSetToSpotify...');
 assert.ok(html.includes('async function exportSetToSpotify('), 'exportSetToSpotify function must exist');
 assert.ok(html.includes('primaryQuery = isGenericArtist ? cleanTitle : `${cleanArtist} ${cleanTitle}`'), 'Search cascade must handle generic artists');
-assert.ok(html.includes('if (!addRes.ok)'), 'Must check addRes.ok when posting tracks chunk');
-assert.ok(html.includes('/playlists/${encodeURIComponent(playlistId)}/tracks'), 'Must post tracks to playlist tracks endpoint');
+assert.ok(html.includes('/playlists/${encodeURIComponent(playlistId)}/items'), 'Must use modern Spotify /items endpoint to avoid 403 deprecation');
+assert.ok(html.includes('/playlists/${encodeURIComponent(playlistId)}/tracks'), 'Must retain fallback to /tracks endpoint');
 assert.ok(html.includes('chunkIdx += 100'), 'Must chunk track URIs into batches of 100');
+assert.ok(html.includes('if (addRes.status === 403)'), 'Must handle 403 Forbidden with actionable user re-auth prompt');
+assert.ok(html.includes('playlist-modify-public'), 'Must request and badge playlist-modify-public');
+assert.ok(html.includes('playlist-modify-private'), 'Must request and badge playlist-modify-private');
 
 console.log('  ✓ Search cascade handles generic artists & stripped punctuation.');
-console.log('  ✓ Track batches are posted in chunks of 100 with addRes.ok validation.');
-console.log('  ✓ Robust error messaging if track addition fails or no tracks match.');
+console.log('  ✓ Track batches use modern /items endpoint with /tracks fallback.');
+console.log('  ✓ 403 Forbidden triggers actionable re-auth prompt for playlist write permissions.');
+console.log('  ✓ Scopes include both playlist-modify-public and playlist-modify-private.');
 
 console.log('\n=== ALL SPOTIFY TRACK POPULATION TESTS PASSED (3/3) ===');
 
