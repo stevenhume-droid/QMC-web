@@ -5464,7 +5464,12 @@
             pos: index,
             position: index,
             title: String(t.title || `Track ${idx + 1}`).trim(),
-            duration: String(t.duration || '').trim()
+            duration: String(t.duration || '').trim(),
+            bpm: (t.bpm !== undefined && t.bpm !== null && t.bpm !== '') ? t.bpm : '',
+            key: t.key || t.musical_key || t.musicalKey || '',
+            musical_key: t.musical_key || t.musicalKey || t.key || '',
+            camelot: t.camelot || '',
+            spotify_uri: t.spotify_uri || null
           };
         });
       return cleaned.length > 0 ? cleaned : undefined;
@@ -8993,6 +8998,23 @@
         const is45 = safeSpeed.includes('45');
         const cueNote = escapeHtml(track.cue_note || '');
 
+        let bpmVal = track.bpm || '';
+        let keyVal = track.key || track.musical_key || '';
+        let camelotVal = track.camelot || '';
+        if ((!bpmVal || !keyVal) && track.record_id) {
+          const allRecords = (typeof records !== 'undefined' && Array.isArray(records) ? records : []);
+          const rec = allRecords.find(r => String(r.id) === String(track.record_id));
+          if (rec) {
+            const telemetry = (typeof deriveRecordTelemetry === 'function') ? deriveRecordTelemetry(rec) : null;
+            if (!bpmVal) bpmVal = rec.bpm || telemetry?.bpm || '';
+            if (!keyVal) keyVal = rec.musical_key || rec.musicalKey || rec.key || telemetry?.musicalKey || '';
+            if (!camelotVal) camelotVal = rec.camelot || telemetry?.camelot || ((typeof CAMELOT_KEY_MAP !== 'undefined' && CAMELOT_KEY_MAP[keyVal]) ? CAMELOT_KEY_MAP[keyVal] : '');
+          }
+        }
+        const safeBpm = bpmVal ? escapeHtml(String(bpmVal)) : '';
+        const safeKey = keyVal ? escapeHtml(String(keyVal)) : '';
+        const safeCamelot = camelotVal ? escapeHtml(String(camelotVal)) : '';
+
         html += `
           <div class="p-2.5 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-1.5 transition hover:border-amber-500/40">
             <div class="flex items-center justify-between gap-2">
@@ -9029,6 +9051,8 @@
                 ${safeSide ? `<span class="px-1.5 py-0.2 rounded bg-vinyl-800 text-brass-300 border border-vinyl-700 font-bold" title="Physical Side / Track Index">[${safeSide}]</span>` : ''}
                 <span class="px-1.5 py-0.2 rounded ${is45 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-vinyl-800 text-slate-300 border border-vinyl-700'}" title="Playback Speed">${safeSpeed}</span>
                 <span class="text-slate-400 font-medium">${safeDur}</span>
+                ${safeBpm ? `<span class="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold flex items-center gap-1" title="DJ BPM (Tempo)"><i class="fa-solid fa-gauge-high text-[8px]"></i>${safeBpm} BPM</span>` : ''}
+                ${safeKey ? `<span class="px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 font-bold flex items-center gap-1" title="Musical Key & Camelot"><i class="fa-solid fa-music text-[8px]"></i>${safeKey}${safeCamelot ? ` · ${safeCamelot}` : ''}</span>` : ''}
               </div>
               <div class="flex-1 max-w-[200px] text-right">
                 <input type="text" value="${cueNote}" placeholder="+ Add cue / transition note..."
@@ -9059,10 +9083,27 @@
         } else if (Array.isArray(rawTracks)) {
           normTracks = rawTracks;
         }
+
+        // Support fallback 2-track releases when normTracks is empty
+        if (normTracks.length === 0 && rec) {
+          const kind = (typeof getMediaKind === 'function') ? getMediaKind(rec.format) : 'vinyl';
+          const aLabel = kind === 'cd' ? '01' : (kind === 'tape' ? '1A' : 'A');
+          const bLabel = kind === 'cd' ? '02' : (kind === 'tape' ? '2B' : 'B');
+          normTracks = [
+            { pos: aLabel, position: aLabel, title: rec.sideATitle || rec.title || 'Side A Track', duration: rec.sideADuration || '' },
+            { pos: bLabel, position: bLabel, title: rec.sideBTitle || 'Side B Track', duration: rec.sideBDuration || '' }
+          ];
+        }
+
         const tr = normTracks[idx] || (Array.isArray(rawTracks) ? rawTracks[idx] : null) || {};
         const trPos = tr.position || tr.pos || tr.index || (idx + 1);
         const formatStr = Array.isArray(rec?.format) ? rec.format.join(', ') : String(rec?.format || 'Vinyl');
         const recSpeed = rec?.speed || (formatStr.includes('45') ? '45 RPM' : '33 1/3 RPM');
+
+        const telemetry = (typeof deriveRecordTelemetry === 'function' && rec) ? deriveRecordTelemetry(rec) : null;
+        const trackBpm = tr.bpm || rec?.bpm || telemetry?.bpm || '';
+        const trackKey = tr.musical_key || tr.musicalKey || tr.key || rec?.musical_key || rec?.musicalKey || rec?.key || telemetry?.musicalKey || '';
+        const trackCamelot = tr.camelot || rec?.camelot || (telemetry ? telemetry.camelot : '') || ((typeof CAMELOT_KEY_MAP !== 'undefined' && CAMELOT_KEY_MAP[trackKey]) ? CAMELOT_KEY_MAP[trackKey] : '');
 
         trackObj = {
           position: trPos,
@@ -9070,7 +9111,10 @@
           title: tr.title || `Track ${idx + 1}`,
           artist: rec?.artist || 'Unknown Artist',
           duration: tr.duration || '',
-          bpm: rec?.bpm || '',
+          bpm: trackBpm,
+          key: trackKey,
+          musical_key: trackKey,
+          camelot: trackCamelot,
           speed: recSpeed,
           rpm: recSpeed,
           format: formatStr,
@@ -9091,6 +9135,11 @@
       const pos = activeSetState.tracks.length + 1;
       const recFormat = Array.isArray(rec?.format) ? rec.format.join(', ') : String(rec?.format || 'Vinyl');
       const recSpeed = rec?.speed || (recFormat.includes('45') ? '45 RPM' : '33 1/3 RPM');
+      const telemetry = (typeof deriveRecordTelemetry === 'function' && rec) ? deriveRecordTelemetry(rec) : null;
+
+      const finalBpm = trackObj.bpm || rec?.bpm || telemetry?.bpm || '';
+      const finalKey = trackObj.key || trackObj.musical_key || trackObj.musicalKey || rec?.musical_key || rec?.musicalKey || rec?.key || telemetry?.musicalKey || '';
+      const finalCamelot = trackObj.camelot || rec?.camelot || (telemetry ? telemetry.camelot : '') || ((typeof CAMELOT_KEY_MAP !== 'undefined' && CAMELOT_KEY_MAP[finalKey]) ? CAMELOT_KEY_MAP[finalKey] : '');
 
       activeSetState.tracks.push({
         position: pos,
@@ -9099,7 +9148,10 @@
         title: trackObj.title || 'Untitled Track',
         side_index: trackObj.position || trackObj.side_index || '',
         duration: trackObj.duration || '',
-        bpm: trackObj.bpm || rec?.bpm || '',
+        bpm: finalBpm,
+        key: finalKey,
+        musical_key: finalKey,
+        camelot: finalCamelot,
         rpm: trackObj.speed || trackObj.rpm || recSpeed,
         speed: trackObj.speed || trackObj.rpm || recSpeed,
         cue_note: trackObj.cue_note || '',
@@ -9108,6 +9160,32 @@
 
       renderRecordBoxDrawer();
       showToast(`Added "${trackObj.title || 'Track'}" to active set!`, 'success');
+    }
+
+    function addTrackToActiveSetFromDossier(recordId, trackIdx) {
+      if (recordId === undefined || recordId === null) return;
+      const sId = String(recordId);
+
+      // Automatically pack this release into the Record Box if not yet packed
+      if (typeof isRecordInBox === 'function' && !isRecordInBox(sId)) {
+        if (typeof addRecordToBox === 'function') {
+          addRecordToBox(sId);
+        }
+        if (typeof updateBoxButtonElements === 'function') {
+          updateBoxButtonElements(sId);
+        }
+      }
+
+      // Add track into active sequenced set
+      addTrackToActiveSet(sId, trackIdx);
+
+      // Update button on dossier row
+      const btn = document.getElementById(`dossierSetBtn-${sId}-${trackIdx}`);
+      if (btn) {
+        btn.className = 'px-2 py-0.5 rounded text-[10px] font-semibold transition cursor-pointer flex items-center gap-1 shrink-0 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm';
+        btn.innerHTML = '<i class="fa-solid fa-check text-[9px]"></i><span>✓ Set</span>';
+        btn.title = 'Track sequenced in Active Set timeline';
+      }
     }
 
     function removeTrackFromActiveSet(index) {
@@ -14553,6 +14631,11 @@
             const tStream = getStreamingLinks(item, t.title);
             const idxBadge = t.index || t.pos || (tIdx + 1);
             const tBpm = (telemetry.bpm - 2 + ((currentTrackIndex * 2) % 5));
+            const inSet = (typeof activeSetState !== 'undefined' && Array.isArray(activeSetState.tracks)) &&
+              activeSetState.tracks.some(st => String(st.record_id) === String(item.id) && (
+                (st.side_index && String(st.side_index) === String(idxBadge)) ||
+                (String(st.title).toLowerCase() === String(t.title).toLowerCase())
+              ));
             return `
                     <div class="flex items-center justify-between p-2 bg-vinyl-900 rounded-lg border border-vinyl-800 hover:border-emerald-500/40 transition group/track cursor-pointer" onclick="selectDossierTrack(${currentTrackIndex}, true)">
                       <div class="flex items-center gap-2 min-w-0 pr-2">
@@ -14562,6 +14645,13 @@
                       <div class="flex items-center gap-2 flex-shrink-0">
                         <span class="text-emerald-400/80 font-mono text-[10px] hidden sm:inline">${tBpm} BPM</span>
                         <span class="font-mono text-slate-400 text-xs">${escapeHtml(t.duration || '--:--')}</span>
+                        <button type="button" onclick="event.stopPropagation(); addTrackToActiveSetFromDossier('${safeId}', ${currentTrackIndex})"
+                          id="dossierSetBtn-${safeId}-${currentTrackIndex}"
+                          class="px-2 py-0.5 rounded text-[10px] font-semibold transition cursor-pointer flex items-center gap-1 shrink-0 ${inSet ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm' : 'bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border border-amber-500/30'}"
+                          title="${inSet ? 'Track sequenced in Active Set timeline' : 'Add this track to your Active Set timeline'}">
+                          <i class="fa-solid ${inSet ? 'fa-check' : 'fa-list-ol'} text-[9px]"></i>
+                          <span>${inSet ? '✓ Set' : '+ Set'}</span>
+                        </button>
                         <div class="flex items-center gap-1 opacity-70 group-hover/track:opacity-100 transition" onclick="event.stopPropagation()">
                           <a href="${tStream.spotify}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-emerald-400 transition" title="Audition on Spotify">
                             <i class="fa-brands fa-spotify text-xs"></i>
@@ -14584,6 +14674,16 @@
         const kind = getMediaKind(item.format);
         const aLabel = kind === 'cd' ? '01' : (kind === 'tape' ? '1A' : 'A');
         const bLabel = kind === 'cd' ? '02' : (kind === 'tape' ? '2B' : 'B');
+        const inSet0 = (typeof activeSetState !== 'undefined' && Array.isArray(activeSetState.tracks)) &&
+          activeSetState.tracks.some(st => String(st.record_id) === String(item.id) && (
+            (st.side_index && String(st.side_index) === String(aLabel)) ||
+            (String(st.title).toLowerCase() === String(item.sideATitle || item.title).toLowerCase())
+          ));
+        const inSet1 = (typeof activeSetState !== 'undefined' && Array.isArray(activeSetState.tracks)) &&
+          activeSetState.tracks.some(st => String(st.record_id) === String(item.id) && (
+            (st.side_index && String(st.side_index) === String(bLabel)) ||
+            (String(st.title).toLowerCase() === String(item.sideBTitle || 'Side B Track').toLowerCase())
+          ));
         tracksHTML = `
           <div class="flex items-center justify-between p-2 bg-vinyl-900 rounded-lg border border-vinyl-800 hover:border-emerald-500/40 transition group/track cursor-pointer" onclick="selectDossierTrack(0, true)">
             <div class="flex items-center gap-2 min-w-0 pr-2">
@@ -14593,6 +14693,13 @@
             <div class="flex items-center gap-2 flex-shrink-0">
               <span class="text-emerald-400/80 font-mono text-[10px] hidden sm:inline">${telemetry.bpm} BPM</span>
               <span class="font-mono text-slate-400 text-xs">${escapeHtml(item.sideADuration || '--:--')}</span>
+              <button type="button" onclick="event.stopPropagation(); addTrackToActiveSetFromDossier('${safeId}', 0)"
+                id="dossierSetBtn-${safeId}-0"
+                class="px-2 py-0.5 rounded text-[10px] font-semibold transition cursor-pointer flex items-center gap-1 shrink-0 ${inSet0 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm' : 'bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border border-amber-500/30'}"
+                title="${inSet0 ? 'Track sequenced in Active Set timeline' : 'Add this track to your Active Set timeline'}">
+                <i class="fa-solid ${inSet0 ? 'fa-check' : 'fa-list-ol'} text-[9px]"></i>
+                <span>${inSet0 ? '✓ Set' : '+ Set'}</span>
+              </button>
               <div class="flex items-center gap-1 opacity-70 group-hover/track:opacity-100 transition" onclick="event.stopPropagation()">
                 <a href="${aStream.spotify}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-emerald-400 transition" title="Audition on Spotify">
                   <i class="fa-brands fa-spotify text-xs"></i>
@@ -14611,6 +14718,13 @@
             <div class="flex items-center gap-2 flex-shrink-0">
               <span class="text-emerald-400/80 font-mono text-[10px] hidden sm:inline">${telemetry.bpm + 2} BPM</span>
               <span class="font-mono text-slate-400 text-xs">${escapeHtml(item.sideBDuration || '--:--')}</span>
+              <button type="button" onclick="event.stopPropagation(); addTrackToActiveSetFromDossier('${safeId}', 1)"
+                id="dossierSetBtn-${safeId}-1"
+                class="px-2 py-0.5 rounded text-[10px] font-semibold transition cursor-pointer flex items-center gap-1 shrink-0 ${inSet1 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm' : 'bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border border-amber-500/30'}"
+                title="${inSet1 ? 'Track sequenced in Active Set timeline' : 'Add this track to your Active Set timeline'}">
+                <i class="fa-solid ${inSet1 ? 'fa-check' : 'fa-list-ol'} text-[9px]"></i>
+                <span>${inSet1 ? '✓ Set' : '+ Set'}</span>
+              </button>
               <div class="flex items-center gap-1 opacity-70 group-hover/track:opacity-100 transition" onclick="event.stopPropagation()">
                 <a href="${bStream.spotify}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-emerald-400 transition" title="Audition on Spotify">
                   <i class="fa-brands fa-spotify text-xs"></i>
@@ -15114,6 +15228,10 @@
           <div class="flex gap-2 w-full sm:w-auto justify-end flex-wrap">
             <button type="button" onclick="toggleBoxForRecord('${safeId}')" id="dossierBoxBtn-${safeId}" class="px-3 py-2 rounded-lg font-semibold text-xs flex items-center gap-1.5 transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border-amber-500/30'}" title="${inBox ? 'Remove from Record Box' : 'Pack into Record Box'}">
               <span>${inBox ? '✓ In Box' : '🧳 + Box'}</span>
+            </button>
+            <button type="button" onclick="openRecordBoxDrawer('sets')" class="px-3 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border border-amber-500/30 font-semibold text-xs flex items-center gap-1.5 transition shadow" title="Open Set Builder Timeline">
+              <i class="fa-solid fa-list-ol text-amber-400"></i>
+              <span>Set Builder</span>
             </button>
             <button type="button" onclick="openCrateAssignModal('${safeId}')" class="px-3 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 font-semibold text-xs flex items-center gap-1.5 transition shadow" title="Assign to Thematic Crate">
               <i class="fa-solid fa-layer-group text-brass-400"></i>
