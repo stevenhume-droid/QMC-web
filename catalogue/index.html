@@ -815,7 +815,8 @@
       </a>
       <!-- MMA Graphic Logo in Protective Black Shell (Guarantees high contrast on both Dark & Light themes) -->
       <a href="index.html" class="flex items-center group flex-shrink-0" title="Music Media Archive">
-        <div class="mma-logo-shell bg-[#0a0a0c] px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border border-brass-500/40 shadow-md flex items-center justify-center group-hover:border-brass-400 group-hover:scale-105 transition-all duration-200">
+        <div
+          class="mma-logo-shell bg-[#0a0a0c] px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border border-brass-500/40 shadow-md flex items-center justify-center group-hover:border-brass-400 group-hover:scale-105 transition-all duration-200">
           <img src="mma-logo-trans.png" alt="MMA Music Media Archive" id="appHeaderLogoMMA"
             class="h-7 sm:h-8 md:h-9 w-auto object-contain drop-shadow">
         </div>
@@ -834,7 +835,8 @@
           title="Member Profile &amp; Cloud Sync — Click to expand" aria-expanded="false">
           <div class="relative flex items-center justify-center">
             <i class="fa-solid fa-circle-user text-xs sm:text-sm text-brass-400"></i>
-            <span id="authUserSyncDot" class="hidden absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border border-vinyl-900"></span>
+            <span id="authUserSyncDot"
+              class="hidden absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border border-vinyl-900"></span>
           </div>
           <i id="authNavChevron"
             class="fa-solid fa-chevron-right text-[8px] sm:text-[9px] text-slate-400/70 transition-transform duration-200"></i>
@@ -845,7 +847,9 @@
           <div onclick="openAuthModal()"
             class="px-2 sm:px-2.5 py-1 sm:py-1.5 hover:bg-vinyl-800 cursor-pointer transition flex items-center gap-1.5"
             title="Click to view Member Profile &amp; Cloud Settings">
-            <span id="authNavText" class="max-w-[90px] sm:max-w-[140px] truncate text-[11px] sm:text-xs font-semibold text-slate-200">Sign In</span>
+            <span id="authNavText"
+              class="max-w-[90px] sm:max-w-[140px] truncate text-[11px] sm:text-xs font-semibold text-slate-200">Sign
+              In</span>
           </div>
           <button type="button" onclick="event.stopPropagation(); openAuthModal()"
             class="px-1.5 sm:px-2 py-1 sm:py-1.5 hover:bg-brass-500/20 text-brass-400 hover:text-brass-300 border-l border-vinyl-700/60 transition flex items-center justify-center text-[10px] font-bold"
@@ -3842,7 +3846,8 @@
         </div>
 
         <!-- Spotify Playlist Input Card (Hidden when Saved Albums active) -->
-        <div id="gapPlaylistSection" class="hidden p-3.5 bg-vinyl-850/80 border border-emerald-500/30 rounded-xl space-y-3">
+        <div id="gapPlaylistSection"
+          class="hidden p-3.5 bg-vinyl-850/80 border border-emerald-500/30 rounded-xl space-y-3">
           <div class="flex items-center justify-between gap-2">
             <div class="text-xs font-semibold text-emerald-300 flex items-center gap-1.5">
               <i class="fa-brands fa-spotify text-emerald-400"></i>
@@ -3875,12 +3880,14 @@
             </div>
             <div class="flex items-center gap-1 shrink-0 overflow-x-auto">
               <span class="text-[10px] text-slate-500 font-mono hidden sm:inline">Presets:</span>
-              <button type="button" onclick="loadPresetPlaylistForGaps('6fRQLuqUxcXCgekTO5Lq1H', 'QMC Los Hermanos Picks')"
+              <button type="button"
+                onclick="loadPresetPlaylistForGaps('6fRQLuqUxcXCgekTO5Lq1H', 'QMC Los Hermanos Picks')"
                 class="px-2 py-0.5 rounded text-[10px] bg-vinyl-800 hover:bg-vinyl-750 text-amber-300 border border-vinyl-700 hover:border-amber-500/30 transition cursor-pointer"
                 title="QMC - Picks from previous Los Hermanos Nights">
                 QMC Picks
               </button>
-              <button type="button" onclick="loadPresetPlaylistForGaps('3n5WQyLxxhTK7JuzSTLoPp', 'QMC Members Classics')"
+              <button type="button"
+                onclick="loadPresetPlaylistForGaps('3n5WQyLxxhTK7JuzSTLoPp', 'QMC Members Classics')"
                 class="px-2 py-0.5 rounded text-[10px] bg-vinyl-800 hover:bg-vinyl-750 text-amber-300 border border-vinyl-700 hover:border-amber-500/30 transition cursor-pointer"
                 title="QMC - Members Classics">
                 Members Classics
@@ -4044,6 +4051,21 @@
           </div>
         </div>
         <div class="flex items-center gap-2">
+          <!-- View Switcher Pills -->
+          <div class="inline-flex p-0.5 rounded-lg bg-vinyl-900 border border-vinyl-750 text-[11px] font-semibold">
+            <button type="button" onclick="setRecordBoxDrawerMode('split')" id="btnDrawerModeSplit"
+              class="px-2 py-0.5 rounded transition text-white bg-vinyl-800 border border-vinyl-700 shadow-sm cursor-pointer"
+              title="Split View: Record Box + Set Timeline">
+              <i class="fa-solid fa-table-columns text-[10px] sm:mr-1"></i>
+              <span class="hidden sm:inline">Split</span>
+            </button>
+            <button type="button" onclick="setRecordBoxDrawerMode('set-focus')" id="btnDrawerModeSetFocus"
+              class="px-2 py-0.5 rounded transition text-slate-400 hover:text-white cursor-pointer"
+              title="Set Focus: Compact Record Box for Maximum Set Sorting Space">
+              <i class="fa-solid fa-list-ol text-[10px] sm:mr-1"></i>
+              <span class="hidden sm:inline">Set Focus</span>
+            </button>
+          </div>
           <button type="button" onclick="saveCurrentActiveSet()"
             class="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold text-xs items-center gap-1.5 transition shadow cursor-pointer">
             <i class="fa-solid fa-floppy-disk text-xs"></i>
@@ -4058,7 +4080,7 @@
       </div>
 
       <!-- Split-Pane Body -->
-      <div
+      <div id="recordBoxSplitBody"
         class="flex-1 grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-vinyl-800 overflow-hidden min-h-0">
 
         <!-- LEFT PANE: PACKED RECORD BOX (Physical Holdings Working Bag) -->
@@ -4073,6 +4095,12 @@
                 session</span>
             </div>
             <div class="flex items-center gap-1.5">
+              <button type="button" onclick="toggleRecordBoxCompaction()" id="btnCompactRecordBox"
+                class="px-2 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-amber-300 border border-amber-500/30 flex items-center gap-1 transition cursor-pointer"
+                title="Compact Record Box to maximize screen real estate for Set sorting">
+                <i id="btnCompactRecordBoxIcon" class="fa-solid fa-compress text-[10px]"></i>
+                <span id="btnCompactRecordBoxLabel">Compact</span>
+              </button>
               <button type="button" onclick="saveRecordBoxAsCrate()"
                 class="px-2.5 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-brass-300 border border-brass-500/30 flex items-center gap-1 transition cursor-pointer"
                 title="Archive these packed records into a new Thematic Crate">
@@ -4106,11 +4134,19 @@
                   class="flex-1 bg-vinyl-950/80 border border-vinyl-700 focus:border-amber-500 rounded-lg px-2.5 py-1 text-xs text-white font-semibold focus:outline-none transition"
                   oninput="handleActiveSetTitleChange(event)">
               </div>
-              <button type="button" onclick="clearActiveSetTimeline()"
-                class="px-2 py-1 text-[11px] rounded bg-vinyl-800 hover:bg-red-950/50 text-slate-400 hover:text-red-300 border border-vinyl-700 transition cursor-pointer"
-                title="Clear current set timeline">
-                Clear
-              </button>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button type="button" onclick="toggleRecordBoxCompaction()" id="btnSetBuilderMaximize"
+                  class="px-2 py-1 text-[11px] rounded bg-vinyl-800 hover:bg-vinyl-750 text-amber-300 border border-amber-500/30 transition cursor-pointer flex items-center gap-1"
+                  title="Maximize Set Builder timeline for sorting">
+                  <i id="btnSetBuilderMaximizeIcon" class="fa-solid fa-maximize text-[10px]"></i>
+                  <span id="btnSetBuilderMaximizeLabel">Maximize</span>
+                </button>
+                <button type="button" onclick="clearActiveSetTimeline()"
+                  class="px-2 py-1 text-[11px] rounded bg-vinyl-800 hover:bg-red-950/50 text-slate-400 hover:text-red-300 border border-vinyl-700 transition cursor-pointer"
+                  title="Clear current set timeline">
+                  Clear
+                </button>
+              </div>
             </div>
             <!-- Telemetry & Runtime Strip -->
             <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 pt-0.5">
@@ -8748,11 +8784,123 @@
       tracks: []
     };
     const expandedBoxRecordIds = new Set();
+    let recordBoxDrawerMode = 'split'; // 'split' or 'set-focus'
+
+    function setRecordBoxDrawerMode(mode) {
+      recordBoxDrawerMode = (mode === 'set-focus') ? 'set-focus' : 'split';
+      try { localStorage.setItem('qmc_box_drawer_mode', recordBoxDrawerMode); } catch (_) {}
+      applyRecordBoxDrawerMode();
+    }
+
+    function toggleRecordBoxCompaction() {
+      if (recordBoxDrawerMode === 'set-focus') {
+        setRecordBoxDrawerMode('split');
+      } else {
+        setRecordBoxDrawerMode('set-focus');
+      }
+    }
+
+    function applyRecordBoxDrawerMode() {
+      const splitBody = document.getElementById('recordBoxSplitBody');
+      const boxPane = document.getElementById('recordBoxPane');
+      const boxList = document.getElementById('recordBoxList');
+      const setPane = document.getElementById('setBuilderPane');
+      const boxSubhead = document.getElementById('recordBoxPaneSubheading');
+      const compactBtn = document.getElementById('btnCompactRecordBox');
+      const compactIcon = document.getElementById('btnCompactRecordBoxIcon');
+      const compactLabel = document.getElementById('btnCompactRecordBoxLabel');
+      const setMaxBtn = document.getElementById('btnSetBuilderMaximize');
+      const setMaxIcon = document.getElementById('btnSetBuilderMaximizeIcon');
+      const setMaxLabel = document.getElementById('btnSetBuilderMaximizeLabel');
+      const pillSplit = document.getElementById('btnDrawerModeSplit');
+      const pillSetFocus = document.getElementById('btnDrawerModeSetFocus');
+
+      const isCompact = (recordBoxDrawerMode === 'set-focus');
+      const count = (typeof getQmcRecordBox === 'function') ? getQmcRecordBox().length : 0;
+
+      if (splitBody) {
+        if (isCompact) {
+          splitBody.className = 'flex-1 flex flex-col divide-y divide-vinyl-800 overflow-hidden min-h-0';
+        } else {
+          splitBody.className = 'flex-1 grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-vinyl-800 overflow-hidden min-h-0';
+        }
+      }
+
+      if (boxList) {
+        if (isCompact) {
+          boxList.classList.add('hidden');
+        } else {
+          boxList.classList.remove('hidden');
+        }
+      }
+
+      if (boxPane) {
+        if (isCompact) {
+          boxPane.className = 'flex flex-col h-auto shrink-0 bg-vinyl-900/80 transition cursor-pointer hover:bg-vinyl-850/80';
+          boxPane.onclick = (e) => {
+            if (!e.target.closest('button') && !e.target.closest('input')) {
+              toggleRecordBoxCompaction();
+            }
+          };
+        } else {
+          boxPane.className = 'flex flex-col h-full min-h-0 bg-vinyl-900/60';
+          boxPane.onclick = null;
+        }
+      }
+
+      if (setPane) {
+        if (isCompact) {
+          setPane.className = 'flex flex-col flex-1 h-full min-h-0 bg-vinyl-900/40';
+        } else {
+          setPane.className = 'flex flex-col h-full min-h-0 bg-vinyl-900/40';
+        }
+      }
+
+      if (boxSubhead) {
+        if (isCompact) {
+          boxSubhead.innerHTML = `<span class="text-amber-300 font-semibold">${count} packed</span> · <span class="text-slate-400">Compacted for Set Sorting (Tap to expand)</span>`;
+        } else {
+          boxSubhead.textContent = `${count} release${count === 1 ? '' : 's'} packed for active gig/session`;
+        }
+      }
+
+      if (compactBtn) {
+        compactBtn.title = isCompact ? 'Expand Record Box to browse releases' : 'Compact Record Box to maximize screen real estate for Set sorting';
+        if (compactIcon) compactIcon.className = `fa-solid ${isCompact ? 'fa-expand' : 'fa-compress'} text-[10px]`;
+        if (compactLabel) compactLabel.textContent = isCompact ? 'Expand' : 'Compact';
+      }
+
+      if (setMaxBtn) {
+        setMaxBtn.title = isCompact ? 'Restore split view' : 'Maximize Set Timeline workspace';
+        if (setMaxIcon) setMaxIcon.className = `fa-solid ${isCompact ? 'fa-down-left-and-up-right-to-center' : 'fa-maximize'} text-[10px]`;
+        if (setMaxLabel) setMaxLabel.textContent = isCompact ? 'Split' : 'Maximize';
+      }
+
+      if (pillSplit && pillSetFocus) {
+        if (isCompact) {
+          pillSplit.className = 'px-2 py-0.5 rounded transition text-slate-400 hover:text-white cursor-pointer';
+          pillSetFocus.className = 'px-2 py-0.5 rounded transition text-amber-300 bg-amber-500/20 border border-amber-500/40 shadow-sm cursor-pointer';
+        } else {
+          pillSplit.className = 'px-2 py-0.5 rounded transition text-white bg-vinyl-800 border border-vinyl-700 shadow-sm cursor-pointer';
+          pillSetFocus.className = 'px-2 py-0.5 rounded transition text-slate-400 hover:text-white cursor-pointer';
+        }
+      }
+    }
 
     function openRecordBoxDrawer(initialFocus = 'box') {
       const drawer = document.getElementById('recordBoxDrawer');
       if (drawer) {
         drawer.classList.remove('hidden');
+        if (initialFocus === 'sets') {
+          setRecordBoxDrawerMode('set-focus');
+        } else {
+          try {
+            const savedMode = localStorage.getItem('qmc_box_drawer_mode');
+            if (savedMode === 'set-focus' || savedMode === 'split') {
+              recordBoxDrawerMode = savedMode;
+            }
+          } catch (_) {}
+        }
         renderRecordBoxDrawer();
         if (initialFocus === 'sets') {
           const titleInput = document.getElementById('activeSetTitleInput');
@@ -8783,6 +8931,7 @@
     function renderRecordBoxDrawer() {
       renderRecordBoxPane();
       renderSetBuilderPane();
+      applyRecordBoxDrawerMode();
     }
 
     function renderRecordBoxPane() {
@@ -8794,7 +8943,11 @@
       const allRecords = (typeof records !== 'undefined' && Array.isArray(records) ? records : []);
 
       if (subheadEl) {
-        subheadEl.textContent = `${boxItems.length} release${boxItems.length === 1 ? '' : 's'} packed for active gig/session`;
+        if (typeof recordBoxDrawerMode !== 'undefined' && recordBoxDrawerMode === 'set-focus') {
+          subheadEl.innerHTML = `<span class="text-amber-300 font-semibold">${boxItems.length} packed</span> · <span class="text-slate-400">Compacted for Set Sorting (Tap to expand)</span>`;
+        } else {
+          subheadEl.textContent = `${boxItems.length} release${boxItems.length === 1 ? '' : 's'} packed for active gig/session`;
+        }
       }
 
       if (boxItems.length === 0) {
@@ -9377,13 +9530,13 @@
                 <!-- 4-Cover Sleeve Preview Strip -->
                 <div class="grid grid-cols-4 gap-1.5 p-2 bg-vinyl-950/80 rounded-xl border border-vinyl-800">
                   ${[0, 1, 2, 3].map(slot => {
-                    const r = matchedRecords[slot];
-                    if (r) {
-                      const cover = r.coverImage || (typeof getDefaultCover === 'function' ? getDefaultCover(r.format, r.artist, r.title) : '');
-                      return `<img src="${cover}" alt="" class="w-full aspect-square rounded object-cover border border-vinyl-800 bg-vinyl-900" title="${escapeHtml(r.artist)} — ${escapeHtml(r.title)}" onerror="this.src=getDefaultCover('', '', '', true)">`;
-                    }
-                    return `<div class="w-full aspect-square rounded border border-dashed border-vinyl-800/80 bg-vinyl-900/40 flex items-center justify-center text-slate-600 text-[10px]"><i class="fa-solid fa-compact-disc opacity-30"></i></div>`;
-                  }).join('')}
+            const r = matchedRecords[slot];
+            if (r) {
+              const cover = r.coverImage || (typeof getDefaultCover === 'function' ? getDefaultCover(r.format, r.artist, r.title) : '');
+              return `<img src="${cover}" alt="" class="w-full aspect-square rounded object-cover border border-vinyl-800 bg-vinyl-900" title="${escapeHtml(r.artist)} — ${escapeHtml(r.title)}" onerror="this.src=getDefaultCover('', '', '', true)">`;
+            }
+            return `<div class="w-full aspect-square rounded border border-dashed border-vinyl-800/80 bg-vinyl-900/40 flex items-center justify-center text-slate-600 text-[10px]"><i class="fa-solid fa-compact-disc opacity-30"></i></div>`;
+          }).join('')}
                 </div>
               </div>
 
