@@ -4068,6 +4068,12 @@
               <span class="hidden sm:inline">Set Focus</span>
             </button>
           </div>
+          <button type="button" onclick="createNewActiveSetPrompt()" id="btnTopNewSet"
+            class="hidden md:inline-flex px-2.5 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-amber-300 border border-amber-500/30 text-xs font-bold items-center gap-1 transition shadow cursor-pointer"
+            title="Create a brand new empty Set">
+            <i class="fa-solid fa-plus text-[10px]"></i>
+            <span>New Set</span>
+          </button>
           <button type="button" onclick="saveCurrentActiveSet()"
             class="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold text-xs items-center gap-1.5 transition shadow cursor-pointer">
             <i class="fa-solid fa-floppy-disk text-xs"></i>
@@ -4127,13 +4133,32 @@
         <!-- RIGHT PANE: SEQUENCED SET BUILDER (Ordered Track Timeline) -->
         <div id="setBuilderPane" class="flex flex-col h-full min-h-0 bg-vinyl-900/40">
           <!-- Set Header & Title -->
-          <div class="p-3.5 sm:p-4 border-b border-vinyl-800 bg-vinyl-850/60 shrink-0 space-y-2.5">
+          <div class="p-3 sm:p-3.5 border-b border-vinyl-800 bg-vinyl-850/60 shrink-0 space-y-2">
+            <!-- Row 1: Choose Existing Set Dropdown & + New Set Button -->
             <div class="flex items-center justify-between gap-2">
-              <div class="flex-1 flex items-center gap-2">
-                <i class="fa-solid fa-list-ol text-amber-400 text-xs"></i>
+              <div class="flex-1 flex items-center gap-1.5 min-w-0 bg-vinyl-950/90 border border-vinyl-750 focus-within:border-amber-500/60 rounded-lg px-2.5 py-1 transition">
+                <i class="fa-solid fa-folder-open text-amber-400 text-xs shrink-0" title="Active Set"></i>
+                <select id="activeSetSelectPicker" onchange="handleActiveSetPickerChange(this.value)"
+                  class="flex-1 bg-transparent text-amber-300 text-xs font-semibold focus:outline-none cursor-pointer truncate"
+                  title="Choose an existing set or create a new set">
+                  <!-- Populated dynamically by renderActiveSetPicker() -->
+                </select>
+              </div>
+              <button type="button" onclick="createNewActiveSetPrompt()" id="btnSetBuilderNewSet"
+                class="px-2.5 py-1 text-xs rounded-lg bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold flex items-center gap-1 transition shadow shrink-0 cursor-pointer"
+                title="Create a brand new empty Set">
+                <i class="fa-solid fa-plus text-[10px]"></i>
+                <span>+ New Set</span>
+              </button>
+            </div>
+
+            <!-- Row 2: Set Title Edit & Controls -->
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex-1 flex items-center gap-2 min-w-0 bg-vinyl-950/80 border border-vinyl-700 focus-within:border-amber-500/60 rounded-lg px-2.5 py-1 transition">
+                <i class="fa-solid fa-pen text-slate-500 text-[10px] shrink-0" title="Rename Set"></i>
                 <input type="text" id="activeSetTitleInput" value="Session Set"
-                  placeholder="Name your set (e.g. Friday Late Night Warmup)..."
-                  class="flex-1 bg-vinyl-950/80 border border-vinyl-700 focus:border-amber-500 rounded-lg px-2.5 py-1 text-xs text-white font-semibold focus:outline-none transition"
+                  placeholder="Set title (e.g. Friday Late Night Warmup)..."
+                  class="flex-1 bg-transparent text-xs text-white font-semibold focus:outline-none transition min-w-0"
                   oninput="handleActiveSetTitleChange(event)">
               </div>
               <div class="flex items-center gap-1.5 shrink-0">
@@ -9098,6 +9123,8 @@
       const speedAlertEl = document.getElementById('activeSetSpeedAlert');
       if (!timelineEl) return;
 
+      renderActiveSetPicker();
+
       if (titleInput && titleInput.value !== activeSetState.title) {
         titleInput.value = activeSetState.title || '';
       }
@@ -9368,8 +9395,113 @@
       }
     }
 
+    function renderActiveSetPicker() {
+      const selectEl = document.getElementById('activeSetSelectPicker');
+      if (!selectEl) return;
+      const savedSets = getQmcSavedSets();
+      let html = '';
+
+      if (activeSetState.id) {
+        html += `<option value="${escapeHtml(activeSetState.id)}" selected>Active: ${escapeHtml(activeSetState.title || 'Untitled Set')} (${activeSetState.tracks.length} tracks)</option>`;
+      } else {
+        html += `<option value="__UNSAVED__" selected>Active: ${escapeHtml(activeSetState.title || 'New Session Set')} (Unsaved · ${activeSetState.tracks.length} tracks)</option>`;
+      }
+
+      const otherSets = savedSets.filter(s => String(s.set_id) !== String(activeSetState.id));
+      if (otherSets.length > 0) {
+        html += `<optgroup label="Switch to Saved Set (${otherSets.length})">`;
+        otherSets.forEach(s => {
+          html += `<option value="${escapeHtml(s.set_id)}">${escapeHtml(s.title || 'Untitled Set')} (${(s.tracks || []).length} tracks)</option>`;
+        });
+        html += `</optgroup>`;
+      }
+
+      html += `<option value="__NEW__">+ Create New Set...</option>`;
+      selectEl.innerHTML = html;
+    }
+
+    function handleActiveSetPickerChange(val) {
+      if (val === '__NEW__') {
+        createNewActiveSetPrompt();
+      } else if (val === '__UNSAVED__' || val === String(activeSetState.id)) {
+        // already viewing
+      } else {
+        chooseActiveSet(val);
+      }
+    }
+
+    function chooseActiveSet(setId) {
+      const sets = getQmcSavedSets();
+      const set = sets.find(s => String(s.set_id) === String(setId));
+      if (!set) return;
+
+      // Auto-save previous set if it has tracks
+      if (activeSetState && Array.isArray(activeSetState.tracks) && activeSetState.tracks.length > 0) {
+        saveActiveSet(activeSetState);
+      }
+
+      activeSetState = {
+        id: set.set_id,
+        title: set.title || 'Untitled Set',
+        description: set.description || 'QMC Vinyl Session',
+        tracks: JSON.parse(JSON.stringify(set.tracks || []))
+      };
+
+      renderRecordBoxDrawer();
+      showToast(`Switched active set to "${set.title}" (${activeSetState.tracks.length} tracks)`, 'info');
+    }
+
+    function createNewActiveSetPrompt() {
+      // Auto-save previous set if it has tracks
+      if (activeSetState && Array.isArray(activeSetState.tracks) && activeSetState.tracks.length > 0) {
+        saveActiveSet(activeSetState);
+      }
+
+      const todayStr = new Date().toLocaleDateString('en-GB');
+      const sets = getQmcSavedSets();
+      const existingToday = sets.filter(s => (s.title || '').includes(todayStr)).length;
+      const suffix = existingToday > 0 ? ` #${existingToday + 1}` : '';
+      const defaultTitle = `Session Set ${todayStr}${suffix}`;
+      const inputTitle = prompt('Enter a name for your new Set:', defaultTitle);
+      if (inputTitle === null) {
+        // User cancelled prompt
+        renderActiveSetPicker();
+        return;
+      }
+      const finalTitle = (inputTitle || '').trim() || defaultTitle;
+      const newSet = {
+        id: 'set_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        title: finalTitle,
+        description: 'QMC Vinyl Session',
+        tracks: []
+      };
+      const saved = saveActiveSet(newSet);
+      activeSetState = {
+        id: saved.set_id,
+        title: saved.title,
+        description: saved.description,
+        tracks: []
+      };
+
+      renderRecordBoxDrawer();
+      showToast(`Created new set: "${finalTitle}"! Pack releases & sequence tracks.`, 'success');
+      const titleInput = document.getElementById('activeSetTitleInput');
+      if (titleInput) {
+        setTimeout(() => {
+          titleInput.focus();
+          if (titleInput.select) titleInput.select();
+        }, 120);
+      }
+    }
+
     function handleActiveSetTitleChange(event) {
       activeSetState.title = (event.target.value || '').trim() || 'Session Set';
+      const picker = document.getElementById('activeSetSelectPicker');
+      if (picker && picker.options && picker.options[0]) {
+        const prefix = 'Active: ';
+        const suffix = activeSetState.id ? ` (${activeSetState.tracks.length} tracks)` : ` (Unsaved · ${activeSetState.tracks.length} tracks)`;
+        picker.options[0].text = prefix + activeSetState.title + suffix;
+      }
     }
 
     function calculateActiveSetRuntime(tracks = activeSetState.tracks) {
@@ -9399,6 +9531,7 @@
       }
       const saved = saveActiveSet(activeSetState);
       activeSetState.id = saved.set_id;
+      renderActiveSetPicker();
       showToast(`Set "${saved.title}" saved successfully!`, 'success');
       return saved;
     }
@@ -9755,16 +9888,8 @@
     }
 
     function loadSavedSetIntoBuilder(setId) {
-      const set = getQmcSavedSets().find(s => String(s.set_id) === String(setId));
-      if (!set) return;
-      activeSetState = {
-        id: set.set_id,
-        title: set.title || 'Untitled Set',
-        description: set.description || 'QMC Vinyl Session',
-        tracks: JSON.parse(JSON.stringify(set.tracks || []))
-      };
+      chooseActiveSet(setId);
       openRecordBoxDrawer('sets');
-      showToast(`Loaded set "${set.title}" into Set Builder!`, 'success');
     }
 
     function deleteSavedSetConfirm(setId) {
@@ -9772,6 +9897,15 @@
       if (!set) return;
       if (confirm(`Delete set "${set.title}"?`)) {
         deleteSavedSet(setId);
+        if (activeSetState && String(activeSetState.id) === String(setId)) {
+          activeSetState = {
+            id: null,
+            title: 'Session Set ' + new Date().toLocaleDateString('en-GB'),
+            description: 'QMC Vinyl Session',
+            tracks: []
+          };
+          renderRecordBoxDrawer();
+        }
         renderSetsView(document.getElementById('recordsContainer'));
         showToast(`Deleted set "${set.title}".`, 'info');
       }
