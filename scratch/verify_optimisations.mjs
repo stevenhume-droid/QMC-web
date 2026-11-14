@@ -108,3 +108,4 @@ if (!dupMatch || dupMatch.record.id !== 'uuid_cloud_1') {
 }
 console.log('PASS: Pre-save duplicate detector catches normalized Artist + Title + Cat# match.');
 console.log('=== ALL OPTIMISATION & SYNC SAFETY TESTS PASSED! ===');
+
