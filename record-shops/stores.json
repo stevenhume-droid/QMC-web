@@ -1292,6 +1292,66 @@
                     "note": "Traditional pint in Scotland's historic brewing town after digging Europa's racks."
                 }
             ]
+        },
+        {
+            "id": 26,
+            "name": "Beat Generator",
+            "area": "Tollcross, Edinburgh",
+            "address": "5 Lochrin Pl, EH3 9QX",
+            "lat": 55.9433,
+            "lng": -3.2045,
+            "open_time": "10:00",
+            "close_time": "17:30",
+            "stock_type": "Mix (New & Used)",
+            "genres": [
+                "Soul",
+                "Jazz",
+                "Funk",
+                "Pop",
+                "Indie"
+            ],
+            "has_listening_deck": true,
+            "buys_collections": true,
+            "ultrasonic_cleaned": false,
+            "has_bargain_crates": true,
+            "has_coffee_bar": false,
+            "description": "Opened 6 months ago in Tollcross with a listening deck, friendly staff, and deep crates of soul, jazz, funk, pop, and indie.",
+            "bio": "Opened six months ago in the heart of Tollcross, Beat Generator has quickly become a go-to Edinburgh stop for crate diggers. Featuring a dedicated listening deck and welcoming, friendly staff, its racks are stocked with plenty of soul, jazz, funk, pop, and indie alongside classic songwriter gems at fair prices.",
+            "reviews": [
+                {
+                    "reviewer_name": "Stewart",
+                    "ergonomics_score": 5,
+                    "grading_score": 5,
+                    "pricing_score": 5,
+                    "vibe_score": 5,
+                    "best_pull": "Johnny Cash - Johnny on Sunday",
+                    "comment": "Opened 6 months ago. Has a listening deck, lots of soul, jazz, funk, and pop / indie, and friendly staff. Pulled a nice Johnny Cash album (Johnny on Sunday) for a fair price."
+                }
+            ],
+            "formats": [
+                "12\"",
+                "7\""
+            ],
+            "has_vinyl_flattening": false,
+            "has_record_label": false,
+            "nearby_spots": [
+                {
+                    "name": "Cult Espresso / lovecrumbs",
+                    "type": "cafe",
+                    "vibe": "Tollcross Specialty Coffee",
+                    "walk_mins": 3,
+                    "address": "Tollcross / West Port, Edinburgh",
+                    "note": "Great flat white and cake stop around the corner in Tollcross to inspect fresh soul & jazz pulls."
+                },
+                {
+                    "name": "Cloisters Bar / Bennets Bar",
+                    "type": "pub",
+                    "vibe": "Historic Tollcross Alehouses",
+                    "walk_mins": 2,
+                    "address": "26 Brougham St / 8 Leven St, Edinburgh",
+                    "note": "Classic Tollcross cask-ale and single-malt taverns two minutes from the racks."
+                }
+            ]
         }
     ]
 }

@@ -41,14 +41,16 @@ SEED_STORES = [
     ("Europa Music", "Stirling", "10 Friars St, Stirling FK8 1HA", 56.1205, -3.9380, "Mix (New & Used)", "Rock, Folk, Blues, Jazz, Punk, Reggae", 1, 1, 0, 1, 0, "One of Scotland's largest independent record shops, trading since 1992 with massive collections across all genres."),
     ("D&J Records", "Bathgate, West Lothian", "28 George St, Bathgate EH48 1PW", 55.9038, -3.6409, "Used Heavy", "Rock, Pop, Soul, Country, Indie", 0, 1, 0, 1, 0, "Beloved West Lothian vinyl and CD shop packed with pre-owned rock, pop, soul, and country classics."),
     ("KCC Vinyl", "Glenrothes, Fife", "42 Unicorn Way, Kingdom Centre, KY7 5NU", 56.1962, -3.1740, "Used Heavy", "Rock, Indie, Metal, Pop, Soul", 1, 1, 0, 1, 0, "Friendly Fife independent record store in the Kingdom Centre specialising in pre-owned vinyl, CDs, and guitars."),
-    ("JPMJ Vinyl @ Flemings Antique Centre", "Inverkeithing, Fife", "3 Boreland Rd, Inverkeithing KY11 1NH", 56.0332, -3.3960, "Used Heavy", "Rock, Pop, Soul, Jazz, Prog, Dance", 0, 1, 0, 1, 1, "Extensive vintage vinyl selection inside Flemings Antique Centre, with on-site Majestic Tea Room just 3 miles across the Forth.")
+    ("JPMJ Vinyl @ Flemings Antique Centre", "Inverkeithing, Fife", "3 Boreland Rd, Inverkeithing KY11 1NH", 56.0332, -3.3960, "Used Heavy", "Rock, Pop, Soul, Jazz, Prog, Dance", 0, 1, 0, 1, 1, "Extensive vintage vinyl selection inside Flemings Antique Centre, with on-site Majestic Tea Room just 3 miles across the Forth."),
+    ("Beat Generator", "Tollcross, Edinburgh", "5 Lochrin Pl, EH3 9QX", 55.9433, -3.2045, "Mix (New & Used)", "Soul, Jazz, Funk, Pop, Indie", 1, 1, 0, 1, 0, "Opened 6 months ago in Tollcross with a listening deck, friendly staff, and deep crates of soul, jazz, funk, pop, and indie.")
 ]
 
 SEED_REVIEWS = [
     (4, "CrateDigger_EH30", 4, 5, 5, 5, "Boards of Canada - Twoism (Warp Reissue)", "Front racks are immaculately clean, and the £2 backroom always yields a weird library record or 12-inch for sampling."),
     (8, "FunkyFife", 5, 5, 5, 5, "Donald Byrd - Places and Spaces", "Every used record is play-graded and ultrasonic cleaned. You can trust their VG+ sticker without hesitation."),
     (12, "Technics1210_Stevie", 4, 4, 4, 5, "DJ Krush - Strictly Turntablized", "Still the undisputed king for dance 12s, hip-hop beats, and grabbing replacement styli in town."),
-    (16, "LeithWax", 5, 4, 4, 5, "Thievery Corporation - The Richest Man in Babylon", "Grab a flat white from Mr Eion beans, sit down with a stack of jazz and trip-hop records, and lose an afternoon.")
+    (16, "LeithWax", 5, 4, 4, 5, "Thievery Corporation - The Richest Man in Babylon", "Grab a flat white from Mr Eion beans, sit down with a stack of jazz and trip-hop records, and lose an afternoon."),
+    (24, "Stewart", 5, 5, 5, 5, "Johnny Cash - Johnny on Sunday", "Opened 6 months ago. Has a listening deck, lots of soul, jazz, funk, and pop / indie, and friendly staff. Pulled a nice Johnny Cash album (Johnny on Sunday) for a fair price.")
 ]
 
 def init_db():

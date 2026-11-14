@@ -89,7 +89,7 @@
             <!-- Region Filter Bar -->
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div class="flex flex-wrap gap-1.5" id="regionFilterBar">
-                    <button type="button" onclick="setRegionFilter('all')" data-region="all" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-forthRed bg-forthRed/20 text-white font-medium transition">All Featured (24)</button>
+                    <button type="button" onclick="setRegionFilter('all')" data-region="all" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-forthRed bg-forthRed/20 text-white font-medium transition">All Featured (25)</button>
                     <button type="button" onclick="setRegionFilter('edinburgh')" data-region="edinburgh" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-borderDark bg-gray-900/60 text-gray-400 hover:text-white transition">Edinburgh</button>
                     <button type="button" onclick="setRegionFilter('fife')" data-region="fife" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-borderDark bg-gray-900/60 text-gray-400 hover:text-white transition">Fife</button>
                     <button type="button" onclick="setRegionFilter('west-lothian')" data-region="west-lothian" class="region-btn text-xs px-3 py-1.5 rounded-lg border border-borderDark bg-gray-900/60 text-gray-400 hover:text-white transition">West Lothian</button>
@@ -125,7 +125,7 @@
                     </div>
                     <div class="bg-gray-950/60 border border-borderDark rounded-lg p-3 space-y-1.5">
                         <div class="font-bold text-amber-400">Old Town, West Port & Southside</div>
-                        <div class="text-[11px] text-gray-400">Assai, Underground Solu'shn, Slow Progress, Umbrella, Backbeat</div>
+                        <div class="text-[11px] text-gray-400">Assai, Underground Solu'shn, Slow Progress, Umbrella, Beat Generator, Backbeat</div>
                         <p class="text-gray-300"><span class="text-amber-300 font-semibold">☕📚 Cafes/Books:</span> The Milkman (Cockburn St), lovecrumbs (West Port bookshop strip), Lighthouse Bookshop, Cult Espresso</p>
                         <p class="text-gray-300"><span class="text-emerald-400 font-semibold">🍺🎵 Pubs:</span> The Bow Bar, Sandy Bell's (60s folk legend), The Jazz Bar, The Dagda Bar, Paradise Palms (vinyl label bar)</p>
                     </div>
@@ -655,7 +655,8 @@
             22: { open: "09:00", close: "17:00" }, // JPMJ Vinyl @ Flemings
             23: { open: "10:00", close: "16:30" }, // KCC Vinyl
             24: { open: "10:00", close: "17:30" }, // Backbeat Records
-            25: { open: "10:00", close: "17:00" }  // Europa Music (Alloa)
+            25: { open: "10:00", close: "17:00" }, // Europa Music (Alloa)
+            26: { open: "10:00", close: "17:30" }  // Beat Generator
         };
 
         // Curated Literary, Music & Edinburgh/Regional Corridor Cafe & Pub Pairings by Store ID
@@ -755,6 +756,10 @@
             25: [
                 { name: "ginger&brew Specialty Coffee", type: "cafe", vibe: "Indie Coffee & Bakehouse", walk_mins: 2, address: "Mill St / Primrose St, Alloa", note: "Relaxed daytime coffee & cake steps from Europa Music Alloa." },
                 { name: "The Old Brewery Tavern", type: "pub", vibe: "Historic Brewing-Town Pub", walk_mins: 4, address: "Alloa, Clackmannanshire", note: "Traditional pint in Scotland's historic brewing town after digging Europa's racks." }
+            ],
+            26: [
+                { name: "Cult Espresso / lovecrumbs", type: "cafe", vibe: "Tollcross Specialty Coffee", walk_mins: 3, address: "Tollcross / West Port, Edinburgh", note: "Great flat white and cake stop around the corner in Tollcross to inspect fresh soul & jazz pulls." },
+                { name: "Cloisters Bar / Bennets Bar", type: "pub", vibe: "Historic Tollcross Alehouses", walk_mins: 2, address: "26 Brougham St / 8 Leven St, Edinburgh", note: "Classic Tollcross cask-ale and single-malt taverns two minutes from the racks." }
             ]
         };
 
@@ -1337,6 +1342,28 @@
                         "website": "https://www.facebook.com/EuropaMusic",
                         "bio": "Marking a celebratory return to the town where Europa Music first began before moving to Stirling in 1992, the new Alloa shop on Primrose Street brings Europa's legendary crate-digging heritage back to Clackmannanshire.",
                         "has_vinyl_flattening": false
+                    },
+                    {
+                        "id": 26,
+                        "name": "Beat Generator",
+                        "area": "Tollcross, Edinburgh",
+                        "address": "5 Lochrin Pl, EH3 9QX",
+                        "lat": 55.9433,
+                        "lng": -3.2045,
+                        "open_time": "10:00",
+                        "close_time": "17:30",
+                        "stock_type": "Mix (New & Used)",
+                        "genres": ["Soul", "Jazz", "Funk", "Pop", "Indie"],
+                        "has_listening_deck": true,
+                        "buys_collections": true,
+                        "ultrasonic_cleaned": false,
+                        "has_bargain_crates": true,
+                        "has_coffee_bar": false,
+                        "description": "Opened 6 months ago in Tollcross with a listening deck, friendly staff, and deep crates of soul, jazz, funk, pop, and indie.",
+                        "formats": ["12\"", "7\""],
+                        "bio": "Opened six months ago in the heart of Tollcross, Beat Generator has quickly become a go-to Edinburgh stop for crate diggers. Featuring a dedicated listening deck and welcoming, friendly staff, its racks are stocked with plenty of soul, jazz, funk, pop, and indie alongside classic songwriter gems at fair prices.",
+                        "has_vinyl_flattening": false,
+                        "has_record_label": false
                     }
                 ]
             };
