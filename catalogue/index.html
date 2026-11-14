@@ -4107,20 +4107,21 @@
 
       <!-- Drawer Top Bar -->
       <div
-        class="px-5 sm:px-6 py-3.5 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850 shrink-0">
-        <div class="flex items-center gap-3">
+        class="px-3 sm:px-6 py-2 sm:py-3.5 border-b border-vinyl-800 flex items-center justify-between gap-2 bg-vinyl-850 shrink-0">
+        <div class="flex items-center gap-2 sm:gap-3 min-w-0">
           <div
-            class="w-9 h-9 rounded-full bg-gradient-to-tr from-amber-600/30 to-brass-500/30 border border-brass-500/40 flex items-center justify-center text-amber-300 text-lg shadow-sm">
+            class="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-amber-600/30 to-brass-500/30 border border-brass-500/40 flex items-center justify-center text-amber-300 text-sm sm:text-lg shadow-sm shrink-0">
             <span>🧳</span>
           </div>
-          <div>
-            <h2 class="font-bold text-white text-base sm:text-lg tracking-tight flex items-center gap-2">
-              <span>Active Record Box &amp; Set Builder</span>
+          <div class="min-w-0">
+            <h2 class="font-bold text-white text-sm sm:text-lg tracking-tight flex items-center gap-2 truncate">
+              <span class="sm:hidden truncate">Record Box &amp; Set</span>
+              <span class="hidden sm:inline">Active Record Box &amp; Set Builder</span>
             </h2>
-            <p class="text-[11px] text-slate-400">Curated gig bag releases &amp; strictly sequenced track timeline</p>
+            <p class="hidden sm:block text-[11px] text-slate-400">Curated gig bag releases &amp; strictly sequenced track timeline</p>
           </div>
         </div>
-        <div class="flex items-center gap-2 flex-wrap justify-end">
+        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0 justify-end">
           <!-- View Switcher Pills -->
           <div class="inline-flex p-0.5 rounded-lg bg-vinyl-900 border border-vinyl-750 text-[11px] font-semibold">
             <button type="button" onclick="setRecordBoxDrawerMode('split')" id="btnDrawerModeSplit"
@@ -4143,7 +4144,7 @@
             </button>
           </div>
           <button type="button" onclick="popOutActiveSetWindow()" id="btnTopPopOutSet"
-            class="px-2.5 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-sky-300 border border-sky-500/30 text-xs font-bold inline-flex items-center gap-1.5 transition shadow cursor-pointer"
+            class="hidden sm:inline-flex px-2.5 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-sky-300 border border-sky-500/30 text-xs font-bold items-center gap-1.5 transition shadow cursor-pointer"
             title="Push Set Builder to a standalone companion window (syncs live with Record Box)">
             <i class="fa-solid fa-up-right-from-square text-[10px]"></i>
             <span class="hidden sm:inline">Set to New Window</span>
@@ -4161,7 +4162,7 @@
             <span>Save Set</span>
           </button>
           <button type="button" onclick="closeRecordBoxDrawer()"
-            class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm cursor-pointer">
+            class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1 text-xs font-bold transition shadow-sm cursor-pointer">
             <i class="fa-solid fa-xmark"></i>
             <span>Exit</span>
           </button>
@@ -4174,11 +4175,11 @@
 
         <!-- LEFT PANE: PACKED RECORD BOX (Physical Holdings Working Bag) -->
         <div id="recordBoxPane" class="flex flex-col h-full min-h-0 bg-vinyl-900/60">
-          <div class="p-3 sm:p-3.5 border-b border-vinyl-800 bg-vinyl-850/60 shrink-0 space-y-2">
-            <!-- Row 1: Choose Existing Box / Crate Dropdown & + New Box Button -->
-            <div class="flex items-center justify-between gap-2">
+          <div class="p-2.5 sm:p-3.5 border-b border-vinyl-800 bg-vinyl-850/60 shrink-0 space-y-1.5 sm:space-y-2">
+            <!-- Row 1: Choose Existing Box / Crate Dropdown, Rename Toggle & + New Box Button -->
+            <div class="flex items-center justify-between gap-1.5">
               <div
-                class="flex-1 flex items-center gap-1.5 min-w-0 bg-vinyl-950/90 border border-vinyl-750 focus-within:border-amber-500/60 rounded-lg px-2.5 py-1 transition">
+                class="flex-1 flex items-center gap-1.5 min-w-0 bg-vinyl-950/90 border border-vinyl-750 focus-within:border-amber-500/60 rounded-lg px-2 py-1 transition">
                 <i class="fa-solid fa-box-archive text-amber-400 text-xs shrink-0" title="Active Record Box"></i>
                 <select id="activeBoxSelectPicker" onchange="handleActiveBoxPickerChange(this.value)"
                   class="flex-1 bg-transparent text-amber-300 text-xs font-semibold focus:outline-none cursor-pointer truncate"
@@ -4186,60 +4187,71 @@
                   <!-- Populated dynamically by renderActiveBoxPicker() -->
                 </select>
               </div>
+              <button type="button" onclick="toggleBoxTitleEdit()" id="btnToggleBoxRename"
+                class="px-2 py-1 text-xs rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-slate-300 hover:text-amber-300 border border-vinyl-700 transition shrink-0 cursor-pointer"
+                title="Rename Active Record Box">
+                <i class="fa-solid fa-pen text-[10px]"></i>
+              </button>
               <button type="button" onclick="createNewActiveBoxPrompt()" id="btnRecordBoxNewBox"
                 class="px-2.5 py-1 text-xs rounded-lg bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold flex items-center gap-1 transition shadow shrink-0 cursor-pointer"
                 title="Create a brand new empty Record Box">
                 <i class="fa-solid fa-plus text-[10px]"></i>
-                <span>+ New Box</span>
+                <span>New Box</span>
               </button>
             </div>
 
-            <!-- Row 2: Active Box Title Edit & Controls -->
-            <div class="flex items-center justify-between gap-2">
+            <!-- Collapsible Row 2: Active Box Title Edit (Auto-hides once selected/renamed) -->
+            <div id="boxTitleEditRow" class="hidden flex items-center justify-between gap-1.5">
               <div
-                class="flex-1 flex items-center gap-2 min-w-0 bg-vinyl-950/80 border border-vinyl-700 focus-within:border-amber-500/60 rounded-lg px-2.5 py-1 transition">
-                <i class="fa-solid fa-pen text-slate-500 text-[10px] shrink-0" title="Rename Active Box"></i>
+                class="flex-1 flex items-center gap-2 min-w-0 bg-vinyl-950/80 border border-amber-500/50 focus-within:border-amber-400 rounded-lg px-2.5 py-1 transition">
+                <i class="fa-solid fa-pen text-amber-400 text-[10px] shrink-0" title="Rename Active Box"></i>
                 <input type="text" id="activeBoxTitleInput" value="Session Box"
                   placeholder="Box name (e.g. Friday Funk 45s)..."
                   class="flex-1 bg-transparent text-xs text-white font-semibold focus:outline-none transition min-w-0"
-                  oninput="handleActiveBoxTitleChange(event)">
+                  oninput="handleActiveBoxTitleChange(event)"
+                  onkeydown="if(event.key==='Enter'){event.preventDefault();toggleBoxTitleEdit(false);}"
+                  onblur="toggleBoxTitleEdit(false)">
               </div>
-              <div class="flex items-center gap-1.5 shrink-0">
+              <button type="button" onclick="toggleBoxTitleEdit(false)"
+                class="px-2.5 py-1 text-[11px] rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-semibold transition cursor-pointer shrink-0">
+                Done
+              </button>
+            </div>
+
+            <!-- Row 3: Status Subheading & Compact Controls -->
+            <div class="flex items-center justify-between gap-2 text-[11px] text-slate-400 px-0.5">
+              <span id="recordBoxPaneSubheading" class="truncate">Physical releases packed for this session</span>
+              <div class="flex items-center gap-1 shrink-0">
                 <button type="button" onclick="toggleBoxFullScreen()" id="btnBoxFullScreen"
-                  class="px-2 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-amber-300 border border-amber-500/30 flex items-center gap-1 transition cursor-pointer"
+                  class="px-2 py-0.5 text-[10.5px] rounded-md bg-vinyl-800 hover:bg-vinyl-750 text-amber-300 border border-amber-500/30 flex items-center gap-1 transition cursor-pointer"
                   title="Toggle Record Box Full Screen">
-                  <i id="btnBoxFullScreenIcon" class="fa-solid fa-maximize text-[10px]"></i>
-                  <span id="btnBoxFullScreenLabel">Full Screen</span>
+                  <i id="btnBoxFullScreenIcon" class="fa-solid fa-maximize text-[9px]"></i>
+                  <span id="btnBoxFullScreenLabel" class="hidden sm:inline">Full Screen</span>
                 </button>
                 <button type="button" onclick="toggleRecordBoxCompaction()" id="btnCompactRecordBox"
-                  class="px-2 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-slate-300 border border-vinyl-700 flex items-center gap-1 transition cursor-pointer"
+                  class="px-2 py-0.5 text-[10.5px] rounded-md bg-vinyl-800 hover:bg-vinyl-750 text-slate-300 border border-vinyl-700 flex items-center gap-1 transition cursor-pointer"
                   title="Compact Record Box header to give Set Timeline more vertical room">
-                  <i id="btnCompactRecordBoxIcon" class="fa-solid fa-compress text-[10px]"></i>
+                  <i id="btnCompactRecordBoxIcon" class="fa-solid fa-compress text-[9px]"></i>
                   <span id="btnCompactRecordBoxLabel" class="hidden sm:inline">Compact</span>
                 </button>
                 <button type="button" onclick="saveRecordBoxAsCrate()"
-                  class="px-2.5 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-brass-300 border border-brass-500/30 flex items-center gap-1 transition cursor-pointer"
+                  class="px-2 py-0.5 text-[10.5px] rounded-md bg-vinyl-800 hover:bg-vinyl-750 text-brass-300 border border-brass-500/30 flex items-center gap-1 transition cursor-pointer"
                   title="Archive these packed records into a new Thematic Crate">
-                  <i class="fa-solid fa-layer-group text-[10px]"></i>
+                  <i class="fa-solid fa-layer-group text-[9px]"></i>
                   <span class="hidden sm:inline">Save as Crate</span>
                   <span class="sm:hidden">+ Crate</span>
                 </button>
                 <button type="button" onclick="clearRecordBoxConfirm()"
-                  class="px-2 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-400 hover:text-red-300 border border-vinyl-700 transition cursor-pointer"
+                  class="px-1.5 py-0.5 text-[10.5px] rounded-md bg-vinyl-800 hover:bg-red-950/60 text-slate-400 hover:text-red-300 border border-vinyl-700 transition cursor-pointer"
                   title="Unpack all releases from Record Box">
-                  <i class="fa-solid fa-trash-can text-[10px]"></i>
+                  <i class="fa-solid fa-trash-can text-[9px]"></i>
                 </button>
               </div>
-            </div>
-
-            <!-- Row 3: Status Subheading -->
-            <div class="flex items-center justify-between text-[11px] text-slate-400 px-0.5">
-              <span id="recordBoxPaneSubheading">Physical releases packed for this session</span>
             </div>
           </div>
 
           <!-- Packed Releases List -->
-          <div id="recordBoxList" class="flex-1 p-3.5 sm:p-4 space-y-3 overflow-y-auto overscroll-contain">
+          <div id="recordBoxList" class="flex-1 p-3 sm:p-4 space-y-2.5 sm:space-y-3 overflow-y-auto overscroll-contain">
             <!-- Dynamically populated via renderRecordBoxPane() -->
           </div>
         </div>
@@ -4247,11 +4259,11 @@
         <!-- RIGHT PANE: SEQUENCED SET BUILDER (Ordered Track Timeline) -->
         <div id="setBuilderPane" class="flex flex-col h-full min-h-0 bg-vinyl-900/40">
           <!-- Set Header & Title -->
-          <div class="p-3 sm:p-3.5 border-b border-vinyl-800 bg-vinyl-850/60 shrink-0 space-y-2">
-            <!-- Row 1: Choose Existing Set Dropdown & + New Set Button -->
-            <div class="flex items-center justify-between gap-2">
+          <div class="p-2.5 sm:p-3.5 border-b border-vinyl-800 bg-vinyl-850/60 shrink-0 space-y-1.5 sm:space-y-2">
+            <!-- Row 1: Choose Existing Set Dropdown, Rename Button & + New Set Button -->
+            <div class="flex items-center justify-between gap-1.5">
               <div
-                class="flex-1 flex items-center gap-1.5 min-w-0 bg-vinyl-950/90 border border-vinyl-750 focus-within:border-amber-500/60 rounded-lg px-2.5 py-1 transition">
+                class="flex-1 flex items-center gap-1.5 min-w-0 bg-vinyl-950/90 border border-vinyl-750 focus-within:border-amber-500/60 rounded-lg px-2 py-1 transition">
                 <i class="fa-solid fa-folder-open text-amber-400 text-xs shrink-0" title="Active Set"></i>
                 <select id="activeSetSelectPicker" onchange="handleActiveSetPickerChange(this.value)"
                   class="flex-1 bg-transparent text-amber-300 text-xs font-semibold focus:outline-none cursor-pointer truncate"
@@ -4259,55 +4271,69 @@
                   <!-- Populated dynamically by renderActiveSetPicker() -->
                 </select>
               </div>
+              <button type="button" onclick="toggleSetTitleEdit()" id="btnToggleSetRename"
+                class="px-2 py-1 text-xs rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-slate-300 hover:text-amber-300 border border-vinyl-700 transition shrink-0 cursor-pointer"
+                title="Rename Active Set">
+                <i class="fa-solid fa-pen text-[10px]"></i>
+              </button>
               <button type="button" onclick="createNewActiveSetPrompt()" id="btnSetBuilderNewSet"
                 class="px-2.5 py-1 text-xs rounded-lg bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold flex items-center gap-1 transition shadow shrink-0 cursor-pointer"
                 title="Create a brand new empty Set">
                 <i class="fa-solid fa-plus text-[10px]"></i>
-                <span>+ New Set</span>
+                <span>New Set</span>
               </button>
             </div>
 
-            <!-- Row 2: Set Title Edit & Controls -->
-            <div class="flex items-center justify-between gap-2">
+            <!-- Collapsible Row 2: Set Title Edit (Auto-hides once selected/renamed) -->
+            <div id="setTitleEditRow" class="hidden flex items-center justify-between gap-1.5">
               <div
-                class="flex-1 flex items-center gap-2 min-w-0 bg-vinyl-950/80 border border-vinyl-700 focus-within:border-amber-500/60 rounded-lg px-2.5 py-1 transition">
-                <i class="fa-solid fa-pen text-slate-500 text-[10px] shrink-0" title="Rename Set"></i>
+                class="flex-1 flex items-center gap-2 min-w-0 bg-vinyl-950/80 border border-amber-500/50 focus-within:border-amber-400 rounded-lg px-2.5 py-1 transition">
+                <i class="fa-solid fa-pen text-amber-400 text-[10px] shrink-0" title="Rename Set"></i>
                 <input type="text" id="activeSetTitleInput" value="Session Set"
                   placeholder="Set title (e.g. Friday Late Night Warmup)..."
                   class="flex-1 bg-transparent text-xs text-white font-semibold focus:outline-none transition min-w-0"
-                  oninput="handleActiveSetTitleChange(event)">
+                  oninput="handleActiveSetTitleChange(event)"
+                  onkeydown="if(event.key==='Enter'){event.preventDefault();toggleSetTitleEdit(false);}"
+                  onblur="toggleSetTitleEdit(false)">
               </div>
-              <div class="flex items-center gap-1.5 shrink-0">
+              <button type="button" onclick="toggleSetTitleEdit(false)"
+                class="px-2.5 py-1 text-[11px] rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-semibold transition cursor-pointer shrink-0">
+                Done
+              </button>
+            </div>
+
+            <!-- Telemetry, Runtime & Quick Actions Strip (Single Compact Line) -->
+            <div class="flex items-center justify-between gap-1.5 text-[11px] font-mono text-slate-400">
+              <div class="flex items-center gap-1.5 min-w-0 truncate">
+                <span id="activeSetTrackCount" class="text-amber-300 font-bold shrink-0">0 Tracks</span>
+                <span class="text-slate-600">·</span>
+                <span id="activeSetRuntime" class="text-emerald-400 font-bold shrink-0">Runtime: 00:00</span>
+                <span class="text-slate-600">·</span>
+                <span id="activeSetSpeedAlert" class="text-slate-400 truncate">Ready</span>
+              </div>
+              <div class="flex items-center gap-1 shrink-0 font-sans">
                 <button type="button" onclick="toggleSetFullScreen()" id="btnSetBuilderMaximize"
-                  class="px-2 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-amber-300 border border-amber-500/30 transition cursor-pointer flex items-center gap-1"
-                  title="Toggle Set Builder Full Screen">
-                  <i id="btnSetBuilderMaximizeIcon" class="fa-solid fa-maximize text-[10px]"></i>
-                  <span id="btnSetBuilderMaximizeLabel">Full Screen</span>
+                  class="px-1.5 py-0.5 text-[10px] rounded bg-vinyl-800 hover:bg-vinyl-750 text-amber-300 border border-amber-500/30 transition cursor-pointer flex items-center gap-1"
+                  title="Toggle Set Builder Full Screen / Split View">
+                  <i id="btnSetBuilderMaximizeIcon" class="fa-solid fa-maximize text-[9px]"></i>
+                  <span id="btnSetBuilderMaximizeLabel" class="hidden sm:inline">Full Screen</span>
                 </button>
                 <button type="button" onclick="popOutActiveSetWindow()" id="btnPopOutSetWindow"
-                  class="px-2 py-1 text-[11px] rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 transition cursor-pointer flex items-center gap-1 font-semibold"
+                  class="px-1.5 py-0.5 text-[10px] rounded bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 transition cursor-pointer flex items-center gap-1 font-semibold"
                   title="Push Set Builder to a standalone companion window">
-                  <i class="fa-solid fa-up-right-from-square text-[10px]"></i>
+                  <i class="fa-solid fa-up-right-from-square text-[9px]"></i>
                   <span class="hidden sm:inline">New Window</span>
                 </button>
                 <button type="button" onclick="clearActiveSetTimeline()"
-                  class="px-2 py-1 text-[11px] rounded-lg bg-vinyl-800 hover:bg-red-950/50 text-slate-400 hover:text-red-300 border border-vinyl-700 transition cursor-pointer"
+                  class="px-1.5 py-0.5 text-[10px] rounded bg-vinyl-800 hover:bg-red-950/50 text-slate-400 hover:text-red-300 border border-vinyl-700 transition cursor-pointer"
                   title="Clear current set timeline">
                   Clear
                 </button>
               </div>
             </div>
-            <!-- Telemetry & Runtime Strip -->
-            <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 pt-0.5">
-              <span id="activeSetTrackCount" class="text-amber-300 font-bold">0 Tracks</span>
-              <span class="text-slate-600">·</span>
-              <span id="activeSetRuntime" class="text-emerald-400 font-bold">Runtime: 00:00</span>
-              <span class="text-slate-600">·</span>
-              <span id="activeSetSpeedAlert" class="text-slate-400">Ready</span>
-            </div>
 
             <!-- Row 3: Auto-Sort & DJ Camelot Sequencing Toolbar -->
-            <div class="flex items-center justify-between gap-1.5 pt-1 overflow-x-auto no-scrollbar text-xs">
+            <div class="flex items-center justify-between gap-1.5 pt-0.5 overflow-x-auto no-scrollbar text-xs">
               <div class="flex items-center gap-1 shrink-0 text-[10px] uppercase font-bold text-slate-400">
                 <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i>
                 <span class="hidden sm:inline">Auto-Sort:</span>
@@ -4346,12 +4372,35 @@
               </div>
             </div>
 
-            <!-- Row 4: Genre Progression Sequencer (Order by Genre -> Then BPM, Flow, or Cool Down) -->
-            <div id="setGenreSortPanel" class="hidden pt-2 mt-1.5 border-t border-vinyl-800/90 space-y-2 text-xs">
+            <!-- Compact 1-Line Active Genre Summary Bar (Shown when Genre Sort is active & panel is auto-collapsed) -->
+            <div id="setGenreActiveSummaryBar"
+              class="hidden flex items-center justify-between gap-1.5 px-2 py-1 rounded-lg bg-purple-950/30 border border-purple-500/30 text-[10.5px]">
+              <div class="flex items-center gap-1.5 min-w-0 flex-1 overflow-x-auto no-scrollbar">
+                <i class="fa-solid fa-route text-purple-400 text-[10px] shrink-0"></i>
+                <span id="setGenreSummaryText" class="font-mono text-purple-200 truncate"></span>
+                <span id="setGenreSummarySubMode" class="px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 font-semibold text-[9.5px] shrink-0"></span>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <button type="button" onclick="toggleSetGenrePanelExpanded(true)"
+                  class="px-1.5 py-0.5 rounded bg-vinyl-800 hover:bg-vinyl-750 text-purple-300 border border-purple-500/30 text-[10px] font-semibold cursor-pointer flex items-center gap-1"
+                  title="Expand Genre Order editor">
+                  <span>Edit</span>
+                  <i class="fa-solid fa-chevron-down text-[8px]"></i>
+                </button>
+                <button type="button" onclick="toggleSetGenreSortMode(false)"
+                  class="px-1.5 py-0.5 rounded bg-vinyl-800 hover:bg-red-950/60 text-slate-400 hover:text-red-300 border border-vinyl-700 text-[10px] cursor-pointer"
+                  title="Turn off Genre Order mode">
+                  <i class="fa-solid fa-xmark text-[9px]"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Row 4: Genre Progression Sequencer (Auto-hides into Summary Bar once selected!) -->
+            <div id="setGenreSortPanel" class="hidden pt-1.5 mt-1 border-t border-vinyl-800/90 space-y-1.5 text-xs">
               <div class="flex items-center justify-between gap-1.5 flex-wrap">
                 <div class="flex items-center gap-1.5 text-[10.5px] font-bold text-purple-300">
                   <i class="fa-solid fa-route text-purple-400"></i>
-                  <span>1. Genre Order → 2. Then Sort Within Genre By:</span>
+                  <span>1. Genre Order → 2. Sort Within Genre:</span>
                 </div>
                 <div class="flex items-center gap-1 flex-wrap">
                   <button type="button" onclick="autoSortActiveSet('genre-bpm-asc')" id="btnGenreThenBpmAsc"
@@ -4363,7 +4412,7 @@
                   <button type="button" onclick="autoSortActiveSet('genre-harmonic')" id="btnGenreThenHarmonic"
                     class="px-2 py-0.5 text-[10px] rounded-md bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 font-semibold transition cursor-pointer flex items-center gap-1"
                     title="Order by Genre sequence first, then Harmonic Camelot Flow within & across each genre">
-                    <i class="fa-solid fa-compact-disc text-[9px]"></i>
+                  <i class="fa-solid fa-compact-disc text-[9px]"></i>
                     <span>Genre + Flow</span>
                   </button>
                   <button type="button" onclick="autoSortActiveSet('genre-bpm-desc')" id="btnGenreThenBpmDesc"
@@ -4372,11 +4421,16 @@
                     <i class="fa-solid fa-arrow-trend-down text-[9px]"></i>
                     <span>Genre + Cool Down</span>
                   </button>
+                  <button type="button" onclick="toggleSetGenrePanelExpanded(false)"
+                    class="px-1.5 py-0.5 text-[10px] rounded-md bg-vinyl-800 hover:bg-vinyl-750 text-slate-300 border border-vinyl-700 font-semibold transition cursor-pointer"
+                    title="Collapse Genre Sequencer panel">
+                    <i class="fa-solid fa-chevron-up text-[9px]"></i>
+                  </button>
                 </div>
               </div>
 
               <!-- Active Genre Sequence Pills (Reorderable / Mergeable) -->
-              <div id="setGenreSequenceChips" class="flex items-center gap-1 overflow-x-auto py-1 no-scrollbar">
+              <div id="setGenreSequenceChips" class="flex items-center gap-1 overflow-x-auto py-0.5 no-scrollbar">
                 <!-- Populated dynamically by renderSetGenreSortPanel() -->
               </div>
 
@@ -4428,20 +4482,20 @@
           </div>
 
           <!-- Ordered Set Timeline -->
-          <div id="activeSetTimeline" class="flex-1 p-3.5 sm:p-4 pb-8 space-y-2.5 overflow-y-auto overscroll-contain">
+          <div id="activeSetTimeline" onscroll="handleActiveSetTimelineScroll(this)" class="flex-1 p-2.5 sm:p-4 pb-8 space-y-2 sm:space-y-2.5 overflow-y-auto overscroll-contain">
             <!-- Dynamically populated via renderSetBuilderPane() -->
           </div>
 
           <!-- Bottom Action Bar -->
           <div
-            class="p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:pb-3.5 border-t border-vinyl-800 bg-vinyl-850 shrink-0 flex items-center justify-between gap-2.5 shadow-xl">
+            class="p-2.5 sm:p-4 pb-[max(0.6rem,env(safe-area-inset-bottom,0px))] sm:pb-3.5 border-t border-vinyl-800 bg-vinyl-850 shrink-0 flex items-center justify-between gap-2 shadow-xl">
             <button type="button" onclick="saveCurrentActiveSet()"
-              class="flex-1 py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow cursor-pointer">
+              class="flex-1 py-2 sm:py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow cursor-pointer">
               <i class="fa-solid fa-floppy-disk text-xs"></i>
               <span>Save Set</span>
             </button>
             <button type="button" onclick="triggerSpotifySetExport()" id="btnSetBuilderExportSpotify"
-              class="flex-1 py-2.5 px-3 rounded-xl bg-[#1DB954] hover:bg-[#1ed760] active:scale-95 text-black font-black text-xs flex items-center justify-center gap-1.5 transition shadow cursor-pointer">
+              class="flex-1 py-2 sm:py-2.5 px-3 rounded-xl bg-[#1DB954] hover:bg-[#1ed760] active:scale-95 text-black font-black text-xs flex items-center justify-center gap-1.5 transition shadow cursor-pointer">
               <i class="fa-brands fa-spotify text-sm"></i>
               <span id="btnSetBuilderExportSpotifyLabel">Export to Spotify</span>
             </button>
@@ -9540,6 +9594,9 @@
       const drawer = document.getElementById('recordBoxDrawer');
       if (drawer) {
         drawer.classList.remove('hidden');
+        if (typeof isSetGenrePanelExpanded !== 'undefined') isSetGenrePanelExpanded = false;
+        if (typeof toggleSetTitleEdit === 'function') toggleSetTitleEdit(false);
+        if (typeof toggleBoxTitleEdit === 'function') toggleBoxTitleEdit(false);
         if (initialFocus === 'sets') {
           setRecordBoxDrawerMode('set-full');
         } else if (initialFocus === 'box-full') {
@@ -9553,15 +9610,6 @@
           } catch (_) { }
         }
         renderRecordBoxDrawer();
-        if (initialFocus === 'sets') {
-          const titleInput = document.getElementById('activeSetTitleInput');
-          if (titleInput) {
-            setTimeout(() => {
-              titleInput.focus();
-              if (titleInput.select) titleInput.select();
-            }, 150);
-          }
-        }
       }
     }
 
@@ -10933,6 +10981,10 @@
       const inputEl = document.getElementById('setGenreSequenceInput');
       if (inputEl) inputEl.value = detected.join(' - ');
 
+      if (shouldSortAfter) {
+        isSetGenrePanelExpanded = false;
+      }
+
       if (shouldSortAfter && tracks.length >= 2) {
         autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`);
       } else {
@@ -10942,11 +10994,80 @@
       return detected;
     }
 
+    let isSetGenrePanelExpanded = false;
+
+    function toggleSetGenrePanelExpanded(forceState = null) {
+      isSetGenrePanelExpanded = typeof forceState === 'boolean' ? forceState : !isSetGenrePanelExpanded;
+      renderSetGenreSortPanel();
+    }
+
+    function toggleSetTitleEdit(forceState = null) {
+      const row = document.getElementById('setTitleEditRow');
+      const btn = document.getElementById('btnToggleSetRename');
+      const input = document.getElementById('activeSetTitleInput');
+      if (!row) return;
+      const willOpen = typeof forceState === 'boolean' ? forceState : row.classList.contains('hidden');
+      row.classList.toggle('hidden', !willOpen);
+      if (btn) {
+        btn.classList.toggle('border-amber-500/60', willOpen);
+        btn.classList.toggle('text-amber-300', willOpen);
+      }
+      if (willOpen && input) {
+        setTimeout(() => {
+          input.focus();
+          if (input.select) input.select();
+        }, 60);
+      }
+    }
+
+    function toggleBoxTitleEdit(forceState = null) {
+      const row = document.getElementById('boxTitleEditRow');
+      const btn = document.getElementById('btnToggleBoxRename');
+      const input = document.getElementById('activeBoxTitleInput');
+      if (!row) return;
+      const willOpen = typeof forceState === 'boolean' ? forceState : row.classList.contains('hidden');
+      row.classList.toggle('hidden', !willOpen);
+      if (btn) {
+        btn.classList.toggle('border-amber-500/60', willOpen);
+        btn.classList.toggle('text-amber-300', willOpen);
+      }
+      if (willOpen && input) {
+        setTimeout(() => {
+          input.focus();
+          if (input.select) input.select();
+        }, 60);
+      }
+    }
+
+    function handleActiveSetTimelineScroll(el) {
+      if (!el || el.scrollTop < 18) return;
+      let changed = false;
+      if (isSetGenrePanelExpanded) {
+        isSetGenrePanelExpanded = false;
+        changed = true;
+      }
+      const setEditRow = document.getElementById('setTitleEditRow');
+      if (setEditRow && !setEditRow.classList.contains('hidden')) {
+        toggleSetTitleEdit(false);
+      }
+      if (changed) {
+        renderSetGenreSortPanel();
+      }
+    }
+
     function toggleSetGenreSortMode(forceState = null) {
       if (!activeSetState) return;
-      const nextState = typeof forceState === 'boolean' ? forceState : !activeSetState.genre_sort_enabled;
-      activeSetState.genre_sort_enabled = nextState;
-      if (nextState && (!Array.isArray(activeSetState.genre_sequence) || activeSetState.genre_sequence.length === 0)) {
+      if (typeof forceState === 'boolean') {
+        activeSetState.genre_sort_enabled = forceState;
+        isSetGenrePanelExpanded = forceState;
+      } else if (!activeSetState.genre_sort_enabled) {
+        activeSetState.genre_sort_enabled = true;
+        isSetGenrePanelExpanded = true;
+      } else {
+        // When already enabled, tapping "By Genre" toggles the configuration drawer open/closed
+        isSetGenrePanelExpanded = !isSetGenrePanelExpanded;
+      }
+      if (activeSetState.genre_sort_enabled && (!Array.isArray(activeSetState.genre_sequence) || activeSetState.genre_sequence.length === 0)) {
         autoDetectSetGenreSequence(false);
       }
       saveActiveSet(activeSetState);
@@ -10963,6 +11084,7 @@
       }
       activeSetState.genre_sequence = parsed;
       activeSetState.genre_sort_enabled = true;
+      isSetGenrePanelExpanded = false;
       if (activeSetState.tracks && activeSetState.tracks.length >= 2) {
         autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`);
       } else {
@@ -10977,6 +11099,7 @@
       if (parsed.length === 0) return;
       activeSetState.genre_sequence = parsed;
       activeSetState.genre_sort_enabled = true;
+      isSetGenrePanelExpanded = false;
       const inputEl = document.getElementById('setGenreSequenceInput');
       if (inputEl) inputEl.value = parsed.join(' - ');
       if (activeSetState.tracks && activeSetState.tracks.length >= 2) {
@@ -10997,7 +11120,7 @@
       activeSetState.genre_sequence.splice(targetIdx, 0, item);
       activeSetState.genre_sort_enabled = true;
       if (activeSetState.tracks && activeSetState.tracks.length >= 2) {
-        autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`);
+        autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`, true);
       } else {
         saveActiveSet(activeSetState);
         renderSetBuilderPane();
@@ -11009,7 +11132,7 @@
       if (index < 0 || index >= activeSetState.genre_sequence.length) return;
       activeSetState.genre_sequence.splice(index, 1);
       if (activeSetState.tracks && activeSetState.tracks.length >= 2 && activeSetState.genre_sequence.length > 0) {
-        autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`);
+        autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`, true);
       } else {
         saveActiveSet(activeSetState);
         renderSetBuilderPane();
@@ -11028,7 +11151,7 @@
       }
       activeSetState.genre_sort_enabled = true;
       if (activeSetState.tracks && activeSetState.tracks.length >= 2) {
-        autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`);
+        autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`, true);
       } else {
         saveActiveSet(activeSetState);
         renderSetBuilderPane();
@@ -11042,7 +11165,7 @@
       activeSetState.genre_sequence.splice(index, 2, merged);
       activeSetState.genre_sort_enabled = true;
       if (activeSetState.tracks && activeSetState.tracks.length >= 2) {
-        autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`);
+        autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`, true);
       } else {
         saveActiveSet(activeSetState);
         renderSetBuilderPane();
@@ -11058,7 +11181,7 @@
       activeSetState.genre_sequence.splice(index, 1, ...parts);
       activeSetState.genre_sort_enabled = true;
       if (activeSetState.tracks && activeSetState.tracks.length >= 2) {
-        autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`);
+        autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`, true);
       } else {
         saveActiveSet(activeSetState);
         renderSetBuilderPane();
@@ -11067,6 +11190,9 @@
 
     function renderSetGenreSortPanel() {
       const panelEl = document.getElementById('setGenreSortPanel');
+      const summaryBarEl = document.getElementById('setGenreActiveSummaryBar');
+      const summaryTextEl = document.getElementById('setGenreSummaryText');
+      const summarySubEl = document.getElementById('setGenreSummarySubMode');
       const toggleBtn = document.getElementById('btnAutoSortByGenre');
       const chipsEl = document.getElementById('setGenreSequenceChips');
       const availEl = document.getElementById('setGenreAvailableChips');
@@ -11075,11 +11201,24 @@
 
       const isEnabled = Boolean(activeSetState && activeSetState.genre_sort_enabled);
       const subSort = (activeSetState && activeSetState.genre_sub_sort) || 'harmonic';
+      const seq = Array.isArray(activeSetState?.genre_sequence) ? activeSetState.genre_sequence : [];
 
-      if (isEnabled) {
+      if (isEnabled && isSetGenrePanelExpanded) {
         panelEl.classList.remove('hidden');
+        if (summaryBarEl) summaryBarEl.classList.add('hidden');
+      } else if (isEnabled && !isSetGenrePanelExpanded) {
+        panelEl.classList.add('hidden');
+        if (summaryBarEl) summaryBarEl.classList.remove('hidden');
       } else {
         panelEl.classList.add('hidden');
+        if (summaryBarEl) summaryBarEl.classList.add('hidden');
+      }
+
+      if (summaryTextEl) {
+        summaryTextEl.textContent = seq.length > 0 ? seq.join(' → ') : 'Genre Order Active';
+      }
+      if (summarySubEl) {
+        summarySubEl.textContent = subSort === 'bpm-asc' ? 'BPM ↑' : (subSort === 'bpm-desc' ? 'Cool Down ↓' : 'Flow');
       }
 
       if (toggleBtn) {
@@ -11103,7 +11242,6 @@
         btnBpmDesc.className = `px-2 py-0.5 text-[10px] rounded-md font-semibold transition cursor-pointer flex items-center gap-1 border ${subSort === 'bpm-desc' ? 'bg-amber-500 text-vinyl-950 border-amber-400 font-bold' : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border-amber-500/30'}`;
       }
 
-      const seq = Array.isArray(activeSetState?.genre_sequence) ? activeSetState.genre_sequence : [];
       if (inputEl && (typeof document === 'undefined' || document.activeElement !== inputEl)) {
         inputEl.value = seq.join(' - ');
       }
@@ -11304,10 +11442,14 @@
       return ordered;
     }
 
-    function autoSortActiveSet(mode = 'harmonic') {
+    function autoSortActiveSet(mode = 'harmonic', keepGenrePanelOpen = false) {
       if (!activeSetState || !Array.isArray(activeSetState.tracks) || activeSetState.tracks.length < 2) {
         showToast('Add at least 2 tracks to active set to auto-sort.', 'info');
         return;
+      }
+
+      if (!keepGenrePanelOpen) {
+        isSetGenrePanelExpanded = false;
       }
 
       const isExplicitGenreMode = String(mode || '').startsWith('genre-');
@@ -11665,6 +11807,7 @@
       };
       qmcRecordBox = Array.isArray(target.items) ? JSON.parse(JSON.stringify(target.items)) : [];
       saveQmcRecordBox(qmcRecordBox);
+      if (typeof toggleBoxTitleEdit === 'function') toggleBoxTitleEdit(false);
       renderRecordBoxDrawer();
       refreshAllBoxButtonsInDOM();
       showToast(`Selected Active Box: "${activeBoxState.title}" (${qmcRecordBox.length} releases)`, 'info');
@@ -11702,6 +11845,7 @@
 
       qmcRecordBox = items;
       saveQmcRecordBox(qmcRecordBox);
+      if (typeof toggleBoxTitleEdit === 'function') toggleBoxTitleEdit(false);
       renderRecordBoxDrawer();
       refreshAllBoxButtonsInDOM();
       showToast(`Active Box set to "${activeBoxState.title}" (${qmcRecordBox.length} releases)`, 'success');
@@ -11729,16 +11873,10 @@
       };
       qmcRecordBox = [];
       saveQmcRecordBox(qmcRecordBox);
+      if (typeof toggleBoxTitleEdit === 'function') toggleBoxTitleEdit(false);
       renderRecordBoxDrawer();
       refreshAllBoxButtonsInDOM();
       showToast(`Created & activated new Box: "${finalTitle}"!`, 'success');
-      const titleInput = document.getElementById('activeBoxTitleInput');
-      if (titleInput) {
-        setTimeout(() => {
-          titleInput.focus();
-          if (titleInput.select) titleInput.select();
-        }, 120);
-      }
       return activeBoxState;
     }
 
@@ -11810,6 +11948,8 @@
         tracks: JSON.parse(JSON.stringify(set.tracks || []))
       };
 
+      isSetGenrePanelExpanded = false;
+      if (typeof toggleSetTitleEdit === 'function') toggleSetTitleEdit(false);
       renderRecordBoxDrawer();
       showToast(`Switched active set to "${set.title}" (${activeSetState.tracks.length} tracks)`, 'info');
     }
@@ -11852,15 +11992,10 @@
         tracks: []
       };
 
+      isSetGenrePanelExpanded = false;
+      if (typeof toggleSetTitleEdit === 'function') toggleSetTitleEdit(false);
       renderRecordBoxDrawer();
       showToast(`Created new set: "${finalTitle}"! Pack releases & sequence tracks.`, 'success');
-      const titleInput = document.getElementById('activeSetTitleInput');
-      if (titleInput) {
-        setTimeout(() => {
-          titleInput.focus();
-          if (titleInput.select) titleInput.select();
-        }, 120);
-      }
     }
 
     function handleActiveSetTitleChange(event) {
@@ -13058,6 +13193,9 @@
       }
       handleSearchFilterChange();
       renderStats();
+      if (typeof isMobileStatsExpanded !== 'undefined' && isMobileStatsExpanded && typeof window !== 'undefined' && window.innerWidth < 768) {
+        toggleMobileStatsStrip();
+      }
     }
 
     function clearArtistFilter() {
@@ -13230,8 +13368,14 @@
     }
 
     function handleSearchFilterChange() {
-      if (document.activeElement && document.activeElement.id === 'globalSearch' && activeArtistFilter) {
+      const activeEl = typeof document !== 'undefined' ? document.activeElement : null;
+      if (activeEl && activeEl.id === 'globalSearch' && activeArtistFilter) {
         activeArtistFilter = null;
+      }
+      // Auto-hide mobile filter drawer once a dropdown filter/sort option is selected
+      if (activeEl && activeEl.tagName === 'SELECT' && activeEl.closest && activeEl.closest('#filtersRow')) {
+        const filtersRowEl = document.getElementById('filtersRow');
+        if (filtersRowEl) filtersRowEl.classList.remove('filters-open');
       }
       updateSearchToggleBtnUI();
       renderRecords();
@@ -13299,6 +13443,8 @@
       if (document.getElementById('filterLabel')) document.getElementById('filterLabel').value = 'ALL';
       if (document.getElementById('filterSeries')) document.getElementById('filterSeries').value = 'ALL';
       document.getElementById('sortBy').value = 'dateAddedDesc';
+      const filtersRowEl = document.getElementById('filtersRow');
+      if (filtersRowEl) filtersRowEl.classList.remove('filters-open');
       handleSearchFilterChange();
       renderStats();
     }
@@ -17159,6 +17305,9 @@
       }
       handleSearchFilterChange();
       renderStats();
+      if (typeof isMobileStatsExpanded !== 'undefined' && isMobileStatsExpanded && typeof window !== 'undefined' && window.innerWidth < 768) {
+        toggleMobileStatsStrip();
+      }
       if (currentView === 'analytics' && !stayInView) {
         switchView('grid');
       }
@@ -17266,6 +17415,9 @@
         showToast(`Filtered by ${getFormatFilterLabel(filterVal)}`, 'info');
       }
       handleSearchFilterChange();
+      if (typeof isMobileStatsExpanded !== 'undefined' && isMobileStatsExpanded && typeof window !== 'undefined' && window.innerWidth < 768) {
+        toggleMobileStatsStrip();
+      }
       if (currentView === 'analytics' && !stayInView) switchView('grid');
     }
 

@@ -22,3 +22,4 @@ for (const f of ['record-shops/index.html', 'record-shops/crawl.html']) {
 }
 
 console.log('ALL_RECORD_SHOPS_CHECKS_PASSED:', j.stores.length, 'stores, Beat Generator id=' + bg.id);
+
