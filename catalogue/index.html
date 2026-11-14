@@ -242,7 +242,6 @@
         padding: max(2.75rem, calc(env(safe-area-inset-top, 0px) + 1rem)) 0 0 0 !important;
         align-items: flex-end !important;
         overflow: hidden !important;
-        z-index: 75 !important;
       }
 
       div[id$="Modal"].fixed>div {
@@ -1286,6 +1285,13 @@
               <i class="fa-solid fa-list-ol text-amber-400"></i>
               <span>Sets</span>
             </button>
+            <button id="viewWishlistBtn" onclick="switchView('wishlist')"
+              class="px-2 sm:px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1 sm:gap-1.5"
+              title="Physical Vinyl &amp; Media Wishlist / Wantlist">
+              <i class="fa-solid fa-bookmark text-rose-400"></i>
+              <span>Wishlist</span>
+              <span id="wishlistCountBadge" class="hidden px-1.5 py-0.2 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 font-mono text-[10px] font-bold">0</span>
+            </button>
           </div>
 
           <!-- Grid Density Toggle Button (2-Col Compact Grid vs 1-Col Detailed Cards) -->
@@ -2325,8 +2331,8 @@
   <!-- MODAL: ADD / EDIT RECORD (Albums & Singles)    -->
   <!-- ============================================== -->
   <div id="recordModal"
-    class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto"
-    style="z-index: 70;">
+    class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[85] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto"
+    style="z-index: 85;">
     <div
       class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
 
@@ -4026,8 +4032,8 @@
   <!-- MODAL: THEMATIC CRATE ASSIGNMENT & CREATION    -->
   <!-- ============================================== -->
   <div id="crateAssignModal"
-    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[75] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto"
-    style="z-index: 75;">
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[85] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto"
+    style="z-index: 85;">
     <div id="crateAssignModalContent"
       class="bg-vinyl-900 border border-brass-500/30 rounded-2xl w-full max-w-md max-h-[90vh] sm:max-h-[85vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-fadeIn">
 
@@ -4094,8 +4100,8 @@
   <!-- DRAWER: RECORD BOX & SET BUILDER WORKSPACE     -->
   <!-- ============================================== -->
   <div id="recordBoxDrawer"
-    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[75] flex items-center justify-center p-1.5 sm:p-4 hidden overflow-hidden"
-    style="z-index: 75;" onclick="if(event.target === this) closeRecordBoxDrawer()">
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[85] flex items-center justify-center p-1.5 sm:p-4 hidden overflow-hidden"
+    style="z-index: 85;" onclick="if(event.target === this) closeRecordBoxDrawer()">
     <div id="recordBoxDrawerContent"
       class="bg-vinyl-900 border border-brass-500/40 rounded-2xl w-full max-w-6xl flex flex-col shadow-2xl overflow-hidden my-auto animate-fadeIn">
 
@@ -4798,8 +4804,8 @@
   <!-- MODAL: COVER ARTWORK CHOOSER / SLEEVE SELECTOR -->
   <!-- ============================================== -->
   <div id="artworkChooserModal"
-    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[80] flex items-center justify-center p-3 sm:p-6 hidden overflow-y-auto"
-    style="z-index: 80;">
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[90] flex items-center justify-center p-3 sm:p-6 hidden overflow-y-auto"
+    style="z-index: 90;">
     <div
       class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl relative my-auto overflow-hidden">
 
@@ -4882,8 +4888,8 @@
   <!-- MODAL: RECORD FULL ARCHIVAL DETAIL VIEW        -->
   <!-- ============================================== -->
   <div id="detailModal"
-    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[75] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto"
-    style="z-index: 75;">
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[70] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto"
+    style="z-index: 70;">
     <div id="detailModalContent"
       class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-4 sm:p-6 shadow-2xl relative my-auto">
       <!-- Populated dynamically via viewRecordDetail() -->
@@ -4893,8 +4899,8 @@
   <!-- ============================================== -->
   <!-- SLIDE-OUT DRAWER: EXTENDED ARCHIVAL DETAILS    -->
   <!-- ============================================== -->
-  <div id="extendedArchivalModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[80] hidden flex justify-end"
-    style="z-index: 80;" onclick="if(event.target === this) closeExtendedArchivalModal()">
+  <div id="extendedArchivalModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[85] hidden flex justify-end"
+    style="z-index: 85;" onclick="if(event.target === this) closeExtendedArchivalModal()">
     <div id="extendedArchivalContent"
       class="bg-vinyl-900 border-l border-vinyl-700 w-full max-w-xl h-full overflow-y-auto p-5 sm:p-6 shadow-2xl flex flex-col gap-4 animate-fadeIn">
       <!-- Populated dynamically via openExtendedArchivalModal(id) -->
@@ -4905,8 +4911,8 @@
   <!-- MODAL: ARTIST & ALBUM BIOGRAPHY EDITOR         -->
   <!-- ============================================== -->
   <div id="bioEditorModal"
-    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[85] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto"
-    style="z-index: 85;">
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[90] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto"
+    style="z-index: 90;">
     <div
       class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-2xl p-4 sm:p-6 shadow-2xl relative my-auto space-y-4">
       <div class="flex items-center justify-between border-b border-vinyl-800 pb-3">
@@ -4965,6 +4971,136 @@
           <span>Save Biography</span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: ADD / EDIT WISHLIST ITEM                -->
+  <!-- ============================================== -->
+  <div id="wishlistModal"
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[85] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto"
+    style="z-index: 85;">
+    <div
+      class="bg-vinyl-900 border border-rose-500/30 rounded-2xl w-full max-w-xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-fadeIn">
+      <!-- Header -->
+      <div class="px-5 sm:px-6 py-4 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div
+            class="w-8 h-8 rounded-full bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400">
+            <i class="fa-solid fa-bookmark text-sm"></i>
+          </div>
+          <div>
+            <h3 id="wishlistModalTitle" class="font-bold text-white text-sm sm:text-base tracking-tight">Add to Wishlist</h3>
+            <p class="text-[11px] text-slate-400">Track grails, target prices &amp; marketplace pressings</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeWishlistModal()"
+          class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-sm cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+          <span>Exit</span>
+        </button>
+      </div>
+
+      <!-- Form -->
+      <form id="wishlistForm" onsubmit="saveWishlistForm(event)" class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
+        <input type="hidden" id="wishlistItemId" value="">
+        <input type="hidden" id="wishlistCoverUrl" value="">
+
+        <!-- Quick Auto-Lookup Strip -->
+        <div class="p-3 rounded-xl bg-vinyl-850/90 border border-vinyl-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+          <div class="text-[11px] text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-wand-magic-sparkles text-rose-400"></i>
+            <span>Enter Artist &amp; Title below, then tap <strong>Auto-Fill Sleeve &amp; Details</strong></span>
+          </div>
+          <button type="button" id="btnWishlistLookup" onclick="lookupWishlistOnline()"
+            class="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold flex items-center justify-center gap-1.5 transition shrink-0 cursor-pointer">
+            <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
+            <span>Auto-Fill Sleeve &amp; Details</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="wishlistArtist" class="block text-[11px] uppercase font-mono text-slate-400 mb-1">Artist <span class="text-rose-400">*</span></label>
+            <input type="text" id="wishlistArtist" required placeholder="e.g. Massive Attack"
+              class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-rose-400">
+          </div>
+          <div>
+            <label for="wishlistTitle" class="block text-[11px] uppercase font-mono text-slate-400 mb-1">Release Title <span class="text-rose-400">*</span></label>
+            <input type="text" id="wishlistTitle" required placeholder="e.g. Mezzanine"
+              class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-rose-400">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label for="wishlistFormat" class="block text-[11px] uppercase font-mono text-slate-400 mb-1">Desired Format</label>
+            <select id="wishlistFormat"
+              class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-rose-400">
+              <option value='12" LP (Album)'>12" LP (Album)</option>
+              <option value='2xLP Gatefold (Album)'>2xLP Gatefold (Album)</option>
+              <option value='12" Maxi / Single'>12" Maxi / Single</option>
+              <option value='7" Single (45 RPM)'>7" Single (45 RPM)</option>
+              <option value='10" Vinyl'>10" Vinyl</option>
+              <option value='Box Set (Vinyl / Multi-Disc)'>Box Set (Vinyl / Multi-Disc)</option>
+              <option value='CD Album (LP)'>CD Album (LP)</option>
+              <option value='CD Single'>CD Single</option>
+              <option value='Cassette Tape'>Cassette Tape</option>
+              <option value='MiniDisc'>MiniDisc</option>
+            </select>
+          </div>
+          <div>
+            <label for="wishlistYear" class="block text-[11px] uppercase font-mono text-slate-400 mb-1">Year</label>
+            <input type="number" id="wishlistYear" placeholder="e.g. 1998" min="1900" max="2099"
+              class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-rose-400">
+          </div>
+          <div>
+            <label for="wishlistPriority" class="block text-[11px] uppercase font-mono text-slate-400 mb-1">Priority Tier</label>
+            <select id="wishlistPriority"
+              class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-rose-400">
+              <option value="grail">🔥 Holy Grail (Top Hunt)</option>
+              <option value="high">★ High Priority</option>
+              <option value="standard" selected>Bookmark / Standard</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label for="wishlistLabel" class="block text-[11px] uppercase font-mono text-slate-400 mb-1">Record Label</label>
+            <input type="text" id="wishlistLabel" placeholder="e.g. Virgin / Circa"
+              class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-rose-400">
+          </div>
+          <div>
+            <label for="wishlistCatNo" class="block text-[11px] uppercase font-mono text-slate-400 mb-1">Catalog #</label>
+            <input type="text" id="wishlistCatNo" placeholder="e.g. WBRLP4"
+              class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-rose-400">
+          </div>
+          <div>
+            <label for="wishlistTargetPrice" class="block text-[11px] uppercase font-mono text-slate-400 mb-1">Target / Est. Price</label>
+            <input type="text" id="wishlistTargetPrice" placeholder="e.g. £45.00"
+              class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-3 py-2 text-xs text-emerald-300 font-mono focus:outline-none focus:border-rose-400">
+          </div>
+        </div>
+
+        <div>
+          <label for="wishlistNotes" class="block text-[11px] uppercase font-mono text-slate-400 mb-1">Pressing &amp; Crate Digging Notes</label>
+          <textarea id="wishlistNotes" rows="2" placeholder="e.g. Looking for UK 1st press with gatefold sleeve &amp; inner inserts in VG+ or better..."
+            class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-rose-400"></textarea>
+        </div>
+
+        <div class="pt-3 border-t border-vinyl-800 flex items-center justify-between gap-3">
+          <button type="button" onclick="closeWishlistModal()"
+            class="px-4 py-2 rounded-xl bg-vinyl-800 hover:bg-vinyl-750 text-slate-300 font-semibold text-xs transition cursor-pointer">
+            Cancel
+          </button>
+          <button type="submit"
+            class="px-5 py-2 rounded-xl bg-rose-500 hover:bg-rose-400 active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-lg shadow-rose-500/20 cursor-pointer">
+            <i class="fa-solid fa-bookmark text-xs"></i>
+            <span id="wishlistSubmitLabel">Save to Wishlist</span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -5052,6 +5188,9 @@
         <button onclick="closeMobileMore();openGapModal()"
           class="p-3 rounded-xl bg-vinyl-850 border border-amber-500/30 text-slate-200 flex flex-col items-center gap-1.5"><i
             class="fa-solid fa-magnifying-glass-chart text-lg text-amber-400"></i><span>Gap Scanner</span></button>
+        <button onclick="closeMobileMore();switchView('wishlist')"
+          class="p-3 rounded-xl bg-vinyl-850 border border-rose-500/30 text-slate-200 flex flex-col items-center gap-1.5"><i
+            class="fa-solid fa-bookmark text-lg text-rose-400"></i><span>Wishlist</span></button>
         <button onclick="closeMobileMore();openAuthModal()"
           class="p-3 rounded-xl bg-vinyl-850 border border-vinyl-800 text-slate-200 flex flex-col items-center gap-1.5"><i
             class="fa-solid fa-circle-user text-lg text-brass-400"></i>Account</button>
@@ -8960,6 +9099,7 @@
       getQmcRecordBox();
       getQmcSavedSets();
       updateRecordBoxBadges();
+      if (typeof updateWishlistCountBadges === 'function') updateWishlistCountBadges();
     }
 
     /* =========================================================
@@ -12460,11 +12600,17 @@
     }
 
     function switchView(mode) {
+      // If Dossier (#detailModal) is open when switching primary views, close it so the selected view is never hidden behind Dossier
+      const detailEl = document.getElementById('detailModal');
+      if (detailEl && !detailEl.classList.contains('hidden') && typeof closeDetailModal === 'function') {
+        closeDetailModal();
+      }
       currentView = mode;
       const gridBtn = document.getElementById('viewGridBtn');
       const listBtn = document.getElementById('viewListBtn');
       const cratesBtn = document.getElementById('viewCratesBtn');
       const setsBtn = document.getElementById('viewSetsBtn');
+      const wishlistBtn = document.getElementById('viewWishlistBtn');
       const densityBtn = document.getElementById('gridDensityBtn');
 
       const activeClasses = "px-2 sm:px-2.5 py-1.5 rounded text-xs bg-vinyl-700 text-brass-400 font-medium transition flex items-center gap-1 sm:gap-1.5 shadow-sm";
@@ -12474,9 +12620,11 @@
       if (listBtn) listBtn.className = (mode === 'list') ? activeClasses : inactiveClasses;
       if (cratesBtn) cratesBtn.className = (mode === 'crates') ? activeClasses : inactiveClasses;
       if (setsBtn) setsBtn.className = (mode === 'sets') ? activeClasses : inactiveClasses;
+      if (wishlistBtn) wishlistBtn.className = (mode === 'wishlist') ? activeClasses : inactiveClasses;
       if (densityBtn) densityBtn.classList.toggle('hidden', mode !== 'grid');
 
       if (typeof updateMobileNavActive === 'function') updateMobileNavActive(mode);
+      if (typeof updateWishlistCountBadges === 'function') updateWishlistCountBadges();
       updateGridDensityUI();
       renderRecords();
     }
@@ -12585,7 +12733,7 @@
         'spotifyAuthModal', 'exportModal', 'gapModal', 'crateAssignModal',
         'shareModal', 'valuationModal', 'batchUploadModal',
         'discogsImportModal', 'batchGenreModal', 'artworkChooserModal',
-        'addToHomeScreenModal', 'insuranceModal'
+        'addToHomeScreenModal', 'insuranceModal', 'bioEditorModal', 'wishlistModal'
       ];
       modalIds.forEach(id => {
         const el = document.getElementById(id);
@@ -12863,6 +13011,11 @@
         renderSetsView(container);
         return;
       }
+      if (currentView === 'wishlist') {
+        if (emptyState) { emptyState.classList.add('hidden'); emptyState.classList.remove('flex'); }
+        renderWishlistView(container);
+        return;
+      }
 
       const filtered = getFilteredAndSortedRecords();
 
@@ -12954,6 +13107,8 @@
         renderCratesView(container);
       } else if (currentView === 'sets') {
         renderSetsView(container);
+      } else if (currentView === 'wishlist') {
+        renderWishlistView(container);
       } else {
         renderListView(filtered, container);
       }
@@ -13856,15 +14011,41 @@
     function getMMAWantlist() {
       try {
         const raw = localStorage.getItem('qmc_wantlist');
-        if (raw) return JSON.parse(raw);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            let mutated = false;
+            parsed.forEach((item, idx) => {
+              if (item && !item.id) {
+                item.id = 'want_' + Date.now() + '_' + idx + '_' + Math.random().toString(36).slice(2, 6);
+                mutated = true;
+              }
+            });
+            if (mutated) {
+              try { localStorage.setItem('qmc_wantlist', JSON.stringify(parsed)); } catch (_) { }
+            }
+            return parsed;
+          }
+        }
       } catch (_) { }
       return [];
     }
 
     function saveMMAWantlist(list) {
       try {
-        localStorage.setItem('qmc_wantlist', JSON.stringify(list));
+        localStorage.setItem('qmc_wantlist', JSON.stringify(Array.isArray(list) ? list : []));
       } catch (_) { }
+      updateWishlistCountBadges();
+    }
+
+    function updateWishlistCountBadges() {
+      const list = getMMAWantlist();
+      const count = list.length;
+      const badge = document.getElementById('wishlistCountBadge');
+      if (badge) {
+        badge.textContent = String(count);
+        badge.classList.toggle('hidden', count === 0);
+      }
     }
 
     function isItemInWantlist(artist, title) {
@@ -13872,6 +14053,558 @@
       const normA = (artist || '').toLowerCase().trim();
       const normT = (title || '').toLowerCase().trim();
       return list.some(item => (item.artist || '').toLowerCase().trim() === normA && (item.title || '').toLowerCase().trim() === normT);
+    }
+
+    /* =========================================================
+       WISHLIST / WANTLIST VIEW, MODAL & ACQUISITION ENGINE
+       ========================================================= */
+    let currentWishlistPriorityFilter = 'ALL';
+    let currentWishlistSearchQuery = '';
+
+    function setWishlistPriorityFilter(priority) {
+      currentWishlistPriorityFilter = priority || 'ALL';
+      if (currentView === 'wishlist') {
+        renderWishlistView(document.getElementById('recordsViewContainer'));
+      }
+    }
+
+    function handleWishlistSearchInput(val) {
+      currentWishlistSearchQuery = (val || '').trim();
+      if (currentView === 'wishlist') {
+        renderWishlistView(document.getElementById('recordsViewContainer'));
+      }
+    }
+
+    function parseWishlistNumericPrice(priceStr) {
+      if (priceStr === undefined || priceStr === null || priceStr === '') return 0;
+      if (typeof priceStr === 'number') return isNaN(priceStr) ? 0 : priceStr;
+      const match = String(priceStr).match(/([0-9]+(?:\.[0-9]+)?)/);
+      return match ? (parseFloat(match[1]) || 0) : 0;
+    }
+
+    function renderWishlistView(container) {
+      if (!container) return;
+      const allWant = getMMAWantlist();
+      updateWishlistCountBadges();
+      const sym = (typeof getCurrencySymbol === 'function') ? getCurrencySymbol() : '£';
+
+      // Priority & search filtering
+      const q = currentWishlistSearchQuery.toLowerCase();
+      const filtered = allWant.filter(item => {
+        if (currentWishlistPriorityFilter !== 'ALL') {
+          const p = (item.priority || 'standard').toLowerCase();
+          if (p !== currentWishlistPriorityFilter.toLowerCase()) return false;
+        }
+        if (q) {
+          const hay = `${item.artist || ''} ${item.title || ''} ${item.label || ''} ${item.catNo || ''} ${item.format || ''} ${item.notes || ''}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+
+      // Calculate total target budget
+      let totalEstBudget = 0;
+      let pricedItemsCount = 0;
+      let grailCount = 0;
+      allWant.forEach(item => {
+        const num = parseWishlistNumericPrice(item.targetPrice || item.estPrice);
+        if (num > 0) {
+          totalEstBudget += num;
+          pricedItemsCount++;
+        }
+        if ((item.priority || '').toLowerCase() === 'grail') grailCount++;
+      });
+
+      // Update top subtotal ribbon
+      const ribbonCountEl = document.getElementById('ribbonViewCount');
+      if (ribbonCountEl) ribbonCountEl.innerText = `${filtered.length} wishlist item${filtered.length === 1 ? '' : 's'}`;
+      const ribbonTotalEl = document.getElementById('ribbonViewTotal');
+      if (ribbonTotalEl) {
+        ribbonTotalEl.innerText = !areValuesVisible ? '••••••' : `${sym}${totalEstBudget.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      }
+
+      let html = `
+        <div class="space-y-4 animate-fadeIn">
+          <!-- Wishlist Header Banner -->
+          <div class="p-4 sm:p-5 bg-vinyl-900 border border-rose-500/30 rounded-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-lg">
+            <div class="flex items-start sm:items-center gap-3">
+              <div class="w-11 h-11 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 text-lg shrink-0">
+                <i class="fa-solid fa-bookmark"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 class="text-base sm:text-lg font-bold text-white tracking-tight">Physical Vinyl &amp; Media Wishlist</h3>
+                  <span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">${allWant.length} Wanted</span>
+                  ${grailCount > 0 ? `<span class="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">🔥 ${grailCount} Grail${grailCount === 1 ? '' : 's'}</span>` : ''}
+                  ${pricedItemsCount > 0 ? `<span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Est. Hunt Budget: ${!areValuesVisible ? '••••' : `${sym}${totalEstBudget.toFixed(2)}`}</span>` : ''}
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5">Track sought-after pressings, compare live Discogs &amp; eBay listings, and move acquired records directly into your Archive</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <button type="button" id="btnAddWishlistItem" onclick="openWishlistModal()"
+                class="px-3.5 py-2 rounded-xl bg-rose-500 hover:bg-rose-400 active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-lg shadow-rose-500/20 cursor-pointer">
+                <i class="fa-solid fa-plus text-xs"></i>
+                <span>+ Add to Wishlist</span>
+              </button>
+              <button type="button" onclick="openGapModal()"
+                class="px-3 py-2 rounded-xl bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border border-amber-500/30 font-semibold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                title="Scan Spotify library &amp; playlists for missing physical vinyl">
+                <i class="fa-brands fa-spotify text-emerald-400"></i>
+                <span>Scan Spotify Gaps</span>
+              </button>
+              ${allWant.length > 0 ? `
+                <button type="button" onclick="exportWishlistCSV()"
+                  class="px-3 py-2 rounded-xl bg-vinyl-850 hover:bg-vinyl-800 text-slate-200 border border-vinyl-700 font-semibold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                  title="Export Wishlist to CSV spreadsheet">
+                  <i class="fa-solid fa-file-csv text-emerald-400"></i>
+                  <span>Export CSV</span>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+
+          <!-- Filter & Search Bar -->
+          <div class="p-3 bg-vinyl-900/90 border border-vinyl-800 rounded-xl flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-1.5 flex-wrap text-xs">
+              <button type="button" onclick="setWishlistPriorityFilter('ALL')"
+                class="px-3 py-1 rounded-lg font-semibold transition cursor-pointer border ${currentWishlistPriorityFilter === 'ALL' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : 'bg-vinyl-850 text-slate-400 hover:text-slate-200 border-vinyl-700'}">
+                All (${allWant.length})
+              </button>
+              <button type="button" onclick="setWishlistPriorityFilter('grail')"
+                class="px-3 py-1 rounded-lg font-semibold transition cursor-pointer border ${currentWishlistPriorityFilter === 'grail' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-vinyl-850 text-slate-400 hover:text-slate-200 border-vinyl-700'}">
+                🔥 Holy Grails
+              </button>
+              <button type="button" onclick="setWishlistPriorityFilter('high')"
+                class="px-3 py-1 rounded-lg font-semibold transition cursor-pointer border ${currentWishlistPriorityFilter === 'high' ? 'bg-sky-500/20 text-sky-300 border-sky-500/40' : 'bg-vinyl-850 text-slate-400 hover:text-slate-200 border-vinyl-700'}">
+                ★ High Priority
+              </button>
+              <button type="button" onclick="setWishlistPriorityFilter('standard')"
+                class="px-3 py-1 rounded-lg font-semibold transition cursor-pointer border ${currentWishlistPriorityFilter === 'standard' ? 'bg-vinyl-750 text-white border-slate-500' : 'bg-vinyl-850 text-slate-400 hover:text-slate-200 border-vinyl-700'}">
+                Standard
+              </button>
+            </div>
+            <div class="relative w-full sm:w-64">
+              <input type="text" id="wishlistSearchInput" value="${escapeHtml(currentWishlistSearchQuery)}"
+                oninput="handleWishlistSearchInput(this.value)"
+                placeholder="Search wishlist artist, title, label..."
+                class="w-full bg-vinyl-950 border border-vinyl-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-rose-400">
+              <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-500 text-xs"></i>
+            </div>
+          </div>
+
+          <!-- Wishlist Cards Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      `;
+
+      if (filtered.length === 0) {
+        html += `
+          <div class="col-span-full py-16 px-4 text-center bg-vinyl-900/60 border border-vinyl-800 rounded-2xl space-y-3">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 text-2xl">
+              <i class="fa-solid fa-bookmark"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">${allWant.length === 0 ? 'Your Wishlist is Empty' : 'No Matching Wishlist Items'}</h4>
+            <p class="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+              ${allWant.length === 0
+                ? 'Add records you are hunting for at record fairs, local shops, Discogs, or eBay — or scan your Spotify library to find albums missing from your physical shelf.'
+                : 'No items match the current priority or search filter.'}
+            </p>
+            <div class="flex items-center justify-center gap-2 pt-1 flex-wrap">
+              <button type="button" onclick="openWishlistModal()" class="px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs inline-flex items-center gap-1.5 transition shadow cursor-pointer">
+                <i class="fa-solid fa-plus"></i> Add First Wishlist Record
+              </button>
+              <button type="button" onclick="openGapModal()" class="px-4 py-2 rounded-xl bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border border-amber-500/30 font-semibold text-xs inline-flex items-center gap-1.5 transition cursor-pointer">
+                <i class="fa-brands fa-spotify text-emerald-400"></i> Scan Spotify Gaps
+              </button>
+            </div>
+          </div>
+        `;
+      } else {
+        filtered.forEach(item => {
+          const safeId = escapeJsString(String(item.id));
+          const safeArtist = escapeHtml(item.artist || 'Unknown Artist');
+          const safeTitle = escapeHtml(item.title || 'Untitled Release');
+          const fmt = item.format || '12" LP (Album)';
+          const yr = item.year ? escapeHtml(String(item.year)) : 'Year Any';
+          const lbl = item.label ? escapeHtml(item.label) : '';
+          const cat = item.catNo ? escapeHtml(item.catNo) : '';
+          const priceDisplay = item.targetPrice || item.estPrice || '';
+          const notes = item.notes ? escapeHtml(item.notes) : '';
+          const priority = (item.priority || 'standard').toLowerCase();
+
+          let prioBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-vinyl-800 text-slate-300 border border-vinyl-700">Bookmark</span>`;
+          if (priority === 'grail') {
+            prioBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">🔥 Holy Grail</span>`;
+          } else if (priority === 'high') {
+            prioBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40">★ High Priority</span>`;
+          }
+
+          const coverSrc = item.coverImage || (typeof getDefaultCover === 'function' ? getDefaultCover(fmt, item.artist, item.title) : '');
+          const discogsUrl = (typeof getDiscogsSearchUrl === 'function')
+            ? getDiscogsSearchUrl({ artist: item.artist, title: item.title, format: fmt, catNo: item.catNo })
+            : `https://www.discogs.com/search/?q=${encodeURIComponent((item.artist || '') + ' ' + (item.title || ''))}&type=release`;
+          const ebayActiveUrl = (typeof getEbayActiveUrl === 'function')
+            ? getEbayActiveUrl({ artist: item.artist, title: item.title, format: fmt })
+            : `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent((item.artist || '') + ' ' + (item.title || '') + ' vinyl')}`;
+          const ebaySoldUrl = (typeof getEbaySoldUrl === 'function')
+            ? getEbaySoldUrl({ artist: item.artist, title: item.title, format: fmt })
+            : `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent((item.artist || '') + ' ' + (item.title || '') + ' vinyl')}&LH_Complete=1&LH_Sold=1`;
+          const spotifyUrl = `https://open.spotify.com/search/${encodeURIComponent((item.artist || '') + ' ' + (item.title || ''))}`;
+
+          html += `
+            <div class="p-4 bg-vinyl-900 border ${priority === 'grail' ? 'border-amber-500/40' : 'border-vinyl-800 hover:border-rose-500/40'} rounded-2xl flex flex-col justify-between gap-3 shadow-md transition">
+              <div class="space-y-3">
+                <div class="flex items-start gap-3">
+                  <img src="${escapeHtml(coverSrc)}" alt="${safeTitle}"
+                    class="w-20 h-20 rounded-xl object-cover bg-vinyl-950 border border-vinyl-700 shrink-0 shadow"
+                    onerror="if(typeof getDefaultCover==='function')this.src=getDefaultCover('','','',true)">
+                  <div class="min-w-0 flex-1 space-y-1">
+                    <div class="flex items-center justify-between gap-1.5 flex-wrap">
+                      ${prioBadge}
+                      <span class="text-[10px] font-mono text-slate-400">${yr}</span>
+                    </div>
+                    <h4 class="font-bold text-white text-sm truncate" title="${safeTitle}">${safeTitle}</h4>
+                    <p class="text-xs text-brass-400 font-semibold truncate" title="${safeArtist}">${safeArtist}</p>
+                    <div class="flex items-center gap-1.5 flex-wrap text-[10px] font-mono text-slate-400">
+                      <span class="px-1.5 py-0.2 rounded bg-vinyl-850 border border-vinyl-700 text-slate-300">${escapeHtml(fmt.replace(' (Album)', '').replace(' (45 RPM)', ''))}</span>
+                      ${lbl ? `<span class="truncate max-w-[110px]">${lbl}</span>` : ''}
+                      ${cat ? `<span class="text-amber-300">(${cat})</span>` : ''}
+                    </div>
+                  </div>
+                </div>
+
+                ${priceDisplay ? `
+                  <div class="px-3 py-1.5 rounded-xl bg-vinyl-950/90 border border-vinyl-800 flex items-center justify-between text-xs">
+                    <span class="text-slate-400 text-[11px]">Target / Est. Market Price:</span>
+                    <span class="font-mono font-bold text-emerald-400">${escapeHtml(String(priceDisplay))}</span>
+                  </div>
+                ` : ''}
+
+                ${notes ? `
+                  <p class="text-[11px] text-slate-300 italic bg-vinyl-950/60 px-2.5 py-1.5 rounded-lg border border-vinyl-800/80 line-clamp-2">${notes}</p>
+                ` : ''}
+
+                <!-- 1-Click Marketplace Hunt Links -->
+                <div class="grid grid-cols-4 gap-1.5 pt-0.5 text-[11px] font-semibold">
+                  <a href="${discogsUrl}" target="_blank" rel="noopener noreferrer"
+                    class="py-1.5 px-2 rounded-lg bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border border-vinyl-750 flex items-center justify-center gap-1 transition"
+                    title="Hunt on Discogs Marketplace">
+                    <i class="fa-solid fa-compact-disc text-[10px]"></i>
+                    <span>Discogs</span>
+                  </a>
+                  <a href="${ebayActiveUrl}" target="_blank" rel="noopener noreferrer"
+                    class="py-1.5 px-2 rounded-lg bg-vinyl-850 hover:bg-vinyl-800 text-sky-300 border border-vinyl-750 flex items-center justify-center gap-1 transition"
+                    title="Check live active listings on eBay">
+                    <i class="fa-brands fa-ebay text-xs"></i>
+                    <span>Buy</span>
+                  </a>
+                  <a href="${ebaySoldUrl}" target="_blank" rel="noopener noreferrer"
+                    class="py-1.5 px-2 rounded-lg bg-vinyl-850 hover:bg-vinyl-800 text-blue-300 border border-vinyl-750 flex items-center justify-center gap-1 transition"
+                    title="Check realized eBay sold prices">
+                    <i class="fa-solid fa-gavel text-[10px]"></i>
+                    <span>Comps</span>
+                  </a>
+                  <a href="${spotifyUrl}" target="_blank" rel="noopener noreferrer"
+                    class="py-1.5 px-2 rounded-lg bg-vinyl-850 hover:bg-emerald-950/40 text-emerald-400 border border-vinyl-750 flex items-center justify-center gap-1 transition"
+                    title="Audition on Spotify">
+                    <i class="fa-brands fa-spotify text-xs"></i>
+                    <span>Listen</span>
+                  </a>
+                </div>
+              </div>
+
+              <!-- Card Footer Actions: Acquire to Archive, Edit, Delete -->
+              <div class="pt-2.5 border-t border-vinyl-800/80 flex items-center justify-between gap-2">
+                <button type="button" onclick="acquireWishlistItem('${safeId}')"
+                  class="flex-1 py-1.5 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-vinyl-950 border border-emerald-500/40 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-sm"
+                  title="Bought this record? Move it directly into your main Archive!">
+                  <i class="fa-solid fa-check text-[10px]"></i>
+                  <span>Acquired → Move to Archive</span>
+                </button>
+                <button type="button" onclick="openWishlistModal('${safeId}')"
+                  class="py-1.5 px-2.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 hover:text-white text-xs transition cursor-pointer"
+                  title="Edit Wishlist Item">
+                  <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                </button>
+                <button type="button" onclick="removeWishlistItem('${safeId}')"
+                  class="py-1.5 px-2.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-400 hover:text-red-300 text-xs transition cursor-pointer"
+                  title="Remove from Wishlist">
+                  <i class="fa-solid fa-trash-can text-[10px]"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      html += `
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    function openWishlistModal(itemId = null) {
+      const modal = document.getElementById('wishlistModal');
+      if (!modal) return;
+      const titleEl = document.getElementById('wishlistModalTitle');
+      const submitEl = document.getElementById('wishlistSubmitLabel');
+      const idInput = document.getElementById('wishlistItemId');
+      const coverInput = document.getElementById('wishlistCoverUrl');
+      const artistInput = document.getElementById('wishlistArtist');
+      const relTitleInput = document.getElementById('wishlistTitle');
+      const formatSelect = document.getElementById('wishlistFormat');
+      const yearInput = document.getElementById('wishlistYear');
+      const prioSelect = document.getElementById('wishlistPriority');
+      const labelInput = document.getElementById('wishlistLabel');
+      const catInput = document.getElementById('wishlistCatNo');
+      const priceInput = document.getElementById('wishlistTargetPrice');
+      const notesInput = document.getElementById('wishlistNotes');
+
+      if (itemId) {
+        const list = getMMAWantlist();
+        const existing = list.find(w => String(w.id) === String(itemId));
+        if (existing) {
+          if (titleEl) titleEl.textContent = 'Edit Wishlist Item';
+          if (submitEl) submitEl.textContent = 'Update Wishlist Item';
+          if (idInput) idInput.value = existing.id;
+          if (coverInput) coverInput.value = existing.coverImage || '';
+          if (artistInput) artistInput.value = existing.artist || '';
+          if (relTitleInput) relTitleInput.value = existing.title || '';
+          if (formatSelect) formatSelect.value = existing.format || '12" LP (Album)';
+          if (yearInput) yearInput.value = existing.year || '';
+          if (prioSelect) prioSelect.value = existing.priority || 'standard';
+          if (labelInput) labelInput.value = existing.label || '';
+          if (catInput) catInput.value = existing.catNo || '';
+          if (priceInput) priceInput.value = existing.targetPrice || existing.estPrice || '';
+          if (notesInput) notesInput.value = existing.notes || '';
+        }
+      } else {
+        if (titleEl) titleEl.textContent = 'Add to Wishlist';
+        if (submitEl) submitEl.textContent = 'Save to Wishlist';
+        if (idInput) idInput.value = '';
+        if (coverInput) coverInput.value = '';
+        if (artistInput) artistInput.value = '';
+        if (relTitleInput) relTitleInput.value = '';
+        if (formatSelect) formatSelect.value = '12" LP (Album)';
+        if (yearInput) yearInput.value = '';
+        if (prioSelect) prioSelect.value = 'standard';
+        if (labelInput) labelInput.value = '';
+        if (catInput) catInput.value = '';
+        if (priceInput) priceInput.value = '';
+        if (notesInput) notesInput.value = '';
+      }
+
+      modal.classList.remove('hidden');
+      setTimeout(() => { if (artistInput) artistInput.focus(); }, 60);
+    }
+
+    function closeWishlistModal() {
+      const modal = document.getElementById('wishlistModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    async function lookupWishlistOnline() {
+      const artistInput = document.getElementById('wishlistArtist');
+      const titleInput = document.getElementById('wishlistTitle');
+      const btn = document.getElementById('btnWishlistLookup');
+      const artist = (artistInput?.value || '').trim();
+      const title = (titleInput?.value || '').trim();
+      if (!artist && !title) {
+        showToast('Enter an Artist or Release Title first to auto-fill.', 'warning');
+        if (artistInput) artistInput.focus();
+        return;
+      }
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[10px]"></i><span>Searching...</span>';
+      }
+
+      try {
+        // 1. Try iTunes Search API for fast cover artwork, year & canonical artist/title
+        const query = encodeURIComponent(`${artist} ${title}`.trim());
+        const res = await fetch(`https://itunes.apple.com/search?term=${query}&entity=album&limit=1`);
+        if (res.ok) {
+          const data = await res.json();
+          const hit = data.results?.[0];
+          if (hit) {
+            if (artistInput && !artistInput.value.trim() && hit.artistName) artistInput.value = hit.artistName;
+            if (titleInput && !titleInput.value.trim() && hit.collectionName) titleInput.value = hit.collectionName;
+            const yearEl = document.getElementById('wishlistYear');
+            if (yearEl && !yearEl.value && hit.releaseDate) {
+              const yr = parseInt(hit.releaseDate.slice(0, 4), 10);
+              if (!isNaN(yr)) yearEl.value = yr;
+            }
+            if (hit.artworkUrl100) {
+              const hiRes = hit.artworkUrl100.replace('100x100bb', '600x600bb');
+              const coverEl = document.getElementById('wishlistCoverUrl');
+              if (coverEl) coverEl.value = hiRes;
+            }
+            showToast(`Auto-filled details & sleeve for "${hit.collectionName || title}"!`, 'success');
+          } else {
+            showToast('No exact online match found; you can save your custom details directly.', 'info');
+          }
+        }
+      } catch (_) {
+        showToast('Online lookup unavailable offline; manual fields ready.', 'info');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-magnifying-glass text-[10px]"></i><span>Auto-Fill Sleeve &amp; Details</span>';
+        }
+      }
+    }
+
+    function saveWishlistForm(event) {
+      if (event) event.preventDefault();
+      const idVal = (document.getElementById('wishlistItemId')?.value || '').trim();
+      const artist = (document.getElementById('wishlistArtist')?.value || '').trim();
+      const title = (document.getElementById('wishlistTitle')?.value || '').trim();
+      if (!artist || !title) {
+        showToast('Artist and Release Title are required.', 'warning');
+        return;
+      }
+
+      const format = document.getElementById('wishlistFormat')?.value || '12" LP (Album)';
+      const yearRaw = document.getElementById('wishlistYear')?.value || '';
+      const year = yearRaw ? (parseInt(yearRaw, 10) || '') : '';
+      const priority = document.getElementById('wishlistPriority')?.value || 'standard';
+      const label = (document.getElementById('wishlistLabel')?.value || '').trim();
+      const catNo = (document.getElementById('wishlistCatNo')?.value || '').trim();
+      const targetPrice = (document.getElementById('wishlistTargetPrice')?.value || '').trim();
+      const notes = (document.getElementById('wishlistNotes')?.value || '').trim();
+      let coverImage = (document.getElementById('wishlistCoverUrl')?.value || '').trim();
+
+      const list = getMMAWantlist();
+      if (idVal) {
+        const idx = list.findIndex(w => String(w.id) === String(idVal));
+        if (idx > -1) {
+          list[idx] = {
+            ...list[idx],
+            artist,
+            title,
+            format,
+            year,
+            priority,
+            label,
+            catNo,
+            targetPrice,
+            estPrice: targetPrice || list[idx].estPrice || '',
+            notes,
+            coverImage: coverImage || list[idx].coverImage || ''
+          };
+        }
+        saveMMAWantlist(list);
+        closeWishlistModal();
+        if (currentView === 'wishlist') renderWishlistView(document.getElementById('recordsViewContainer'));
+        showToast(`Updated "${artist} — ${title}" in your Wishlist!`, 'success');
+      } else {
+        const newItem = {
+          id: 'want_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+          artist,
+          title,
+          format,
+          year,
+          priority,
+          label,
+          catNo,
+          targetPrice,
+          estPrice: targetPrice,
+          notes,
+          coverImage,
+          addedAt: new Date().toISOString()
+        };
+        list.unshift(newItem);
+        saveMMAWantlist(list);
+        closeWishlistModal();
+        if (currentView === 'wishlist') renderWishlistView(document.getElementById('recordsViewContainer'));
+        showToast(`Added "${artist} — ${title}" to your Wishlist!`, 'success');
+      }
+    }
+
+    function removeWishlistItem(itemId) {
+      const list = getMMAWantlist();
+      const target = list.find(w => String(w.id) === String(itemId));
+      if (!target) return;
+      const filtered = list.filter(w => String(w.id) !== String(itemId));
+      saveMMAWantlist(filtered);
+      if (currentView === 'wishlist') {
+        renderWishlistView(document.getElementById('recordsViewContainer'));
+      }
+      showToast(`Removed "${target.artist} — ${target.title}" from Wishlist.`, 'info');
+    }
+
+    function acquireWishlistItem(itemId) {
+      const list = getMMAWantlist();
+      const item = list.find(w => String(w.id) === String(itemId));
+      if (!item) return;
+
+      const numericVal = parseWishlistNumericPrice(item.targetPrice || item.estPrice);
+      const fmt = item.format || '12" LP (Album)';
+      const isSingle = fmt.includes('7"') || fmt.includes('12" Maxi');
+      const newRecord = {
+        id: 'rec_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        format: fmt,
+        artist: item.artist || 'Unknown Artist',
+        title: item.title || 'Untitled Release',
+        year: item.year ? (parseInt(item.year, 10) || null) : null,
+        label: item.label || '',
+        catNo: item.catNo || '',
+        mediaGrade: 'VG+',
+        sleeveGrade: 'VG+',
+        estimatedValue: numericVal > 0 ? numericVal : null,
+        currency: typeof globalCurrency !== 'undefined' ? globalCurrency : 'GBP',
+        speed: isSpeedApplicable(fmt) ? (isSingle ? '45 RPM' : '33 1/3 RPM') : '',
+        centerHole: isSpeedApplicable(fmt) ? 'Solid (Small 0.28 inch)' : '',
+        coverImage: item.coverImage || '',
+        provenance: 'Acquired from QMC Wishlist',
+        researchNotes: item.notes || '',
+        transferStatus: 'Not Digitized',
+        dateAdded: new Date().toISOString()
+      };
+
+      records.unshift(newRecord);
+      saveRecordsToStorage();
+      if (isCloudActive && currentUser && supabaseClient && typeof syncRecordToCloud === 'function') {
+        syncRecordToCloud(newRecord);
+      }
+
+      // Remove from wishlist
+      const remaining = list.filter(w => String(w.id) !== String(itemId));
+      saveMMAWantlist(remaining);
+
+      renderStats();
+      if (currentView === 'wishlist') {
+        renderWishlistView(document.getElementById('recordsViewContainer'));
+      } else {
+        renderRecords();
+      }
+      showToast(`Acquired! Moved "${newRecord.artist} — ${newRecord.title}" into your Archive.`, 'success');
+    }
+
+    function exportWishlistCSV() {
+      const list = getMMAWantlist();
+      if (list.length === 0) {
+        showToast('Your Wishlist is empty.', 'warning');
+        return;
+      }
+      const headers = ['Artist', 'Title', 'Format', 'Year', 'Priority', 'Label', 'Catalog Number', 'Target Price', 'Notes', 'Date Added'];
+      const rows = list.map(w => [
+        escapeCSV(w.artist || ''),
+        escapeCSV(w.title || ''),
+        escapeCSV(w.format || '12" LP (Album)'),
+        escapeCSV(w.year || ''),
+        escapeCSV(w.priority || 'standard'),
+        escapeCSV(w.label || ''),
+        escapeCSV(w.catNo || ''),
+        escapeCSV(w.targetPrice || w.estPrice || ''),
+        escapeCSV(w.notes || ''),
+        escapeCSV(w.addedAt || '')
+      ].join(','));
+      downloadCSV([headers.join(','), ...rows].join('\n'), `QMC_Wishlist_${new Date().toISOString().slice(0, 10)}.csv`);
+      showToast(`Exported ${list.length} Wishlist items to CSV!`, 'success');
     }
 
     let gapScannerSource = 'albums'; // 'albums' | 'playlist'
@@ -24025,7 +24758,8 @@
         crates: (typeof getQmcCrates === 'function') ? getQmcCrates() : [],
         recordBox: (typeof getQmcRecordBox === 'function') ? getQmcRecordBox() : [],
         savedBoxes: (typeof getQmcSavedBoxes === 'function') ? getQmcSavedBoxes() : [],
-        savedSets: (typeof getQmcSavedSets === 'function') ? getQmcSavedSets() : []
+        savedSets: (typeof getQmcSavedSets === 'function') ? getQmcSavedSets() : [],
+        wantlist: (typeof getMMAWantlist === 'function') ? getMMAWantlist() : []
       };
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPayload, null, 2));
       const downloadAnchor = document.createElement('a');
@@ -24067,6 +24801,9 @@
             }
             if (Array.isArray(imported.savedSets) && typeof saveQmcSavedSets === 'function') {
               saveQmcSavedSets(imported.savedSets);
+            }
+            if (Array.isArray(imported.wantlist) && typeof saveMMAWantlist === 'function') {
+              saveMMAWantlist(imported.wantlist);
             }
             renderStats();
             renderRecords();
