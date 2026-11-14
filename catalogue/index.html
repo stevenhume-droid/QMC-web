@@ -23,10 +23,10 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <!-- HTML5-QRCode Scanner Library -->
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  <!-- SheetJS (xlsx) for Excel (.xlsx, .xls) and CSV parsing/exporting -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Lazy library loaders (html5-qrcode & SheetJS XLSX loaded on demand) -->
+  <script src="js/lazy-libs.js"></script>
+  <!-- Sync tombstones & semantic deduplication engine -->
+  <script src="js/sync-dedup.js"></script>
   <!-- Supabase JS Client for Multi-User Cloud Sync & Auth -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -1431,7 +1431,7 @@
         <!-- Collapsible Search Input (toggled via #searchToggleBtn) -->
         <div id="globalSearchWrapper" class="hidden relative w-full">
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-          <input type="text" id="globalSearch" oninput="handleSearchFilterChange()"
+          <input type="text" id="globalSearch" oninput="debouncedSearchFilterChange()"
             placeholder="Search Artist, Album, Title, Label, Cat #, Matrix..."
             class="w-full pl-8 pr-9 py-2 bg-vinyl-850/95 backdrop-blur-md border border-vinyl-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brass-500 focus:ring-1 focus:ring-brass-500 shadow-md">
           <button type="button"
@@ -1711,7 +1711,7 @@
   <!-- MODAL: INSURING YOUR COLLECTION ADVISORY GUIDE -->
   <!-- ============================================== -->
   <div id="insuranceModal"
-    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto">
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[85] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto" style="z-index: 85;">
     <div
       class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
 
@@ -2047,7 +2047,7 @@
   <!-- MODAL: BATCH EXCEL / CSV UPLOAD ENGINE         -->
   <!-- ============================================== -->
   <div id="batchUploadModal"
-    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto">
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[85] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto" style="z-index: 85;">
     <div
       class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-3xl flex flex-col shadow-2xl overflow-hidden my-auto">
 
@@ -2190,7 +2190,7 @@
   <!-- MODAL: IMPORT FROM DISCOGS (CSV EXPORT)        -->
   <!-- ============================================== -->
   <div id="discogsImportModal"
-    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto">
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[85] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto" style="z-index: 85;">
     <div
       class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-3xl flex flex-col shadow-2xl overflow-hidden my-auto">
 
@@ -3334,7 +3334,7 @@
   <!-- MODAL: MEMBER AUTH & MULTI-USER CLOUD SYNC     -->
   <!-- ============================================== -->
   <div id="authModal"
-    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden overflow-y-auto">
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[85] flex items-center justify-center p-3 sm:p-4 hidden overflow-y-auto" style="z-index: 85;">
     <div
       class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-md flex flex-col shadow-2xl overflow-hidden my-auto">
 
@@ -4508,10 +4508,51 @@
   </div>
 
   <!-- ============================================== -->
+  <!-- MODAL: INTERACTIVE DUPLICATE RESOLUTION DIFF   -->
+  <!-- ============================================== -->
+  <div id="duplicateResolutionModal"
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[90] flex items-center justify-center p-3 sm:p-4 hidden overflow-y-auto" style="z-index: 90;">
+    <div class="bg-vinyl-900 border border-amber-500/50 rounded-2xl w-full max-w-2xl flex flex-col shadow-2xl overflow-hidden my-auto animate-fadeIn">
+      <div class="px-5 py-3.5 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-400">
+            <i class="fa-solid fa-code-compare text-sm"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-white text-sm sm:text-base">Possible Duplicate Detected</h3>
+            <p id="dupResMatchBadge" class="text-[11px] text-amber-300 font-mono">Canonical Fingerprint Match</p>
+          </div>
+        </div>
+        <button type="button" onclick="resolveDuplicateIngest('skip')"
+          class="w-8 h-8 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="duplicateResolutionBody" class="p-4 sm:p-5 space-y-4 overflow-y-auto max-h-[65vh] text-xs">
+        <!-- Populated dynamically by openDuplicateResolutionModal() -->
+      </div>
+      <div class="px-5 py-3.5 border-t border-vinyl-800 bg-vinyl-850 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2">
+        <button type="button" onclick="resolveDuplicateIngest('skip')"
+          class="px-3.5 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border border-vinyl-700 text-xs font-semibold transition cursor-pointer">
+          Skip / Cancel Ingest
+        </button>
+        <button type="button" onclick="resolveDuplicateIngest('copy')"
+          class="px-3.5 py-2 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/40 text-xs font-bold transition cursor-pointer">
+          Add as Additional Copy / Variant
+        </button>
+        <button type="button" onclick="resolveDuplicateIngest('merge')"
+          class="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-vinyl-950 text-xs font-bold transition shadow cursor-pointer">
+          Merge &amp; Enrich Existing (Recommended)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
   <!-- MODAL: SHARE READ-ONLY ARCHIVE LINK             -->
   <!-- ============================================== -->
   <div id="shareModal"
-    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden overflow-y-auto">
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[85] flex items-center justify-center p-3 sm:p-4 hidden overflow-y-auto" style="z-index: 85;">
     <div
       class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-lg flex flex-col shadow-2xl overflow-hidden my-auto animate-fadeIn">
 
@@ -4643,7 +4684,7 @@
   <!-- MODAL: BATCH GENRE AUTO-ENRICHMENT             -->
   <!-- ============================================== -->
   <div id="batchGenreModal"
-    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto">
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[85] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto" style="z-index: 85;">
     <div
       class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-2xl flex flex-col shadow-2xl overflow-hidden my-auto">
 
@@ -4772,7 +4813,7 @@
   <!-- MODAL: BATCH ARCHIVE METADATA & FORMAT REFRESH -->
   <!-- ============================================== -->
   <div id="batchMetadataRefreshModal"
-    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto">
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[85] flex items-center justify-center p-2 sm:p-4 hidden overflow-y-auto" style="z-index: 85;">
     <div
       class="bg-vinyl-900 border border-vinyl-700 rounded-2xl w-full max-w-2xl flex flex-col shadow-2xl overflow-hidden my-auto">
 
@@ -8508,23 +8549,38 @@
           try { autoSeeded = localStorage.getItem(SAMPLES_AUTO_SEEDED_KEY) === 'true'; } catch (e) { }
 
           let cloudRecords = data.map(mapDbToRecord);
+          const tombstones = (typeof getSyncTombstones === 'function') ? getSyncTombstones() : [];
+          if (tombstones.length > 0 && typeof isRecordTombstoned === 'function') {
+            cloudRecords = cloudRecords.filter(r => !isRecordTombstoned(r, tombstones));
+          }
           if (dismissed) {
             cloudRecords = cloudRecords.filter(r => !sampleIds.has(r.id));
           }
-          // Preserve local unsynced records, but never merge back auto-seeded or dismissed samples
+          // Preserve local unsynced records, but never merge back auto-seeded, dismissed, or tombstoned samples
           const cloudIds = new Set(cloudRecords.map(r => r.id));
           const localOnly = records.filter(r => {
             if (cloudIds.has(r.id)) return false;
             if ((autoSeeded || dismissed) && sampleIds.has(r.id)) return false;
+            if (tombstones.length > 0 && typeof isRecordTombstoned === 'function' && isRecordTombstoned(r, tombstones)) return false;
             return true;
           });
-          records = [...cloudRecords, ...localOnly];
+          let mergedList = [...cloudRecords, ...localOnly];
+          let mergedDuplicates = 0;
+          if (typeof consolidateDuplicateRecords === 'function') {
+            const consolidated = consolidateDuplicateRecords(mergedList);
+            mergedList = consolidated.records;
+            mergedDuplicates = consolidated.mergedCount || 0;
+          }
+          records = mergedList;
           try { localStorage.removeItem(SAMPLES_AUTO_SEEDED_KEY); } catch (e) { }
           backfillMissingValuations();
           saveRecordsToStorage();
           renderStats();
           renderRecords();
-          if (!silent) showToast(`Synced ${records.length} records from your private cloud archive!`);
+          if (!silent) {
+            const dupNote = mergedDuplicates > 0 ? ` (${mergedDuplicates} duplicate${mergedDuplicates === 1 ? '' : 's'} merged)` : '';
+            showToast(`Synced ${records.length} records from your private cloud archive${dupNote}!`);
+          }
         } else if (records.length === 0) {
           renderStats();
           renderRecords();
@@ -8660,13 +8716,31 @@
         }
       } catch (e) { }
 
-      // Keyboard Shortcut: Ctrl + Enter saves and adds next
+      // Keyboard Shortcuts:
+      // 1) Ctrl/Cmd + Enter in Record Form saves and adds next
+      // 2) Esc closes only the topmost active modal/drawer (Tier 5 -> Tier 4 -> Tier 3)
+      // 3) '/' (outside inputs) opens & focuses search
       document.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
           const modal = document.getElementById('recordModal');
-          if (!modal.classList.contains('hidden')) {
+          if (modal && !modal.classList.contains('hidden')) {
             e.preventDefault();
             saveRecordForm(e, true);
+          }
+          return;
+        }
+        if (e.key === 'Escape') {
+          if (typeof closeTopmostModal === 'function' && closeTopmostModal()) {
+            e.preventDefault();
+          }
+          return;
+        }
+        if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+          const active = document.activeElement;
+          const isEditable = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT' || active.isContentEditable);
+          if (!isEditable && typeof toggleSearchBar === 'function') {
+            e.preventDefault();
+            toggleSearchBar(true);
           }
         }
       });
@@ -12751,7 +12825,7 @@
     /* =========================================================
        STATISTICS & VALUATION SUMMARY
        ========================================================= */
-    function renderStats() {
+    function renderStats(skipDropdownRebuild = false) {
       const total = records.length;
       const totalEl = document.getElementById('statTotalItems');
       if (totalEl) totalEl.innerText = total;
@@ -13118,7 +13192,9 @@
         decadeChips.innerHTML = chipsHtml;
       }
 
-      populateDashboardFilterDropdowns();
+      if (!skipDropdownRebuild) {
+        populateDashboardFilterDropdowns();
+      }
     }
 
     function populateDashboardFilterDropdowns() {
@@ -13367,6 +13443,15 @@
       }
     }
 
+    let _searchDebounceTimer = null;
+    function debouncedSearchFilterChange() {
+      if (_searchDebounceTimer) clearTimeout(_searchDebounceTimer);
+      _searchDebounceTimer = setTimeout(() => {
+        _searchDebounceTimer = null;
+        handleSearchFilterChange();
+      }, 180);
+    }
+
     function handleSearchFilterChange() {
       const activeEl = typeof document !== 'undefined' ? document.activeElement : null;
       if (activeEl && activeEl.id === 'globalSearch' && activeArtistFilter) {
@@ -13380,7 +13465,7 @@
       updateSearchToggleBtnUI();
       renderRecords();
       renderActivePills();
-      renderStats();
+      renderStats(true);
     }
 
     function renderActivePills() {
@@ -13736,6 +13821,41 @@
         closeAddToHomeScreenModal();
         showToast('QMC Archive added to your Home Screen!');
       }
+    }
+
+    function closeTopmostModal() {
+      const modalOrder = [
+        { id: 'artworkChooserModal', close: () => closeArtworkChooserModal?.() },
+        { id: 'bioEditorModal', close: () => document.getElementById('bioEditorModal')?.classList.add('hidden') },
+        { id: 'scannerModal', close: () => closeScannerModal?.() },
+        { id: 'duplicateResolutionModal', close: () => resolveDuplicateIngest?.('skip') },
+        { id: 'recordModal', close: () => closeAddEditModal?.() },
+        { id: 'crateAssignModal', close: () => closeCrateAssignModal?.() },
+        { id: 'extendedArchivalModal', close: () => document.getElementById('extendedArchivalModal')?.classList.add('hidden') },
+        { id: 'recordBoxDrawer', close: () => closeRecordBoxDrawer?.() },
+        { id: 'wishlistModal', close: () => closeWishlistModal?.() },
+        { id: 'gapModal', close: () => closeGapModal?.() },
+        { id: 'spotifyAuthModal', close: () => closeSpotifyAuthModal?.() },
+        { id: 'exportModal', close: () => closeExportModal?.() },
+        { id: 'authModal', close: () => closeAuthModal?.() },
+        { id: 'shareModal', close: () => closeShareModal?.() },
+        { id: 'batchUploadModal', close: () => closeBatchUploadModal?.() },
+        { id: 'discogsImportModal', close: () => closeDiscogsImportModal?.() },
+        { id: 'batchGenreModal', close: () => closeBatchGenreModal?.() },
+        { id: 'batchMetadataRefreshModal', close: () => closeBatchMetadataRefreshModal?.() },
+        { id: 'valuationModal', close: () => closeValuationModal?.() },
+        { id: 'insuranceModal', close: () => closeInsuranceModal?.() },
+        { id: 'detailModal', close: () => closeDetailModal?.() }
+      ];
+      for (const entry of modalOrder) {
+        const el = document.getElementById(entry.id);
+        if (el && !el.classList.contains('hidden')) {
+          if (typeof entry.close === 'function') entry.close();
+          else el.classList.add('hidden');
+          return true;
+        }
+      }
+      return false;
     }
 
     function closeAllModals() {
@@ -16716,8 +16836,14 @@
       }
     }
 
+    function getQmcRecordBoxIdSet() {
+      const box = (typeof getQmcRecordBox === 'function') ? getQmcRecordBox() : [];
+      return new Set(box.map(b => String(b.record_id || b.id || b)));
+    }
+
     function renderGridView(list, container) {
       const sym = getCurrencySymbol();
+      const boxIdSet = getQmcRecordBoxIdSet();
 
       // Compact Mode: 2-column mobile grid maximizing screen real estate (4-6 albums visible simultaneously)
       if (currentGridDensity === 'compact') {
@@ -16729,7 +16855,7 @@
           const hasVal = areValuesVisible && item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
           const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
           const telemetry = deriveRecordTelemetry(item);
-          const inBox = (typeof isRecordInBox === 'function') ? isRecordInBox(item.id) : false;
+          const inBox = boxIdSet.has(String(item.id));
 
           html += `
             <div class="bg-vinyl-900 rounded-xl border border-vinyl-800 hover:border-brass-500/50 transition-all duration-200 overflow-hidden shadow-md flex flex-col group cursor-pointer" onclick="viewRecordDetail('${safeId}')">
@@ -20710,6 +20836,92 @@
       sessionDefaults.sleeveGrade = recordObj.sleeveGrade;
       sessionDefaults.country = recordObj.country;
 
+      // Ingest Duplicate Detection Engine (for new records unless explicitly resolved)
+      if (isNew && !recordObj.isIntentionalDuplicateCopy && typeof findDuplicateRecordMatch === 'function') {
+        const dupMatch = findDuplicateRecordMatch(recordObj, records, newId);
+        if (dupMatch && dupMatch.record) {
+          openDuplicateResolutionModal(dupMatch, recordObj, andAddNext);
+          return;
+        }
+      }
+
+      finalizeRecordSave(recordObj, isNew, andAddNext);
+    }
+
+    let _pendingDuplicateResolution = null;
+
+    function openDuplicateResolutionModal(dupMatch, incomingRec, andAddNext = false) {
+      const modal = document.getElementById('duplicateResolutionModal');
+      const badge = document.getElementById('dupResMatchBadge');
+      const body = document.getElementById('duplicateResolutionBody');
+      if (!modal || !body) {
+        finalizeRecordSave(incomingRec, true, andAddNext);
+        return;
+      }
+      _pendingDuplicateResolution = {
+        existingId: dupMatch.record.id,
+        incomingRec,
+        andAddNext
+      };
+      if (badge) badge.textContent = dupMatch.matchType || 'Canonical Fingerprint Match';
+      const ex = dupMatch.record;
+      const inc = incomingRec;
+      body.innerHTML = `
+        <p class="text-slate-300 leading-relaxed">
+          An archival record matching <strong class="text-white">${escapeHtml(inc.artist)} — ${escapeHtml(inc.title)}</strong> already exists in your archive. Choose how to proceed:
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="p-3 rounded-xl bg-vinyl-950/90 border border-vinyl-700 space-y-1.5">
+            <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Existing Archive Record</div>
+            <div class="font-bold text-white truncate">${escapeHtml(ex.artist)} — ${escapeHtml(ex.title)}</div>
+            <div class="text-[11px] text-slate-400 font-mono">Format: ${escapeHtml(ex.format || '—')}</div>
+            <div class="text-[11px] text-slate-400 font-mono">Label/Cat#: ${escapeHtml(ex.label || '—')} ${ex.catNo ? `(${escapeHtml(ex.catNo)})` : ''}</div>
+            <div class="text-[11px] text-slate-400 font-mono">Year: ${escapeHtml(ex.year || '—')} · Grade: ${escapeHtml(ex.mediaGrade || '—')}</div>
+          </div>
+          <div class="p-3 rounded-xl bg-vinyl-950/90 border border-amber-500/40 space-y-1.5">
+            <div class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Incoming Entry</div>
+            <div class="font-bold text-white truncate">${escapeHtml(inc.artist)} — ${escapeHtml(inc.title)}</div>
+            <div class="text-[11px] text-slate-400 font-mono">Format: ${escapeHtml(inc.format || '—')}</div>
+            <div class="text-[11px] text-slate-400 font-mono">Label/Cat#: ${escapeHtml(inc.label || '—')} ${inc.catNo ? `(${escapeHtml(inc.catNo)})` : ''}</div>
+            <div class="text-[11px] text-slate-400 font-mono">Year: ${escapeHtml(inc.year || '—')} · Grade: ${escapeHtml(inc.mediaGrade || '—')}</div>
+          </div>
+        </div>
+      `;
+      modal.classList.remove('hidden');
+    }
+
+    function resolveDuplicateIngest(action) {
+      const modal = document.getElementById('duplicateResolutionModal');
+      if (modal) modal.classList.add('hidden');
+      const ctx = _pendingDuplicateResolution;
+      _pendingDuplicateResolution = null;
+      if (!ctx || action === 'skip') {
+        if (ctx) showToast('Duplicate ingest cancelled.', 'info');
+        return;
+      }
+      if (action === 'copy') {
+        ctx.incomingRec.isIntentionalDuplicateCopy = true;
+        finalizeRecordSave(ctx.incomingRec, true, ctx.andAddNext);
+        return;
+      }
+      if (action === 'merge') {
+        const idx = records.findIndex(r => String(r.id) === String(ctx.existingId));
+        if (idx !== -1) {
+          const merged = (typeof mergeRecordMetadata === 'function')
+            ? mergeRecordMetadata(records[idx], ctx.incomingRec)
+            : { ...records[idx], ...ctx.incomingRec, id: records[idx].id };
+          records[idx] = merged;
+          finalizeRecordSave(merged, false, ctx.andAddNext);
+          showToast(`Merged & enriched "${merged.title}"!`, 'success');
+        } else {
+          finalizeRecordSave(ctx.incomingRec, true, ctx.andAddNext);
+        }
+      }
+    }
+
+    function finalizeRecordSave(recordObj, isNew, andAddNext = false) {
+      const newId = recordObj.id;
+
       if (currentUser) {
         recordObj.userId = currentUser.id;
         recordObj.ownerName = memberProfile.display_name || currentUserProfile?.display_name || currentUser.user_metadata?.display_name || currentUser.email.split('@')[0];
@@ -20823,6 +21035,9 @@
             showToast("Cloud delete error: " + err.message, "error");
             return;
           }
+        }
+        if (typeof addSyncTombstone === 'function') {
+          addSyncTombstone(record);
         }
         records = records.filter(r => String(r.id) !== String(id));
         const sampleIds = getSampleRecordIds();
@@ -24513,6 +24728,14 @@
         modal.style.zIndex = '95';
       }
       isBarcodeScanningPaused = false;
+      if (typeof ensureHtml5QrcodeLoaded === 'function') {
+        try {
+          await ensureHtml5QrcodeLoaded();
+        } catch (err) {
+          console.warn('Lazy load html5-qrcode error:', err);
+          showToast('Camera barcode library failed to load (manual barcode entry still works).', 'warning');
+        }
+      }
       await startScannerStream(currentScannerCameraId);
       await populateScannerCameras();
       if (window.innerWidth >= 640) {
@@ -24746,6 +24969,9 @@
       document.getElementById('commitBatchBtn').disabled = true;
       stagedBatchRecords = [];
       document.getElementById('batchUploadModal').classList.remove('hidden');
+      if (typeof ensureXlsxLoaded === 'function') {
+        ensureXlsxLoaded().catch(() => { });
+      }
     }
 
     function closeBatchUploadModal() {
@@ -25725,7 +25951,12 @@
       showToast(`Exported ${list.length} eBay Seller Hub listings!`);
     }
 
-    function exportToExcel() {
+    async function exportToExcel() {
+      if (typeof XLSX === 'undefined' && typeof ensureXlsxLoaded === 'function') {
+        try {
+          await ensureXlsxLoaded();
+        } catch (_) { }
+      }
       if (typeof XLSX === 'undefined') {
         exportToCSV();
         return;
