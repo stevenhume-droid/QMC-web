@@ -4313,6 +4313,12 @@
                 <span class="hidden sm:inline">Auto-Sort:</span>
               </div>
               <div class="flex items-center gap-1.5 flex-nowrap shrink-0">
+                <button type="button" onclick="toggleSetGenreSortMode()" id="btnAutoSortByGenre"
+                  class="px-2 py-1 text-[10.5px] rounded-lg bg-purple-500/15 hover:bg-purple-500/25 active:scale-95 text-purple-300 border border-purple-500/30 font-semibold transition cursor-pointer flex items-center gap-1"
+                  title="Order by Genre Journey first (e.g. 60s → Northern Soul → Funk / Trip Hop → Hip Hop → Britpop), then by BPM, Flow, or Cool Down">
+                  <i class="fa-solid fa-layer-group text-[10px] text-purple-400"></i>
+                  <span id="btnAutoSortByGenreLabel">By Genre</span>
+                </button>
                 <button type="button" onclick="autoSortActiveSet('harmonic')" id="btnAutoSortHarmonic"
                   class="px-2 py-1 text-[10.5px] rounded-lg bg-sky-500/15 hover:bg-sky-500/25 active:scale-95 text-sky-300 border border-sky-500/30 font-semibold transition cursor-pointer flex items-center gap-1"
                   title="Harmonic Camelot Flow: DJ Circle of Fifths key matching & smooth tempo transitions">
@@ -4337,6 +4343,86 @@
                   <i class="fa-brands fa-spotify text-xs text-[#1DB954]"></i>
                   <span id="btnSyncSpotifySetLabel">Sync Spotify</span>
                 </button>
+              </div>
+            </div>
+
+            <!-- Row 4: Genre Progression Sequencer (Order by Genre -> Then BPM, Flow, or Cool Down) -->
+            <div id="setGenreSortPanel" class="hidden pt-2 mt-1.5 border-t border-vinyl-800/90 space-y-2 text-xs">
+              <div class="flex items-center justify-between gap-1.5 flex-wrap">
+                <div class="flex items-center gap-1.5 text-[10.5px] font-bold text-purple-300">
+                  <i class="fa-solid fa-route text-purple-400"></i>
+                  <span>1. Genre Order → 2. Then Sort Within Genre By:</span>
+                </div>
+                <div class="flex items-center gap-1 flex-wrap">
+                  <button type="button" onclick="autoSortActiveSet('genre-bpm-asc')" id="btnGenreThenBpmAsc"
+                    class="px-2 py-0.5 text-[10px] rounded-md bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 font-semibold transition cursor-pointer flex items-center gap-1"
+                    title="Order by Genre sequence first, then Ascending BPM within each genre">
+                    <i class="fa-solid fa-arrow-trend-up text-[9px]"></i>
+                    <span>Genre + BPM</span>
+                  </button>
+                  <button type="button" onclick="autoSortActiveSet('genre-harmonic')" id="btnGenreThenHarmonic"
+                    class="px-2 py-0.5 text-[10px] rounded-md bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 font-semibold transition cursor-pointer flex items-center gap-1"
+                    title="Order by Genre sequence first, then Harmonic Camelot Flow within & across each genre">
+                    <i class="fa-solid fa-compact-disc text-[9px]"></i>
+                    <span>Genre + Flow</span>
+                  </button>
+                  <button type="button" onclick="autoSortActiveSet('genre-bpm-desc')" id="btnGenreThenBpmDesc"
+                    class="px-2 py-0.5 text-[10px] rounded-md bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 font-semibold transition cursor-pointer flex items-center gap-1"
+                    title="Order by Genre sequence first, then Cool Down (Descending BPM) within each genre">
+                    <i class="fa-solid fa-arrow-trend-down text-[9px]"></i>
+                    <span>Genre + Cool Down</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Active Genre Sequence Pills (Reorderable / Mergeable) -->
+              <div id="setGenreSequenceChips" class="flex items-center gap-1 overflow-x-auto py-1 no-scrollbar">
+                <!-- Populated dynamically by renderSetGenreSortPanel() -->
+              </div>
+
+              <!-- Custom Genre Progression Input & Presets -->
+              <div class="flex items-center gap-1.5">
+                <input type="text" id="setGenreSequenceInput"
+                  placeholder="e.g. 60s - Northern Soul - Funk / Trip Hop - Hip Hop - Britpop"
+                  onkeydown="if(event.key==='Enter'){event.preventDefault();applySetGenreSequenceFromInput();}"
+                  class="flex-1 min-w-0 bg-vinyl-950/90 border border-vinyl-750 focus:border-purple-500/60 rounded-lg px-2 py-1 text-[11px] text-white font-mono focus:outline-none">
+                <button type="button" onclick="applySetGenreSequenceFromInput()" id="btnApplyGenreSequence"
+                  class="px-2.5 py-1 rounded-lg bg-purple-500 hover:bg-purple-400 active:scale-95 text-vinyl-950 font-bold text-[10.5px] shrink-0 transition cursor-pointer"
+                  title="Apply custom genre progression and sort set">
+                  Apply &amp; Sort
+                </button>
+              </div>
+
+              <!-- Quick Journey Presets & Available Genre Chips -->
+              <div class="flex items-center gap-1 overflow-x-auto no-scrollbar pt-0.5 text-[10px]">
+                <span class="text-slate-400 font-semibold shrink-0">Presets:</span>
+                <button type="button" id="btnPresetModToBritpop"
+                  onclick="applySetGenrePreset('60s - Northern Soul - Funk / Trip Hop - Hip Hop - Britpop')"
+                  class="px-2 py-0.5 rounded bg-purple-500/15 hover:bg-purple-500/25 text-purple-200 border border-purple-500/30 font-mono shrink-0 transition cursor-pointer"
+                  title="Apply progression: 60s → Northern Soul → Funk / Trip Hop → Hip Hop → Britpop">
+                  60s → Northern Soul → Funk/Trip Hop → Hip Hop → Britpop
+                </button>
+                <button type="button"
+                  onclick="applySetGenrePreset('Soul - Northern Soul - Funk - Disco - House')"
+                  class="px-2 py-0.5 rounded bg-vinyl-800 hover:bg-vinyl-750 text-slate-300 border border-vinyl-700 font-mono shrink-0 transition cursor-pointer"
+                  title="Apply progression: Soul → Northern Soul → Funk → Disco → House">
+                  Soul → Funk → Disco → House
+                </button>
+                <button type="button"
+                  onclick="applySetGenrePreset('60s - 70s - 80s - 90s - 00s')"
+                  class="px-2 py-0.5 rounded bg-vinyl-800 hover:bg-vinyl-750 text-slate-300 border border-vinyl-700 font-mono shrink-0 transition cursor-pointer"
+                  title="Apply chronological decade progression: 60s → 70s → 80s → 90s → 00s">
+                  60s → 70s → 80s → 90s → 00s
+                </button>
+                <button type="button" id="btnAutoDetectSetGenres"
+                  onclick="autoDetectSetGenreSequence(true)"
+                  class="px-2 py-0.5 rounded bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 font-semibold shrink-0 transition cursor-pointer"
+                  title="Scan tracks in current set and build a natural genre progression">
+                  <i class="fa-solid fa-wand-magic-sparkles text-[9px]"></i> Auto-Detect from Set
+                </button>
+              </div>
+              <div id="setGenreAvailableChips" class="flex items-center gap-1 overflow-x-auto no-scrollbar text-[10px]">
+                <!-- Quick +Add Genre chips populated dynamically -->
               </div>
             </div>
           </div>
@@ -9036,14 +9122,18 @@
       const sets = getQmcSavedSets();
       const targetId = setId || ('set_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6));
       const existing = sets.find(s => String(s.set_id) === String(targetId));
+      const srcObj = (typeof setTitle === 'object' && setTitle !== null) ? setTitle : null;
       const payload = {
         set_id: targetId,
-        title: (setTitle || 'Untitled Set').trim(),
+        title: ( (srcObj ? srcObj.title : setTitle) || 'Untitled Set').trim(),
         description: (description || '').trim(),
         created_at: existing ? existing.created_at : new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        spotify_playlist_id: (typeof setTitle === 'object' && setTitle?.spotify_playlist_id) ? setTitle.spotify_playlist_id : (existing ? (existing.spotify_playlist_id || null) : null),
-        spotify_playlist_url: (typeof setTitle === 'object' && setTitle?.spotify_playlist_url) ? setTitle.spotify_playlist_url : (existing ? (existing.spotify_playlist_url || null) : null),
+        spotify_playlist_id: (srcObj && srcObj.spotify_playlist_id) ? srcObj.spotify_playlist_id : (existing ? (existing.spotify_playlist_id || null) : null),
+        spotify_playlist_url: (srcObj && srcObj.spotify_playlist_url) ? srcObj.spotify_playlist_url : (existing ? (existing.spotify_playlist_url || null) : null),
+        genre_sort_enabled: (srcObj && typeof srcObj.genre_sort_enabled === 'boolean') ? srcObj.genre_sort_enabled : (existing ? Boolean(existing.genre_sort_enabled) : false),
+        genre_sub_sort: (srcObj && srcObj.genre_sub_sort) ? srcObj.genre_sub_sort : (existing ? (existing.genre_sub_sort || 'harmonic') : 'harmonic'),
+        genre_sequence: (srcObj && Array.isArray(srcObj.genre_sequence)) ? [...srcObj.genre_sequence] : (existing && Array.isArray(existing.genre_sequence) ? [...existing.genre_sequence] : []),
         tracks: Array.isArray(tracks) ? tracks.map((t, idx) => ({
           position: idx + 1,
           record_id: t.record_id || '',
@@ -9055,6 +9145,12 @@
           key: t.key || t.musical_key || '',
           musical_key: t.musical_key || t.key || '',
           camelot: t.camelot || '',
+          genre: t.genre || '',
+          styles: Array.isArray(t.styles) ? t.styles : [],
+          genres: t.genres || '',
+          year: t.year || null,
+          set_genre: t.set_genre || '',
+          matched_genre_stage: t.matched_genre_stage || '',
           rpm: t.rpm || t.speed || '',
           speed: t.speed || t.rpm || '',
           cue_note: t.cue_note || '',
@@ -9281,6 +9377,9 @@
       id: null,
       title: 'Session Set ' + new Date().toLocaleDateString('en-GB'),
       description: 'QMC Vinyl Session',
+      genre_sort_enabled: false,
+      genre_sub_sort: 'harmonic',
+      genre_sequence: [],
       tracks: []
     };
     const expandedBoxRecordIds = new Set();
@@ -9901,8 +10000,12 @@
     <div class="row no-print">
       <select id="popSetPicker" onchange="switchSet(this.value)" style="flex:1; min-width:200px;"></select>
       <input type="text" id="popSetTitle" oninput="updateTitle(this.value)" placeholder="Set Title..." style="flex:1.5; min-width:220px;">
+      <button class="btn btn-sky" onclick="sortTracks('harmonic')" title="Harmonic Camelot Flow"><i class="fa-solid fa-compact-disc"></i> Flow</button>
       <button class="btn" onclick="sortTracks('bpm-asc')" title="Sort Ascending BPM"><i class="fa-solid fa-arrow-trend-up"></i> BPM ↑</button>
-      <button class="btn" onclick="sortTracks('bpm-desc')" title="Sort Descending BPM"><i class="fa-solid fa-arrow-trend-down"></i> BPM ↓</button>
+      <button class="btn" onclick="sortTracks('bpm-desc')" title="Sort Descending BPM (Cool Down)"><i class="fa-solid fa-arrow-trend-down"></i> Cool Down ↓</button>
+      <button class="btn" onclick="sortTracks('genre-bpm-asc')" title="Order by Genre then Ascending BPM" style="border-color:rgba(168,85,247,0.45);color:#d8b4fe;"><i class="fa-solid fa-layer-group"></i> Genre+BPM</button>
+      <button class="btn" onclick="sortTracks('genre-harmonic')" title="Order by Genre then Harmonic Flow" style="border-color:rgba(168,85,247,0.45);color:#d8b4fe;"><i class="fa-solid fa-layer-group"></i> Genre+Flow</button>
+      <button class="btn" onclick="sortTracks('genre-bpm-desc')" title="Order by Genre then Cool Down" style="border-color:rgba(168,85,247,0.45);color:#d8b4fe;"><i class="fa-solid fa-layer-group"></i> Genre+Cool Down</button>
       <button class="btn" onclick="clearTracks()" title="Clear Timeline"><i class="fa-solid fa-trash-can"></i> Clear</button>
     </div>
     <div class="telemetry">
@@ -9985,11 +10088,16 @@
     }
 
     function sortTracks(dir) {
+      if (window.opener && typeof window.opener.autoSortActiveSet === 'function') {
+        window.opener.autoSortActiveSet(dir);
+        render();
+        return;
+      }
       const st = getLiveSet();
       st.tracks.sort((a, b) => {
         const ba = parseFloat(a.bpm) || 110;
         const bb = parseFloat(b.bpm) || 110;
-        return dir === 'bpm-desc' ? (bb - ba) : (ba - bb);
+        return dir.includes('desc') ? (bb - ba) : (ba - bb);
       });
       pushLiveSet(st);
     }
@@ -10095,6 +10203,7 @@
             (t.side_index ? '<span class="tag">[' + esc(t.side_index) + ']</span>' : '') +
             '<span class="tag ' + (is45 ? 'tag-45' : '') + '">' + esc(spd) + '</span>' +
             '<span>' + esc(t.duration || '--:--') + '</span>' +
+            ((t.matched_genre_stage || t.set_genre || t.genre) ? '<span class="tag" style="color:#d8b4fe;border-color:rgba(168,85,247,0.4);">' + esc(t.matched_genre_stage || t.set_genre || t.genre) + '</span>' : '') +
             (t.bpm ? '<span class="tag" style="color:var(--emerald);">' + esc(t.bpm) + ' BPM</span>' : '') +
             (t.key ? '<span class="tag" style="color:var(--sky);">' + esc(t.key) + (t.camelot ? ' · ' + esc(t.camelot) : '') + '</span>' : '') +
             '<input type="text" value="' + esc(t.cue_note || '') + '" placeholder="+ Add transition / cue note..." onchange="updateCue(' + i + ', this.value)" style="margin-left:auto;min-width:220px;font-size:11px;padding:4px 8px;">' +
@@ -10131,6 +10240,9 @@
       if (!timelineEl) return;
 
       renderActiveSetPicker();
+      if (typeof renderSetGenreSortPanel === 'function') {
+        renderSetGenreSortPanel();
+      }
 
       if (titleInput && titleInput.value !== activeSetState.title) {
         titleInput.value = activeSetState.title || '';
@@ -10202,6 +10314,12 @@
         return;
       }
 
+      const activeSeq = (Array.isArray(activeSetState.genre_sequence) && activeSetState.genre_sequence.length > 0)
+        ? activeSetState.genre_sequence
+        : [];
+      let prevStageBanner = null;
+      let stageOrderCounter = 0;
+
       let html = '';
       activeSetState.tracks.forEach((track, index) => {
         const posNum = index + 1;
@@ -10229,6 +10347,35 @@
         const safeBpm = bpmVal ? escapeHtml(String(bpmVal)) : '';
         const safeKey = keyVal ? escapeHtml(String(keyVal)) : '';
         const safeCamelot = camelotVal ? escapeHtml(String(camelotVal)) : '';
+
+        const gTelem = (typeof getTrackGenreTelemetry === 'function') ? getTrackGenreTelemetry(track) : { naturalGenre: track.genre || '' };
+        const resolvedStageObj = (activeSeq.length > 0 && typeof resolveTrackGenreStage === 'function')
+          ? resolveTrackGenreStage(track, activeSeq, gTelem)
+          : null;
+        const displayGenreStage = track.set_genre || (resolvedStageObj && resolvedStageObj.matched ? resolvedStageObj.stageLabel : '') || track.matched_genre_stage || gTelem.naturalGenre || '';
+        const safeGenreBadge = displayGenreStage ? escapeHtml(String(displayGenreStage)) : '';
+
+        // Render Genre Stage Divider Header when Genre Ordering is enabled
+        if (activeSetState.genre_sort_enabled && displayGenreStage && displayGenreStage !== prevStageBanner) {
+          prevStageBanner = displayGenreStage;
+          stageOrderCounter++;
+          html += `
+            <div class="flex items-center justify-between px-2.5 py-1 rounded-lg bg-purple-500/15 border border-purple-500/30 text-[10.5px] font-mono text-purple-200 mt-1">
+              <div class="flex items-center gap-1.5 font-bold">
+                <span class="px-1.5 py-0.2 rounded bg-purple-500 text-vinyl-950 text-[9px] font-extrabold">STAGE ${stageOrderCounter}</span>
+                <i class="fa-solid fa-layer-group text-[9px] text-purple-400"></i>
+                <span>${safeGenreBadge}</span>
+              </div>
+              <span class="text-[9.5px] text-purple-300/80">${activeSetState.genre_sub_sort === 'bpm-asc' ? 'BPM Build ↑' : (activeSetState.genre_sub_sort === 'bpm-desc' ? 'Cool Down ↓' : 'Harmonic Flow')}</span>
+            </div>
+          `;
+        }
+
+        const stageOptionsList = Array.from(new Set([
+          ...activeSeq,
+          ...(gTelem.allCandidates || []),
+          '60s', 'Northern Soul', 'Funk / Trip Hop', 'Hip Hop', 'Britpop', 'Soul', 'Funk', 'Trip Hop', 'Disco', 'House', 'Indie', 'Reggae / Dub'
+        ].filter(Boolean)));
 
         html += `
           <div class="p-2.5 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-1.5 transition hover:border-amber-500/40">
@@ -10266,6 +10413,15 @@
                 ${safeSide ? `<span class="px-1.5 py-0.2 rounded bg-vinyl-800 text-brass-300 border border-vinyl-700 font-bold" title="Physical Side / Track Index">[${safeSide}]</span>` : ''}
                 <span class="px-1.5 py-0.2 rounded ${is45 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-vinyl-800 text-slate-300 border border-vinyl-700'}" title="Playback Speed">${safeSpeed}</span>
                 <span class="text-slate-400 font-medium">${safeDur}</span>
+                <select onchange="updateTrackSetGenre(${index}, this.value)"
+                  title="Track Genre / Era Stage for Set Ordering (click to assign or override stage)"
+                  class="px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold text-[10px] focus:outline-none cursor-pointer">
+                  <option value="" ${!track.set_genre ? 'selected' : ''}>${safeGenreBadge ? `🏷 ${safeGenreBadge}` : '🏷 Genre...'}</option>
+                  ${stageOptionsList.map(stOpt => {
+                    const isSelected = track.set_genre && String(track.set_genre).toLowerCase() === String(stOpt).toLowerCase();
+                    return `<option value="${escapeHtml(stOpt)}" ${isSelected ? 'selected' : ''}>Stage: ${escapeHtml(stOpt)}</option>`;
+                  }).join('')}
+                </select>
                 ${safeBpm ? `<span class="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold flex items-center gap-1" title="DJ BPM (Tempo)"><i class="fa-solid fa-gauge-high text-[8px]"></i>${safeBpm} BPM</span>` : ''}
                 ${safeKey ? `<span class="px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 font-bold flex items-center gap-1" title="Musical Key & Camelot"><i class="fa-solid fa-music text-[8px]"></i>${safeKey}${safeCamelot ? ` · ${safeCamelot}` : ''}</span>` : ''}
               </div>
@@ -10355,6 +10511,10 @@
       const finalBpm = trackObj.bpm || rec?.bpm || telemetry?.bpm || '';
       const finalKey = trackObj.key || trackObj.musical_key || trackObj.musicalKey || rec?.musical_key || rec?.musicalKey || rec?.key || telemetry?.musicalKey || '';
       const finalCamelot = trackObj.camelot || rec?.camelot || (telemetry ? telemetry.camelot : '') || ((typeof CAMELOT_KEY_MAP !== 'undefined' && CAMELOT_KEY_MAP[finalKey]) ? CAMELOT_KEY_MAP[finalKey] : '');
+      const gs = (typeof parseGenreAndStyles === 'function' && rec)
+        ? parseGenreAndStyles(rec.genres || '', rec.genre || '', rec.styles || [])
+        : { genre: rec?.genre || '', styles: Array.isArray(rec?.styles) ? rec.styles : [], genres: rec?.genres || '' };
+      const finalYear = trackObj.year || (rec?.year ? parseInt(rec.year, 10) : null);
 
       activeSetState.tracks.push({
         position: pos,
@@ -10367,6 +10527,11 @@
         key: finalKey,
         musical_key: finalKey,
         camelot: finalCamelot,
+        genre: trackObj.genre || gs.genre || '',
+        styles: Array.isArray(trackObj.styles) ? trackObj.styles : (gs.styles || []),
+        genres: trackObj.genres || gs.genres || '',
+        year: finalYear,
+        set_genre: trackObj.set_genre || '',
         rpm: trackObj.speed || trackObj.rpm || recSpeed,
         speed: trackObj.speed || trackObj.rpm || recSpeed,
         cue_note: trackObj.cue_note || '',
@@ -10428,9 +10593,598 @@
       }
     }
 
+    function updateTrackSetGenre(index, stageVal) {
+      if (!activeSetState.tracks[index]) return;
+      const cleanVal = String(stageVal || '').trim();
+      activeSetState.tracks[index].set_genre = cleanVal;
+      activeSetState.tracks[index].matched_genre_stage = cleanVal;
+      if (cleanVal && Array.isArray(activeSetState.genre_sequence)) {
+        const exists = activeSetState.genre_sequence.some(s => normalizeGenreToken(s) === normalizeGenreToken(cleanVal));
+        if (!exists && activeSetState.genre_sequence.length > 0) {
+          activeSetState.genre_sequence.push(cleanVal);
+        }
+      }
+      saveActiveSet(activeSetState);
+      renderSetBuilderPane();
+    }
+
     /* =========================================================
-       HARMONIC CAMELOT & BPM AUTO-SORT ENGINE + SPOTIFY SYNC
+       GENRE PROGRESSION + HARMONIC CAMELOT & BPM AUTO-SORT ENGINE
        ========================================================= */
+    const CANONICAL_DJ_GENRE_FLOW = [
+      '50s', '60s', 'Beat', 'Mod', 'Garage Rock', 'Psychedelic Rock',
+      'Northern Soul', 'Motown', 'R&B', 'Soul',
+      '70s', 'Funk', 'Funk / Trip Hop', 'Jazz-Funk', 'Acid Jazz', 'Jazz', 'Disco', 'Boogie',
+      'Reggae', 'Dub', 'Reggae / Dub', 'Ska', 'Rocksteady',
+      'Trip Hop', 'Downtempo',
+      'Hip Hop', 'Boom Bap', 'Electro',
+      '80s', 'Post-Punk', 'New Wave', 'Synth-pop', 'Punk', 'Punk Rock',
+      '90s', 'Madchester', 'Britpop', 'Indie Rock', 'Indie', 'Alternative Rock', 'Rock', 'Pop',
+      'House', 'Deep House', 'Acid House', 'Techno', 'Trance', 'Electronic',
+      'Jungle', 'Drum & Bass', 'Breakbeat', 'UK Garage',
+      '00s', '2000s', '10s', '2010s', '20s', '2020s'
+    ];
+
+    const DISCOGS_UMBRELLA_GENRES = new Set([
+      'rock', 'electronic', 'pop', 'funk / soul', 'funk/soul', 'folk, world, & country'
+    ]);
+
+    function normalizeGenreToken(str) {
+      let s = String(str || '').toLowerCase().trim();
+      s = s.replace(/^['’](\d0s)$/, '$1');
+      s = s.replace(/^19(\d0s)$/, '$1');
+      s = s.replace(/^20(00s|10s|20s)$/, '$1');
+      s = s.replace(/[-_]/g, ' ').replace(/\s+/g, ' ').trim();
+      return s;
+    }
+
+    function compactGenreToken(str) {
+      return normalizeGenreToken(str).replace(/\s+/g, '');
+    }
+
+    function isDecadeStageToken(normTok) {
+      return /^(50|60|70|80|90|00|10|20)s$/.test(normTok);
+    }
+
+    function parseGenreProgressionString(inputStr) {
+      if (!inputStr || typeof inputStr !== 'string') return [];
+      // Split stages by ' - ', ' -> ', ' → ', ' > ', ';', '|', or ',' while preserving '/' inside combined stages like 'Funk / Trip Hop'
+      const rawStages = inputStr
+        .split(/(?:\s+[-–—]\s+|\s*(?:->|→|>|;|\||,)\s*)/)
+        .map(s => s.replace(/\s*\/\s*/g, ' / ').replace(/\s+/g, ' ').trim())
+        .filter(Boolean);
+      const unique = [];
+      const seen = new Set();
+      rawStages.forEach(st => {
+        const k = normalizeGenreToken(st);
+        if (k && !seen.has(k)) {
+          seen.add(k);
+          unique.push(st);
+        }
+      });
+      return unique;
+    }
+
+    function deriveDecadeShort(yearVal) {
+      const y = parseInt(yearVal, 10);
+      if (isNaN(y) || y < 1900 || y > 2099) return '';
+      if (y >= 1950 && y <= 1999) {
+        return `${Math.floor((y % 100) / 10) * 10}s`;
+      }
+      if (y >= 2000 && y <= 2009) return '00s';
+      if (y >= 2010 && y <= 2019) return '10s';
+      if (y >= 2020 && y <= 2029) return '20s';
+      return `${Math.floor(y / 10) * 10}s`;
+    }
+
+    function getTrackGenreTelemetry(tr) {
+      if (!tr) return { primaryGenre: '', styles: [], decade: '', naturalGenre: 'Uncategorized', allCandidates: [] };
+      const allRecords = (typeof records !== 'undefined' && Array.isArray(records) ? records : []);
+      let rec = tr.record_id ? allRecords.find(r => String(r.id) === String(tr.record_id)) : null;
+      if (!rec && tr.artist && tr.title) {
+        rec = allRecords.find(r =>
+          String(r.artist || '').toLowerCase() === String(tr.artist || '').toLowerCase() &&
+          String(r.title || '').toLowerCase() === String(tr.title || '').toLowerCase()
+        );
+      }
+
+      const rawGenresStr = tr.genres || rec?.genres || '';
+      const rawGenre = tr.genre || rec?.genre || '';
+      const rawStyles = (Array.isArray(tr.styles) && tr.styles.length > 0)
+        ? tr.styles
+        : (Array.isArray(rec?.styles) ? rec.styles : (tr.styles || rec?.styles || []));
+
+      const gs = (typeof parseGenreAndStyles === 'function')
+        ? parseGenreAndStyles(rawGenresStr, rawGenre, rawStyles)
+        : {
+            genre: String(rawGenre || '').trim(),
+            styles: Array.isArray(rawStyles) ? rawStyles : String(rawStyles || '').split(',').map(s => s.trim()).filter(Boolean),
+            genres: String(rawGenresStr || rawGenre || '')
+          };
+
+      const yearVal = tr.year || rec?.year || null;
+      let decade = deriveDecadeShort(yearVal);
+
+      const explicitTokens = [gs.genre, ...(gs.styles || [])].map(s => String(s || '').trim()).filter(Boolean);
+      const explicitDecadeTok = explicitTokens.find(tok => isDecadeStageToken(normalizeGenreToken(tok)));
+      if (!decade && explicitDecadeTok) {
+        decade = normalizeGenreToken(explicitDecadeTok);
+      }
+
+      // Determine best natural DJ genre/style label for this track
+      let naturalGenre = '';
+      if (tr.set_genre) {
+        naturalGenre = String(tr.set_genre).trim();
+      } else {
+        const primaryNorm = normalizeGenreToken(gs.genre);
+        const isUmbrella = DISCOGS_UMBRELLA_GENRES.has(primaryNorm);
+        if (explicitDecadeTok) {
+          naturalGenre = explicitDecadeTok;
+        } else if (gs.styles && gs.styles.length > 0 && isUmbrella) {
+          // If 1960s Beat/Mod/Pop/Garage and not Northern Soul, allow 60s or specific style
+          const firstStyleNorm = normalizeGenreToken(gs.styles[0]);
+          if (decade === '60s' && ['beat', 'mod', 'garage rock', 'pop rock', 'psychedelic rock', 'rhythm & blues'].includes(firstStyleNorm)) {
+            naturalGenre = '60s';
+          } else {
+            naturalGenre = gs.styles[0];
+          }
+        } else if (gs.genre && !isUmbrella) {
+          naturalGenre = gs.genre;
+        } else if (gs.styles && gs.styles.length > 0) {
+          naturalGenre = gs.styles[0];
+        } else if (decade === '60s') {
+          naturalGenre = '60s';
+        } else if (gs.genre) {
+          naturalGenre = gs.genre === 'Funk / Soul' ? 'Soul' : gs.genre;
+        } else if (decade) {
+          naturalGenre = decade;
+        } else {
+          naturalGenre = 'Other';
+        }
+      }
+
+      const allCandidates = Array.from(new Set([
+        tr.set_genre,
+        ...(gs.styles || []),
+        gs.genre,
+        decade
+      ].map(s => String(s || '').trim()).filter(Boolean)));
+
+      return {
+        primaryGenre: gs.genre || '',
+        styles: gs.styles || [],
+        genresStr: gs.genres || '',
+        year: yearVal,
+        decade,
+        explicitDecadeTok: explicitDecadeTok || '',
+        naturalGenre,
+        allCandidates
+      };
+    }
+
+    function getCanonicalGenreOrderIndex(stageLabel) {
+      const subParts = String(stageLabel || '').split('/').map(s => normalizeGenreToken(s)).filter(Boolean);
+      let bestIdx = 999;
+      for (const part of subParts) {
+        const compactPart = compactGenreToken(part);
+        const foundIdx = CANONICAL_DJ_GENRE_FLOW.findIndex(canon => {
+          const normCanon = normalizeGenreToken(canon);
+          return normCanon === part || compactGenreToken(canon) === compactPart;
+        });
+        if (foundIdx >= 0 && foundIdx < bestIdx) {
+          bestIdx = foundIdx;
+        }
+      }
+      return bestIdx;
+    }
+
+    function resolveTrackGenreStage(tr, genreSequence = [], precomputedGenreTelem = null) {
+      const gTelem = precomputedGenreTelem || getTrackGenreTelemetry(tr);
+      if (!Array.isArray(genreSequence) || genreSequence.length === 0) {
+        return {
+          stageIndex: 0,
+          stageLabel: gTelem.naturalGenre || 'Other',
+          matched: false
+        };
+      }
+
+      const parsedStages = genreSequence.map((rawStage, idx) => {
+        const label = String(rawStage || '').trim();
+        const subTargets = label
+          .split(/\s*(?:\/|&|\+|\bor\b)\s*/i)
+          .map(s => normalizeGenreToken(s))
+          .filter(Boolean);
+        const fullNorm = normalizeGenreToken(label);
+        if (fullNorm && !subTargets.includes(fullNorm)) {
+          subTargets.unshift(fullNorm);
+        }
+        return { index: idx, label, fullNorm, subTargets };
+      });
+
+      const tokensMatch = (a, b) => {
+        if (!a || !b) return false;
+        const na = normalizeGenreToken(a);
+        const nb = normalizeGenreToken(b);
+        return na === nb || compactGenreToken(na) === compactGenreToken(nb);
+      };
+
+      // Priority 1: Explicit user override on track (tr.set_genre)
+      if (tr && tr.set_genre) {
+        for (const st of parsedStages) {
+          if (tokensMatch(tr.set_genre, st.label) || st.subTargets.some(sub => tokensMatch(tr.set_genre, sub))) {
+            return { stageIndex: st.index, stageLabel: st.label, matched: true };
+          }
+        }
+      }
+
+      // Priority 2: Explicit decade tag in track's genre/styles (e.g. literally tagged "60s")
+      if (gTelem.explicitDecadeTok) {
+        for (const st of parsedStages) {
+          if (st.subTargets.some(sub => tokensMatch(gTelem.explicitDecadeTok, sub))) {
+            return { stageIndex: st.index, stageLabel: st.label, matched: true };
+          }
+        }
+      }
+
+      // Priority 3: Specific style match or non-umbrella primary genre match
+      const primaryNorm = normalizeGenreToken(gTelem.primaryGenre);
+      const isUmbrella = DISCOGS_UMBRELLA_GENRES.has(primaryNorm);
+      const specificTokens = [
+        ...(gTelem.styles || []),
+        ...(!isUmbrella && gTelem.primaryGenre ? [gTelem.primaryGenre] : [])
+      ].map(s => normalizeGenreToken(s)).filter(Boolean);
+
+      for (const st of parsedStages) {
+        for (const sub of st.subTargets) {
+          if (isDecadeStageToken(sub)) continue;
+          if (specificTokens.some(tok => tokensMatch(tok, sub))) {
+            return { stageIndex: st.index, stageLabel: st.label, matched: true };
+          }
+        }
+      }
+
+      // Priority 4: Keyword / substring match on specific styles or non-umbrella primary genre
+      for (const st of parsedStages) {
+        for (const sub of st.subTargets) {
+          if (isDecadeStageToken(sub) || sub.length < 3) continue;
+          const compactSub = compactGenreToken(sub);
+          if (specificTokens.some(tok => tok.includes(sub) || sub.includes(tok) || compactGenreToken(tok).includes(compactSub))) {
+            return { stageIndex: st.index, stageLabel: st.label, matched: true };
+          }
+        }
+      }
+
+      // Priority 5: Release Decade match (e.g. 1964 -> '60s')
+      if (gTelem.decade) {
+        for (const st of parsedStages) {
+          if (st.subTargets.some(sub => isDecadeStageToken(sub) && tokensMatch(gTelem.decade, sub))) {
+            return { stageIndex: st.index, stageLabel: st.label, matched: true };
+          }
+        }
+      }
+
+      // Priority 6: Broad umbrella genre match (e.g. 'Funk / Soul', 'Rock', 'Electronic', 'Pop')
+      if (gTelem.primaryGenre) {
+        const umbrellaParts = String(gTelem.primaryGenre).split('/').map(s => normalizeGenreToken(s)).filter(Boolean);
+        for (const st of parsedStages) {
+          for (const sub of st.subTargets) {
+            if (tokensMatch(gTelem.primaryGenre, sub) || umbrellaParts.some(up => tokensMatch(up, sub))) {
+              return { stageIndex: st.index, stageLabel: st.label, matched: true };
+            }
+          }
+        }
+      }
+
+      return {
+        stageIndex: genreSequence.length,
+        stageLabel: gTelem.naturalGenre || 'Other',
+        matched: false
+      };
+    }
+
+    function autoDetectSetGenreSequence(shouldSortAfter = false) {
+      const tracks = (activeSetState && Array.isArray(activeSetState.tracks)) ? activeSetState.tracks : [];
+      const detected = [];
+      const seen = new Set();
+
+      tracks.forEach(t => {
+        const gt = getTrackGenreTelemetry(t);
+        const label = gt.naturalGenre || '';
+        const norm = normalizeGenreToken(label);
+        if (label && label !== 'Other' && label !== 'Uncategorized' && !seen.has(norm)) {
+          seen.add(norm);
+          detected.push(label);
+        }
+      });
+
+      // If no tracks in set yet, inspect packed Record Box releases
+      if (detected.length === 0 && typeof getQmcRecordBox === 'function') {
+        const box = getQmcRecordBox();
+        const allRecords = (typeof records !== 'undefined' && Array.isArray(records) ? records : []);
+        box.forEach(b => {
+          const recId = typeof b === 'object' && b !== null ? String(b.record_id || b.id || '') : String(b || '');
+          const rec = allRecords.find(r => String(r.id) === recId);
+          if (rec) {
+            const gt = getTrackGenreTelemetry({ record_id: recId });
+            const label = gt.naturalGenre || '';
+            const norm = normalizeGenreToken(label);
+            if (label && label !== 'Other' && label !== 'Uncategorized' && !seen.has(norm)) {
+              seen.add(norm);
+              detected.push(label);
+            }
+          }
+        });
+      }
+
+      // Order detected genres along canonical DJ progression flow
+      detected.sort((a, b) => {
+        const ia = getCanonicalGenreOrderIndex(a);
+        const ib = getCanonicalGenreOrderIndex(b);
+        if (ia !== ib) return ia - ib;
+        return String(a).localeCompare(String(b));
+      });
+
+      if (detected.length === 0) {
+        detected.push('60s', 'Northern Soul', 'Funk / Trip Hop', 'Hip Hop', 'Britpop');
+      }
+
+      activeSetState.genre_sequence = detected;
+      activeSetState.genre_sort_enabled = true;
+      const inputEl = document.getElementById('setGenreSequenceInput');
+      if (inputEl) inputEl.value = detected.join(' - ');
+
+      if (shouldSortAfter && tracks.length >= 2) {
+        autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`);
+      } else {
+        saveActiveSet(activeSetState);
+        renderSetBuilderPane();
+      }
+      return detected;
+    }
+
+    function toggleSetGenreSortMode(forceState = null) {
+      if (!activeSetState) return;
+      const nextState = typeof forceState === 'boolean' ? forceState : !activeSetState.genre_sort_enabled;
+      activeSetState.genre_sort_enabled = nextState;
+      if (nextState && (!Array.isArray(activeSetState.genre_sequence) || activeSetState.genre_sequence.length === 0)) {
+        autoDetectSetGenreSequence(false);
+      }
+      saveActiveSet(activeSetState);
+      renderSetBuilderPane();
+    }
+
+    function applySetGenreSequenceFromInput() {
+      const inputEl = document.getElementById('setGenreSequenceInput');
+      const rawVal = inputEl ? inputEl.value.trim() : '';
+      const parsed = parseGenreProgressionString(rawVal);
+      if (parsed.length === 0) {
+        showToast('Enter a genre progression (e.g. 60s - Northern Soul - Funk / Trip Hop - Hip Hop - Britpop).', 'warning');
+        return;
+      }
+      activeSetState.genre_sequence = parsed;
+      activeSetState.genre_sort_enabled = true;
+      if (activeSetState.tracks && activeSetState.tracks.length >= 2) {
+        autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`);
+      } else {
+        saveActiveSet(activeSetState);
+        renderSetBuilderPane();
+        showToast(`Set Genre Progression: ${parsed.join(' → ')}`, 'success');
+      }
+    }
+
+    function applySetGenrePreset(presetStr) {
+      const parsed = parseGenreProgressionString(presetStr);
+      if (parsed.length === 0) return;
+      activeSetState.genre_sequence = parsed;
+      activeSetState.genre_sort_enabled = true;
+      const inputEl = document.getElementById('setGenreSequenceInput');
+      if (inputEl) inputEl.value = parsed.join(' - ');
+      if (activeSetState.tracks && activeSetState.tracks.length >= 2) {
+        autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`);
+      } else {
+        saveActiveSet(activeSetState);
+        renderSetBuilderPane();
+        showToast(`Applied Genre Journey: ${parsed.join(' → ')}`, 'success');
+      }
+    }
+
+    function moveSetGenreStage(index, delta) {
+      if (!Array.isArray(activeSetState.genre_sequence)) return;
+      const targetIdx = index + delta;
+      if (index < 0 || index >= activeSetState.genre_sequence.length) return;
+      if (targetIdx < 0 || targetIdx >= activeSetState.genre_sequence.length) return;
+      const [item] = activeSetState.genre_sequence.splice(index, 1);
+      activeSetState.genre_sequence.splice(targetIdx, 0, item);
+      activeSetState.genre_sort_enabled = true;
+      if (activeSetState.tracks && activeSetState.tracks.length >= 2) {
+        autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`);
+      } else {
+        saveActiveSet(activeSetState);
+        renderSetBuilderPane();
+      }
+    }
+
+    function removeSetGenreStage(index) {
+      if (!Array.isArray(activeSetState.genre_sequence)) return;
+      if (index < 0 || index >= activeSetState.genre_sequence.length) return;
+      activeSetState.genre_sequence.splice(index, 1);
+      if (activeSetState.tracks && activeSetState.tracks.length >= 2 && activeSetState.genre_sequence.length > 0) {
+        autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`);
+      } else {
+        saveActiveSet(activeSetState);
+        renderSetBuilderPane();
+      }
+    }
+
+    function addSetGenreStage(stageName) {
+      const clean = String(stageName || '').trim();
+      if (!clean) return;
+      if (!Array.isArray(activeSetState.genre_sequence)) {
+        activeSetState.genre_sequence = [];
+      }
+      const exists = activeSetState.genre_sequence.some(s => normalizeGenreToken(s) === normalizeGenreToken(clean));
+      if (!exists) {
+        activeSetState.genre_sequence.push(clean);
+      }
+      activeSetState.genre_sort_enabled = true;
+      if (activeSetState.tracks && activeSetState.tracks.length >= 2) {
+        autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`);
+      } else {
+        saveActiveSet(activeSetState);
+        renderSetBuilderPane();
+      }
+    }
+
+    function mergeSetGenreStageWithNext(index) {
+      if (!Array.isArray(activeSetState.genre_sequence)) return;
+      if (index < 0 || index >= activeSetState.genre_sequence.length - 1) return;
+      const merged = `${activeSetState.genre_sequence[index]} / ${activeSetState.genre_sequence[index + 1]}`;
+      activeSetState.genre_sequence.splice(index, 2, merged);
+      activeSetState.genre_sort_enabled = true;
+      if (activeSetState.tracks && activeSetState.tracks.length >= 2) {
+        autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`);
+      } else {
+        saveActiveSet(activeSetState);
+        renderSetBuilderPane();
+      }
+    }
+
+    function splitSetGenreStage(index) {
+      if (!Array.isArray(activeSetState.genre_sequence)) return;
+      const stage = activeSetState.genre_sequence[index];
+      if (!stage || !stage.includes('/')) return;
+      const parts = stage.split('/').map(s => s.trim()).filter(Boolean);
+      if (parts.length < 2) return;
+      activeSetState.genre_sequence.splice(index, 1, ...parts);
+      activeSetState.genre_sort_enabled = true;
+      if (activeSetState.tracks && activeSetState.tracks.length >= 2) {
+        autoSortActiveSet(`genre-${activeSetState.genre_sub_sort || 'harmonic'}`);
+      } else {
+        saveActiveSet(activeSetState);
+        renderSetBuilderPane();
+      }
+    }
+
+    function renderSetGenreSortPanel() {
+      const panelEl = document.getElementById('setGenreSortPanel');
+      const toggleBtn = document.getElementById('btnAutoSortByGenre');
+      const chipsEl = document.getElementById('setGenreSequenceChips');
+      const availEl = document.getElementById('setGenreAvailableChips');
+      const inputEl = document.getElementById('setGenreSequenceInput');
+      if (!panelEl) return;
+
+      const isEnabled = Boolean(activeSetState && activeSetState.genre_sort_enabled);
+      const subSort = (activeSetState && activeSetState.genre_sub_sort) || 'harmonic';
+
+      if (isEnabled) {
+        panelEl.classList.remove('hidden');
+      } else {
+        panelEl.classList.add('hidden');
+      }
+
+      if (toggleBtn) {
+        if (isEnabled) {
+          toggleBtn.className = 'px-2 py-1 text-[10.5px] rounded-lg bg-purple-500 text-vinyl-950 border border-purple-400 font-bold transition cursor-pointer flex items-center gap-1 shadow-sm';
+        } else {
+          toggleBtn.className = 'px-2 py-1 text-[10.5px] rounded-lg bg-purple-500/15 hover:bg-purple-500/25 active:scale-95 text-purple-300 border border-purple-500/30 font-semibold transition cursor-pointer flex items-center gap-1';
+        }
+      }
+
+      const btnBpmAsc = document.getElementById('btnGenreThenBpmAsc');
+      const btnHarmonic = document.getElementById('btnGenreThenHarmonic');
+      const btnBpmDesc = document.getElementById('btnGenreThenBpmDesc');
+      if (btnBpmAsc) {
+        btnBpmAsc.className = `px-2 py-0.5 text-[10px] rounded-md font-semibold transition cursor-pointer flex items-center gap-1 border ${subSort === 'bpm-asc' ? 'bg-emerald-500 text-vinyl-950 border-emerald-400 font-bold' : 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border-emerald-500/30'}`;
+      }
+      if (btnHarmonic) {
+        btnHarmonic.className = `px-2 py-0.5 text-[10px] rounded-md font-semibold transition cursor-pointer flex items-center gap-1 border ${subSort === 'harmonic' ? 'bg-sky-500 text-vinyl-950 border-sky-400 font-bold' : 'bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border-sky-500/30'}`;
+      }
+      if (btnBpmDesc) {
+        btnBpmDesc.className = `px-2 py-0.5 text-[10px] rounded-md font-semibold transition cursor-pointer flex items-center gap-1 border ${subSort === 'bpm-desc' ? 'bg-amber-500 text-vinyl-950 border-amber-400 font-bold' : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border-amber-500/30'}`;
+      }
+
+      const seq = Array.isArray(activeSetState?.genre_sequence) ? activeSetState.genre_sequence : [];
+      if (inputEl && (typeof document === 'undefined' || document.activeElement !== inputEl)) {
+        inputEl.value = seq.join(' - ');
+      }
+
+      // Count tracks matching each stage
+      const stageCounts = new Array(seq.length).fill(0);
+      const tracks = (activeSetState && Array.isArray(activeSetState.tracks)) ? activeSetState.tracks : [];
+      tracks.forEach(t => {
+        const res = resolveTrackGenreStage(t, seq);
+        if (res && res.matched && res.stageIndex >= 0 && res.stageIndex < seq.length) {
+          stageCounts[res.stageIndex]++;
+        }
+      });
+
+      if (chipsEl) {
+        if (seq.length === 0) {
+          chipsEl.innerHTML = `<span class="text-[10.5px] text-slate-400 italic">No genre stages set yet — click a preset below or type your genre order.</span>`;
+        } else {
+          chipsEl.innerHTML = seq.map((st, idx) => {
+            const safeSt = escapeHtml(st);
+            const cnt = stageCounts[idx] || 0;
+            const hasSlash = st.includes('/');
+            return `
+              <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-vinyl-950 border border-purple-500/40 text-[10.5px] font-mono text-purple-200 shrink-0">
+                <span class="text-purple-400 font-bold">${idx + 1}.</span>
+                <span class="font-semibold text-white">${safeSt}</span>
+                <span class="px-1 rounded bg-purple-500/20 text-purple-300 text-[9px]">${cnt}</span>
+                <button type="button" onclick="moveSetGenreStage(${idx}, -1)" ${idx === 0 ? 'disabled class="opacity-25 text-slate-500 cursor-not-allowed"' : 'class="hover:text-amber-300 text-slate-400 cursor-pointer"'} title="Move Genre Stage Earlier">◀</button>
+                <button type="button" onclick="moveSetGenreStage(${idx}, 1)" ${idx === seq.length - 1 ? 'disabled class="opacity-25 text-slate-500 cursor-not-allowed"' : 'class="hover:text-amber-300 text-slate-400 cursor-pointer"'} title="Move Genre Stage Later">▶</button>
+                ${idx < seq.length - 1 ? `<button type="button" onclick="mergeSetGenreStageWithNext(${idx})" class="hover:text-sky-300 text-slate-400 cursor-pointer px-0.5" title="Combine '${safeSt}' with '${escapeHtml(seq[idx + 1])}' into one shared stage (e.g. Funk / Trip Hop)">/</button>` : ''}
+                ${hasSlash ? `<button type="button" onclick="splitSetGenreStage(${idx})" class="hover:text-amber-300 text-slate-400 cursor-pointer px-0.5" title="Split combined stage into separate stages">✂</button>` : ''}
+                <button type="button" onclick="removeSetGenreStage(${idx})" class="hover:text-red-400 text-slate-500 cursor-pointer" title="Remove Stage">×</button>
+              </div>
+              ${idx < seq.length - 1 ? `<span class="text-purple-400/70 font-bold text-xs shrink-0">→</span>` : ''}
+            `;
+          }).join('');
+        }
+      }
+
+      if (availEl) {
+        const existingNorms = new Set();
+        seq.forEach(st => {
+          existingNorms.add(normalizeGenreToken(st));
+          st.split('/').forEach(p => existingNorms.add(normalizeGenreToken(p)));
+        });
+
+        const candidatePool = [];
+        const addCand = (label) => {
+          const clean = String(label || '').trim();
+          const norm = normalizeGenreToken(clean);
+          if (!clean || clean === 'Other' || clean === 'Uncategorized' || existingNorms.has(norm)) return;
+          if (!candidatePool.some(c => normalizeGenreToken(c) === norm)) {
+            candidatePool.push(clean);
+          }
+        };
+
+        tracks.forEach(t => {
+          const gt = getTrackGenreTelemetry(t);
+          addCand(gt.naturalGenre);
+          (gt.styles || []).forEach(addCand);
+          if (gt.decade) addCand(gt.decade);
+        });
+
+        ['60s', 'Northern Soul', 'Funk / Trip Hop', 'Funk', 'Trip Hop', 'Hip Hop', 'Britpop', 'Soul', 'Motown', 'Disco', 'House', 'Indie', '70s', '80s', '90s'].forEach(addCand);
+
+        if (candidatePool.length > 0) {
+          availEl.innerHTML = `
+            <span class="text-slate-400 font-semibold shrink-0">+ Add Stage:</span>
+            ${candidatePool.slice(0, 12).map(c => `
+              <button type="button" onclick="addSetGenreStage('${escapeJsString(c)}')"
+                class="px-1.5 py-0.5 rounded bg-vinyl-800 hover:bg-purple-500/20 text-slate-300 hover:text-purple-200 border border-vinyl-700 hover:border-purple-500/40 font-mono shrink-0 transition cursor-pointer">
+                + ${escapeHtml(c)}
+              </button>
+            `).join('')}
+          `;
+        } else {
+          availEl.innerHTML = '';
+        }
+      }
+    }
+
     function parseCamelotCode(codeStr) {
       if (!codeStr || typeof codeStr !== 'string') return null;
       const m = codeStr.trim().toUpperCase().match(/^(\d{1,2})\s*([AB])$/);
@@ -10495,20 +11249,140 @@
       return (keyDist * 8) + (bpmDiff * 1.2);
     }
 
+    function sortTrackItemsWithinBucket(bucketItems, subMode = 'harmonic', prevTrackItem = null) {
+      if (!Array.isArray(bucketItems) || bucketItems.length === 0) return [];
+      const copy = [...bucketItems];
+      if (subMode === 'bpm-asc') {
+        copy.sort((a, b) => {
+          if (a.telem.bpm !== b.telem.bpm) return a.telem.bpm - b.telem.bpm;
+          return (a.telem.camelot || '').localeCompare(b.telem.camelot || '');
+        });
+        return copy;
+      }
+      if (subMode === 'bpm-desc') {
+        copy.sort((a, b) => {
+          if (a.telem.bpm !== b.telem.bpm) return b.telem.bpm - a.telem.bpm;
+          return (a.telem.camelot || '').localeCompare(b.telem.camelot || '');
+        });
+        return copy;
+      }
+
+      // Harmonic Camelot Flow within bucket, bridging smoothly from prevTrackItem if present
+      let unvisited = [...copy];
+      unvisited.sort((a, b) => a.telem.bpm - b.telem.bpm);
+
+      let firstItem;
+      if (prevTrackItem && unvisited.length > 1) {
+        let bestFirstIdx = 0;
+        let bestFirstCost = Infinity;
+        for (let i = 0; i < unvisited.length; i++) {
+          const c = calculateHarmonicCost(prevTrackItem, unvisited[i]);
+          if (c < bestFirstCost) {
+            bestFirstCost = c;
+            bestFirstIdx = i;
+          }
+        }
+        firstItem = unvisited.splice(bestFirstIdx, 1)[0];
+      } else {
+        firstItem = unvisited.shift();
+      }
+
+      const ordered = [firstItem];
+      while (unvisited.length > 0) {
+        const current = ordered[ordered.length - 1];
+        let bestIdx = 0;
+        let bestCost = Infinity;
+        for (let i = 0; i < unvisited.length; i++) {
+          const cost = calculateHarmonicCost(current, unvisited[i]);
+          if (cost < bestCost) {
+            bestCost = cost;
+            bestIdx = i;
+          }
+        }
+        ordered.push(unvisited.splice(bestIdx, 1)[0]);
+      }
+      return ordered;
+    }
+
     function autoSortActiveSet(mode = 'harmonic') {
       if (!activeSetState || !Array.isArray(activeSetState.tracks) || activeSetState.tracks.length < 2) {
         showToast('Add at least 2 tracks to active set to auto-sort.', 'info');
         return;
       }
 
+      const isExplicitGenreMode = String(mode || '').startsWith('genre-');
+      const useGenreOrder = isExplicitGenreMode || Boolean(activeSetState.genre_sort_enabled);
+      let subMode = String(mode || 'harmonic').replace(/^genre-/, '');
+      if (subMode === 'flow') subMode = 'harmonic';
+      if (subMode === 'bpm') subMode = 'bpm-asc';
+      if (subMode === 'cooldown' || subMode === 'cool-down') subMode = 'bpm-desc';
+      if (!['harmonic', 'bpm-asc', 'bpm-desc'].includes(subMode)) {
+        subMode = 'harmonic';
+      }
+
       const tracksWithTelem = activeSetState.tracks.map(t => ({
         track: t,
-        telem: getTrackCamelotTelemetry(t)
+        telem: getTrackCamelotTelemetry(t),
+        genreTelem: getTrackGenreTelemetry(t)
       }));
 
       let sortedTracks = [];
 
-      if (mode === 'bpm-asc') {
+      if (useGenreOrder) {
+        activeSetState.genre_sort_enabled = true;
+        activeSetState.genre_sub_sort = subMode;
+
+        if (!Array.isArray(activeSetState.genre_sequence) || activeSetState.genre_sequence.length === 0) {
+          autoDetectSetGenreSequence(false);
+        }
+        const seq = Array.isArray(activeSetState.genre_sequence) ? [...activeSetState.genre_sequence] : [];
+
+        // Group tracks into ordered genre stage buckets
+        const stageBuckets = seq.map(label => ({ label, items: [] }));
+        const unmatchedByGenre = new Map();
+
+        tracksWithTelem.forEach(item => {
+          const res = resolveTrackGenreStage(item.track, seq, item.genreTelem);
+          if (res.matched && res.stageIndex >= 0 && res.stageIndex < stageBuckets.length) {
+            item.track.matched_genre_stage = stageBuckets[res.stageIndex].label;
+            stageBuckets[res.stageIndex].items.push(item);
+          } else {
+            const fallbackLabel = res.stageLabel || item.genreTelem.naturalGenre || 'Other';
+            item.track.matched_genre_stage = fallbackLabel;
+            if (!unmatchedByGenre.has(fallbackLabel)) {
+              unmatchedByGenre.set(fallbackLabel, []);
+            }
+            unmatchedByGenre.get(fallbackLabel).push(item);
+          }
+        });
+
+        // Append any unmatched genre buckets in canonical DJ progression order
+        const extraGenreLabels = Array.from(unmatchedByGenre.keys()).sort((a, b) => {
+          const ia = getCanonicalGenreOrderIndex(a);
+          const ib = getCanonicalGenreOrderIndex(b);
+          if (ia !== ib) return ia - ib;
+          return String(a).localeCompare(String(b));
+        });
+        extraGenreLabels.forEach(lbl => {
+          stageBuckets.push({ label: lbl, items: unmatchedByGenre.get(lbl) });
+        });
+
+        const finalOrderedItems = [];
+        const activeStageNames = [];
+        stageBuckets.forEach(bucket => {
+          if (bucket.items.length === 0) return;
+          activeStageNames.push(bucket.label);
+          const prevItem = finalOrderedItems.length > 0 ? finalOrderedItems[finalOrderedItems.length - 1] : null;
+          const sortedBucket = sortTrackItemsWithinBucket(bucket.items, subMode, prevItem);
+          finalOrderedItems.push(...sortedBucket);
+        });
+
+        sortedTracks = finalOrderedItems.map(x => x.track);
+        const subModeLabel = subMode === 'bpm-asc' ? 'BPM Build ↑' : (subMode === 'bpm-desc' ? 'Cool Down ↓' : 'Harmonic Flow');
+        const journeySummary = activeStageNames.join(' → ');
+        showToast(`Auto-Sorted by Genre (${journeySummary}) · Then ${subModeLabel}`, 'success');
+      } else if (subMode === 'bpm-asc') {
+        tracksWithTelem.forEach(x => { delete x.track.matched_genre_stage; });
         tracksWithTelem.sort((a, b) => {
           if (a.telem.bpm !== b.telem.bpm) return a.telem.bpm - b.telem.bpm;
           return (a.telem.camelot || '').localeCompare(b.telem.camelot || '');
@@ -10517,7 +11391,8 @@
         const minBpm = Math.round(tracksWithTelem[0].telem.bpm);
         const maxBpm = Math.round(tracksWithTelem[tracksWithTelem.length - 1].telem.bpm);
         showToast(`Auto-Sorted Set: BPM Build (${minBpm} → ${maxBpm} BPM)`, 'success');
-      } else if (mode === 'bpm-desc') {
+      } else if (subMode === 'bpm-desc') {
+        tracksWithTelem.forEach(x => { delete x.track.matched_genre_stage; });
         tracksWithTelem.sort((a, b) => {
           if (a.telem.bpm !== b.telem.bpm) return b.telem.bpm - a.telem.bpm;
           return (a.telem.camelot || '').localeCompare(b.telem.camelot || '');
@@ -10528,25 +11403,8 @@
         showToast(`Auto-Sorted Set: Cool Down (${maxBpm} → ${minBpm} BPM)`, 'success');
       } else {
         // Harmonic Camelot Flow (Circle of Fifths + BPM proximity)
-        let unvisited = [...tracksWithTelem];
-        unvisited.sort((a, b) => a.telem.bpm - b.telem.bpm);
-        const ordered = [unvisited.shift()];
-
-        while (unvisited.length > 0) {
-          const current = ordered[ordered.length - 1];
-          let bestIdx = 0;
-          let bestCost = Infinity;
-
-          for (let i = 0; i < unvisited.length; i++) {
-            const cost = calculateHarmonicCost(current, unvisited[i]);
-            if (cost < bestCost) {
-              bestCost = cost;
-              bestIdx = i;
-            }
-          }
-          ordered.push(unvisited.splice(bestIdx, 1)[0]);
-        }
-
+        tracksWithTelem.forEach(x => { delete x.track.matched_genre_stage; });
+        const ordered = sortTrackItemsWithinBucket(tracksWithTelem, 'harmonic', null);
         sortedTracks = ordered.map(x => x.track);
         showToast(`Auto-Sorted Set: Harmonic Camelot Flow (${sortedTracks.length} tracks)`, 'success');
       }
@@ -10946,6 +11804,9 @@
         description: set.description || 'QMC Vinyl Session',
         spotify_playlist_id: set.spotify_playlist_id || null,
         spotify_playlist_url: set.spotify_playlist_url || null,
+        genre_sort_enabled: Boolean(set.genre_sort_enabled),
+        genre_sub_sort: set.genre_sub_sort || 'harmonic',
+        genre_sequence: Array.isArray(set.genre_sequence) ? [...set.genre_sequence] : [],
         tracks: JSON.parse(JSON.stringify(set.tracks || []))
       };
 
@@ -10975,6 +11836,9 @@
         id: 'set_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
         title: finalTitle,
         description: 'QMC Vinyl Session',
+        genre_sort_enabled: false,
+        genre_sub_sort: 'harmonic',
+        genre_sequence: [],
         tracks: []
       };
       const saved = saveActiveSet(newSet);
@@ -10982,6 +11846,9 @@
         id: saved.set_id,
         title: saved.title,
         description: saved.description,
+        genre_sort_enabled: false,
+        genre_sub_sort: 'harmonic',
+        genre_sequence: [],
         tracks: []
       };
 
