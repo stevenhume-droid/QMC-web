@@ -84,3 +84,4 @@ activeGenreFilters = [];
 assert.equal(filterByGenres(sampleRecords).length, 4, 'Clearing genres should show all 4 records');
 
 console.log('ALL CHECKS PASSED: genre multi-select + statCategoryRefinement sizing verified.');
+

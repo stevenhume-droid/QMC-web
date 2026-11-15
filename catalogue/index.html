@@ -549,6 +549,23 @@
       box-shadow: -4px 0 8px rgba(0, 0, 0, 0.25);
     }
 
+    /* Mobile Collapsible Table Actions Column */
+    @media (max-width: 767px) {
+      table:not(.mobile-actions-expanded) .table-action-buttons,
+      table:not(.mobile-actions-expanded) .table-action-expanded-only {
+        display: none !important;
+      }
+      table.mobile-actions-expanded .table-action-collapsed-only {
+        display: none !important;
+      }
+      table.mobile-actions-expanded .table-action-buttons {
+        display: flex !important;
+      }
+      table.mobile-actions-expanded .table-action-expanded-only {
+        display: inline-flex !important;
+      }
+    }
+
     html.theme-light [class*="text-cyan-"] {
       color: #0369a1 !important;
     }
@@ -17253,7 +17270,7 @@
 
       let html = `
         <div class="bg-vinyl-900 rounded-xl border border-vinyl-800 overflow-x-auto shadow-xl">
-          <table class="w-full text-left text-xs text-slate-300">
+          <table id="catalogueDataTable" class="w-full text-left text-xs text-slate-300 ${typeof isMobileTableActionsExpanded !== 'undefined' && isMobileTableActionsExpanded ? 'mobile-actions-expanded' : ''}">
             <thead class="bg-vinyl-850 border-b border-vinyl-800 text-[10px] uppercase font-bold tracking-wider text-slate-400 font-mono">
               <tr>
                 <th class="py-3 px-3">Artist / Release Title</th>
@@ -17264,7 +17281,16 @@
                 <th class="py-3 px-3">Cat #</th>
                 <th class="py-3 px-3">Label</th>
                 <th class="py-3 px-3 whitespace-nowrap min-w-[125px]">Market Checks</th>
-                <th class="py-3 px-3 text-right sticky right-0 bg-vinyl-850 border-l border-vinyl-800 table-action-sticky z-10">Actions</th>
+                <th class="py-2.5 px-1.5 md:px-3 text-right sticky right-0 bg-vinyl-850 border-l border-vinyl-800 table-action-sticky z-10">
+                  <div class="flex items-center justify-end gap-1.5">
+                    <span class="hidden md:inline">Actions</span>
+                    <span class="table-action-expanded-only md:hidden">Actions</span>
+                    <button type="button" onclick="toggleMobileTableActions()" class="md:hidden inline-flex items-center justify-center gap-1 px-1.5 py-1 rounded bg-vinyl-800 hover:bg-vinyl-700 text-brass-400 border border-vinyl-700 text-[10px] font-sans normal-case transition cursor-pointer" title="Expand or collapse Actions column">
+                      <i class="fa-solid fa-angles-left text-[9px] table-action-collapsed-only"></i>
+                      <i class="fa-solid fa-angles-right text-[9px] table-action-expanded-only"></i>
+                    </button>
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-vinyl-800">
@@ -17353,8 +17379,12 @@
                 </a>
               </div>
             </td>
-            <td class="py-2.5 px-3 text-right whitespace-nowrap sticky right-0 bg-vinyl-900 border-l border-vinyl-800 table-action-sticky z-10 shadow-md">
+            <td class="py-2 px-1.5 md:py-2.5 md:px-3 text-right whitespace-nowrap sticky right-0 bg-vinyl-900 border-l border-vinyl-800 table-action-sticky z-10 shadow-md">
               <div class="flex items-center justify-end gap-1">
+                <button type="button" onclick="event.stopPropagation(); toggleMobileTableActions(true)" class="table-action-collapsed-only md:hidden min-w-[32px] min-h-[32px] p-1 rounded-lg bg-vinyl-850/90 hover:bg-vinyl-750 text-brass-400 border border-vinyl-700/70 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Expand Actions">
+                  <i class="fa-solid fa-ellipsis text-xs"></i>
+                </button>
+                <div class="table-action-buttons flex items-center justify-end gap-1">
                 <button type="button" onclick="event.stopPropagation(); viewRecordDetail('${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-brass-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Inspect dossier">
                   <i class="fa-solid fa-eye text-xs"></i>
                 </button>
@@ -17379,6 +17409,7 @@
                     <i class="fa-solid fa-shield-halved text-xs"></i>
                   </span>
                 `}
+                </div>
               </div>
             </td>
           </tr>
@@ -17410,10 +17441,11 @@
                     <span>Live sum of all releases currently visible in table</span>
                   </div>
                 </td>
-                <td class="py-3 px-3 text-right sticky right-0 bg-vinyl-850/95 border-l border-vinyl-800 table-action-sticky z-10">
-                  <button type="button" onclick="recalculateArchiveTotals(true)" class="px-2.5 py-1 text-[11px] bg-brass-500 hover:bg-brass-400 active:scale-95 text-vinyl-950 rounded font-bold transition flex items-center gap-1.5 ml-auto shadow" title="Recalculate and backfill any missing valuations now">
+                <td class="py-3 px-1.5 md:px-3 text-right sticky right-0 bg-vinyl-850/95 border-l border-vinyl-800 table-action-sticky z-10">
+                  <button type="button" onclick="recalculateArchiveTotals(true)" class="px-2 md:px-2.5 py-1 text-[11px] bg-brass-500 hover:bg-brass-400 active:scale-95 text-vinyl-950 rounded font-bold transition flex items-center gap-1.5 ml-auto shadow" title="Recalculate and backfill any missing valuations now">
                     <i class="fa-solid fa-arrows-rotate"></i>
-                    <span>Recalculate</span>
+                    <span class="hidden md:inline">Recalculate</span>
+                    <span class="table-action-expanded-only md:hidden">Recalculate</span>
                   </button>
                 </td>
               </tr>
@@ -17422,6 +17454,15 @@
         </div>
       `;
       container.innerHTML = html;
+    }
+
+    let isMobileTableActionsExpanded = false;
+    function toggleMobileTableActions(forceState) {
+      isMobileTableActionsExpanded = (typeof forceState === 'boolean') ? forceState : !isMobileTableActionsExpanded;
+      const tbl = document.getElementById('catalogueDataTable');
+      if (tbl) {
+        tbl.classList.toggle('mobile-actions-expanded', isMobileTableActionsExpanded);
+      }
     }
 
     /* =========================================================
