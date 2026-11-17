@@ -4272,6 +4272,23 @@
         <!-- Populated dynamically via renderCurationLifecycleStepper() -->
       </div>
 
+      <!-- Mobile Segmented Switch (Box | Set | Split) -->
+      <div id="mobileBoxSetSegmentedSwitch"
+        class="sm:hidden px-3 py-1.5 bg-vinyl-900 border-b border-vinyl-800 grid grid-cols-3 gap-1 text-[11px] font-bold shrink-0">
+        <button type="button" onclick="setRecordBoxDrawerMode('box-full')" id="mobSegBtn-box"
+          class="py-1.5 px-2 rounded-lg bg-amber-500 text-vinyl-950 flex items-center justify-center gap-1 transition cursor-pointer">
+          <span>🧳</span><span id="mobSegBoxLabel">Box (0)</span>
+        </button>
+        <button type="button" onclick="setRecordBoxDrawerMode('set-full')" id="mobSegBtn-set"
+          class="py-1.5 px-2 rounded-lg bg-vinyl-850 text-slate-300 border border-vinyl-700 flex items-center justify-center gap-1 transition cursor-pointer">
+          <i class="fa-solid fa-list-ol text-[10px] text-amber-400"></i><span id="mobSegSetLabel">Set (0)</span>
+        </button>
+        <button type="button" onclick="setRecordBoxDrawerMode('split')" id="mobSegBtn-split"
+          class="py-1.5 px-2 rounded-lg bg-vinyl-850 text-slate-300 border border-vinyl-700 flex items-center justify-center gap-1 transition cursor-pointer">
+          <i class="fa-solid fa-table-columns text-[10px]"></i><span>Split</span>
+        </button>
+      </div>
+
       <!-- Split-Pane Body -->
       <div id="recordBoxSplitBody"
         class="flex-1 grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-vinyl-800 overflow-hidden min-h-0">
@@ -4387,6 +4404,21 @@
                 title="Rename Active Set">
                 <i class="fa-solid fa-pen text-[10px]"></i>
               </button>
+              <button type="button" onclick="duplicateSet()" id="btnDuplicateActiveSet"
+                class="px-2 py-1 text-xs rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-sky-300 border border-sky-500/30 transition shrink-0 cursor-pointer flex items-center gap-1"
+                title="Duplicate / Clone Active Set">
+                <i class="fa-regular fa-copy text-[10px]"></i>
+                <span class="hidden sm:inline">Clone</span>
+              </button>
+              <select id="setTemplateSelect" onchange="if(this.value){applySetTemplate(this.value);this.value='';}"
+                class="bg-vinyl-800 hover:bg-vinyl-750 text-purple-300 border border-purple-500/30 rounded-lg px-2 py-1 text-[11px] font-semibold focus:outline-none cursor-pointer shrink-0 max-w-[115px]"
+                title="Start or structure set from a DJ Template">
+                <option value="">⚡ Template…</option>
+                <option value="soul-funk-britpop">60s → Soul → Funk → Britpop</option>
+                <option value="warmup-peak">Warmup → Peak Time Build (BPM ↑)</option>
+                <option value="afterhours-cooldown">Late Night Cool Down (BPM ↓)</option>
+                <option value="club-45s">45 RPM 7" Club Session</option>
+              </select>
               <button type="button" onclick="createNewActiveSetPrompt()" id="btnSetBuilderNewSet"
                 class="px-2.5 py-1 text-xs rounded-lg bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold flex items-center gap-1 transition shadow shrink-0 cursor-pointer"
                 title="Create a brand new empty Set">
@@ -5669,7 +5701,7 @@
   </div>
 
   <nav id="mobileBottomNav"
-    class="md:hidden fixed bottom-0 inset-x-0 z-[60] bg-vinyl-900/98 backdrop-blur-md border-t border-vinyl-800 grid grid-cols-6 items-end text-[10px] font-semibold text-slate-400"
+    class="md:hidden fixed bottom-0 inset-x-0 z-[60] bg-vinyl-900/98 backdrop-blur-md border-t border-vinyl-800 grid grid-cols-5 items-end text-[10px] font-semibold text-slate-400"
     style="z-index:60;">
     <button type="button" id="mnav-crate" onclick="mobileNav('archive')"
       class="mnav-btn active flex flex-col items-center justify-center gap-0.5"><i
@@ -5686,17 +5718,14 @@
       <span class="text-brass-400 font-bold">Add</span>
     </button>
     <button type="button" id="mnav-box" onclick="mobileNav('box')"
-      class="mnav-btn flex flex-col items-center justify-center gap-0.5 relative" aria-label="Record Box working bag">
+      class="mnav-btn flex flex-col items-center justify-center gap-0.5 relative" aria-label="Record Box &amp; Set Builder">
       <span class="relative inline-flex items-center justify-center">
         <span class="text-base leading-none">🧳</span>
         <span id="mobileRecordBoxBadge"
           class="absolute -top-1.5 -right-2.5 px-1 py-0 rounded-full bg-amber-500 text-black border border-vinyl-900 text-[9px] font-mono font-black record-box-count">0</span>
       </span>
-      <span>Box</span>
+      <span>Box · Set</span>
     </button>
-    <button type="button" id="mnav-sets" onclick="mobileNav('sets')"
-      class="mnav-btn flex flex-col items-center justify-center gap-0.5"><i
-        class="fa-solid fa-list-ol text-base"></i>Sets</button>
     <button type="button" id="mnav-more" onclick="mobileNav('more')"
       class="mnav-btn flex flex-col items-center justify-center gap-0.5"><i
         class="fa-solid fa-ellipsis text-base"></i>More</button>
@@ -9486,6 +9515,8 @@
     function updateWorkingContextPill() {
       const boxLbl = document.getElementById('workingContextBoxLabel');
       const setLbl = document.getElementById('workingContextSetLabel');
+      const mobBoxLbl = document.getElementById('mobSegBoxLabel');
+      const mobSetLbl = document.getElementById('mobSegSetLabel');
       const boxCount = (typeof getQmcRecordBox === 'function') ? getQmcRecordBox().length : 0;
       const boxTitle = (typeof activeBoxState !== 'undefined' && activeBoxState?.title) ? activeBoxState.title : 'Box';
       const shortBox = boxTitle.length > 12 ? boxTitle.slice(0, 11) + '…' : boxTitle;
@@ -9496,6 +9527,320 @@
 
       if (boxLbl) boxLbl.textContent = `${shortBox} (${boxCount})`;
       if (setLbl) setLbl.textContent = `${shortSet} (${setTracks})`;
+      if (mobBoxLbl) mobBoxLbl.textContent = `Box (${boxCount})`;
+      if (mobSetLbl) mobSetLbl.textContent = `Set (${setTracks})`;
+    }
+
+    /* =========================================================
+       SET TEMPLATES & DUPLICATE SET (Item 11)
+       ========================================================= */
+    const SET_TEMPLATES = {
+      'soul-funk-britpop': {
+        title: '60s → Soul → Funk → Britpop Journey',
+        description: 'Genre progression: 60s → Northern Soul → Funk / Trip Hop → Hip Hop → Britpop',
+        genre_sort_enabled: true,
+        genre_sub_sort: 'harmonic',
+        genre_sequence: ['60s', 'Northern Soul', 'Funk / Trip Hop', 'Hip Hop', 'Britpop'],
+        sortMode: 'genre-harmonic'
+      },
+      'warmup-peak': {
+        title: 'Warmup → Peak Time Build',
+        description: 'Ascending BPM progression from warmup grooves to peak-time floorfillers',
+        genre_sort_enabled: false,
+        genre_sub_sort: 'bpm-asc',
+        genre_sequence: [],
+        sortMode: 'bpm-asc'
+      },
+      'afterhours-cooldown': {
+        title: 'Late Night Afterhours Cool Down',
+        description: 'Descending tempo progression for late-night wind-down sessions',
+        genre_sort_enabled: false,
+        genre_sub_sort: 'bpm-desc',
+        genre_sequence: [],
+        sortMode: 'bpm-desc'
+      },
+      'club-45s': {
+        title: '45 RPM 7" Club Session',
+        description: 'Punchy 45 RPM 7" singles sequenced by harmonic key flow',
+        genre_sort_enabled: false,
+        genre_sub_sort: 'harmonic',
+        genre_sequence: [],
+        filter45Only: true,
+        sortMode: 'harmonic'
+      }
+    };
+
+    function duplicateSet(setId = null) {
+      let sourceSet = null;
+      if (setId) {
+        const saved = (typeof getQmcSavedSets === 'function') ? getQmcSavedSets() : [];
+        sourceSet = saved.find(s => String(s.set_id) === String(setId));
+      }
+      if (!sourceSet && typeof activeSetState !== 'undefined' && activeSetState) {
+        sourceSet = activeSetState;
+      }
+      if (!sourceSet) {
+        showToast('No set found to duplicate.', 'warning');
+        return null;
+      }
+
+      const newId = 'set_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+      const baseTitle = (sourceSet.title || 'Session Set').replace(/\s*\(Copy(\s*\d+)?\)$/i, '').trim();
+      const clonedTracks = Array.isArray(sourceSet.tracks)
+        ? sourceSet.tracks.map((t, i) => ({ ...t, position: i + 1 }))
+        : [];
+
+      const clonedSet = {
+        id: newId,
+        set_id: newId,
+        title: `${baseTitle} (Copy)`,
+        description: sourceSet.description || 'Cloned QMC Vinyl Session',
+        genre_sort_enabled: Boolean(sourceSet.genre_sort_enabled),
+        genre_sub_sort: sourceSet.genre_sub_sort || 'harmonic',
+        genre_sequence: Array.isArray(sourceSet.genre_sequence) ? [...sourceSet.genre_sequence] : [],
+        tracks: clonedTracks
+      };
+
+      activeSetState = { ...clonedSet };
+      if (typeof saveSetToStorage === 'function') {
+        saveSetToStorage(activeSetState);
+      }
+      renderRecordBoxDrawer();
+      if (typeof currentView !== 'undefined' && currentView === 'sets') {
+        const container = document.getElementById('recordsContainer');
+        if (container && typeof renderSetsView === 'function') renderSetsView(container);
+      }
+
+      showToast(`Duplicated set as "${clonedSet.title}" (${clonedTracks.length} tracks)!`, 'success', () => {
+        if (typeof deleteSavedSet === 'function') deleteSavedSet(newId);
+        if (typeof currentView !== 'undefined' && currentView === 'sets') {
+          const container = document.getElementById('recordsContainer');
+          if (container && typeof renderSetsView === 'function') renderSetsView(container);
+        }
+        renderRecordBoxDrawer();
+      });
+      return clonedSet;
+    }
+
+    function applySetTemplate(templateKey) {
+      const tpl = SET_TEMPLATES[templateKey];
+      if (!tpl) return;
+
+      const prevSnapshot = {
+        id: activeSetState.id,
+        title: activeSetState.title,
+        description: activeSetState.description,
+        genre_sort_enabled: activeSetState.genre_sort_enabled,
+        genre_sub_sort: activeSetState.genre_sub_sort,
+        genre_sequence: [...(activeSetState.genre_sequence || [])],
+        tracks: (activeSetState.tracks || []).map(t => ({ ...t }))
+      };
+
+      if (tpl.filter45Only) {
+        const allRecs = (typeof records !== 'undefined' && Array.isArray(records)) ? records : [];
+        const boxIds = getQmcRecordBox().map(b => String(b.record_id || b.id || b));
+        let candidate45s = boxIds.map(id => allRecs.find(r => String(r.id) === id)).filter(r => r && (String(r.speed || '').includes('45') || String(r.format || '').includes('7"')));
+        if (candidate45s.length === 0) {
+          candidate45s = allRecs.filter(r => String(r.speed || '').includes('45') || String(r.format || '').includes('7"')).slice(0, 12);
+          candidate45s.forEach(r => { if (!isRecordInBox(r.id)) addRecordToBox(r.id); });
+        }
+        activeSetState.tracks = [];
+        candidate45s.forEach(r => addAllRecordTracksToSet(r.id, 'ACTIVE', true));
+      } else if (activeSetState.tracks.length === 0 && getQmcRecordBox().length > 0) {
+        buildSetFromRecordBox(null);
+      }
+
+      activeSetState.title = tpl.title;
+      activeSetState.description = tpl.description;
+      activeSetState.genre_sort_enabled = Boolean(tpl.genre_sort_enabled);
+      activeSetState.genre_sub_sort = tpl.genre_sub_sort || 'harmonic';
+      if (Array.isArray(tpl.genre_sequence) && tpl.genre_sequence.length > 0) {
+        activeSetState.genre_sequence = [...tpl.genre_sequence];
+      }
+
+      if (tpl.sortMode && typeof autoSortActiveSet === 'function' && activeSetState.tracks.length > 1) {
+        autoSortActiveSet(tpl.sortMode);
+      } else {
+        renderRecordBoxDrawer();
+      }
+
+      openRecordBoxDrawer('sets');
+      showToast(`Applied template "${tpl.title}"!`, 'success', () => {
+        activeSetState = prevSnapshot;
+        renderRecordBoxDrawer();
+      });
+    }
+
+    /* =========================================================
+       SMART CRATES: SAVED DYNAMIC FILTER RULES (Item 12)
+       ========================================================= */
+    function evaluateSmartCrateIds(smartRules) {
+      if (!smartRules || typeof smartRules !== 'object') return [];
+      const allRecs = (typeof records !== 'undefined' && Array.isArray(records)) ? records : [];
+      const q = String(smartRules.search || '').toLowerCase().trim();
+      const fmt = smartRules.format || 'ALL';
+      const grade = smartRules.grade || 'ALL';
+      const label = String(smartRules.label || 'ALL').trim().toLowerCase();
+      const series = String(smartRules.series || 'ALL').trim().toLowerCase();
+      const genres = Array.isArray(smartRules.genres) ? smartRules.genres.map(g => String(g).toLowerCase().trim()).filter(Boolean) : [];
+      const decades = Array.isArray(smartRules.decades) ? smartRules.decades : [];
+
+      return allRecs.filter(item => {
+        if (fmt !== 'ALL' && typeof matchesFormatFilter === 'function' && !matchesFormatFilter(item.format, fmt)) return false;
+        if (grade !== 'ALL' && item.mediaGrade !== grade) return false;
+        if (label !== 'all' && (item.label || '').trim().toLowerCase() !== label) return false;
+        if (series !== 'all' && (item.seriesName || item.series_name || '').trim().toLowerCase() !== series) return false;
+
+        if (decades.length > 0) {
+          const yNum = parseInt(item.year, 10);
+          const itemDec = (!isNaN(yNum) && yNum > 1900 && yNum < 2100) ? (Math.floor(yNum / 10) * 10 + 's') : '';
+          const matchedDec = decades.some(d => d === 'Unknown' ? itemDec === '' : itemDec === d);
+          if (!matchedDec) return false;
+        }
+
+        if (genres.length > 0) {
+          const gs = (typeof parseGenreAndStyles === 'function')
+            ? parseGenreAndStyles(item.genres || '', item.genre || '', item.styles || '')
+            : { genre: item.genre || '', styles: Array.isArray(item.styles) ? item.styles : [] };
+          const tokens = [gs.genre, ...(gs.styles || [])].map(g => String(g || '').toLowerCase().trim()).filter(Boolean);
+          if (!genres.some(gf => tokens.includes(gf))) return false;
+        }
+
+        if (q) {
+          const hay = `${item.artist || ''} ${item.title || ''} ${item.label || ''} ${item.catNo || ''} ${item.genre || ''} ${item.genres || ''}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      }).map(r => String(r.id));
+    }
+
+    function getCrateEffectiveRecordIds(crate) {
+      if (!crate) return [];
+      if (crate.is_smart && crate.smart_rules) {
+        const dynamicIds = evaluateSmartCrateIds(crate.smart_rules);
+        const manualIds = Array.isArray(crate.record_ids) ? crate.record_ids.map(String) : [];
+        return Array.from(new Set([...dynamicIds, ...manualIds]));
+      }
+      return Array.isArray(crate.record_ids) ? crate.record_ids.map(String) : [];
+    }
+
+    function describeSmartCrateRules(smartRules) {
+      if (!smartRules) return 'Dynamic Smart Filter';
+      const parts = [];
+      if (smartRules.format && smartRules.format !== 'ALL') parts.push(`Format: ${smartRules.format.replace('GROUP:', '')}`);
+      if (Array.isArray(smartRules.genres) && smartRules.genres.length > 0) parts.push(`Genres: ${smartRules.genres.join(' + ')}`);
+      if (Array.isArray(smartRules.decades) && smartRules.decades.length > 0) parts.push(`Decades: ${smartRules.decades.join(' + ')}`);
+      if (smartRules.grade && smartRules.grade !== 'ALL') parts.push(`Media: ${smartRules.grade}`);
+      if (smartRules.label && smartRules.label !== 'ALL') parts.push(`Label: ${smartRules.label}`);
+      if (smartRules.series && smartRules.series !== 'ALL') parts.push(`Series: ${smartRules.series}`);
+      if (smartRules.search) parts.push(`Query: "${smartRules.search}"`);
+      return parts.length > 0 ? `⚡ Auto-rule: ${parts.join(' · ')}` : '⚡ Smart Crate (All Archive Releases)';
+    }
+
+    function saveCurrentFiltersAsSmartCrate(customName = null) {
+      const search = (document.getElementById('globalSearch')?.value || '').trim();
+      const format = document.getElementById('filterFormat')?.value || 'ALL';
+      const grade = document.getElementById('filterGrade')?.value || 'ALL';
+      const singleGenre = document.getElementById('filterGenre')?.value || 'ALL';
+      const label = document.getElementById('filterLabel')?.value || 'ALL';
+      const series = document.getElementById('filterSeries')?.value || 'ALL';
+      const genres = [...(Array.isArray(activeGenreFilters) ? activeGenreFilters : [])];
+      if (singleGenre !== 'ALL' && !genres.includes(singleGenre)) genres.push(singleGenre);
+      const decades = [...(Array.isArray(activeDecadeFilters) ? activeDecadeFilters : [])];
+
+      const smartRules = { search, format, grade, label, series, genres, decades };
+      const defaultSummary = [
+        ...genres.slice(0, 2),
+        ...decades.slice(0, 2),
+        format !== 'ALL' ? format.replace('GROUP:', '') : '',
+        search
+      ].filter(Boolean).join(' ') || 'Smart Selection';
+
+      const name = customName || prompt('Enter a name for this Smart Crate (auto-updates when matching records are added):', `⚡ ${defaultSummary}`);
+      if (!name) return null;
+
+      const matchedIds = evaluateSmartCrateIds(smartRules);
+      const crates = getQmcCrates();
+      const newCrate = {
+        crate_id: 'smart_crate_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        name: name.trim(),
+        description: describeSmartCrateRules(smartRules),
+        is_smart: true,
+        smart_rules: smartRules,
+        record_ids: matchedIds,
+        created_at: new Date().toISOString()
+      };
+      crates.unshift(newCrate);
+      saveQmcCrates(crates);
+
+      if (typeof currentView !== 'undefined' && currentView === 'crates') {
+        renderCratesView(document.getElementById('recordsContainer'));
+      }
+      renderStats(true);
+      showToast(`Created Smart Crate "${newCrate.name}" (${matchedIds.length} live matches)!`, 'success', () => {
+        deleteQmcCrate(newCrate.crate_id);
+        if (typeof currentView !== 'undefined' && currentView === 'crates') {
+          renderCratesView(document.getElementById('recordsContainer'));
+        }
+      });
+      return newCrate;
+    }
+
+    /* =========================================================
+       MOBILE CARD SWIPE GESTURES (Item 14)
+       Swipe Right -> + Box | Swipe Left -> + Crate / Add to…
+       ========================================================= */
+    let _cardTouchState = null;
+
+    function handleCardTouchStart(ev, recordId) {
+      if (!ev || !ev.touches || ev.touches.length !== 1) return;
+      const t = ev.touches[0];
+      _cardTouchState = {
+        recordId: String(recordId),
+        startX: t.clientX,
+        startY: t.clientY,
+        curX: t.clientX,
+        curY: t.clientY,
+        cancelled: false,
+        el: ev.currentTarget || null
+      };
+    }
+
+    function handleCardTouchMove(ev) {
+      if (!_cardTouchState || _cardTouchState.cancelled || !ev.touches || ev.touches.length !== 1) return;
+      const t = ev.touches[0];
+      _cardTouchState.curX = t.clientX;
+      _cardTouchState.curY = t.clientY;
+      const dx = _cardTouchState.curX - _cardTouchState.startX;
+      const dy = _cardTouchState.curY - _cardTouchState.startY;
+      if (Math.abs(dy) > 28 && Math.abs(dy) > Math.abs(dx)) {
+        _cardTouchState.cancelled = true;
+        if (_cardTouchState.el) _cardTouchState.el.style.transform = '';
+        return;
+      }
+      if (Math.abs(dx) > 20 && Math.abs(dx) > Math.abs(dy) * 1.8 && _cardTouchState.el) {
+        const clamped = Math.max(-48, Math.min(48, dx * 0.45));
+        _cardTouchState.el.style.transform = `translateX(${clamped}px)`;
+      }
+    }
+
+    function handleCardTouchEnd(ev, recordId) {
+      if (!_cardTouchState) return;
+      const st = _cardTouchState;
+      _cardTouchState = null;
+      if (st.el) st.el.style.transform = '';
+      if (st.cancelled) return;
+      const dx = st.curX - st.startX;
+      const dy = st.curY - st.startY;
+      if (Math.abs(dx) < 68 || Math.abs(dx) < Math.abs(dy) * 1.8) return;
+      const targetId = String(recordId || st.recordId);
+      if (dx > 68) {
+        // Swipe Right -> Toggle in Record Box
+        toggleBoxForRecord(targetId);
+      } else if (dx < -68) {
+        // Swipe Left -> Open Unified Add to Crate / Set Sheet
+        openAddToModal(targetId, 'crates');
+      }
     }
 
     function renderCurationLifecycleStepper() {
@@ -9874,10 +10219,11 @@
 
       const crates = (typeof getQmcCrates === 'function') ? getQmcCrates() : [];
       crates.forEach(c => {
-        (c.record_ids || []).forEach(rId => {
+        const effectiveIds = (typeof getCrateEffectiveRecordIds === 'function') ? getCrateEffectiveRecordIds(c) : (c.record_ids || []);
+        effectiveIds.forEach(rId => {
           const k = String(rId);
           if (!cratesByRecord.has(k)) cratesByRecord.set(k, []);
-          cratesByRecord.get(k).push({ crate_id: c.crate_id, name: c.name });
+          cratesByRecord.get(k).push({ crate_id: c.crate_id, name: c.name, is_smart: Boolean(c.is_smart) });
         });
       });
 
@@ -10154,18 +10500,20 @@
       }
 
       listEl.innerHTML = crates.map(c => {
-        const cIds = Array.isArray(c.record_ids) ? c.record_ids.map(String) : [];
+        const cIds = (typeof getCrateEffectiveRecordIds === 'function') ? getCrateEffectiveRecordIds(c) : (Array.isArray(c.record_ids) ? c.record_ids.map(String) : []);
         const inCrate = targetIds.length > 0 && targetIds.every(id => cIds.includes(String(id)));
         const count = cIds.length;
         const safeCid = escapeJsString(String(c.crate_id));
+        const isSmart = Boolean(c.is_smart);
         return `
           <div class="flex items-center justify-between p-2.5 rounded-lg border transition ${inCrate ? 'bg-amber-500/10 border-amber-500/30' : 'bg-vinyl-850 border-vinyl-800'}">
             <div class="min-w-0 flex-1 pr-2">
               <div class="font-bold text-xs text-white truncate flex items-center gap-1.5">
-                <i class="fa-solid fa-box text-brass-400 text-[10px]"></i>
-                <span>${escapeHtml(c.name)}</span>
+                <i class="fa-solid ${isSmart ? 'fa-bolt text-sky-400' : 'fa-box text-brass-400'} text-[10px]"></i>
+                <span class="truncate">${escapeHtml(c.name)}</span>
+                ${isSmart ? '<span class="px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 text-[8.5px] font-mono uppercase shrink-0">Smart</span>' : ''}
               </div>
-              <div class="text-[10px] text-slate-400 font-mono">${count} release${count === 1 ? '' : 's'}</div>
+              <div class="text-[10px] text-slate-400 font-mono">${count} release${count === 1 ? '' : 's'}${isSmart ? ' (auto-updated)' : ''}</div>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
               <button type="button" onclick="appendCrateToRecordBox('${safeCid}')" class="px-2 py-1 rounded text-[10px] font-mono font-semibold bg-vinyl-800 hover:bg-amber-500/20 text-amber-300 border border-vinyl-700 hover:border-amber-500/40 transition cursor-pointer" title="Pack this entire crate into Record Box">
@@ -10326,22 +10674,29 @@
     function appendCrateToRecordBox(crateId) {
       const crate = getQmcCrates().find(c => String(c.crate_id) === String(crateId));
       if (!crate) return;
-      const recIds = Array.isArray(crate.record_ids) ? crate.record_ids : [];
+      const recIds = (typeof getCrateEffectiveRecordIds === 'function') ? getCrateEffectiveRecordIds(crate) : (Array.isArray(crate.record_ids) ? crate.record_ids : []);
       if (recIds.length === 0) {
         showToast(`Crate "${crate.name}" is empty.`, 'warning');
         return;
       }
-      let added = 0;
+      const newlyAdded = [];
       recIds.forEach(id => {
         if (!isRecordInBox(id)) {
           addRecordToBox(id);
-          added++;
+          newlyAdded.push(id);
         }
         updateBoxButtonElements(id);
       });
       renderAddToBoxSection();
       if (typeof renderRecords === 'function') renderRecords();
-      showToast(`Packed ${added > 0 ? added : recIds.length} release${recIds.length === 1 ? '' : 's'} from "${crate.name}" into Record Box!`, 'success');
+      showToast(`Packed ${newlyAdded.length > 0 ? newlyAdded.length : recIds.length} release${recIds.length === 1 ? '' : 's'} from "${crate.name}" into Record Box!`, 'success', () => {
+        newlyAdded.forEach(id => {
+          removeRecordFromBox(id);
+          updateBoxButtonElements(id);
+        });
+        renderAddToBoxSection();
+        if (typeof renderRecords === 'function') renderRecords();
+      });
     }
 
     function packFilteredRecordsToBox() {
@@ -10565,6 +10920,17 @@
       if (pillSplit) pillSplit.className = (!isBoxFull && !isSetFull && !isCompact) ? activeSplitClass : inactivePillClass;
       if (pillBoxFull) pillBoxFull.className = isBoxFull ? activePillClass : inactivePillClass;
       if (pillSetFocus) pillSetFocus.className = (isSetFull || isCompact) ? activePillClass : inactivePillClass;
+
+      const mobSegBox = document.getElementById('mobSegBtn-box');
+      const mobSegSet = document.getElementById('mobSegBtn-set');
+      const mobSegSplit = document.getElementById('mobSegBtn-split');
+      const mobActiveCls = 'py-1.5 px-2 rounded-lg bg-amber-500 text-vinyl-950 font-bold flex items-center justify-center gap-1 transition cursor-pointer shadow';
+      const mobInactiveCls = 'py-1.5 px-2 rounded-lg bg-vinyl-850 text-slate-300 border border-vinyl-700 flex items-center justify-center gap-1 transition cursor-pointer';
+      if (mobSegBox) mobSegBox.className = isBoxFull ? mobActiveCls : mobInactiveCls;
+      if (mobSegSet) mobSegSet.className = (isSetFull || isCompact) ? mobActiveCls : mobInactiveCls;
+      if (mobSegSplit) mobSegSplit.className = (!isBoxFull && !isSetFull && !isCompact) ? mobActiveCls : mobInactiveCls;
+      updateWorkingContextPill();
+      renderCurationLifecycleStepper();
     }
 
     function openRecordBoxDrawer(initialFocus = 'box') {
@@ -13161,7 +13527,13 @@
                 <p class="text-xs text-slate-400">Curated release buckets grouped by vibe, era, or genre</p>
               </div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
+              <button type="button" onclick="saveCurrentFiltersAsSmartCrate()"
+                class="px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 active:scale-95 text-sky-300 border border-sky-500/40 font-bold text-xs flex items-center gap-1.5 transition shadow cursor-pointer"
+                title="Save your active genre/decade/format filters as a dynamic Smart Crate that auto-updates">
+                <i class="fa-solid fa-bolt text-xs text-sky-400"></i>
+                <span>Save Filter as Smart Crate</span>
+              </button>
               <button type="button" onclick="openCrateAssignModal(null)"
                 class="px-3 py-1.5 rounded-xl bg-brass-500 hover:bg-brass-400 active:scale-95 text-vinyl-950 font-bold text-xs flex items-center gap-1.5 transition shadow cursor-pointer">
                 <i class="fa-solid fa-plus text-xs"></i>
@@ -13193,18 +13565,20 @@
         crates.forEach(crate => {
           const safeCrateId = escapeJsString(crate.crate_id);
           const safeName = escapeHtml(crate.name);
-          const safeDesc = escapeHtml(crate.description || 'Curated release bucket');
-          const recIds = crate.record_ids || [];
+          const isSmart = Boolean(crate.is_smart);
+          const safeDesc = escapeHtml(crate.description || (isSmart ? describeSmartCrateRules(crate.smart_rules) : 'Curated release bucket'));
+          const recIds = (typeof getCrateEffectiveRecordIds === 'function') ? getCrateEffectiveRecordIds(crate) : (crate.record_ids || []);
           const matchedRecords = recIds.map(id => allRecords.find(r => String(r.id) === String(id))).filter(Boolean);
           const isActiveBox = Boolean(activeBoxState && String(activeBoxState.crate_id) === String(crate.crate_id));
 
           html += `
-            <div class="p-4 bg-vinyl-900 border ${isActiveBox ? 'border-amber-500/80 ring-1 ring-amber-500/40' : 'border-vinyl-800 hover:border-brass-500/40'} rounded-2xl space-y-3 transition flex flex-col justify-between shadow-md">
+            <div class="p-4 bg-vinyl-900 border ${isActiveBox ? 'border-amber-500/80 ring-1 ring-amber-500/40' : (isSmart ? 'border-sky-500/40 hover:border-sky-400/60' : 'border-vinyl-800 hover:border-brass-500/40')} rounded-2xl space-y-3 transition flex flex-col justify-between shadow-md">
               <div class="space-y-2">
                 <div class="flex items-start justify-between gap-2">
                   <div class="min-w-0">
                     <h4 class="font-bold text-white text-sm truncate flex items-center gap-1.5" title="${safeName}">
                       ${isActiveBox ? '<span class="px-1.5 py-0.5 rounded bg-amber-500 text-vinyl-950 text-[9px] font-extrabold uppercase tracking-wider shrink-0">Active</span>' : ''}
+                      ${isSmart ? '<span class="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 text-[9px] font-extrabold uppercase tracking-wider shrink-0">⚡ Smart</span>' : ''}
                       <span class="truncate">${safeName}</span>
                     </h4>
                     <p class="text-[11px] text-slate-400 line-clamp-2 mt-0.5 leading-snug">${safeDesc}</p>
@@ -13268,15 +13642,20 @@
     function packCrateIntoRecordBox(crateId) {
       const crate = getQmcCrates().find(c => String(c.crate_id) === String(crateId));
       if (!crate) return;
+      if (crate.is_smart) {
+        crate.record_ids = getCrateEffectiveRecordIds(crate);
+        saveQmcCrates(getQmcCrates());
+      }
       chooseActiveBoxFromCrate(crateId);
     }
 
     function filterArchiveByCrate(crateId) {
       const crate = getQmcCrates().find(c => String(c.crate_id) === String(crateId));
       if (!crate) return;
-      currentCrateFilter = crate.record_ids || [];
+      const effectiveIds = (typeof getCrateEffectiveRecordIds === 'function') ? getCrateEffectiveRecordIds(crate) : (crate.record_ids || []);
+      currentCrateFilter = effectiveIds;
       switchView('grid');
-      showToast(`Filtering Archive for crate "${crate.name}" (${crate.record_ids.length} releases).`, 'info');
+      showToast(`Filtering Archive for crate "${crate.name}" (${effectiveIds.length} releases).`, 'info');
     }
 
     function deleteCrateConfirm(crateId) {
@@ -13309,7 +13688,16 @@
                 <p class="text-xs text-slate-400">Strictly sequenced track timelines ready for live play &amp; Spotify export</p>
               </div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
+              <select onchange="if(this.value){applySetTemplate(this.value);this.value='';}"
+                class="px-3 py-1.5 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-200 border border-purple-500/40 font-bold text-xs cursor-pointer focus:outline-none"
+                title="Start a new Set from a DJ Template">
+                <option value="">⚡ Start from Template…</option>
+                <option value="soul-funk-britpop">60s → Soul → Funk → Britpop</option>
+                <option value="warmup-peak">Warmup → Peak Time Build (BPM ↑)</option>
+                <option value="afterhours-cooldown">Late Night Cool Down (BPM ↓)</option>
+                <option value="club-45s">45 RPM 7" Club Session</option>
+              </select>
               <button type="button" onclick="openRecordBoxDrawer('sets')"
                 class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold text-xs flex items-center gap-1.5 transition shadow cursor-pointer">
                 <i class="fa-solid fa-plus text-xs"></i>
@@ -13395,6 +13783,12 @@
                   title="Load into Set Builder workspace">
                   <i class="fa-solid fa-sliders text-[10px]"></i>
                   <span>Load Set</span>
+                </button>
+                <button type="button" onclick="duplicateSet('${safeSetId}')"
+                  class="py-1.5 px-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-purple-300 border border-purple-500/30 font-semibold text-xs flex items-center gap-1 transition cursor-pointer"
+                  title="Clone / Duplicate this Set">
+                  <i class="fa-regular fa-copy text-[10px]"></i>
+                  <span class="hidden sm:inline">Clone</span>
                 </button>
                 <button type="button" onclick="popOutSavedSetWindow('${safeSetId}')"
                   class="py-1.5 px-2 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 font-semibold text-xs flex items-center gap-1 transition cursor-pointer"
@@ -14546,6 +14940,7 @@
       }
       if (pillsHTML) {
         pillsHTML += `<button type="button" onclick="packFilteredRecordsToBox()" class="px-2.5 py-0.5 rounded-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 inline-flex items-center gap-1 font-semibold transition cursor-pointer" title="Pack all currently filtered records into Record Box"><span>🧳</span><span>+ Filtered to Box</span></button>`;
+        pillsHTML += `<button type="button" onclick="saveCurrentFiltersAsSmartCrate()" class="px-2.5 py-0.5 rounded-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 inline-flex items-center gap-1 font-semibold transition cursor-pointer" title="Save active filters as a dynamic Smart Crate that auto-updates"><i class="fa-solid fa-bolt text-[9px]"></i><span>Save Smart Crate</span></button>`;
       }
 
       container.innerHTML = pillsHTML;
@@ -17901,7 +18296,7 @@
           const isSelected = selectedRecordIds.has(String(item.id));
 
           html += `
-            <div class="bg-vinyl-900 rounded-xl border ${isSelected ? 'border-brass-400 ring-2 ring-brass-400/50' : 'border-vinyl-800 hover:border-brass-500/50'} transition-all duration-200 overflow-hidden shadow-md flex flex-col group cursor-pointer" onclick="viewRecordDetail('${safeId}')">
+            <div ontouchstart="handleCardTouchStart(event, '${safeId}')" ontouchmove="handleCardTouchMove(event)" ontouchend="handleCardTouchEnd(event, '${safeId}')" class="bg-vinyl-900 rounded-xl border ${isSelected ? 'border-brass-400 ring-2 ring-brass-400/50' : 'border-vinyl-800 hover:border-brass-500/50'} transition-all duration-200 overflow-hidden shadow-md flex flex-col group cursor-pointer" onclick="viewRecordDetail('${safeId}')">
               
               <!-- Sleeve Visual Cover -->
               <div class="relative w-full aspect-square bg-vinyl-950 overflow-hidden flex-shrink-0">
@@ -18016,7 +18411,7 @@
         const isSelected = selectedRecordIds.has(String(item.id));
 
         html += `
-          <div class="bg-vinyl-900 rounded-2xl border ${isSelected ? 'border-brass-400 ring-2 ring-brass-400/50' : 'border-vinyl-800 hover:border-brass-500/50'} transition-all duration-200 overflow-hidden shadow-lg hover:shadow-2xl flex flex-col group">
+          <div ontouchstart="handleCardTouchStart(event, '${safeId}')" ontouchmove="handleCardTouchMove(event)" ontouchend="handleCardTouchEnd(event, '${safeId}')" class="bg-vinyl-900 rounded-2xl border ${isSelected ? 'border-brass-400 ring-2 ring-brass-400/50' : 'border-vinyl-800 hover:border-brass-500/50'} transition-all duration-200 overflow-hidden shadow-lg hover:shadow-2xl flex flex-col group">
             
             <!-- Sleeve Visual Card Header -->
             <div class="relative w-full aspect-square bg-vinyl-950 overflow-hidden cursor-pointer flex-shrink-0" onclick="viewRecordDetail('${safeId}')">
