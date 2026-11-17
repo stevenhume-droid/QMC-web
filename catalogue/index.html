@@ -1349,6 +1349,24 @@
               class="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-mono record-box-count">0</span>
           </button>
 
+          <!-- Persistent Working Context Pill (Box -> Active Set Quick Jump) -->
+          <div id="workingContextPill"
+            class="inline-flex items-center rounded-lg bg-vinyl-850 border border-vinyl-700 text-[11px] font-mono overflow-hidden shadow-sm">
+            <button type="button" onclick="openRecordBoxDrawer('box-full')"
+              class="px-2 py-1.5 hover:bg-vinyl-800 text-amber-300 font-semibold flex items-center gap-1 transition cursor-pointer"
+              title="Open Active Record Box">
+              <span>🧳</span>
+              <span id="workingContextBoxLabel" class="truncate max-w-[95px] sm:max-w-[125px]">Box (0)</span>
+            </button>
+            <span class="text-slate-600 px-0.5 select-none">→</span>
+            <button type="button" onclick="openRecordBoxDrawer('sets')"
+              class="px-2 py-1.5 hover:bg-vinyl-800 text-purple-300 font-semibold flex items-center gap-1 transition cursor-pointer"
+              title="Open Active Set Timeline">
+              <i class="fa-solid fa-list-ol text-[9px] text-amber-400"></i>
+              <span id="workingContextSetLabel" class="truncate max-w-[100px] sm:max-w-[140px]">Set (0)</span>
+            </button>
+          </div>
+
           <!-- Multi-Select Mode / Select All Trigger Button -->
           <button type="button" id="btnToggleMultiSelectMode" onclick="toggleMultiSelectMode()"
             class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-brass-500/50 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-slate-300 font-semibold flex items-center gap-1 sm:gap-1.5 transition shadow-sm cursor-pointer"
@@ -1441,6 +1459,18 @@
             <option value="G">Good (G)</option>
             <option value="F">Fair (F)</option>
             <option value="P">Poor (P)</option>
+          </select>
+
+          <!-- Membership Filter (Box / Crate / Set) -->
+          <select id="filterMembership" onchange="handleSearchFilterChange()"
+            class="mf bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-2 text-xs text-amber-300 focus:outline-none focus:border-brass-500">
+            <option value="ALL">All Memberships</option>
+            <option value="IN_BOX">🧳 In Record Box</option>
+            <option value="NOT_IN_BOX">Not in Record Box</option>
+            <option value="IN_ANY_CRATE">📦 In Any Crate</option>
+            <option value="NOT_IN_CRATE">Not in Any Crate</option>
+            <option value="IN_ANY_SET">🎵 In Any Set</option>
+            <option value="NOT_IN_SET">Not in Any Set</option>
           </select>
 
           <!-- Sort By -->
@@ -4236,12 +4266,19 @@
         </div>
       </div>
 
+      <!-- Curation Staging Lifecycle Stepper (Browse -> Crate -> Box -> Set -> Export/Spotify) -->
+      <div id="curationLifecycleStepper"
+        class="px-3 sm:px-5 py-1.5 bg-vinyl-950/90 border-b border-vinyl-800 flex items-center justify-between gap-2 text-[10.5px] font-mono overflow-x-auto no-scrollbar shrink-0">
+        <!-- Populated dynamically via renderCurationLifecycleStepper() -->
+      </div>
+
       <!-- Split-Pane Body -->
       <div id="recordBoxSplitBody"
         class="flex-1 grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-vinyl-800 overflow-hidden min-h-0">
 
         <!-- LEFT PANE: PACKED RECORD BOX (Physical Holdings Working Bag) -->
-        <div id="recordBoxPane" class="flex flex-col h-full min-h-0 bg-vinyl-900/60">
+        <div id="recordBoxPane" class="flex flex-col h-full min-h-0 bg-vinyl-900/60"
+          ondragover="handleBoxPaneDragOver(event)" ondrop="handleBoxPaneDrop(event)">
           <div class="p-2.5 sm:p-3.5 border-b border-vinyl-800 bg-vinyl-850/60 shrink-0 space-y-1.5 sm:space-y-2">
             <!-- Row 1: Choose Existing Box / Crate Dropdown, Rename Toggle & + New Box Button -->
             <div class="flex items-center justify-between gap-1.5">
@@ -4330,7 +4367,8 @@
         </div>
 
         <!-- RIGHT PANE: SEQUENCED SET BUILDER (Ordered Track Timeline) -->
-        <div id="setBuilderPane" class="flex flex-col h-full min-h-0 bg-vinyl-900/40">
+        <div id="setBuilderPane" class="flex flex-col h-full min-h-0 bg-vinyl-900/40 transition-colors"
+          ondragover="handleSetTimelineDragOver(event)" ondragleave="handleSetTimelineDragLeave(event)" ondrop="handleSetTimelineDrop(event)">
           <!-- Set Header & Title -->
           <div class="p-2.5 sm:p-3.5 border-b border-vinyl-800 bg-vinyl-850/60 shrink-0 space-y-1.5 sm:space-y-2">
             <!-- Row 1: Choose Existing Set Dropdown, Rename Button & + New Set Button -->
@@ -9425,6 +9463,184 @@
       return sets;
     }
 
+    let _lastUndoAction = null;
+
+    function registerUndoAction(label, restoreFn) {
+      if (typeof restoreFn !== 'function') return null;
+      _lastUndoAction = { label: label || 'Undo', restoreFn, ts: Date.now() };
+      return _lastUndoAction;
+    }
+
+    function triggerLastUndo() {
+      if (!_lastUndoAction || typeof _lastUndoAction.restoreFn !== 'function') return;
+      const action = _lastUndoAction;
+      _lastUndoAction = null;
+      try {
+        action.restoreFn();
+        showToast('Undid last action.', 'info');
+      } catch (err) {
+        console.warn('Undo failed:', err);
+      }
+    }
+
+    function updateWorkingContextPill() {
+      const boxLbl = document.getElementById('workingContextBoxLabel');
+      const setLbl = document.getElementById('workingContextSetLabel');
+      const boxCount = (typeof getQmcRecordBox === 'function') ? getQmcRecordBox().length : 0;
+      const boxTitle = (typeof activeBoxState !== 'undefined' && activeBoxState?.title) ? activeBoxState.title : 'Box';
+      const shortBox = boxTitle.length > 12 ? boxTitle.slice(0, 11) + '…' : boxTitle;
+
+      const setTracks = (typeof activeSetState !== 'undefined' && Array.isArray(activeSetState?.tracks)) ? activeSetState.tracks.length : 0;
+      const setTitle = (typeof activeSetState !== 'undefined' && activeSetState?.title) ? activeSetState.title : 'Set';
+      const shortSet = setTitle.length > 14 ? setTitle.slice(0, 13) + '…' : setTitle;
+
+      if (boxLbl) boxLbl.textContent = `${shortBox} (${boxCount})`;
+      if (setLbl) setLbl.textContent = `${shortSet} (${setTracks})`;
+    }
+
+    function renderCurationLifecycleStepper() {
+      const el = document.getElementById('curationLifecycleStepper');
+      if (!el) return;
+      const cratesCount = (typeof getQmcCrates === 'function') ? getQmcCrates().length : 0;
+      const boxCount = (typeof getQmcRecordBox === 'function') ? getQmcRecordBox().length : 0;
+      const setCount = (typeof activeSetState !== 'undefined' && Array.isArray(activeSetState?.tracks)) ? activeSetState.tracks.length : 0;
+      const mode = (typeof recordBoxDrawerMode !== 'undefined') ? recordBoxDrawerMode : 'split';
+
+      const isBoxStage = mode === 'box-full' || (mode === 'split' && setCount === 0);
+      const isSetStage = mode === 'set-full' || mode === 'set-focus' || (mode === 'split' && setCount > 0);
+
+      let nextCtaHtml = '';
+      if (boxCount === 0) {
+        nextCtaHtml = `<button type="button" onclick="closeRecordBoxDrawer()" class="px-2 py-0.5 rounded bg-brass-500/20 hover:bg-brass-500/30 text-brass-300 border border-brass-500/40 font-sans font-bold text-[10px] transition cursor-pointer shrink-0">Next: Pack Records from Archive →</button>`;
+      } else if (setCount === 0) {
+        nextCtaHtml = `<button type="button" onclick="buildSetFromRecordBox('harmonic')" class="px-2 py-0.5 rounded bg-emerald-500 hover:bg-emerald-400 text-vinyl-950 font-sans font-bold text-[10px] transition cursor-pointer shrink-0 shadow">⚡ Next: Build Set (${boxCount} in Box) →</button>`;
+      } else {
+        nextCtaHtml = `<button type="button" onclick="saveCurrentActiveSet(); triggerSpotifySetExport();" class="px-2 py-0.5 rounded bg-[#1DB954]/20 hover:bg-[#1DB954]/30 text-[#1ed760] border border-[#1DB954]/40 font-sans font-bold text-[10px] transition cursor-pointer shrink-0">🎵 Next: Save &amp; Sync Spotify →</button>`;
+      }
+
+      el.innerHTML = `
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button type="button" onclick="closeRecordBoxDrawer()" class="px-2 py-0.5 rounded border border-vinyl-800 bg-vinyl-900 hover:bg-vinyl-800 text-slate-300 transition cursor-pointer flex items-center gap-1" title="Step 1: Browse Archive">
+            <span class="text-slate-500">1.</span><span>Archive</span>
+          </button>
+          <span class="text-slate-600">→</span>
+          <button type="button" onclick="saveRecordBoxAsCrate()" class="px-2 py-0.5 rounded border border-vinyl-800 bg-vinyl-900 hover:bg-vinyl-800 text-brass-300 transition cursor-pointer flex items-center gap-1" title="Step 2: Curate Thematic Crates (${cratesCount} saved)">
+            <span class="text-slate-500">2.</span><span>Crate (${cratesCount})</span>
+          </button>
+          <span class="text-slate-600">→</span>
+          <button type="button" onclick="setRecordBoxDrawerMode('box-full')" class="px-2 py-0.5 rounded border transition cursor-pointer flex items-center gap-1 ${isBoxStage ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 font-bold' : 'border-vinyl-800 bg-vinyl-900 hover:bg-vinyl-800 text-amber-300/80'}" title="Step 3: Pack Gig Bag Record Box (${boxCount} packed)">
+            <span class="text-slate-500">3.</span><span>🧳 Box (${boxCount})</span>
+          </button>
+          <span class="text-slate-600">→</span>
+          <button type="button" onclick="setRecordBoxDrawerMode('set-full')" class="px-2 py-0.5 rounded border transition cursor-pointer flex items-center gap-1 ${isSetStage ? 'bg-purple-500/20 border-purple-500/50 text-purple-200 font-bold' : 'border-vinyl-800 bg-vinyl-900 hover:bg-vinyl-800 text-purple-300/80'}" title="Step 4: Sequence Set Timeline (${setCount} tracks)">
+            <span class="text-slate-500">4.</span><span>🎵 Set (${setCount})</span>
+          </button>
+          <span class="text-slate-600">→</span>
+          <button type="button" onclick="triggerSpotifySetExport()" class="px-2 py-0.5 rounded border border-vinyl-800 bg-vinyl-900 hover:bg-vinyl-800 text-emerald-300 transition cursor-pointer flex items-center gap-1" title="Step 5: Export / Sync Set to Spotify">
+            <span class="text-slate-500">5.</span><i class="fa-brands fa-spotify text-[10px]"></i><span>Export</span>
+          </button>
+        </div>
+        ${nextCtaHtml}
+      `;
+    }
+
+    /* Drag-and-Drop Handlers between Record Box, Set Timeline, and Crates */
+    let _activeDragPayload = null;
+
+    function handleBoxRecordDragStart(ev, recordId) {
+      _activeDragPayload = { type: 'box-record', recordId: String(recordId) };
+      if (ev && ev.dataTransfer) {
+        ev.dataTransfer.effectAllowed = 'copyMove';
+        try { ev.dataTransfer.setData('text/plain', JSON.stringify(_activeDragPayload)); } catch (_) { }
+      }
+    }
+
+    function handleBoxTrackDragStart(ev, recordId, trackIdx) {
+      if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation();
+      _activeDragPayload = { type: 'box-track', recordId: String(recordId), trackIdx: Number(trackIdx) };
+      if (ev && ev.dataTransfer) {
+        ev.dataTransfer.effectAllowed = 'copy';
+        try { ev.dataTransfer.setData('text/plain', JSON.stringify(_activeDragPayload)); } catch (_) { }
+      }
+    }
+
+    function handleSetTrackReorderDragStart(ev, trackIndex) {
+      _activeDragPayload = { type: 'set-track-reorder', fromIndex: Number(trackIndex) };
+      if (ev && ev.dataTransfer) {
+        ev.dataTransfer.effectAllowed = 'move';
+        try { ev.dataTransfer.setData('text/plain', JSON.stringify(_activeDragPayload)); } catch (_) { }
+      }
+    }
+
+    function handleSetTrackReorderDragOver(ev) {
+      if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
+    }
+
+    function handleSetTrackReorderDrop(ev, toIndex) {
+      if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
+      if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation();
+      let payload = _activeDragPayload;
+      if (!payload && ev?.dataTransfer) {
+        try { payload = JSON.parse(ev.dataTransfer.getData('text/plain')); } catch (_) { }
+      }
+      if (!payload) return;
+      if (payload.type === 'set-track-reorder' && typeof payload.fromIndex === 'number') {
+        moveTrackInActiveSet(payload.fromIndex, Number(toIndex));
+      } else if (payload.type === 'box-record' && payload.recordId) {
+        addAllRecordTracksToSet(payload.recordId);
+      } else if (payload.type === 'box-track' && payload.recordId) {
+        addTrackToActiveSet(payload.recordId, payload.trackIdx);
+      }
+      _activeDragPayload = null;
+    }
+
+    function handleSetTimelineDragOver(ev) {
+      if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
+      const pane = document.getElementById('setBuilderPane');
+      if (pane) pane.classList.add('ring-2', 'ring-amber-400/50');
+    }
+
+    function handleSetTimelineDragLeave(ev) {
+      const pane = document.getElementById('setBuilderPane');
+      if (pane) pane.classList.remove('ring-2', 'ring-amber-400/50');
+    }
+
+    function handleSetTimelineDrop(ev) {
+      if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
+      const pane = document.getElementById('setBuilderPane');
+      if (pane) pane.classList.remove('ring-2', 'ring-amber-400/50');
+      let payload = _activeDragPayload;
+      if (!payload && ev?.dataTransfer) {
+        try { payload = JSON.parse(ev.dataTransfer.getData('text/plain')); } catch (_) { }
+      }
+      if (!payload) return;
+      if (payload.type === 'box-record' && payload.recordId) {
+        addAllRecordTracksToSet(payload.recordId);
+      } else if (payload.type === 'box-track' && payload.recordId) {
+        addTrackToActiveSet(payload.recordId, payload.trackIdx);
+      }
+      _activeDragPayload = null;
+    }
+
+    function handleBoxPaneDragOver(ev) {
+      if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
+    }
+
+    function handleBoxPaneDrop(ev) {
+      if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
+      let payload = _activeDragPayload;
+      if (!payload && ev?.dataTransfer) {
+        try { payload = JSON.parse(ev.dataTransfer.getData('text/plain')); } catch (_) { }
+      }
+      if (payload && payload.recordId && !isRecordInBox(payload.recordId)) {
+        addRecordToBox(payload.recordId);
+        updateBoxButtonElements(payload.recordId);
+        renderRecordBoxDrawer();
+        showToast('Packed dropped release into Record Box!', 'success');
+      }
+      _activeDragPayload = null;
+    }
+
     function updateRecordBoxBadges() {
       const box = getQmcRecordBox();
       const count = box.length;
@@ -9439,6 +9655,8 @@
         const qBadge = document.getElementById('mobileQuickStripBoxBadge');
         if (qBadge) qBadge.textContent = String(count);
       }
+      updateWorkingContextPill();
+      renderCurationLifecycleStepper();
     }
 
     function initQmcCurationStorage() {
@@ -9446,6 +9664,7 @@
       getQmcRecordBox();
       getQmcSavedSets();
       updateRecordBoxBadges();
+      updateWorkingContextPill();
       if (typeof updateWishlistCountBadges === 'function') updateWishlistCountBadges();
     }
 
@@ -9458,11 +9677,19 @@
       const inBox = isRecordInBox(recordId);
       if (inBox) {
         removeRecordFromBox(recordId);
-        showToast(`Removed "${title}" from Record Box.`, 'neutral');
+        showToast(`Removed "${title}" from Record Box.`, 'neutral', () => {
+          addRecordToBox(recordId);
+          updateBoxButtonElements(recordId);
+          if (typeof renderRecords === 'function') renderRecords();
+        });
       } else {
         addRecordToBox(recordId);
         const count = getQmcRecordBox().length;
-        showToast(`Packed "${title}" into Record Box! (Total: ${count})`, 'success');
+        showToast(`Packed "${title}" into Record Box! (Total: ${count})`, 'success', () => {
+          removeRecordFromBox(recordId);
+          updateBoxButtonElements(recordId);
+          if (typeof renderRecords === 'function') renderRecords();
+        });
       }
       updateBoxButtonElements(recordId);
     }
@@ -9592,16 +9819,22 @@
         showToast('Select at least one record first.', 'warning');
         return;
       }
-      let added = 0;
+      const newlyAddedIds = [];
       ids.forEach(id => {
         if (!isRecordInBox(id)) {
           addRecordToBox(id);
-          added++;
+          newlyAddedIds.push(id);
         }
         updateBoxButtonElements(id);
       });
-      showToast(`Packed ${added > 0 ? added : ids.length} selected release${ids.length === 1 ? '' : 's'} into Record Box!`, 'success');
       if (typeof renderRecords === 'function') renderRecords();
+      showToast(`Packed ${newlyAddedIds.length > 0 ? newlyAddedIds.length : ids.length} selected release${ids.length === 1 ? '' : 's'} into Record Box!`, 'success', () => {
+        newlyAddedIds.forEach(id => {
+          removeRecordFromBox(id);
+          updateBoxButtonElements(id);
+        });
+        if (typeof renderRecords === 'function') renderRecords();
+      });
     }
 
     function bulkAddSelectedToSet() {
@@ -9610,6 +9843,7 @@
         showToast('Select at least one record first.', 'warning');
         return;
       }
+      const prevTracksSnapshot = activeSetState.tracks.map(t => ({ ...t }));
       let tracksAdded = 0;
       ids.forEach(id => {
         if (!isRecordInBox(id)) addRecordToBox(id);
@@ -9617,7 +9851,11 @@
       });
       renderRecordBoxDrawer();
       if (typeof renderRecords === 'function') renderRecords();
-      showToast(`Added ${tracksAdded} track${tracksAdded === 1 ? '' : 's'} from ${ids.length} release${ids.length === 1 ? '' : 's'} to "${activeSetState.title || 'Active Set'}"!`, 'success');
+      showToast(`Added ${tracksAdded} track${tracksAdded === 1 ? '' : 's'} from ${ids.length} release${ids.length === 1 ? '' : 's'} to "${activeSetState.title || 'Active Set'}"!`, 'success', () => {
+        activeSetState.tracks = prevTracksSnapshot;
+        renderRecordBoxDrawer();
+        if (typeof renderRecords === 'function') renderRecords();
+      });
     }
 
     function openBulkAddToModal(initialTab = 'all') {
@@ -10370,6 +10608,8 @@
       renderRecordBoxPane();
       renderSetBuilderPane();
       applyRecordBoxDrawerMode();
+      updateWorkingContextPill();
+      renderCurationLifecycleStepper();
     }
 
     function renderRecordBoxPane() {
@@ -10379,6 +10619,8 @@
       if (!listEl) return;
 
       renderActiveBoxPicker();
+      updateWorkingContextPill();
+      renderCurationLifecycleStepper();
 
       if (boxTitleInput && boxTitleInput.value !== activeBoxState.title) {
         boxTitleInput.value = activeBoxState.title || 'Session Box';
@@ -10440,7 +10682,7 @@
           }
 
           html += `
-            <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-2.5 transition hover:border-amber-500/30">
+            <div draggable="true" ondragstart="handleBoxRecordDragStart(event, '${safeId}')" class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-2.5 transition hover:border-amber-500/30 cursor-grab active:cursor-grabbing" title="Drag release to Set Timeline on the right, or use quick actions below">
               <div class="flex items-start gap-3">
                 <img src="${coverSrc}" alt="" class="w-12 h-12 rounded object-cover border border-vinyl-700 shrink-0 bg-vinyl-900" onerror="this.src=getDefaultCover('', '', '', true)">
                 <div class="flex-1 min-w-0">
@@ -10457,21 +10699,24 @@
                 </div>
               </div>
 
-              <!-- Box Action Row: Expand Tracks, 1-Tap Add All to Set & Remove from Box -->
-              <div class="flex items-center justify-between pt-1 border-t border-vinyl-800/80 text-[11px]">
+              <!-- Box Action Row: Expand Tracks, 1-Tap Add All to Set, Move to Crate/Set & Remove from Box -->
+              <div class="flex items-center justify-between pt-1 border-t border-vinyl-800/80 text-[11px] flex-wrap gap-1">
                 <button type="button" onclick="toggleRecordBoxTracklist('${safeId}')"
                   class="text-brass-400 hover:text-brass-300 font-semibold flex items-center gap-1 transition cursor-pointer">
                   <i class="fa-solid fa-chevron-${isExpanded ? 'down' : 'right'} text-[9px]"></i>
                   <span>${isExpanded ? 'Hide Tracks' : `Show Tracks (${normTracks.length || '?'})`}</span>
                 </button>
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-1 flex-wrap">
                   <button type="button" onclick="addAllRecordTracksToSet('${safeId}')" class="text-emerald-300 hover:text-emerald-200 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 transition cursor-pointer" title="Push all tracks from this release into the Set Timeline">
                     + All to Set
+                  </button>
+                  <button type="button" onclick="openAddToModal('${safeId}', 'crates')" class="text-brass-300 hover:text-white text-[10px] px-1.5 py-0.5 rounded bg-vinyl-800 hover:bg-vinyl-700 border border-vinyl-700 transition cursor-pointer" title="Move or assign release to a Crate or Set">
+                    Move to…
                   </button>
                   <button type="button" onclick="viewRecordDetail('${safeId}')" class="text-slate-400 hover:text-slate-200 text-[10px] px-1.5 py-0.5 rounded bg-vinyl-800 hover:bg-vinyl-700 transition cursor-pointer" title="Inspect Dossier">
                     Dossier
                   </button>
-                  <button type="button" onclick="removeRecordFromBox('${safeId}'); renderRecordBoxDrawer();"
+                  <button type="button" onclick="removeRecordFromBoxWithUndo('${safeId}')"
                     class="text-red-400 hover:text-red-300 text-[10px] px-1.5 py-0.5 rounded bg-vinyl-800 hover:bg-red-950/60 transition cursor-pointer" title="Remove from Record Box">
                     Remove
                   </button>
@@ -10488,7 +10733,7 @@
             const inSet = activeSetState.tracks.some(st => String(st.record_id) === recId && String(st.title).toLowerCase() === String(tr.title || '').toLowerCase());
 
             return `
-                      <div class="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-vinyl-900/90 text-xs border border-vinyl-800/60 hover:border-vinyl-700 transition">
+                      <div draggable="true" ondragstart="handleBoxTrackDragStart(event, '${safeId}', ${tIdx})" class="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-vinyl-900/90 text-xs border border-vinyl-800/60 hover:border-vinyl-700 transition cursor-grab active:cursor-grabbing" title="Drag track to Set Timeline or click [+ Set]">
                         <div class="flex items-center gap-1.5 min-w-0">
                           <span class="w-6 text-center font-mono text-[10px] font-bold text-amber-400 bg-vinyl-800/80 px-1 py-0.2 rounded shrink-0">${trPos}</span>
                           <span class="truncate font-medium text-slate-200" title="${trTitle}">${trTitle}</span>
@@ -10524,6 +10769,23 @@
       } else {
         listEl.innerHTML = html;
       }
+    }
+
+    function removeRecordFromBoxWithUndo(recordId) {
+      if (!recordId) return;
+      const sId = String(recordId);
+      const rec = (typeof records !== 'undefined' ? records : []).find(r => String(r.id) === sId);
+      const title = rec ? `${rec.artist} — ${rec.title}` : 'Release';
+      removeRecordFromBox(sId);
+      updateBoxButtonElements(sId);
+      renderRecordBoxDrawer();
+      if (typeof renderRecords === 'function') renderRecords();
+      showToast(`Removed "${title}" from Record Box.`, 'info', () => {
+        addRecordToBox(sId);
+        updateBoxButtonElements(sId);
+        renderRecordBoxDrawer();
+        if (typeof renderRecords === 'function') renderRecords();
+      });
     }
 
     function toggleRecordBoxTracklist(recordId) {
@@ -11030,6 +11292,8 @@
       if (!timelineEl) return;
 
       renderActiveSetPicker();
+      updateWorkingContextPill();
+      renderCurationLifecycleStepper();
       if (typeof renderSetGenreSortPanel === 'function') {
         renderSetGenreSortPanel();
       }
@@ -11176,7 +11440,7 @@
         ].filter(Boolean)));
 
         html += `
-          <div class="p-2.5 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-1.5 transition hover:border-amber-500/40">
+          <div draggable="true" ondragstart="handleSetTrackReorderDragStart(event, ${index})" ondragover="handleSetTrackReorderDragOver(event)" ondrop="handleSetTrackReorderDrop(event, ${index})" class="p-2.5 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-1.5 transition hover:border-amber-500/40 cursor-grab active:cursor-grabbing" title="Drag to reorder track in timeline">
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center gap-2 min-w-0">
                 <span class="w-6 h-6 rounded-md bg-amber-500 text-vinyl-950 font-bold font-mono text-xs flex items-center justify-center shrink-0">
@@ -11337,7 +11601,10 @@
       });
 
       renderRecordBoxDrawer();
-      showToast(`Added "${trackObj.title || 'Track'}" to active set!`, 'success');
+      showToast(`Added "${trackObj.title || 'Track'}" to active set!`, 'success', () => {
+        activeSetState.tracks.pop();
+        renderRecordBoxDrawer();
+      });
     }
 
     function addTrackToActiveSetFromDossier(recordId, trackIdx) {
@@ -11369,10 +11636,15 @@
     function removeTrackFromActiveSet(index) {
       if (index >= 0 && index < activeSetState.tracks.length) {
         const removed = activeSetState.tracks.splice(index, 1)[0];
+        const removedIdx = index;
         // Renumber positions
         activeSetState.tracks.forEach((t, i) => { t.position = i + 1; });
         renderRecordBoxDrawer();
-        showToast(`Removed "${removed?.title || 'Track'}" from set.`, 'info');
+        showToast(`Removed "${removed?.title || 'Track'}" from set.`, 'info', () => {
+          activeSetState.tracks.splice(removedIdx, 0, removed);
+          activeSetState.tracks.forEach((t, i) => { t.position = i + 1; });
+          renderRecordBoxDrawer();
+        });
       }
     }
 
@@ -12816,18 +13088,30 @@
       const box = getQmcRecordBox();
       if (box.length === 0) return;
       if (confirm(`Unpack all ${box.length} release(s) from your active Record Box?`)) {
+        const snapshotIds = box.map(b => String(b.record_id || b.id || b)).filter(Boolean);
         clearRecordBox();
         renderRecordBoxDrawer();
-        showToast('Record Box unpacked.', 'info');
+        if (typeof renderRecords === 'function') renderRecords();
+        showToast(`Record Box unpacked (${snapshotIds.length} releases).`, 'info', () => {
+          snapshotIds.forEach(id => addRecordToBox(id));
+          renderRecordBoxDrawer();
+          if (typeof renderRecords === 'function') renderRecords();
+        });
       }
     }
 
     function clearActiveSetTimeline() {
       if (activeSetState.tracks.length === 0) return;
       if (confirm('Clear all tracks from the active set timeline?')) {
+        const snapshotTracks = activeSetState.tracks.map(t => ({ ...t }));
         activeSetState.tracks = [];
         renderRecordBoxDrawer();
-        showToast('Set timeline cleared.', 'info');
+        if (typeof renderRecords === 'function') renderRecords();
+        showToast(`Set timeline cleared (${snapshotTracks.length} tracks).`, 'info', () => {
+          activeSetState.tracks = snapshotTracks;
+          renderRecordBoxDrawer();
+          if (typeof renderRecords === 'function') renderRecords();
+        });
       }
     }
 
@@ -13999,10 +14283,12 @@
       const searchTerm = (document.getElementById('globalSearch')?.value || '').toLowerCase().trim();
       const formatFilter = document.getElementById('filterFormat')?.value || 'ALL';
       const gradeFilter = document.getElementById('filterGrade')?.value || 'ALL';
+      const membershipFilter = document.getElementById('filterMembership')?.value || 'ALL';
       const genreFilter = document.getElementById('filterGenre')?.value || 'ALL';
       const labelFilter = document.getElementById('filterLabel')?.value || 'ALL';
       const seriesFilter = document.getElementById('filterSeries')?.value || 'ALL';
       const sortBy = document.getElementById('sortBy')?.value || 'dateAddedDesc';
+      const membershipMap = (membershipFilter !== 'ALL') ? buildMembershipLookupMap() : null;
 
       const cleanedSearchForDecades = searchTerm.replace(/[,+&/|]+/g, ' ').replace(/\band\b/g, ' ').trim();
       const rawSearchTokens = cleanedSearchForDecades ? cleanedSearchForDecades.split(/\s+/) : [];
@@ -14015,6 +14301,17 @@
         // Crate Filter
         if (currentCrateFilter && Array.isArray(currentCrateFilter)) {
           if (!currentCrateFilter.includes(String(item.id))) return false;
+        }
+
+        // Membership Filter (Box / Crate / Set)
+        if (membershipFilter !== 'ALL' && membershipMap) {
+          const m = getRecordMemberships(item.id, membershipMap);
+          if (membershipFilter === 'IN_BOX' && !m.inBox) return false;
+          if (membershipFilter === 'NOT_IN_BOX' && m.inBox) return false;
+          if (membershipFilter === 'IN_ANY_CRATE' && m.crates.length === 0) return false;
+          if (membershipFilter === 'NOT_IN_CRATE' && m.crates.length > 0) return false;
+          if (membershipFilter === 'IN_ANY_SET' && m.sets.length === 0) return false;
+          if (membershipFilter === 'NOT_IN_SET' && m.sets.length > 0) return false;
         }
 
         // Dedicated Artist Filter
@@ -14191,11 +14488,24 @@
       const searchTerm = document.getElementById('globalSearch')?.value.trim();
       const formatFilter = document.getElementById('filterFormat')?.value || 'ALL';
       const gradeFilter = document.getElementById('filterGrade')?.value || 'ALL';
+      const membershipFilter = document.getElementById('filterMembership')?.value || 'ALL';
       const genreFilter = document.getElementById('filterGenre')?.value || 'ALL';
       const labelFilter = document.getElementById('filterLabel')?.value || 'ALL';
       const seriesFilter = document.getElementById('filterSeries')?.value || 'ALL';
 
       let pillsHTML = '';
+
+      if (membershipFilter !== 'ALL') {
+        const memLabels = {
+          IN_BOX: 'In Record Box',
+          NOT_IN_BOX: 'Not in Record Box',
+          IN_ANY_CRATE: 'In Any Crate',
+          NOT_IN_CRATE: 'Not in Any Crate',
+          IN_ANY_SET: 'In Any Set',
+          NOT_IN_SET: 'Not in Any Set'
+        };
+        pillsHTML += `<span class="bg-vinyl-800 text-amber-300 px-2.5 py-0.5 rounded-full border border-amber-500/40 inline-flex items-center gap-1.5 max-w-full leading-snug"><span class="min-w-0 break-words">Membership: ${escapeHtml(memLabels[membershipFilter] || membershipFilter)}</span> <button onclick="document.getElementById('filterMembership').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400 flex-shrink-0 px-0.5"><i class="fa-solid fa-xmark"></i></button></span>`;
+      }
 
       if (activeArtistFilter) {
         pillsHTML += `<span class="bg-brass-500/20 text-brass-300 px-2.5 py-0.5 rounded-full border border-brass-500/50 inline-flex items-center gap-1.5 max-w-full leading-snug font-medium"><i class="fa-solid fa-user text-[10px] flex-shrink-0"></i> <span class="min-w-0 break-words">Artist: "${escapeHtml(activeArtistFilter)}"</span> <button onclick="clearArtistFilter()" class="hover:text-red-400 flex-shrink-0 px-0.5"><i class="fa-solid fa-xmark"></i></button></span>`;
@@ -14254,6 +14564,7 @@
       document.getElementById('globalSearch').value = '';
       document.getElementById('filterFormat').value = 'ALL';
       document.getElementById('filterGrade').value = 'ALL';
+      if (document.getElementById('filterMembership')) document.getElementById('filterMembership').value = 'ALL';
       if (document.getElementById('filterGenre')) document.getElementById('filterGenre').value = 'ALL';
       if (document.getElementById('filterLabel')) document.getElementById('filterLabel').value = 'ALL';
       if (document.getElementById('filterSeries')) document.getElementById('filterSeries').value = 'ALL';
@@ -26937,28 +27248,42 @@
     }
 
     /* =========================================================
-       TOAST FEEDBACK UI
+       TOAST FEEDBACK UI (With Optional 1-Tap Undo Button)
        ========================================================= */
-    function showToast(message, type = "success") {
+    function showToast(message, type = "success", undoCallback = null, undoLabel = "Undo") {
       const container = document.getElementById('toastContainer');
+      if (!container) return;
       const toast = document.createElement('div');
 
       const icon = type === 'error' ? 'fa-circle-exclamation text-red-400' :
-        type === 'info' ? 'fa-circle-info text-blue-400' :
-          'fa-circle-check text-brass-400';
+        type === 'warning' ? 'fa-triangle-exclamation text-amber-400' :
+          type === 'info' ? 'fa-circle-info text-blue-400' :
+            'fa-circle-check text-brass-400';
+
+      if (typeof undoCallback === 'function') {
+        registerUndoAction(undoLabel, undoCallback);
+      }
 
       toast.className = "bg-vinyl-900 border border-vinyl-700 shadow-2xl rounded-xl p-3 text-xs text-slate-100 flex items-center gap-2.5 max-w-sm pointer-events-auto transition-opacity duration-300 transform translate-y-0";
       toast.innerHTML = `
-        <i class="fa-solid ${icon} text-base"></i>
+        <i class="fa-solid ${icon} text-base shrink-0"></i>
         <span class="flex-1 font-medium">${message}</span>
+        ${typeof undoCallback === 'function' ? `
+          <button type="button" onclick="triggerLastUndo(); this.closest('div')?.remove();"
+            class="px-2 py-1 rounded-lg bg-brass-500/20 hover:bg-brass-500/30 text-brass-300 border border-brass-500/40 font-bold text-[11px] flex items-center gap-1 shrink-0 transition cursor-pointer">
+            <i class="fa-solid fa-rotate-left text-[9px]"></i>
+            <span>${escapeHtml(undoLabel)}</span>
+          </button>
+        ` : ''}
       `;
 
       container.appendChild(toast);
 
+      const durationMs = typeof undoCallback === 'function' ? 5500 : 3500;
       setTimeout(() => {
         toast.classList.add('opacity-0', '-translate-y-2');
         setTimeout(() => toast.remove(), 300);
-      }, 3500);
+      }, durationMs);
     }
   </script>
 </body>
