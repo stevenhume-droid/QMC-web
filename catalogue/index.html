@@ -1349,6 +1349,14 @@
               class="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-mono record-box-count">0</span>
           </button>
 
+          <!-- Multi-Select Mode / Select All Trigger Button -->
+          <button type="button" id="btnToggleMultiSelectMode" onclick="toggleMultiSelectMode()"
+            class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-brass-500/50 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-slate-300 font-semibold flex items-center gap-1 sm:gap-1.5 transition shadow-sm cursor-pointer"
+            title="Select multiple records for bulk Box, Crate, or Set actions">
+            <i class="fa-solid fa-check-double text-xs text-brass-400"></i>
+            <span id="multiSelectBtnLabel" class="text-[11px] font-mono hidden sm:inline">Select</span>
+          </button>
+
           <!-- Mobile-only filters toggle -->
           <button type="button" onclick="document.getElementById('filtersRow').classList.toggle('filters-open')"
             class="sm:hidden bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-semibold flex items-center gap-1.5 shadow-sm">
@@ -4059,15 +4067,15 @@
       class="bg-vinyl-900 border border-brass-500/30 rounded-2xl w-full max-w-md max-h-[90vh] sm:max-h-[85vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-fadeIn">
 
       <!-- Header -->
-      <div class="px-5 sm:px-6 py-4 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850 shrink-0">
+      <div class="px-5 sm:px-6 py-3.5 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850 shrink-0">
         <div class="flex items-center gap-2.5">
           <div
             class="w-8 h-8 rounded-full bg-brass-500/10 border border-brass-500/30 flex items-center justify-center text-brass-400">
             <i class="fa-solid fa-layer-group text-sm"></i>
           </div>
           <div>
-            <h3 class="font-bold text-white text-sm sm:text-base tracking-tight">Thematic Crates</h3>
-            <p class="text-[11px] text-slate-400">Curated release buckets &amp; DJ bags</p>
+            <h3 id="crateAssignModalTitle" class="font-bold text-white text-sm sm:text-base tracking-tight">Add to Box · Crate · Set</h3>
+            <p class="text-[11px] text-slate-400">Curated crates, gig bag &amp; sequenced set timelines</p>
           </div>
         </div>
         <button type="button" onclick="closeCrateAssignModal()"
@@ -4078,33 +4086,71 @@
       </div>
 
       <!-- Body -->
-      <div class="p-4 sm:p-6 space-y-4 overflow-y-auto overscroll-contain flex-1 pb-24 sm:pb-6">
-        <!-- Target Record Info Strip -->
+      <div class="p-4 sm:p-5 space-y-3.5 overflow-y-auto overscroll-contain flex-1 pb-24 sm:pb-6">
+        <!-- Target Record / Selection Info Strip -->
         <div id="crateAssignRecordStrip"
-          class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl flex items-center gap-3">
+          class="p-2.5 bg-vinyl-850 border border-vinyl-800 rounded-xl flex items-center gap-3">
           <!-- Populated dynamically via openCrateAssignModal(recordId) -->
         </div>
 
-        <!-- Crates List -->
-        <div>
-          <label class="block text-[11px] uppercase font-mono text-slate-400 mb-2">Assign to Crates</label>
-          <div id="crateAssignList" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+        <!-- Unified 3-in-1 Tab Bar (All | Box | Crates | Sets) -->
+        <div id="addToSheetTabs" class="grid grid-cols-4 gap-1 p-1 rounded-xl bg-vinyl-950 border border-vinyl-800 text-[11px] font-bold">
+          <button type="button" onclick="switchAddToModalTab('all')" id="addToTabBtn-all"
+            class="py-1.5 px-2 rounded-lg bg-brass-500 text-vinyl-950 shadow transition cursor-pointer">
+            All
+          </button>
+          <button type="button" onclick="switchAddToModalTab('box')" id="addToTabBtn-box"
+            class="py-1.5 px-2 rounded-lg text-slate-300 hover:text-white transition cursor-pointer flex items-center justify-center gap-1">
+            <span>🧳</span><span>Box</span>
+          </button>
+          <button type="button" onclick="switchAddToModalTab('crates')" id="addToTabBtn-crates"
+            class="py-1.5 px-2 rounded-lg text-slate-300 hover:text-white transition cursor-pointer flex items-center justify-center gap-1">
+            <i class="fa-solid fa-layer-group text-[10px] text-brass-400"></i><span>Crates</span>
+          </button>
+          <button type="button" onclick="switchAddToModalTab('sets')" id="addToTabBtn-sets"
+            class="py-1.5 px-2 rounded-lg text-slate-300 hover:text-white transition cursor-pointer flex items-center justify-center gap-1">
+            <i class="fa-solid fa-list-ol text-[10px] text-amber-400"></i><span>Sets</span>
+          </button>
+        </div>
+
+        <!-- 1. Record Box Section -->
+        <div id="addToBoxSection" class="space-y-2">
+          <label class="block text-[10px] uppercase font-mono text-amber-400/90 font-bold tracking-wider">1. Active Record Box (Gig Bag)</label>
+          <div id="addToBoxContent">
             <!-- Populated dynamically -->
           </div>
         </div>
 
-        <!-- Create New Crate Form -->
-        <div class="p-3 bg-vinyl-850/80 rounded-xl border border-vinyl-800 space-y-2">
-          <span class="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
-            <i class="fa-solid fa-plus text-brass-400 text-[10px]"></i> Create New Crate
-          </span>
-          <div class="flex gap-2">
-            <input type="text" id="newCrateNameInput" placeholder="e.g. 90s Trip-Hop, Warmup Vinyl..."
-              class="flex-1 bg-vinyl-900 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-brass-500">
-            <button type="button" onclick="handleCreateAndAddCrate()"
-              class="px-3 py-1.5 rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold text-xs cursor-pointer transition shadow">
-              Create &amp; Add
-            </button>
+        <!-- 2. Thematic Crates Section -->
+        <div id="addToCratesSection" class="space-y-2.5">
+          <div>
+            <label class="block text-[10px] uppercase font-mono text-brass-400/90 font-bold tracking-wider mb-1.5">2. Thematic Crates</label>
+            <div id="crateAssignList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <!-- Create New Crate Form -->
+          <div class="p-2.5 bg-vinyl-850/80 rounded-xl border border-vinyl-800 space-y-2">
+            <span class="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-plus text-brass-400 text-[10px]"></i> Create New Crate
+            </span>
+            <div class="flex gap-2">
+              <input type="text" id="newCrateNameInput" placeholder="e.g. 90s Trip-Hop, Warmup Vinyl..."
+                class="flex-1 bg-vinyl-900 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-brass-500">
+              <button type="button" onclick="handleCreateAndAddCrate()"
+                class="px-3 py-1.5 rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 font-bold text-xs cursor-pointer transition shadow">
+                Create &amp; Add
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Sequenced Sets Section -->
+        <div id="addToSetsSection" class="space-y-2">
+          <label class="block text-[10px] uppercase font-mono text-purple-300 font-bold tracking-wider">3. Sequenced Sets (Track Timeline)</label>
+          <div id="addToSetsList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+            <!-- Populated dynamically -->
           </div>
         </div>
 
@@ -4243,6 +4289,12 @@
             <div class="flex items-center justify-between gap-2 text-[11px] text-slate-400 px-0.5">
               <span id="recordBoxPaneSubheading" class="truncate">Physical releases packed for this session</span>
               <div class="flex items-center gap-1 shrink-0">
+                <button type="button" onclick="buildSetFromRecordBox('harmonic')" id="btnBuildSetFromBox"
+                  class="px-2 py-0.5 text-[10.5px] rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 font-bold flex items-center gap-1 transition cursor-pointer shadow-sm"
+                  title="One-tap: Pull all packed Box releases into the Set Timeline and sequence them">
+                  <i class="fa-solid fa-bolt text-[9px]"></i>
+                  <span>Build Set</span>
+                </button>
                 <button type="button" onclick="toggleBoxFullScreen()" id="btnBoxFullScreen"
                   class="px-2 py-0.5 text-[10.5px] rounded-md bg-vinyl-800 hover:bg-vinyl-750 text-amber-300 border border-amber-500/30 flex items-center gap-1 transition cursor-pointer"
                   title="Toggle Record Box Full Screen">
@@ -4333,6 +4385,12 @@
                 <span id="activeSetSpeedAlert" class="text-slate-400 truncate">Ready</span>
               </div>
               <div class="flex items-center gap-1 shrink-0 font-sans">
+                <button type="button" onclick="buildSetFromRecordBox()" id="btnPullFromBoxToSet"
+                  class="px-1.5 py-0.5 text-[10px] rounded bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 transition cursor-pointer flex items-center gap-1 font-semibold"
+                  title="Pull all packed Record Box tracks into this Set timeline">
+                  <i class="fa-solid fa-bolt text-[9px]"></i>
+                  <span>+ From Box</span>
+                </button>
                 <button type="button" onclick="toggleSetFullScreen()" id="btnSetBuilderMaximize"
                   class="px-1.5 py-0.5 text-[10px] rounded bg-vinyl-800 hover:bg-vinyl-750 text-amber-300 border border-amber-500/30 transition cursor-pointer flex items-center gap-1"
                   title="Toggle Set Builder Full Screen / Split View">
@@ -5524,6 +5582,50 @@
       <button type="button" onclick="closeAddToHomeScreenModal()"
         class="w-full py-2 rounded-xl bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 font-semibold text-xs border border-vinyl-700 transition">
         Done
+      </button>
+    </div>
+  </div>
+
+  <!-- FLOATING BULK MULTI-SELECT ACTION BAR (Box · Crate · Set) -->
+  <div id="multiSelectFloatingBar"
+    class="hidden fixed bottom-16 md:bottom-5 inset-x-2.5 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 z-[75] bg-vinyl-900/95 backdrop-blur-md border border-brass-500/50 rounded-2xl px-3 sm:px-4 py-2.5 shadow-2xl flex flex-wrap items-center justify-between gap-2 sm:gap-3"
+    style="z-index: 75;">
+    <div class="flex items-center gap-2">
+      <span id="multiSelectCountBadge"
+        class="px-2 py-0.5 rounded-full bg-brass-500 text-vinyl-950 font-mono text-xs font-extrabold">0 selected</span>
+      <button type="button" onclick="selectAllFilteredRecords()"
+        class="text-[11px] font-semibold text-brass-300 hover:text-white underline cursor-pointer">
+        Select All
+      </button>
+      <button type="button" onclick="clearRecordSelection()"
+        class="text-[11px] font-semibold text-slate-400 hover:text-rose-300 cursor-pointer">
+        Clear
+      </button>
+    </div>
+    <div class="flex items-center gap-1.5 flex-wrap">
+      <button type="button" onclick="bulkAddSelectedToBox()"
+        class="px-2.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1 transition cursor-pointer shadow-sm"
+        title="Pack selected records into Active Record Box">
+        <span>🧳</span>
+        <span>+ Box</span>
+      </button>
+      <button type="button" onclick="openBulkAddToModal('crates')"
+        class="px-2.5 py-1.5 rounded-xl bg-brass-500/20 hover:bg-brass-500/30 text-brass-300 border border-brass-500/40 text-xs font-bold flex items-center gap-1 transition cursor-pointer shadow-sm"
+        title="Add selected records to a Thematic Crate">
+        <i class="fa-solid fa-layer-group text-[10px]"></i>
+        <span>+ Crate</span>
+      </button>
+      <button type="button" onclick="bulkAddSelectedToSet()"
+        class="px-2.5 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border border-purple-500/40 text-xs font-bold flex items-center gap-1 transition cursor-pointer shadow-sm"
+        title="Push tracks from selected records into Active Set Timeline">
+        <i class="fa-solid fa-list-ol text-[10px]"></i>
+        <span>+ Set</span>
+      </button>
+      <button type="button" onclick="openBulkAddToModal('all')"
+        class="px-2.5 py-1.5 rounded-xl bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
+        title="Open unified Add to Box · Crate · Set sheet for selection">
+        <i class="fa-solid fa-sliders text-[10px] text-brass-400"></i>
+        <span class="hidden sm:inline">Add to…</span>
       </button>
     </div>
   </div>
@@ -9403,17 +9505,287 @@
     }
 
     let currentCrateAssignRecordId = null;
+    let currentCrateAssignRecordIds = [];
+    let currentAddToModalTab = 'all';
+    const selectedRecordIds = new Set();
+    let isMultiSelectMode = false;
 
-    function openCrateAssignModal(recordId = null) {
-      currentCrateAssignRecordId = recordId;
+    function getTargetAssignRecordIds() {
+      if (Array.isArray(currentCrateAssignRecordIds) && currentCrateAssignRecordIds.length > 0) {
+        return currentCrateAssignRecordIds.map(String);
+      }
+      if (currentCrateAssignRecordId) {
+        return [String(currentCrateAssignRecordId)];
+      }
+      return [];
+    }
+
+    function toggleMultiSelectMode(forceState) {
+      isMultiSelectMode = (typeof forceState === 'boolean') ? forceState : !isMultiSelectMode;
+      if (!isMultiSelectMode && selectedRecordIds.size > 0) {
+        selectedRecordIds.clear();
+      }
+      updateMultiSelectUI();
+      if (typeof renderRecords === 'function') renderRecords();
+    }
+
+    function toggleRecordSelection(recordId, ev) {
+      if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation();
+      if (!recordId) return;
+      const sId = String(recordId);
+      if (selectedRecordIds.has(sId)) {
+        selectedRecordIds.delete(sId);
+      } else {
+        selectedRecordIds.add(sId);
+        isMultiSelectMode = true;
+      }
+      updateMultiSelectUI();
+      if (typeof renderRecords === 'function') renderRecords();
+    }
+
+    function selectAllFilteredRecords() {
+      const list = (typeof getFilteredAndSortedRecords === 'function') ? getFilteredAndSortedRecords() : [];
+      list.forEach(r => { if (r && r.id) selectedRecordIds.add(String(r.id)); });
+      isMultiSelectMode = true;
+      updateMultiSelectUI();
+      if (typeof renderRecords === 'function') renderRecords();
+      showToast(`Selected all ${selectedRecordIds.size} visible records.`, 'info');
+    }
+
+    function clearRecordSelection() {
+      selectedRecordIds.clear();
+      isMultiSelectMode = false;
+      updateMultiSelectUI();
+      if (typeof renderRecords === 'function') renderRecords();
+    }
+
+    function updateMultiSelectUI() {
+      const bar = document.getElementById('multiSelectFloatingBar');
+      const countBadge = document.getElementById('multiSelectCountBadge');
+      const btn = document.getElementById('btnToggleMultiSelectMode');
+      const lbl = document.getElementById('multiSelectBtnLabel');
+      const count = selectedRecordIds.size;
+
+      if (countBadge) countBadge.textContent = `${count} selected`;
+      if (bar) {
+        if (count > 0 || isMultiSelectMode) {
+          bar.classList.remove('hidden');
+        } else {
+          bar.classList.add('hidden');
+        }
+      }
+      if (btn) {
+        if (count > 0 || isMultiSelectMode) {
+          btn.className = 'bg-brass-500/20 border border-brass-400 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-brass-300 font-bold flex items-center gap-1 sm:gap-1.5 transition shadow-sm cursor-pointer';
+        } else {
+          btn.className = 'bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-brass-500/50 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-slate-300 font-semibold flex items-center gap-1 sm:gap-1.5 transition shadow-sm cursor-pointer';
+        }
+      }
+      if (lbl) {
+        lbl.textContent = count > 0 ? `Selected (${count})` : (isMultiSelectMode ? 'Selecting…' : 'Select');
+      }
+    }
+
+    function bulkAddSelectedToBox() {
+      const ids = Array.from(selectedRecordIds);
+      if (ids.length === 0) {
+        showToast('Select at least one record first.', 'warning');
+        return;
+      }
+      let added = 0;
+      ids.forEach(id => {
+        if (!isRecordInBox(id)) {
+          addRecordToBox(id);
+          added++;
+        }
+        updateBoxButtonElements(id);
+      });
+      showToast(`Packed ${added > 0 ? added : ids.length} selected release${ids.length === 1 ? '' : 's'} into Record Box!`, 'success');
+      if (typeof renderRecords === 'function') renderRecords();
+    }
+
+    function bulkAddSelectedToSet() {
+      const ids = Array.from(selectedRecordIds);
+      if (ids.length === 0) {
+        showToast('Select at least one record first.', 'warning');
+        return;
+      }
+      let tracksAdded = 0;
+      ids.forEach(id => {
+        if (!isRecordInBox(id)) addRecordToBox(id);
+        tracksAdded += addAllRecordTracksToSet(id, null, true);
+      });
+      renderRecordBoxDrawer();
+      if (typeof renderRecords === 'function') renderRecords();
+      showToast(`Added ${tracksAdded} track${tracksAdded === 1 ? '' : 's'} from ${ids.length} release${ids.length === 1 ? '' : 's'} to "${activeSetState.title || 'Active Set'}"!`, 'success');
+    }
+
+    function openBulkAddToModal(initialTab = 'all') {
+      const ids = Array.from(selectedRecordIds);
+      if (ids.length === 0) {
+        showToast('Select at least one record first.', 'warning');
+        return;
+      }
+      openAddToModal(ids, initialTab);
+    }
+
+    function buildMembershipLookupMap() {
+      const boxSet = (typeof getQmcRecordBoxIdSet === 'function') ? getQmcRecordBoxIdSet() : new Set();
+      const cratesByRecord = new Map();
+      const setsByRecord = new Map();
+
+      const crates = (typeof getQmcCrates === 'function') ? getQmcCrates() : [];
+      crates.forEach(c => {
+        (c.record_ids || []).forEach(rId => {
+          const k = String(rId);
+          if (!cratesByRecord.has(k)) cratesByRecord.set(k, []);
+          cratesByRecord.get(k).push({ crate_id: c.crate_id, name: c.name });
+        });
+      });
+
+      const seenSetPairs = new Set();
+      if (typeof activeSetState !== 'undefined' && activeSetState && Array.isArray(activeSetState.tracks)) {
+        activeSetState.tracks.forEach(t => {
+          if (!t || !t.record_id) return;
+          const k = String(t.record_id);
+          const pairKey = `${k}::active::${activeSetState.id || 'live'}`;
+          if (!seenSetPairs.has(pairKey)) {
+            seenSetPairs.add(pairKey);
+            if (!setsByRecord.has(k)) setsByRecord.set(k, []);
+            setsByRecord.get(k).push({ set_id: activeSetState.id || 'ACTIVE', title: activeSetState.title || 'Active Set', isActive: true });
+          }
+        });
+      }
+
+      const savedSets = (typeof getQmcSavedSets === 'function') ? getQmcSavedSets() : [];
+      savedSets.forEach(s => {
+        if (typeof activeSetState !== 'undefined' && activeSetState && String(activeSetState.id) === String(s.set_id)) return;
+        (s.tracks || []).forEach(t => {
+          if (!t || !t.record_id) return;
+          const k = String(t.record_id);
+          const pairKey = `${k}::${s.set_id}`;
+          if (!seenSetPairs.has(pairKey)) {
+            seenSetPairs.add(pairKey);
+            if (!setsByRecord.has(k)) setsByRecord.set(k, []);
+            setsByRecord.get(k).push({ set_id: s.set_id, title: s.title || 'Saved Set', isActive: false });
+          }
+        });
+      });
+
+      return { boxSet, cratesByRecord, setsByRecord };
+    }
+
+    function getRecordMemberships(recordId, lookupMap = null) {
+      const map = lookupMap || buildMembershipLookupMap();
+      const k = String(recordId);
+      return {
+        inBox: map.boxSet.has(k),
+        crates: map.cratesByRecord.get(k) || [],
+        sets: map.setsByRecord.get(k) || []
+      };
+    }
+
+    function jumpToCrateFromChip(crateId, ev) {
+      if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation();
+      if (typeof closeDetailModal === 'function') closeDetailModal();
+      filterArchiveByCrate(crateId);
+    }
+
+    function jumpToSetFromChip(setId, ev) {
+      if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation();
+      if (typeof closeDetailModal === 'function') closeDetailModal();
+      if (setId && setId !== 'ACTIVE' && typeof chooseActiveSet === 'function') {
+        chooseActiveSet(setId);
+      }
+      openRecordBoxDrawer('sets');
+    }
+
+    function renderRecordMembershipChips(recordId, compact = false, lookupMap = null) {
+      const m = getRecordMemberships(recordId, lookupMap);
+      if (!m.inBox && m.crates.length === 0 && m.sets.length === 0) return '';
+
+      const chips = [];
+      if (m.inBox) {
+        chips.push(`
+          <button type="button" onclick="event.stopPropagation(); openRecordBoxDrawer('box-full')"
+            class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-[9px] font-mono font-semibold transition cursor-pointer"
+            title="Packed in Active Record Box — Click to open Box">
+            <span>🧳</span><span>${compact ? 'Box' : 'In Box'}</span>
+          </button>
+        `);
+      }
+
+      const maxCrates = compact ? 1 : 2;
+      m.crates.slice(0, maxCrates).forEach(c => {
+        const safeCid = escapeJsString(String(c.crate_id));
+        const safeCName = escapeHtml(c.name);
+        chips.push(`
+          <button type="button" onclick="jumpToCrateFromChip('${safeCid}', event)"
+            class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-brass-500/15 hover:bg-brass-500/25 text-brass-300 border border-brass-500/30 text-[9px] font-mono font-semibold truncate max-w-[120px] transition cursor-pointer"
+            title="In Crate: ${safeCName} — Click to filter crate">
+            <i class="fa-solid fa-layer-group text-[8px]"></i><span class="truncate">${compact ? safeCName : `Crate: ${safeCName}`}</span>
+          </button>
+        `);
+      });
+      if (m.crates.length > maxCrates) {
+        chips.push(`<span class="text-[9px] font-mono text-brass-400">+${m.crates.length - maxCrates}</span>`);
+      }
+
+      const maxSets = compact ? 1 : 2;
+      m.sets.slice(0, maxSets).forEach(s => {
+        const safeSid = escapeJsString(String(s.set_id));
+        const safeSTitle = escapeHtml(s.title);
+        chips.push(`
+          <button type="button" onclick="jumpToSetFromChip('${safeSid}', event)"
+            class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 text-[9px] font-mono font-semibold truncate max-w-[125px] transition cursor-pointer"
+            title="In Set: ${safeSTitle} — Click to open Set Timeline">
+            <i class="fa-solid fa-list-ol text-[8px]"></i><span class="truncate">${compact ? safeSTitle : `Set: ${safeSTitle}`}</span>
+          </button>
+        `);
+      });
+      if (m.sets.length > maxSets) {
+        chips.push(`<span class="text-[9px] font-mono text-purple-300">+${m.sets.length - maxSets}</span>`);
+      }
+
+      return `<div class="flex flex-wrap items-center gap-1 mt-1" onclick="event.stopPropagation()">${chips.join('')}</div>`;
+    }
+
+    function openAddToModal(recordIdOrIds = null, initialTab = 'all') {
+      return openCrateAssignModal(recordIdOrIds, initialTab);
+    }
+
+    function openCrateAssignModal(recordId = null, initialTab = 'all') {
+      if (Array.isArray(recordId)) {
+        currentCrateAssignRecordIds = recordId.map(String);
+        currentCrateAssignRecordId = currentCrateAssignRecordIds[0] || null;
+      } else if (recordId) {
+        currentCrateAssignRecordId = String(recordId);
+        currentCrateAssignRecordIds = [String(recordId)];
+      } else {
+        currentCrateAssignRecordId = null;
+        currentCrateAssignRecordIds = [];
+      }
+
       const modal = document.getElementById('crateAssignModal');
       const strip = document.getElementById('crateAssignRecordStrip');
       const input = document.getElementById('newCrateNameInput');
       if (input) input.value = '';
 
+      const targetIds = getTargetAssignRecordIds();
+
       if (strip) {
-        if (recordId) {
-          const rec = (typeof records !== 'undefined' ? records : []).find(r => String(r.id) === String(recordId));
+        if (targetIds.length > 1) {
+          strip.innerHTML = `
+            <div class="w-10 h-10 rounded-lg bg-brass-500/20 border border-brass-500/40 flex items-center justify-center text-brass-300 font-mono font-extrabold text-xs shrink-0">
+              ${targetIds.length}x
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="text-xs font-bold text-white truncate">${targetIds.length} Releases Selected</div>
+              <div class="text-[11px] text-slate-300 truncate">Assign selection to Record Box, Crate, or Set</div>
+            </div>
+          `;
+        } else if (targetIds.length === 1) {
+          const rec = (typeof records !== 'undefined' ? records : []).find(r => String(r.id) === String(targetIds[0]));
           const coverSrc = rec?.coverImage || (typeof getDefaultCover === 'function' ? getDefaultCover(rec?.format, rec?.artist, rec?.title) : '');
           strip.innerHTML = `
             <img src="${coverSrc}" class="w-10 h-10 object-cover rounded-lg bg-vinyl-950 border border-vinyl-700" alt="Cover" onerror="if(typeof getDefaultCover==='function')this.src=getDefaultCover('','','',true)">
@@ -9427,29 +9799,112 @@
             <div class="flex items-center gap-2.5 text-xs text-brass-400 font-bold">
               <i class="fa-solid fa-boxes-stacked text-base"></i>
               <div>
-                <div class="text-white">Thematic Crates Library</div>
-                <div class="text-[10px] text-slate-400 font-normal">Browse and manage your curated release pools</div>
+                <div class="text-white">Box, Crates &amp; Sets Hub</div>
+                <div class="text-[10px] text-slate-400 font-normal">Manage your curated release pools, gig bag, and sets</div>
               </div>
             </div>
           `;
         }
       }
 
-      renderCrateAssignList();
+      switchAddToModalTab(initialTab || 'all');
       if (modal) modal.classList.remove('hidden');
+    }
+
+    function switchAddToModalTab(tab = 'all') {
+      currentAddToModalTab = ['all', 'box', 'crates', 'sets'].includes(tab) ? tab : 'all';
+      ['all', 'box', 'crates', 'sets'].forEach(t => {
+        const btn = document.getElementById(`addToTabBtn-${t}`);
+        if (!btn) return;
+        if (t === currentAddToModalTab) {
+          btn.className = 'py-1.5 px-2 rounded-lg bg-brass-500 text-vinyl-950 shadow transition cursor-pointer flex items-center justify-center gap-1 font-bold';
+        } else {
+          btn.className = 'py-1.5 px-2 rounded-lg text-slate-300 hover:text-white transition cursor-pointer flex items-center justify-center gap-1';
+        }
+      });
+
+      const boxSec = document.getElementById('addToBoxSection');
+      const cratesSec = document.getElementById('addToCratesSection');
+      const setsSec = document.getElementById('addToSetsSection');
+
+      if (boxSec) boxSec.classList.toggle('hidden', currentAddToModalTab !== 'all' && currentAddToModalTab !== 'box');
+      if (cratesSec) cratesSec.classList.toggle('hidden', currentAddToModalTab !== 'all' && currentAddToModalTab !== 'crates');
+      if (setsSec) setsSec.classList.toggle('hidden', currentAddToModalTab !== 'all' && currentAddToModalTab !== 'sets');
+
+      renderAddToBoxSection();
+      renderCrateAssignList();
+      renderAddToSetsSection();
     }
 
     function closeCrateAssignModal() {
       const modal = document.getElementById('crateAssignModal');
       if (modal) modal.classList.add('hidden');
       currentCrateAssignRecordId = null;
+      currentCrateAssignRecordIds = [];
+    }
+
+    function renderAddToBoxSection() {
+      const boxEl = document.getElementById('addToBoxContent');
+      if (!boxEl) return;
+      const targetIds = getTargetAssignRecordIds();
+      const boxItems = getQmcRecordBox();
+      const boxTitle = (typeof activeBoxState !== 'undefined' && activeBoxState?.title) ? activeBoxState.title : 'Session Box';
+
+      if (targetIds.length === 0) {
+        boxEl.innerHTML = `
+          <div class="flex items-center justify-between p-2.5 rounded-lg bg-vinyl-850 border border-vinyl-800">
+            <div class="min-w-0 flex-1 pr-2">
+              <div class="font-bold text-xs text-white truncate flex items-center gap-1.5">
+                <span>🧳</span><span>${escapeHtml(boxTitle)}</span>
+              </div>
+              <div class="text-[10px] text-slate-400 font-mono">${boxItems.length} release${boxItems.length === 1 ? '' : 's'} packed</div>
+            </div>
+            <button type="button" onclick="closeCrateAssignModal(); openRecordBoxDrawer('box-full');" class="px-2.5 py-1 rounded text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition cursor-pointer">
+              Open Box
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      const allInBox = targetIds.every(id => isRecordInBox(id));
+      boxEl.innerHTML = `
+        <div class="flex items-center justify-between p-2.5 rounded-lg border transition ${allInBox ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-vinyl-850 border-vinyl-800'}">
+          <div class="min-w-0 flex-1 pr-2">
+            <div class="font-bold text-xs text-white truncate flex items-center gap-1.5">
+              <span>🧳</span><span>${escapeHtml(boxTitle)}</span>
+            </div>
+            <div class="text-[10px] text-slate-400 font-mono">${boxItems.length} release${boxItems.length === 1 ? '' : 's'} currently packed</div>
+          </div>
+          <button type="button" onclick="toggleTargetRecordsInBox()" class="px-2.5 py-1 rounded text-xs font-mono font-bold transition border cursor-pointer ${allInBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-red-950/50 hover:text-red-300' : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-500/40'}">
+            ${allInBox ? '✓ In Box' : '+ Pack in Box'}
+          </button>
+        </div>
+      `;
+    }
+
+    function toggleTargetRecordsInBox() {
+      const targetIds = getTargetAssignRecordIds();
+      if (targetIds.length === 0) return;
+      const allInBox = targetIds.every(id => isRecordInBox(id));
+      targetIds.forEach(id => {
+        if (allInBox) {
+          removeRecordFromBox(id);
+        } else if (!isRecordInBox(id)) {
+          addRecordToBox(id);
+        }
+        updateBoxButtonElements(id);
+      });
+      renderAddToBoxSection();
+      if (typeof renderRecords === 'function') renderRecords();
+      showToast(allInBox ? 'Removed from Record Box.' : `Packed ${targetIds.length} release${targetIds.length === 1 ? '' : 's'} into Record Box!`, allInBox ? 'neutral' : 'success');
     }
 
     function renderCrateAssignList() {
       const listEl = document.getElementById('crateAssignList');
       if (!listEl) return;
       const crates = getQmcCrates();
-      const recId = currentCrateAssignRecordId ? String(currentCrateAssignRecordId) : null;
+      const targetIds = getTargetAssignRecordIds();
 
       if (crates.length === 0) {
         listEl.innerHTML = `
@@ -9461,8 +9916,10 @@
       }
 
       listEl.innerHTML = crates.map(c => {
-        const inCrate = recId ? (Array.isArray(c.record_ids) && c.record_ids.includes(recId)) : false;
-        const count = Array.isArray(c.record_ids) ? c.record_ids.length : 0;
+        const cIds = Array.isArray(c.record_ids) ? c.record_ids.map(String) : [];
+        const inCrate = targetIds.length > 0 && targetIds.every(id => cIds.includes(String(id)));
+        const count = cIds.length;
+        const safeCid = escapeJsString(String(c.crate_id));
         return `
           <div class="flex items-center justify-between p-2.5 rounded-lg border transition ${inCrate ? 'bg-amber-500/10 border-amber-500/30' : 'bg-vinyl-850 border-vinyl-800'}">
             <div class="min-w-0 flex-1 pr-2">
@@ -9472,32 +9929,218 @@
               </div>
               <div class="text-[10px] text-slate-400 font-mono">${count} release${count === 1 ? '' : 's'}</div>
             </div>
-            ${recId ? `
-              <button type="button" onclick="toggleRecordCrateMembership('${c.crate_id}')" class="px-2.5 py-1 rounded text-xs font-mono font-bold transition border ${inCrate ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-red-950/50 hover:text-red-300 hover:border-red-500/30' : 'bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border-vinyl-700'}">
-                ${inCrate ? '✓ In Crate' : '+ Add'}
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button type="button" onclick="appendCrateToRecordBox('${safeCid}')" class="px-2 py-1 rounded text-[10px] font-mono font-semibold bg-vinyl-800 hover:bg-amber-500/20 text-amber-300 border border-vinyl-700 hover:border-amber-500/40 transition cursor-pointer" title="Pack this entire crate into Record Box">
+                🧳 Pack
               </button>
-            ` : `
-              <span class="text-[10px] text-brass-400 font-mono px-2 py-0.5 rounded bg-vinyl-900 border border-vinyl-800">Crate</span>
-            `}
+              ${targetIds.length > 0 ? `
+                <button type="button" onclick="toggleRecordCrateMembership('${safeCid}')" class="px-2.5 py-1 rounded text-xs font-mono font-bold transition border cursor-pointer ${inCrate ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-red-950/50 hover:text-red-300 hover:border-red-500/30' : 'bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border-vinyl-700'}">
+                  ${inCrate ? '✓ In Crate' : '+ Add'}
+                </button>
+              ` : ''}
+            </div>
           </div>
         `;
       }).join('');
     }
 
+    function renderAddToSetsSection() {
+      const listEl = document.getElementById('addToSetsList');
+      if (!listEl) return;
+      const targetIds = getTargetAssignRecordIds();
+      const savedSets = (typeof getQmcSavedSets === 'function') ? getQmcSavedSets() : [];
+      const activeTitle = (typeof activeSetState !== 'undefined' && activeSetState?.title) ? activeSetState.title : 'Active Session Set';
+      const activeTracks = (typeof activeSetState !== 'undefined' && Array.isArray(activeSetState?.tracks)) ? activeSetState.tracks : [];
+      const inActiveSet = targetIds.length > 0 && targetIds.every(id => activeTracks.some(t => String(t.record_id) === String(id)));
+
+      let html = `
+        <div class="flex items-center justify-between p-2.5 rounded-lg border transition ${inActiveSet ? 'bg-purple-500/15 border-purple-500/40' : 'bg-vinyl-850 border-vinyl-800'}">
+          <div class="min-w-0 flex-1 pr-2">
+            <div class="font-bold text-xs text-white truncate flex items-center gap-1.5">
+              <span class="px-1.5 py-0.2 rounded bg-amber-500 text-vinyl-950 text-[9px] font-extrabold uppercase">Active</span>
+              <span class="truncate">${escapeHtml(activeTitle)}</span>
+            </div>
+            <div class="text-[10px] text-slate-400 font-mono">${activeTracks.length} track${activeTracks.length === 1 ? '' : 's'} in timeline</div>
+          </div>
+          ${targetIds.length > 0 ? `
+            <button type="button" onclick="addTargetRecordsToSet('ACTIVE')" class="px-2.5 py-1 rounded text-xs font-mono font-bold transition border cursor-pointer ${inActiveSet ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border-purple-500/40'}">
+              ${inActiveSet ? '✓ In Set (+ More)' : '+ Add Tracks'}
+            </button>
+          ` : `
+            <button type="button" onclick="closeCrateAssignModal(); openRecordBoxDrawer('sets');" class="px-2.5 py-1 rounded text-xs font-mono font-bold bg-purple-500/20 text-purple-200 border border-purple-500/40 cursor-pointer">
+              Open Set
+            </button>
+          `}
+        </div>
+      `;
+
+      savedSets.forEach(s => {
+        if (typeof activeSetState !== 'undefined' && activeSetState && String(activeSetState.id) === String(s.set_id)) return;
+        const trs = Array.isArray(s.tracks) ? s.tracks : [];
+        const inSaved = targetIds.length > 0 && targetIds.every(id => trs.some(t => String(t.record_id) === String(id)));
+        const safeSid = escapeJsString(String(s.set_id));
+        html += `
+          <div class="flex items-center justify-between p-2.5 rounded-lg border transition ${inSaved ? 'bg-purple-500/10 border-purple-500/30' : 'bg-vinyl-850 border-vinyl-800'}">
+            <div class="min-w-0 flex-1 pr-2">
+              <div class="font-bold text-xs text-white truncate flex items-center gap-1.5">
+                <i class="fa-solid fa-list-ol text-purple-400 text-[10px]"></i>
+                <span class="truncate">${escapeHtml(s.title || 'Saved Set')}</span>
+              </div>
+              <div class="text-[10px] text-slate-400 font-mono">${trs.length} track${trs.length === 1 ? '' : 's'}</div>
+            </div>
+            ${targetIds.length > 0 ? `
+              <button type="button" onclick="addTargetRecordsToSet('${safeSid}')" class="px-2.5 py-1 rounded text-xs font-mono font-bold transition border cursor-pointer ${inSaved ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border-vinyl-700'}">
+                ${inSaved ? '✓ In Set' : '+ Add Tracks'}
+              </button>
+            ` : ''}
+          </div>
+        `;
+      });
+
+      listEl.innerHTML = html;
+    }
+
+    function addAllRecordTracksToSet(recordId, targetSetId = null, silent = false) {
+      if (!recordId) return 0;
+      const sId = String(recordId);
+      const allRecords = (typeof records !== 'undefined' && Array.isArray(records) ? records : []);
+      const rec = allRecords.find(r => String(r.id) === sId);
+      if (!rec) return 0;
+
+      if (targetSetId && targetSetId !== 'ACTIVE' && typeof chooseActiveSet === 'function') {
+        if (!activeSetState || String(activeSetState.id) !== String(targetSetId)) {
+          chooseActiveSet(targetSetId);
+        }
+      }
+
+      const rawTracks = rec?.tracklist || rec?.tracks || [];
+      let normTracks = [];
+      if (typeof normalizeTracklist === 'function') {
+        const res = normalizeTracklist(rawTracks, rec?.format || '');
+        normTracks = Array.isArray(res) ? res : [];
+      } else if (Array.isArray(rawTracks)) {
+        normTracks = rawTracks;
+      }
+
+      const countToPush = normTracks.length > 0 ? normTracks.length : 2;
+      let addedCount = 0;
+      for (let tIdx = 0; tIdx < countToPush; tIdx++) {
+        const candidateTitle = normTracks[tIdx]?.title || (tIdx === 0 ? (rec.sideATitle || rec.title || 'Side A Track') : (rec.sideBTitle || 'Side B Track'));
+        const alreadyInSet = activeSetState.tracks.some(st => String(st.record_id) === sId && String(st.title || '').toLowerCase() === String(candidateTitle || '').toLowerCase());
+        if (!alreadyInSet) {
+          addTrackToActiveSet(sId, tIdx);
+          addedCount++;
+        }
+      }
+
+      if (targetSetId && targetSetId !== 'ACTIVE' && typeof saveCurrentActiveSet === 'function') {
+        saveCurrentActiveSet();
+      }
+      if (!silent) {
+        showToast(addedCount > 0 ? `Added ${addedCount} track${addedCount === 1 ? '' : 's'} from "${rec.title}" to Set!` : `All tracks from "${rec.title}" are already in this Set.`, addedCount > 0 ? 'success' : 'info');
+      }
+      return addedCount;
+    }
+
+    function addTargetRecordsToSet(setId = 'ACTIVE') {
+      const targetIds = getTargetAssignRecordIds();
+      if (targetIds.length === 0) return;
+      let totalAdded = 0;
+      targetIds.forEach(id => {
+        if (!isRecordInBox(id)) {
+          addRecordToBox(id);
+          updateBoxButtonElements(id);
+        }
+        totalAdded += addAllRecordTracksToSet(id, setId, true);
+      });
+      renderAddToBoxSection();
+      renderAddToSetsSection();
+      if (typeof renderRecords === 'function') renderRecords();
+      showToast(`Added ${totalAdded} track${totalAdded === 1 ? '' : 's'} to Set!`, 'success');
+    }
+
+    function buildSetFromRecordBox(sortMode = null) {
+      const boxItems = getQmcRecordBox();
+      if (!boxItems || boxItems.length === 0) {
+        showToast('Your Record Box is empty — pack releases into the Box first!', 'warning');
+        return;
+      }
+      let addedTracks = 0;
+      boxItems.forEach(b => {
+        const recId = typeof b === 'object' && b !== null ? String(b.record_id || b.id || '') : String(b || '');
+        if (recId) {
+          addedTracks += addAllRecordTracksToSet(recId, 'ACTIVE', true);
+        }
+      });
+
+      if (sortMode && typeof autoSortActiveSet === 'function' && activeSetState.tracks.length > 1) {
+        const effectiveSort = activeSetState.genre_sort_enabled
+          ? `genre-${activeSetState.genre_sub_sort || 'harmonic'}`
+          : sortMode;
+        autoSortActiveSet(effectiveSort);
+      } else {
+        renderRecordBoxDrawer();
+      }
+
+      showToast(addedTracks > 0 ? `Built Set from Record Box (+${addedTracks} tracks)!` : `Set updated with all ${activeSetState.tracks.length} Record Box tracks!`, 'success');
+    }
+
+    function appendCrateToRecordBox(crateId) {
+      const crate = getQmcCrates().find(c => String(c.crate_id) === String(crateId));
+      if (!crate) return;
+      const recIds = Array.isArray(crate.record_ids) ? crate.record_ids : [];
+      if (recIds.length === 0) {
+        showToast(`Crate "${crate.name}" is empty.`, 'warning');
+        return;
+      }
+      let added = 0;
+      recIds.forEach(id => {
+        if (!isRecordInBox(id)) {
+          addRecordToBox(id);
+          added++;
+        }
+        updateBoxButtonElements(id);
+      });
+      renderAddToBoxSection();
+      if (typeof renderRecords === 'function') renderRecords();
+      showToast(`Packed ${added > 0 ? added : recIds.length} release${recIds.length === 1 ? '' : 's'} from "${crate.name}" into Record Box!`, 'success');
+    }
+
+    function packFilteredRecordsToBox() {
+      const list = (typeof getFilteredAndSortedRecords === 'function') ? getFilteredAndSortedRecords() : [];
+      if (list.length === 0) {
+        showToast('No filtered releases to pack.', 'warning');
+        return;
+      }
+      let added = 0;
+      list.forEach(r => {
+        if (r && r.id && !isRecordInBox(r.id)) {
+          addRecordToBox(r.id);
+          added++;
+        }
+      });
+      if (typeof renderRecords === 'function') renderRecords();
+      showToast(`Packed ${added > 0 ? added : list.length} filtered release${list.length === 1 ? '' : 's'} into Record Box!`, 'success');
+    }
+
     function toggleRecordCrateMembership(crateId) {
-      if (!currentCrateAssignRecordId) return;
+      const targetIds = getTargetAssignRecordIds();
+      if (targetIds.length === 0) return;
       const crates = getQmcCrates();
       const crate = crates.find(c => String(c.crate_id) === String(crateId));
       if (!crate) return;
-      const sId = String(currentCrateAssignRecordId);
-      if (Array.isArray(crate.record_ids) && crate.record_ids.includes(sId)) {
-        removeRecordFromCrate(crateId, sId);
+      const cIds = Array.isArray(crate.record_ids) ? crate.record_ids.map(String) : [];
+      const allInCrate = targetIds.every(id => cIds.includes(String(id)));
+
+      if (allInCrate) {
+        targetIds.forEach(sId => removeRecordFromCrate(crateId, sId));
         showToast(`Removed from crate "${crate.name}".`, 'neutral');
       } else {
-        addRecordToCrate(crateId, sId);
-        showToast(`Added to crate "${crate.name}"!`, 'success');
+        targetIds.forEach(sId => addRecordToCrate(crateId, sId));
+        showToast(`Added ${targetIds.length > 1 ? `${targetIds.length} releases ` : ''}to crate "${crate.name}"!`, 'success');
       }
       renderCrateAssignList();
+      if (typeof renderRecords === 'function') renderRecords();
     }
 
     function handleCreateAndAddCrate() {
@@ -9508,15 +10151,16 @@
         showToast('Please enter a name for the new crate.', 'warning');
         return;
       }
-      const initialIds = currentCrateAssignRecordId ? [String(currentCrateAssignRecordId)] : [];
+      const initialIds = getTargetAssignRecordIds();
       const newCrate = createQmcCrate(val, '', initialIds);
       input.value = '';
-      showToast(`Created crate "${newCrate.name}"${currentCrateAssignRecordId ? ' and added release' : ''}!`, 'success');
+      showToast(`Created crate "${newCrate.name}"${initialIds.length > 0 ? ` and added ${initialIds.length} release${initialIds.length === 1 ? '' : 's'}` : ''}!`, 'success');
       renderCrateAssignList();
+      if (typeof renderRecords === 'function') renderRecords();
     }
 
     function openThematicCratesExplorer() {
-      openCrateAssignModal(null);
+      openCrateAssignModal(null, 'crates');
     }
 
     /* =========================================================
@@ -9813,7 +10457,7 @@
                 </div>
               </div>
 
-              <!-- Box Action Row: Expand Tracks & Remove from Box -->
+              <!-- Box Action Row: Expand Tracks, 1-Tap Add All to Set & Remove from Box -->
               <div class="flex items-center justify-between pt-1 border-t border-vinyl-800/80 text-[11px]">
                 <button type="button" onclick="toggleRecordBoxTracklist('${safeId}')"
                   class="text-brass-400 hover:text-brass-300 font-semibold flex items-center gap-1 transition cursor-pointer">
@@ -9821,6 +10465,9 @@
                   <span>${isExpanded ? 'Hide Tracks' : `Show Tracks (${normTracks.length || '?'})`}</span>
                 </button>
                 <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="addAllRecordTracksToSet('${safeId}')" class="text-emerald-300 hover:text-emerald-200 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 transition cursor-pointer" title="Push all tracks from this release into the Set Timeline">
+                    + All to Set
+                  </button>
                   <button type="button" onclick="viewRecordDetail('${safeId}')" class="text-slate-400 hover:text-slate-200 text-[10px] px-1.5 py-0.5 rounded bg-vinyl-800 hover:bg-vinyl-700 transition cursor-pointer" title="Inspect Dossier">
                     Dossier
                   </button>
@@ -10443,6 +11090,7 @@
       }
 
       if (totalTracks === 0) {
+        const boxLen = (typeof getQmcRecordBox === 'function') ? getQmcRecordBox().length : 0;
         timelineEl.innerHTML = `
           <div class="py-12 px-4 text-center space-y-3">
             <div class="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-300 text-2xl">
@@ -10450,8 +11098,15 @@
             </div>
             <h4 class="font-bold text-white text-sm">Set Timeline is Empty</h4>
             <p class="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
-              Click <span class="font-mono text-amber-300 font-semibold">[+ Set]</span> on any track in your Record Box on the left to sequence it into this timeline.
+              Click <span class="font-mono text-amber-300 font-semibold">[+ Set]</span> on any track in your Record Box, or pull all packed Box releases in one tap:
             </p>
+            <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
+              <button type="button" onclick="buildSetFromRecordBox('harmonic')"
+                class="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-vinyl-950 font-bold text-xs inline-flex items-center gap-1.5 transition shadow cursor-pointer">
+                <i class="fa-solid fa-bolt"></i>
+                <span>Build Set from Box (${boxLen} packed)</span>
+              </button>
+            </div>
           </div>
         `;
         return;
@@ -12289,12 +12944,18 @@
               </div>
 
               <!-- Crate Card Actions -->
-              <div class="pt-2 border-t border-vinyl-800/80 flex items-center justify-between gap-2">
+              <div class="pt-2 border-t border-vinyl-800/80 flex items-center justify-between gap-1.5">
                 <button type="button" onclick="packCrateIntoRecordBox('${safeCrateId}')"
-                  class="flex-1 py-1.5 px-2.5 rounded-lg ${isActiveBox ? 'bg-amber-500 text-vinyl-950 border-amber-400 font-bold' : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border-amber-500/30 font-semibold'} border text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  class="flex-1 py-1.5 px-2 rounded-lg ${isActiveBox ? 'bg-amber-500 text-vinyl-950 border-amber-400 font-bold' : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border-amber-500/30 font-semibold'} border text-xs flex items-center justify-center gap-1 transition cursor-pointer"
                   title="${isActiveBox ? 'Currently selected as Active Box' : 'Select this crate as your Active Record Box'}">
                   <span>🧳</span>
-                  <span>${isActiveBox ? '✓ Active Box' : 'Select as Active Box'}</span>
+                  <span>${isActiveBox ? '✓ Active Box' : 'Active Box'}</span>
+                </button>
+                <button type="button" onclick="appendCrateToRecordBox('${safeCrateId}')"
+                  class="py-1.5 px-2 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
+                  title="Pack all releases in this crate into your current Record Box">
+                  <i class="fa-solid fa-plus text-[10px]"></i>
+                  <span>Box</span>
                 </button>
                 <button type="button" onclick="filterArchiveByCrate('${safeCrateId}')"
                   class="py-1.5 px-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-750 text-slate-300 text-xs transition cursor-pointer"
@@ -13569,6 +14230,12 @@
       }
       if (seriesFilter !== 'ALL') {
         pillsHTML += `<span class="bg-vinyl-800 text-pink-300 px-2.5 py-0.5 rounded-full border border-pink-500/40 inline-flex items-center gap-1.5 max-w-full leading-snug"><span class="min-w-0 break-words">Series: ${escapeHtml(seriesFilter)}</span> <button onclick="document.getElementById('filterSeries').value='ALL'; handleSearchFilterChange();" class="hover:text-red-400 flex-shrink-0 px-0.5"><i class="fa-solid fa-xmark"></i></button></span>`;
+      }
+      if (currentCrateFilter && Array.isArray(currentCrateFilter)) {
+        pillsHTML += `<span class="bg-brass-500/20 text-brass-300 px-2.5 py-0.5 rounded-full border border-brass-500/40 inline-flex items-center gap-1.5 max-w-full leading-snug"><i class="fa-solid fa-layer-group text-[10px]"></i><span>Crate Filter (${currentCrateFilter.length})</span> <button onclick="currentCrateFilter=null; handleSearchFilterChange();" class="hover:text-red-400 flex-shrink-0 px-0.5"><i class="fa-solid fa-xmark"></i></button></span>`;
+      }
+      if (pillsHTML) {
+        pillsHTML += `<button type="button" onclick="packFilteredRecordsToBox()" class="px-2.5 py-0.5 rounded-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 inline-flex items-center gap-1 font-semibold transition cursor-pointer" title="Pack all currently filtered records into Record Box"><span>🧳</span><span>+ Filtered to Box</span></button>`;
       }
 
       container.innerHTML = pillsHTML;
@@ -16906,7 +17573,8 @@
 
     function renderGridView(list, container) {
       const sym = getCurrencySymbol();
-      const boxIdSet = getQmcRecordBoxIdSet();
+      const membershipMap = buildMembershipLookupMap();
+      const boxIdSet = membershipMap.boxSet;
 
       // Compact Mode: 2-column mobile grid maximizing screen real estate (4-6 albums visible simultaneously)
       if (currentGridDensity === 'compact') {
@@ -16919,9 +17587,10 @@
           const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
           const telemetry = deriveRecordTelemetry(item);
           const inBox = boxIdSet.has(String(item.id));
+          const isSelected = selectedRecordIds.has(String(item.id));
 
           html += `
-            <div class="bg-vinyl-900 rounded-xl border border-vinyl-800 hover:border-brass-500/50 transition-all duration-200 overflow-hidden shadow-md flex flex-col group cursor-pointer" onclick="viewRecordDetail('${safeId}')">
+            <div class="bg-vinyl-900 rounded-xl border ${isSelected ? 'border-brass-400 ring-2 ring-brass-400/50' : 'border-vinyl-800 hover:border-brass-500/50'} transition-all duration-200 overflow-hidden shadow-md flex flex-col group cursor-pointer" onclick="viewRecordDetail('${safeId}')">
               
               <!-- Sleeve Visual Cover -->
               <div class="relative w-full aspect-square bg-vinyl-950 overflow-hidden flex-shrink-0">
@@ -16937,9 +17606,14 @@
                   ` : ''}
                 </div>
 
-                <!-- Media Grade Badge -->
-                <div class="absolute top-1.5 right-1.5 z-10 pointer-events-none">
-                  ${getGradeBadge(item.mediaGrade)}
+                <!-- Media Grade Badge + Multi-Select Checkbox -->
+                <div class="absolute top-1.5 right-1.5 z-10 flex items-center gap-1">
+                  <span class="pointer-events-none">${getGradeBadge(item.mediaGrade)}</span>
+                  <button type="button" onclick="toggleRecordSelection('${safeId}', event)"
+                    class="w-5 h-5 rounded-md flex items-center justify-center border transition shadow ${isSelected ? 'bg-brass-500 text-vinyl-950 border-brass-300 font-bold' : 'bg-black/75 text-slate-300 border-white/25 hover:border-brass-400'}"
+                    title="${isSelected ? 'Deselect record' : 'Select record for bulk actions'}">
+                    <i class="fa-solid fa-check text-[9px] ${isSelected ? '' : 'opacity-40'}"></i>
+                  </button>
                 </div>
 
                 <!-- Bottom Vignette -->
@@ -16982,6 +17656,7 @@
                     ` : `<span></span>`}
                     <span class="text-emerald-400/90 text-[9px] font-mono flex-shrink-0" title="Harmonic Telemetry: ${telemetry.bpm} BPM • ${telemetry.musicalKey}">${telemetry.bpm} BPM</span>
                   </div>
+                  ${renderRecordMembershipChips(item.id, true, membershipMap)}
                 </div>
 
                 <!-- Quick Action Bar -->
@@ -16992,6 +17667,9 @@
                     </span>
                     <button type="button" onclick="event.stopPropagation(); toggleBoxForRecord('${safeId}')" id="compactBoxBtn-${safeId}" class="px-1 py-0.2 rounded text-[9px] font-mono transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border-vinyl-700'}" title="${inBox ? 'Remove from Record Box' : 'Pack into Record Box'}">
                       ${inBox ? '✓ Box' : '+ Box'}
+                    </button>
+                    <button type="button" onclick="event.stopPropagation(); openAddToModal('${safeId}', 'all')" class="px-1 py-0.2 rounded text-[9px] font-mono bg-vinyl-850 hover:bg-vinyl-800 text-slate-300 hover:text-white border border-vinyl-700 transition" title="Add to Box, Crate, or Set">
+                      + Add…
                     </button>
                   </div>
                   <div class="flex items-center gap-1.5">
@@ -17023,10 +17701,11 @@
         const hasVal = areValuesVisible && item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
         const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
         const telemetry = deriveRecordTelemetry(item);
-        const inBox = (typeof isRecordInBox === 'function') ? isRecordInBox(item.id) : false;
+        const inBox = boxIdSet.has(String(item.id));
+        const isSelected = selectedRecordIds.has(String(item.id));
 
         html += `
-          <div class="bg-vinyl-900 rounded-2xl border border-vinyl-800 hover:border-brass-500/50 transition-all duration-200 overflow-hidden shadow-lg hover:shadow-2xl flex flex-col group">
+          <div class="bg-vinyl-900 rounded-2xl border ${isSelected ? 'border-brass-400 ring-2 ring-brass-400/50' : 'border-vinyl-800 hover:border-brass-500/50'} transition-all duration-200 overflow-hidden shadow-lg hover:shadow-2xl flex flex-col group">
             
             <!-- Sleeve Visual Card Header -->
             <div class="relative w-full aspect-square bg-vinyl-950 overflow-hidden cursor-pointer flex-shrink-0" onclick="viewRecordDetail('${safeId}')">
@@ -17050,9 +17729,14 @@
                 ` : ''}
               </div>
 
-              <!-- Media Grade Badge -->
-              <div class="absolute top-3 right-3">
+              <!-- Media Grade Badge + Multi-Select Checkbox -->
+              <div class="absolute top-3 right-3 flex items-center gap-1.5 z-10">
                 ${getGradeBadge(item.mediaGrade)}
+                <button type="button" onclick="toggleRecordSelection('${safeId}', event)"
+                  class="w-6 h-6 rounded-lg flex items-center justify-center border transition shadow ${isSelected ? 'bg-brass-500 text-vinyl-950 border-brass-300 font-bold' : 'bg-black/75 text-slate-300 border-white/25 hover:border-brass-400'}"
+                  title="${isSelected ? 'Deselect record' : 'Select record for bulk actions'}">
+                  <i class="fa-solid fa-check text-[10px] ${isSelected ? '' : 'opacity-40'}"></i>
+                </button>
               </div>
 
               <!-- Subtle Bottom Dark Vignette to keep overlays readable -->
@@ -17104,9 +17788,13 @@
                   </div>
                 </div>
                 
-                <h4 class="text-xs font-semibold text-slate-200 hover:text-brass-400 truncate mb-2 cursor-pointer transition" onclick="viewRecordDetail('${safeId}')" title="View dossier for ${escapeHtml(item.title)}">
+                <h4 class="text-xs font-semibold text-slate-200 hover:text-brass-400 truncate mb-1.5 cursor-pointer transition" onclick="viewRecordDetail('${safeId}')" title="View dossier for ${escapeHtml(item.title)}">
                   ${escapeHtml(item.title)}
                 </h4>
+
+                <div class="mb-2">
+                  ${renderRecordMembershipChips(item.id, false, membershipMap)}
+                </div>
 
                 ${formatSeriesLabel(item) ? `
                   <div class="mb-2">
@@ -17203,8 +17891,8 @@
                   <button type="button" onclick="event.stopPropagation(); toggleBoxForRecord('${safeId}')" id="cardBoxBtn-${safeId}" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border-vinyl-700'}" title="${inBox ? 'Remove from Record Box' : 'Pack into Record Box'}">
                     <span>${inBox ? '✓ In Box' : '+ Box'}</span>
                   </button>
-                  <button type="button" onclick="event.stopPropagation(); openCrateAssignModal('${safeId}')" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-vinyl-850 hover:bg-vinyl-800 text-slate-300 hover:text-white border border-vinyl-700 transition" title="Assign to Thematic Crate">
-                    <span>+ Crate</span>
+                  <button type="button" onclick="event.stopPropagation(); openCrateAssignModal('${safeId}', 'all')" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-vinyl-850 hover:bg-vinyl-800 text-slate-300 hover:text-white border border-vinyl-700 transition" title="Add to Box, Thematic Crate, or Set Timeline">
+                    <span>+ Add to…</span>
                   </button>
                 </div>
 
@@ -17296,6 +17984,7 @@
             <tbody class="divide-y divide-vinyl-800">
       `;
 
+      const membershipMap = buildMembershipLookupMap();
       list.forEach(item => {
         const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
         const hasVal = areValuesVisible && item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
@@ -17303,12 +17992,18 @@
         const streamLinks = getStreamingLinks(item);
         const safeId = escapeJsString(String(item.id));
         const telemetry = deriveRecordTelemetry(item);
-        const inBox = (typeof isRecordInBox === 'function') ? isRecordInBox(item.id) : false;
+        const inBox = membershipMap.boxSet.has(String(item.id));
+        const isSelected = selectedRecordIds.has(String(item.id));
 
         html += `
-          <tr class="hover:bg-vinyl-850/60 transition group cursor-pointer" onclick="viewRecordDetail('${safeId}')">
+          <tr class="${isSelected ? 'bg-brass-500/10' : 'hover:bg-vinyl-850/60'} transition group cursor-pointer" onclick="viewRecordDetail('${safeId}')">
             <td class="py-2.5 px-3">
-              <div class="flex items-center gap-2.5">
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="toggleRecordSelection('${safeId}', event)"
+                  class="w-4 h-4 rounded flex items-center justify-center border transition shrink-0 ${isSelected ? 'bg-brass-500 text-vinyl-950 border-brass-300 font-bold' : 'bg-vinyl-950 text-slate-500 border-vinyl-700 hover:border-brass-400'}"
+                  title="${isSelected ? 'Deselect record' : 'Select record for bulk actions'}">
+                  <i class="fa-solid fa-check text-[8px] ${isSelected ? '' : 'opacity-0 group-hover:opacity-60'}"></i>
+                </button>
                 <div class="relative group/thumb cursor-pointer flex-shrink-0" onclick="event.stopPropagation(); ${isOwner ? `openArtworkChooserModal('record', '${safeId}')` : `viewRecordDetail('${safeId}')`}" title="${isOwner ? 'Click to choose cover sleeve' : 'View dossier'}">
                   <img src="${coverSrc}" alt="" class="w-9 h-9 rounded object-cover border border-vinyl-700 bg-vinyl-950 group-hover/thumb:border-brass-400 transition" onerror="this.onerror=null; this.src=getDefaultCover('${encodeURIComponent(item.format || '')}', '${encodeURIComponent(item.artist || '')}', '${encodeURIComponent(item.title || '')}', true)">
                   ${isOwner ? `
@@ -17324,6 +18019,7 @@
                   <div class="text-slate-300 hover:text-brass-400 text-[11px] font-medium truncate cursor-pointer transition" onclick="event.stopPropagation(); viewRecordDetail('${safeId}')" title="View dossier for ${escapeHtml(item.title)}">
                     ${item.title}
                   </div>
+                  ${renderRecordMembershipChips(item.id, true, membershipMap)}
                   ${formatSeriesLabel(item) ? `
                     <div class="mt-0.5">
                       <button type="button" onclick="event.stopPropagation(); filterBySeries('${escapeJsString(item.seriesName || item.series_name)}')" class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-pink-500/10 text-pink-300 border border-pink-500/30 text-[9px] font-mono hover:border-pink-400 transition">
@@ -19278,12 +19974,18 @@
                 <h4 class="text-xs uppercase font-bold text-slate-400 tracking-wider flex items-center gap-2">
                   <i class="fa-solid fa-list-ol text-brass-400"></i> Tracklist Architecture
                 </h4>
-                ${isOwner ? `
-                  <button type="button" id="detailDiscogsRefreshBtn" onclick="refreshRecordDiscogsMeta('${safeId}')" class="px-2.5 py-1 rounded-lg bg-vinyl-900 hover:bg-amber-950/50 text-amber-300 border border-amber-500/40 hover:border-amber-400 text-[11px] font-semibold flex items-center gap-1.5 shadow-sm transition" title="Pull tracklist, series, genres &amp; pressing metadata from Discogs">
-                    <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
-                    <span>Refresh Discogs Meta &amp; Tracks</span>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <button type="button" onclick="addAllRecordTracksToSet('${safeId}')" class="px-2.5 py-1 rounded-lg bg-purple-500/15 hover:bg-purple-500/25 text-purple-200 border border-purple-500/30 text-[11px] font-semibold flex items-center gap-1 shadow-sm transition cursor-pointer" title="Push all tracks from this release into the Active Set Timeline">
+                    <i class="fa-solid fa-plus text-[9px]"></i>
+                    <span>+ All Tracks to Set</span>
                   </button>
-                ` : ''}
+                  ${isOwner ? `
+                    <button type="button" id="detailDiscogsRefreshBtn" onclick="refreshRecordDiscogsMeta('${safeId}')" class="px-2.5 py-1 rounded-lg bg-vinyl-900 hover:bg-amber-950/50 text-amber-300 border border-amber-500/40 hover:border-amber-400 text-[11px] font-semibold flex items-center gap-1.5 shadow-sm transition" title="Pull tracklist, series, genres &amp; pressing metadata from Discogs">
+                      <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
+                      <span>Refresh Discogs Meta &amp; Tracks</span>
+                    </button>
+                  ` : ''}
+                </div>
               </div>
               <div class="space-y-2 text-xs max-h-60 overflow-y-auto pr-1">
                 ${tracksHTML}
@@ -19294,8 +19996,9 @@
         </div>
 
         <div class="sticky bottom-0 -mx-4 sm:mx-0 mt-6 pt-3 pb-4 sm:pb-2 px-4 sm:px-0 bg-vinyl-900/95 backdrop-blur border-t border-vinyl-800 flex flex-wrap justify-between items-center gap-2 z-10">
-          <div class="text-[11px] text-slate-500 font-mono hidden sm:block">
-            Record ID: ${escapeHtml(item.id)}
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-[11px] text-slate-500 font-mono hidden sm:inline">Record ID: ${escapeHtml(item.id)}</span>
+            ${renderRecordMembershipChips(item.id, false)}
           </div>
           <div class="flex gap-2 w-full sm:w-auto justify-end flex-wrap">
             <button type="button" onclick="toggleBoxForRecord('${safeId}')" id="dossierBoxBtn-${safeId}" class="px-3 py-2 rounded-lg font-semibold text-xs flex items-center gap-1.5 transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border-amber-500/30'}" title="${inBox ? 'Remove from Record Box' : 'Pack into Record Box'}">
@@ -19305,9 +20008,9 @@
               <i class="fa-solid fa-list-ol text-amber-400"></i>
               <span>Set Builder</span>
             </button>
-            <button type="button" onclick="openCrateAssignModal('${safeId}')" class="px-3 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 font-semibold text-xs flex items-center gap-1.5 transition shadow" title="Assign to Thematic Crate">
+            <button type="button" onclick="openCrateAssignModal('${safeId}', 'all')" class="px-3 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 font-semibold text-xs flex items-center gap-1.5 transition shadow" title="Add to Box, Thematic Crate, or Set Timeline">
               <i class="fa-solid fa-layer-group text-brass-400"></i>
-              <span>+ Crate</span>
+              <span>+ Add to Box / Crate / Set</span>
             </button>
             <a href="https://www.whosampled.com/search/?q=${encodeURIComponent(item.artist + ' ' + item.title)}" target="_blank" rel="noopener noreferrer" class="px-3 py-2 rounded-lg bg-indigo-950/60 hover:bg-indigo-900/70 text-indigo-300 border border-indigo-500/40 text-xs font-semibold flex items-center gap-1.5 transition" title="Explore samples, covers & remixes on WhoSampled">
               <i class="fa-solid fa-dna text-indigo-400"></i>
