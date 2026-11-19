@@ -789,6 +789,99 @@
       font-weight: 600;
     }
 
+    /* Smart Gear Specs Auto-Lookup Box */
+    .spec-lookup-box {
+      position: relative;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(129, 140, 248, 0.08));
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: var(--radius-md);
+      padding: 11px 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .spec-lookup-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+
+    .spec-lookup-row {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+    }
+
+    .spec-lookup-row input {
+      flex: 1;
+      padding: 7px 10px;
+      font-size: 13px;
+      background: var(--bg-base);
+    }
+
+    .spec-suggestions {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      top: calc(100% - 4px);
+      background: #0d131f;
+      border: 1px solid var(--accent-primary);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      max-height: 245px;
+      overflow-y: auto;
+      z-index: 95;
+      display: none;
+    }
+
+    .spec-suggestions.open {
+      display: block;
+    }
+
+    .spec-suggestion-item {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      transition: background 0.12s ease;
+    }
+
+    .spec-suggestion-item:last-child {
+      border-bottom: none;
+    }
+
+    .spec-suggestion-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .spec-sug-title {
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+
+    .spec-sug-meta {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .spec-lookup-status {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--accent-emerald);
+      display: none;
+    }
+
     .kit-checkbox-group {
       display: flex;
       flex-direction: column;
@@ -1100,6 +1193,27 @@
           Drop a JPEG photo here or click to extract Camera/Lens Make, Model &amp; Serial Number locally in your browser.
         </div>
         <div id="exifStatus" class="exif-status" style="display: none;"></div>
+      </div>
+
+      <!-- Instant Specs, Weight, Filter Ø & UK Price Auto-Lookup -->
+      <div class="spec-lookup-box" id="specLookupBox">
+        <div class="spec-lookup-header">
+          <span>&#9889; Instant Gear Specs &amp; Weight Lookup (80+ Built-in + Live Wiki/Wikidata)</span>
+          <button type="button" class="btn btn-sm" id="btnAutoLookupSpecs" title="Auto-lookup weight, filter thread, mount, and UK valuations for current Brand &amp; Model">
+            Lookup Specs &amp; Weight
+          </button>
+        </div>
+        <div class="spec-lookup-row">
+          <input
+            type="text"
+            id="specQuickSearch"
+            placeholder="Type any camera, lens, tripod or bag (e.g. X-T5, XF 56mm, Z8, A7C II, 24-70 GM II)..."
+            autocomplete="off"
+            aria-label="Quick search gear specifications database"
+          />
+        </div>
+        <div class="spec-suggestions" id="specSuggestions"></div>
+        <div class="spec-lookup-status" id="specLookupStatus"></div>
       </div>
 
       <div class="form-grid">
@@ -2010,15 +2124,261 @@
         renderSellSimulator();
       }
 
+      // Built-in Camera & Lens Spec Database (Weight in Grams, Filter Thread mm, Category, Mount & Typical UK Valuations)
+      const GEAR_SPEC_DB = [
+        // Fujifilm X Bodies
+        { brand: "Fujifilm", model: "X-T5", category: "Body", mount: "Fujifilm X", weightGrams: 557, filterThreadMm: null, tradeIn: 980, privateSale: 1220, replacement: 1499 },
+        { brand: "Fujifilm", model: "X-T4", category: "Body", mount: "Fujifilm X", weightGrams: 607, filterThreadMm: null, tradeIn: 760, privateSale: 940, replacement: 1129 },
+        { brand: "Fujifilm", model: "X-T3", category: "Body", mount: "Fujifilm X", weightGrams: 539, filterThreadMm: null, tradeIn: 510, privateSale: 650, replacement: 779 },
+        { brand: "Fujifilm", model: "X-T50", category: "Body", mount: "Fujifilm X", weightGrams: 438, filterThreadMm: null, tradeIn: 820, privateSale: 1030, replacement: 1249 },
+        { brand: "Fujifilm", model: "X-T30 II", category: "Body", mount: "Fujifilm X", weightGrams: 378, filterThreadMm: null, tradeIn: 560, privateSale: 710, replacement: 849 },
+        { brand: "Fujifilm", model: "X-H2", category: "Body", mount: "Fujifilm X", weightGrams: 660, filterThreadMm: null, tradeIn: 1120, privateSale: 1380, replacement: 1649 },
+        { brand: "Fujifilm", model: "X-H2S", category: "Body", mount: "Fujifilm X", weightGrams: 660, filterThreadMm: null, tradeIn: 1350, privateSale: 1650, replacement: 1999 },
+        { brand: "Fujifilm", model: "X-S20", category: "Body", mount: "Fujifilm X", weightGrams: 491, filterThreadMm: null, tradeIn: 780, privateSale: 970, replacement: 1149 },
+        { brand: "Fujifilm", model: "X-Pro3", category: "Body", mount: "Fujifilm X", weightGrams: 497, filterThreadMm: null, tradeIn: 1150, privateSale: 1420, replacement: 1699 },
+        { brand: "Fujifilm", model: "X100VI", category: "Body", mount: "Fujifilm X", weightGrams: 521, filterThreadMm: 49, tradeIn: 1220, privateSale: 1490, replacement: 1599 },
+        { brand: "Fujifilm", model: "X100V", category: "Body", mount: "Fujifilm X", weightGrams: 478, filterThreadMm: 49, tradeIn: 960, privateSale: 1180, replacement: 1349 },
+        { brand: "Fujifilm", model: "X-M5", category: "Body", mount: "Fujifilm X", weightGrams: 355, filterThreadMm: null, tradeIn: 540, privateSale: 690, replacement: 799 },
+
+        // Fujifilm X Lenses
+        { brand: "Fujifilm", model: "XF 16-55mm f/2.8 R LM WR", category: "Lens", mount: "Fujifilm X", weightGrams: 655, filterThreadMm: 77, tradeIn: 460, privateSale: 610, replacement: 749 },
+        { brand: "Fujifilm", model: "XF 16-55mm f/2.8 R LM WR II", category: "Lens", mount: "Fujifilm X", weightGrams: 410, filterThreadMm: 72, tradeIn: 790, privateSale: 980, replacement: 1149 },
+        { brand: "Fujifilm", model: "XF 16-50mm f/2.8-4.8 R LM WR", category: "Lens", mount: "Fujifilm X", weightGrams: 240, filterThreadMm: 58, tradeIn: 310, privateSale: 420, replacement: 549 },
+        { brand: "Fujifilm", model: "XF 18-55mm f/2.8-4 R LM OIS", category: "Lens", mount: "Fujifilm X", weightGrams: 310, filterThreadMm: 58, tradeIn: 195, privateSale: 270, replacement: 349 },
+        { brand: "Fujifilm", model: "XF 16-80mm f/4 R OIS WR", category: "Lens", mount: "Fujifilm X", weightGrams: 440, filterThreadMm: 72, tradeIn: 270, privateSale: 360, replacement: 459 },
+        { brand: "Fujifilm", model: "XF 10-24mm f/4 R OIS WR", category: "Lens", mount: "Fujifilm X", weightGrams: 385, filterThreadMm: 72, tradeIn: 430, privateSale: 560, replacement: 699 },
+        { brand: "Fujifilm", model: "XF 50-140mm f/2.8 R LM OIS WR", category: "Lens", mount: "Fujifilm X", weightGrams: 995, filterThreadMm: 72, tradeIn: 680, privateSale: 870, replacement: 1099 },
+        { brand: "Fujifilm", model: "XF 70-300mm f/4-5.6 R LM OIS WR", category: "Lens", mount: "Fujifilm X", weightGrams: 580, filterThreadMm: 67, tradeIn: 450, privateSale: 580, replacement: 699 },
+        { brand: "Fujifilm", model: "XF 150-600mm f/5.6-8 R LM OIS WR", category: "Lens", mount: "Fujifilm X", weightGrams: 1605, filterThreadMm: 82, tradeIn: 990, privateSale: 1240, replacement: 1499 },
+        { brand: "Fujifilm", model: "XF 18mm f/1.4 R LM WR", category: "Lens", mount: "Fujifilm X", weightGrams: 370, filterThreadMm: 62, tradeIn: 480, privateSale: 620, replacement: 769 },
+        { brand: "Fujifilm", model: "XF 23mm f/1.4 R LM WR", category: "Lens", mount: "Fujifilm X", weightGrams: 375, filterThreadMm: 58, tradeIn: 470, privateSale: 600, replacement: 749 },
+        { brand: "Fujifilm", model: "XF 23mm f/2 R WR", category: "Lens", mount: "Fujifilm X", weightGrams: 180, filterThreadMm: 43, tradeIn: 210, privateSale: 285, replacement: 359 },
+        { brand: "Fujifilm", model: "XF 27mm f/2.8 R WR", category: "Lens", mount: "Fujifilm X", weightGrams: 84, filterThreadMm: 39, tradeIn: 235, privateSale: 315, replacement: 389 },
+        { brand: "Fujifilm", model: "XF 33mm f/1.4 R LM WR", category: "Lens", mount: "Fujifilm X", weightGrams: 360, filterThreadMm: 58, tradeIn: 450, privateSale: 575, replacement: 699 },
+        { brand: "Fujifilm", model: "XF 35mm f/1.4 R", category: "Lens", mount: "Fujifilm X", weightGrams: 187, filterThreadMm: 52, tradeIn: 245, privateSale: 330, replacement: 419 },
+        { brand: "Fujifilm", model: "XF 35mm f/2 R WR", category: "Lens", mount: "Fujifilm X", weightGrams: 170, filterThreadMm: 43, tradeIn: 195, privateSale: 265, replacement: 339 },
+        { brand: "Fujifilm", model: "XF 50mm f/1.0 R WR", category: "Lens", mount: "Fujifilm X", weightGrams: 845, filterThreadMm: 77, tradeIn: 740, privateSale: 940, replacement: 1179 },
+        { brand: "Fujifilm", model: "XF 56mm f/1.2 R WR", category: "Lens", mount: "Fujifilm X", weightGrams: 445, filterThreadMm: 67, tradeIn: 540, privateSale: 680, replacement: 829 },
+        { brand: "Fujifilm", model: "XF 56mm f/1.2 R", category: "Lens", mount: "Fujifilm X", weightGrams: 405, filterThreadMm: 62, tradeIn: 290, privateSale: 390, replacement: 499 },
+        { brand: "Fujifilm", model: "XF 90mm f/2 R LM WR", category: "Lens", mount: "Fujifilm X", weightGrams: 540, filterThreadMm: 62, tradeIn: 430, privateSale: 560, replacement: 699 },
+
+        // Nikon Z Bodies
+        { brand: "Nikon", model: "Zf", category: "Body", mount: "Nikon Z", weightGrams: 710, filterThreadMm: null, tradeIn: 1290, privateSale: 1560, replacement: 1849 },
+        { brand: "Nikon", model: "Z8", category: "Body", mount: "Nikon Z", weightGrams: 910, filterThreadMm: null, tradeIn: 2350, privateSale: 2790, replacement: 3299 },
+        { brand: "Nikon", model: "Z9", category: "Body", mount: "Nikon Z", weightGrams: 1340, filterThreadMm: null, tradeIn: 3150, privateSale: 3750, replacement: 4399 },
+        { brand: "Nikon", model: "Z6 III", category: "Body", mount: "Nikon Z", weightGrams: 760, filterThreadMm: null, tradeIn: 1620, privateSale: 1960, replacement: 2299 },
+        { brand: "Nikon", model: "Z6 II", category: "Body", mount: "Nikon Z", weightGrams: 705, filterThreadMm: null, tradeIn: 890, privateSale: 1120, replacement: 1349 },
+        { brand: "Nikon", model: "Z7 II", category: "Body", mount: "Nikon Z", weightGrams: 705, filterThreadMm: null, tradeIn: 1320, privateSale: 1620, replacement: 1949 },
+        { brand: "Nikon", model: "Z5", category: "Body", mount: "Nikon Z", weightGrams: 675, filterThreadMm: null, tradeIn: 590, privateSale: 750, replacement: 929 },
+        { brand: "Nikon", model: "Zfc", category: "Body", mount: "Nikon Z", weightGrams: 445, filterThreadMm: null, tradeIn: 490, privateSale: 630, replacement: 769 },
+        { brand: "Nikon", model: "Z50 II", category: "Body", mount: "Nikon Z", weightGrams: 550, filterThreadMm: null, tradeIn: 590, privateSale: 730, replacement: 849 },
+
+        // Nikon Z Lenses
+        { brand: "Nikon", model: "NIKKOR Z 24-120mm f/4 S", category: "Lens", mount: "Nikon Z", weightGrams: 630, filterThreadMm: 77, tradeIn: 620, privateSale: 780, replacement: 929 },
+        { brand: "Nikon", model: "NIKKOR Z 24-70mm f/2.8 S", category: "Lens", mount: "Nikon Z", weightGrams: 805, filterThreadMm: 82, tradeIn: 1190, privateSale: 1470, replacement: 1799 },
+        { brand: "Nikon", model: "NIKKOR Z 24-70mm f/4 S", category: "Lens", mount: "Nikon Z", weightGrams: 500, filterThreadMm: 72, tradeIn: 280, privateSale: 380, replacement: 479 },
+        { brand: "Nikon", model: "NIKKOR Z 14-24mm f/2.8 S", category: "Lens", mount: "Nikon Z", weightGrams: 650, filterThreadMm: 112, tradeIn: 1240, privateSale: 1520, replacement: 1849 },
+        { brand: "Nikon", model: "NIKKOR Z 14-30mm f/4 S", category: "Lens", mount: "Nikon Z", weightGrams: 485, filterThreadMm: 82, tradeIn: 640, privateSale: 810, replacement: 979 },
+        { brand: "Nikon", model: "NIKKOR Z 70-200mm f/2.8 VR S", category: "Lens", mount: "Nikon Z", weightGrams: 1360, filterThreadMm: 77, tradeIn: 1380, privateSale: 1690, replacement: 1999 },
+        { brand: "Nikon", model: "NIKKOR Z 100-400mm f/4.5-5.6 VR S", category: "Lens", mount: "Nikon Z", weightGrams: 1355, filterThreadMm: 77, tradeIn: 1450, privateSale: 1780, replacement: 2149 },
+        { brand: "Nikon", model: "NIKKOR Z 180-600mm f/5.6-6.3 VR", category: "Lens", mount: "Nikon Z", weightGrams: 1955, filterThreadMm: 95, tradeIn: 1190, privateSale: 1460, replacement: 1699 },
+        { brand: "Nikon", model: "NIKKOR Z 26mm f/2.8", category: "Lens", mount: "Nikon Z", weightGrams: 125, filterThreadMm: 52, tradeIn: 295, privateSale: 385, replacement: 469 },
+        { brand: "Nikon", model: "NIKKOR Z 28mm f/2.8", category: "Lens", mount: "Nikon Z", weightGrams: 155, filterThreadMm: 52, tradeIn: 140, privateSale: 195, replacement: 249 },
+        { brand: "Nikon", model: "NIKKOR Z 35mm f/1.8 S", category: "Lens", mount: "Nikon Z", weightGrams: 370, filterThreadMm: 62, tradeIn: 430, privateSale: 560, replacement: 699 },
+        { brand: "Nikon", model: "NIKKOR Z 40mm f/2", category: "Lens", mount: "Nikon Z", weightGrams: 170, filterThreadMm: 52, tradeIn: 145, privateSale: 200, replacement: 249 },
+        { brand: "Nikon", model: "NIKKOR Z 50mm f/1.8 S", category: "Lens", mount: "Nikon Z", weightGrams: 415, filterThreadMm: 62, tradeIn: 310, privateSale: 410, replacement: 519 },
+        { brand: "Nikon", model: "NIKKOR Z 50mm f/1.2 S", category: "Lens", mount: "Nikon Z", weightGrams: 1090, filterThreadMm: 82, tradeIn: 1190, privateSale: 1490, replacement: 1799 },
+        { brand: "Nikon", model: "NIKKOR Z 85mm f/1.8 S", category: "Lens", mount: "Nikon Z", weightGrams: 470, filterThreadMm: 67, tradeIn: 420, privateSale: 550, replacement: 679 },
+        { brand: "Nikon", model: "NIKKOR Z MC 105mm f/2.8 VR S", category: "Lens", mount: "Nikon Z", weightGrams: 630, filterThreadMm: 62, tradeIn: 560, privateSale: 720, replacement: 879 },
+
+        // Sony E Bodies
+        { brand: "Sony", model: "A7 IV", category: "Body", mount: "Sony E", weightGrams: 658, filterThreadMm: null, tradeIn: 1250, privateSale: 1520, replacement: 1799 },
+        { brand: "Sony", model: "A7 III", category: "Body", mount: "Sony E", weightGrams: 650, filterThreadMm: null, tradeIn: 760, privateSale: 960, replacement: 1179 },
+        { brand: "Sony", model: "A7R V", category: "Body", mount: "Sony E", weightGrams: 723, filterThreadMm: null, tradeIn: 2150, privateSale: 2590, replacement: 3099 },
+        { brand: "Sony", model: "A7R IV", category: "Body", mount: "Sony E", weightGrams: 665, filterThreadMm: null, tradeIn: 1320, privateSale: 1640, replacement: 1949 },
+        { brand: "Sony", model: "A7C II", category: "Body", mount: "Sony E", weightGrams: 514, filterThreadMm: null, tradeIn: 1280, privateSale: 1560, replacement: 1849 },
+        { brand: "Sony", model: "A7CR", category: "Body", mount: "Sony E", weightGrams: 515, filterThreadMm: null, tradeIn: 1790, privateSale: 2180, replacement: 2599 },
+        { brand: "Sony", model: "A7S III", category: "Body", mount: "Sony E", weightGrams: 699, filterThreadMm: null, tradeIn: 1850, privateSale: 2260, replacement: 2699 },
+        { brand: "Sony", model: "A9 III", category: "Body", mount: "Sony E", weightGrams: 702, filterThreadMm: null, tradeIn: 3650, privateSale: 4350, replacement: 5199 },
+        { brand: "Sony", model: "A1", category: "Body", mount: "Sony E", weightGrams: 737, filterThreadMm: null, tradeIn: 3100, privateSale: 3750, replacement: 4499 },
+        { brand: "Sony", model: "A6700", category: "Body", mount: "Sony E", weightGrams: 493, filterThreadMm: null, tradeIn: 890, privateSale: 1110, replacement: 1299 },
+        { brand: "Sony", model: "FX3", category: "Body", mount: "Sony E", weightGrams: 715, filterThreadMm: null, tradeIn: 2290, privateSale: 2780, replacement: 3299 },
+
+        // Sony E Lenses
+        { brand: "Sony", model: "FE 24-70mm f/2.8 GM II", category: "Lens", mount: "Sony E", weightGrams: 695, filterThreadMm: 82, tradeIn: 1420, privateSale: 1750, replacement: 2049 },
+        { brand: "Sony", model: "FE 24-70mm f/2.8 GM", category: "Lens", mount: "Sony E", weightGrams: 886, filterThreadMm: 82, tradeIn: 760, privateSale: 960, replacement: 1179 },
+        { brand: "Sony", model: "FE 20-70mm f/4 G", category: "Lens", mount: "Sony E", weightGrams: 488, filterThreadMm: 72, tradeIn: 680, privateSale: 860, replacement: 1049 },
+        { brand: "Sony", model: "FE 24-105mm f/4 G OSS", category: "Lens", mount: "Sony E", weightGrams: 663, filterThreadMm: 77, tradeIn: 510, privateSale: 660, replacement: 819 },
+        { brand: "Sony", model: "FE 16-35mm f/2.8 GM II", category: "Lens", mount: "Sony E", weightGrams: 547, filterThreadMm: 82, tradeIn: 1450, privateSale: 1790, replacement: 2099 },
+        { brand: "Sony", model: "FE 70-200mm f/2.8 GM OSS II", category: "Lens", mount: "Sony E", weightGrams: 1045, filterThreadMm: 77, tradeIn: 1590, privateSale: 1960, replacement: 2299 },
+        { brand: "Sony", model: "FE 24mm f/1.4 GM", category: "Lens", mount: "Sony E", weightGrams: 445, filterThreadMm: 67, tradeIn: 680, privateSale: 860, replacement: 1049 },
+        { brand: "Sony", model: "FE 35mm f/1.4 GM", category: "Lens", mount: "Sony E", weightGrams: 524, filterThreadMm: 67, tradeIn: 790, privateSale: 990, replacement: 1199 },
+        { brand: "Sony", model: "FE 50mm f/1.4 GM", category: "Lens", mount: "Sony E", weightGrams: 516, filterThreadMm: 67, tradeIn: 820, privateSale: 1030, replacement: 1249 },
+        { brand: "Sony", model: "FE 50mm f/1.2 GM", category: "Lens", mount: "Sony E", weightGrams: 778, filterThreadMm: 72, tradeIn: 1180, privateSale: 1460, replacement: 1749 },
+        { brand: "Sony", model: "FE 85mm f/1.4 GM II", category: "Lens", mount: "Sony E", weightGrams: 642, filterThreadMm: 77, tradeIn: 1290, privateSale: 1580, replacement: 1849 },
+        { brand: "Sony", model: "FE 85mm f/1.8", category: "Lens", mount: "Sony E", weightGrams: 371, filterThreadMm: 67, tradeIn: 260, privateSale: 350, replacement: 439 },
+        { brand: "Sigma", model: "24-70mm f/2.8 DG DN Art II", category: "Lens", mount: "Sony E", weightGrams: 745, filterThreadMm: 82, tradeIn: 690, privateSale: 880, replacement: 1049 },
+        { brand: "Tamron", model: "28-75mm f/2.8 Di III VXD G2", category: "Lens", mount: "Sony E", weightGrams: 540, filterThreadMm: 67, tradeIn: 430, privateSale: 560, replacement: 679 },
+
+        // Universal Filters, Tripods, Bags & Accessories
+        { brand: "Kase", model: "Wolverine Magnetic CPL 77mm", category: "Filter", mount: "Universal", weightGrams: 48, filterThreadMm: 77, tradeIn: 45, privateSale: 75, replacement: 115 },
+        { brand: "Kase", model: "Wolverine Magnetic ND64 77mm", category: "Filter", mount: "Universal", weightGrams: 46, filterThreadMm: 77, tradeIn: 45, privateSale: 75, replacement: 115 },
+        { brand: "PolarPro", model: "Peter McKinnon VND 2-5 Stop 77mm", category: "Filter", mount: "Universal", weightGrams: 68, filterThreadMm: 77, tradeIn: 95, privateSale: 145, replacement: 219 },
+        { brand: "PolarPro", model: "Peter McKinnon VND 2-5 Stop 82mm", category: "Filter", mount: "Universal", weightGrams: 74, filterThreadMm: 82, tradeIn: 105, privateSale: 155, replacement: 229 },
+        { brand: "B+W", model: "Master MRC Nano Clear 77mm", category: "Filter", mount: "Universal", weightGrams: 42, filterThreadMm: 77, tradeIn: 25, privateSale: 45, replacement: 79 },
+        { brand: "Peak Design", model: "Travel Tripod Carbon", category: "Tripod", mount: "Universal", weightGrams: 1270, filterThreadMm: null, tradeIn: 310, privateSale: 420, replacement: 549 },
+        { brand: "Peak Design", model: "Travel Tripod Aluminum", category: "Tripod", mount: "Universal", weightGrams: 1560, filterThreadMm: null, tradeIn: 190, privateSale: 265, replacement: 339 },
+        { brand: "Gitzo", model: "Traveler Series 1 Carbon GT1545T", category: "Tripod", mount: "Universal", weightGrams: 1060, filterThreadMm: null, tradeIn: 320, privateSale: 440, replacement: 579 },
+        { brand: "Billingham", model: "Hadley Pro 2020", category: "Bag", mount: "Universal", weightGrams: 1200, filterThreadMm: null, tradeIn: 145, privateSale: 210, replacement: 285 },
+        { brand: "Peak Design", model: "Everyday Sling 6L", category: "Bag", mount: "Universal", weightGrams: 780, filterThreadMm: null, tradeIn: 55, privateSale: 85, replacement: 119 },
+        { brand: "Peak Design", model: "Everyday Backpack 20L", category: "Bag", mount: "Universal", weightGrams: 2010, filterThreadMm: null, tradeIn: 115, privateSale: 165, replacement: 239 },
+        { brand: "Wandrd", model: "PRVKE 21L Photography Bundle", category: "Bag", mount: "Universal", weightGrams: 1500, filterThreadMm: null, tradeIn: 110, privateSale: 160, replacement: 229 },
+        { brand: "Godox", model: "V1 Pro Flash", category: "Accessory", mount: "Universal", weightGrams: 580, filterThreadMm: null, tradeIn: 135, privateSale: 195, replacement: 269 },
+        { brand: "DJI", model: "RS 3 Mini Gimbal", category: "Accessory", mount: "Universal", weightGrams: 795, filterThreadMm: null, tradeIn: 140, privateSale: 200, replacement: 269 }
+      ];
+
+      function normalizeGearToken(str) {
+        return String(str || "")
+          .toLowerCase()
+          .replace(/[^a-z0-9.]+/g, " ")
+          .trim();
+      }
+
+      function searchBuiltInSpecs(query) {
+        const q = normalizeGearToken(query);
+        if (!q) return [];
+        const tokens = q.split(/\s+/).filter(Boolean);
+        const scored = [];
+        for (const spec of GEAR_SPEC_DB) {
+          const full = normalizeGearToken(`${spec.brand} ${spec.model}`);
+          const modelOnly = normalizeGearToken(spec.model);
+          let score = 0;
+          if (full === q || modelOnly === q) score += 100;
+          else if (modelOnly.startsWith(q) || full.startsWith(q)) score += 60;
+          else if (full.includes(q)) score += 40;
+
+          let allTokensMatch = true;
+          for (const tok of tokens) {
+            if (full.includes(tok)) score += 15;
+            else allTokensMatch = false;
+          }
+          if (allTokensMatch && score > 0) {
+            scored.push({ spec, score });
+          }
+        }
+        scored.sort((a, b) => b.score - a.score);
+        return scored.slice(0, 8).map((s) => s.spec);
+      }
+
+      async function fetchLiveWikipediaSpecs(brand, model) {
+        const fullQuery = `${brand || ""} ${model || ""}`.trim();
+        if (!fullQuery) return null;
+        const apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(fullQuery + " camera OR lens")}&utf8=1&format=json&origin=*`;
+        const searchResp = await fetch(apiUrl);
+        if (!searchResp.ok) return null;
+        const searchJson = await searchResp.json();
+        const firstHit = searchJson?.query?.search?.[0];
+        if (!firstHit) return null;
+
+        const pageTitle = firstHit.title;
+        const parseUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&titles=${encodeURIComponent(pageTitle)}&format=json&origin=*`;
+        const pageResp = await fetch(parseUrl);
+        if (!pageResp.ok) return null;
+        const pageJson = await pageResp.json();
+        const pages = pageJson?.query?.pages || {};
+        const firstPage = Object.values(pages)[0];
+        const wikitext = firstPage?.revisions?.[0]?.slots?.main?.["*"] || "";
+        if (!wikitext) return null;
+
+        let weightGrams = null;
+        const gMatch = wikitext.match(/weight\s*=\s*[^\r\n]*?(\d{2,4})\s*(?:g|grams)\b/i) ||
+                       wikitext.match(/\b(\d{2,4})\s*(?:g|grams)\b/i);
+        if (gMatch) {
+          weightGrams = parseInt(gMatch[1], 10);
+        } else {
+          const kgMatch = wikitext.match(/weight\s*=\s*[^\r\n]*?(\d+\.\d+)\s*kg\b/i);
+          if (kgMatch) weightGrams = Math.round(parseFloat(kgMatch[1]) * 1000);
+        }
+
+        let filterThreadMm = null;
+        const fMatch = wikitext.match(/filter(?:_size|_thread|_diameter)?\s*=\s*[^\r\n]*?(\d{2,3})\s*mm/i) ||
+                       wikitext.match(/(\d{2,3})\s*mm\s*filter/i);
+        if (fMatch) {
+          filterThreadMm = parseInt(fMatch[1], 10);
+        }
+
+        if (!weightGrams && !filterThreadMm) return null;
+        return {
+          source: `Wikipedia (${pageTitle})`,
+          weightGrams,
+          filterThreadMm
+        };
+      }
+
+      function applySpecToDrawerForm(spec, overwriteExisting = true) {
+        if (!spec) return;
+        const statusEl = document.getElementById("specLookupStatus");
+        if (spec.category) document.getElementById("fieldCategory").value = spec.category;
+        if (spec.mount) document.getElementById("fieldMount").value = spec.mount;
+        if (spec.brand) document.getElementById("fieldBrand").value = spec.brand;
+        if (spec.model) document.getElementById("fieldModel").value = spec.model;
+
+        const wField = document.getElementById("fieldWeight");
+        if (spec.weightGrams != null && (overwriteExisting || !wField.value || Number(wField.value) === 0)) {
+          wField.value = spec.weightGrams;
+        }
+
+        const fField = document.getElementById("fieldFilterThread");
+        if (spec.filterThreadMm != null) {
+          fField.value = spec.filterThreadMm;
+        } else if (overwriteExisting && spec.category === "Body" && !spec.filterThreadMm) {
+          fField.value = "";
+        }
+
+        const tField = document.getElementById("fieldValTradeIn");
+        const pField = document.getElementById("fieldValPrivate");
+        const rField = document.getElementById("fieldValReplacement");
+        const paidField = document.getElementById("fieldPurchasePrice");
+
+        if (spec.tradeIn != null && (overwriteExisting || !tField.value || Number(tField.value) === 0)) {
+          tField.value = spec.tradeIn.toFixed(2);
+        }
+        if (spec.privateSale != null && (overwriteExisting || !pField.value || Number(pField.value) === 0)) {
+          pField.value = spec.privateSale.toFixed(2);
+        }
+        if (spec.replacement != null && (overwriteExisting || !rField.value || Number(rField.value) === 0)) {
+          rField.value = spec.replacement.toFixed(2);
+        }
+        if (spec.replacement != null && (!paidField.value || Number(paidField.value) === 0)) {
+          paidField.value = spec.replacement.toFixed(2);
+        }
+
+        const parts = [];
+        if (spec.weightGrams) parts.push(`Weight: ${spec.weightGrams} g`);
+        if (spec.filterThreadMm) parts.push(`Filter Ø: ${spec.filterThreadMm}mm`);
+        if (spec.mount) parts.push(`Mount: ${spec.mount}`);
+        if (spec.privateSale) parts.push(`Est. Private: ${formatGBP(spec.privateSale)}`);
+
+        statusEl.style.display = "block";
+        statusEl.style.color = "var(--accent-emerald)";
+        statusEl.textContent = `Auto-filled specs for ${spec.brand || ""} ${spec.model || ""} (${parts.join(" • ")})`;
+      }
+
       // Slide-Over Add/Edit Drawer
       function openGearDrawer(editId = null) {
         const drawer = document.getElementById("gearDrawer");
         const backdrop = document.getElementById("drawerBackdrop");
         const form = document.getElementById("gearForm");
         const exifStatus = document.getElementById("exifStatus");
+        const specStatus = document.getElementById("specLookupStatus");
+        const specSug = document.getElementById("specSuggestions");
         exifStatus.style.display = "none";
         exifStatus.textContent = "";
+        specStatus.style.display = "none";
+        specStatus.textContent = "";
+        specSug.classList.remove("open");
         form.reset();
+        document.getElementById("specQuickSearch").value = "";
 
         // Populate Kit Checkboxes
         const kitBox = document.getElementById("drawerKitCheckboxes");
@@ -2337,6 +2697,115 @@
         document.getElementById("btnCancelDrawer").addEventListener("click", closeGearDrawer);
         document.getElementById("drawerBackdrop").addEventListener("click", closeGearDrawer);
 
+        // Instant Gear Specs & Weight Auto-Lookup
+        const specInput = document.getElementById("specQuickSearch");
+        const specSugBox = document.getElementById("specSuggestions");
+        const specStatusEl = document.getElementById("specLookupStatus");
+
+        const renderSpecSuggestions = (query) => {
+          const matches = searchBuiltInSpecs(query);
+          if (matches.length === 0) {
+            specSugBox.classList.remove("open");
+            specSugBox.innerHTML = "";
+            return;
+          }
+          specSugBox.innerHTML = "";
+          for (const spec of matches) {
+            const row = document.createElement("div");
+            row.className = "spec-suggestion-item";
+            const filterTag = spec.filterThreadMm ? ` • Ø${spec.filterThreadMm}mm` : "";
+            row.innerHTML = `
+              <div>
+                <div class="spec-sug-title">${escapeHtml(spec.brand)} ${escapeHtml(spec.model)}</div>
+                <div style="font-size: 11px; color: var(--text-muted);">${escapeHtml(spec.category)} • ${escapeHtml(spec.mount)}</div>
+              </div>
+              <div class="spec-sug-meta">
+                <strong>${spec.weightGrams} g</strong>${escapeHtml(filterTag)} • ${formatGBP(spec.privateSale)}
+              </div>
+            `;
+            row.addEventListener("click", () => {
+              applySpecToDrawerForm(spec, true);
+              specInput.value = `${spec.brand} ${spec.model}`;
+              specSugBox.classList.remove("open");
+            });
+            specSugBox.appendChild(row);
+          }
+          specSugBox.classList.add("open");
+        };
+
+        specInput.addEventListener("input", (e) => {
+          renderSpecSuggestions(e.target.value);
+        });
+
+        // Also show suggestions when typing in Brand or Model fields
+        const tryAutoFillFromBrandModel = () => {
+          const b = document.getElementById("fieldBrand").value.trim();
+          const m = document.getElementById("fieldModel").value.trim();
+          if (!m) return;
+          const matches = searchBuiltInSpecs(`${b} ${m}`);
+          if (matches.length > 0) {
+            const top = matches[0];
+            if (normalizeGearToken(top.model) === normalizeGearToken(m)) {
+              applySpecToDrawerForm(top, false);
+            }
+          }
+        };
+
+        document.getElementById("fieldModel").addEventListener("change", tryAutoFillFromBrandModel);
+        document.getElementById("fieldModel").addEventListener("blur", tryAutoFillFromBrandModel);
+
+        // Manual "Lookup Specs & Weight" button (checks built-in DB first, then live Wikipedia infobox parser)
+        document.getElementById("btnAutoLookupSpecs").addEventListener("click", async () => {
+          const quickQ = specInput.value.trim();
+          const brand = document.getElementById("fieldBrand").value.trim();
+          const model = document.getElementById("fieldModel").value.trim();
+          const query = quickQ || `${brand} ${model}`.trim();
+
+          if (!query) {
+            specStatusEl.style.display = "block";
+            specStatusEl.style.color = "var(--accent-amber)";
+            specStatusEl.textContent = "Enter a Brand & Model (or type in the search bar above) to look up weight and specs.";
+            return;
+          }
+
+          const localMatches = searchBuiltInSpecs(query);
+          if (localMatches.length > 0) {
+            applySpecToDrawerForm(localMatches[0], true);
+            specSugBox.classList.remove("open");
+            return;
+          }
+
+          // Fallback to live Wikipedia CORS API for uncommon/vintage bodies & lenses
+          specStatusEl.style.display = "block";
+          specStatusEl.style.color = "var(--accent-primary)";
+          specStatusEl.textContent = `Searching live Wikipedia technical specifications for "${query}"...`;
+          try {
+            const liveSpec = await fetchLiveWikipediaSpecs(brand || query, model || "");
+            if (liveSpec) {
+              if (liveSpec.weightGrams) document.getElementById("fieldWeight").value = liveSpec.weightGrams;
+              if (liveSpec.filterThreadMm) document.getElementById("fieldFilterThread").value = liveSpec.filterThreadMm;
+              specStatusEl.style.color = "var(--accent-emerald)";
+              specStatusEl.textContent = `Found via ${liveSpec.source}: ${liveSpec.weightGrams ? liveSpec.weightGrams + " g" : ""} ${liveSpec.filterThreadMm ? "• Ø" + liveSpec.filterThreadMm + "mm" : ""}`;
+            } else {
+              specStatusEl.style.color = "var(--accent-amber)";
+              specStatusEl.textContent = `No exact match found for "${query}". Enter weight manually below.`;
+            }
+          } catch (err) {
+            specStatusEl.style.color = "var(--accent-amber)";
+            specStatusEl.textContent = `Offline/no match in built-in DB for "${query}". Enter weight manually below.`;
+          }
+        });
+
+        // Auto-lookup specs after EXIF extraction
+        const autoMatchAfterExif = (tags) => {
+          const q = `${tags.make || ""} ${tags.lensModel || tags.model || ""}`.trim();
+          if (!q) return;
+          const matches = searchBuiltInSpecs(q);
+          if (matches.length > 0) {
+            applySpecToDrawerForm(matches[0], false);
+          }
+        };
+
         document.getElementById("gearForm").addEventListener("submit", (e) => {
           e.preventDefault();
           const editId = document.getElementById("fieldId").value.trim();
@@ -2410,6 +2879,7 @@
             statusEl.textContent = foundList
               ? `EXIF Extracted: ${foundList}`
               : "No camera EXIF tags found in this JPEG.";
+            autoMatchAfterExif(tags);
           } catch (err) {
             statusEl.style.color = "var(--accent-amber)";
             statusEl.textContent = `Could not parse EXIF: ${err.message}`;
@@ -2509,19 +2979,26 @@
               const nextTrade = Number(incVals.tradeIn ?? match.valuations?.tradeIn ?? 0);
               const nextPriv = Number(incVals.privateSale ?? match.valuations?.privateSale ?? 0);
               const nextRepl = Number(incVals.replacement ?? match.valuations?.replacement ?? 0);
+              const nextWeight = Number(inc.specs?.weightGrams ?? inc.weightGrams ?? match.weightGrams ?? 0);
+              const nextFilter = inc.specs?.filterThreadMm ?? inc.filterThreadMm ?? match.filterThreadMm ?? null;
 
               pendingImportedValuations.push({
                 targetId: match.id,
                 tradeIn: nextTrade,
                 privateSale: nextPriv,
                 replacement: nextRepl,
+                weightGrams: nextWeight,
+                filterThreadMm: nextFilter,
                 lastChecked: incVals.lastChecked || todayISO()
               });
 
               const tr = document.createElement("tr");
               tr.innerHTML = `
                 <td><span class="badge badge-boxed">Matched</span></td>
-                <td><strong>${escapeHtml(match.brand)} ${escapeHtml(match.model)}</strong></td>
+                <td>
+                  <strong>${escapeHtml(match.brand)} ${escapeHtml(match.model)}</strong>
+                  ${nextWeight ? `<div style="font-size: 11px; color: var(--text-muted);">${nextWeight} g${nextFilter ? ` • Ø${nextFilter}mm` : ""}</div>` : ""}
+                </td>
                 <td class="num">${formatGBP(match.valuations?.tradeIn)} &rarr; <strong>${formatGBP(nextTrade)}</strong></td>
                 <td class="num">${formatGBP(match.valuations?.privateSale)} &rarr; <strong>${formatGBP(nextPriv)}</strong></td>
                 <td class="num">${formatGBP(match.valuations?.replacement)} &rarr; <strong>${formatGBP(nextRepl)}</strong></td>
@@ -2546,6 +3023,12 @@
                 replacement: Math.round(upd.replacement * 100) / 100,
                 lastChecked: upd.lastChecked
               };
+              if (upd.weightGrams && (!item.weightGrams || Number(item.weightGrams) === 0)) {
+                item.weightGrams = upd.weightGrams;
+              }
+              if (upd.filterThreadMm && !item.filterThreadMm) {
+                item.filterThreadMm = upd.filterThreadMm;
+              }
             }
           }
           saveState();

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-19T17:03:56Z",
+  "generatedAt": "2026-11-19T17:23:10Z",
   "currency": "GBP",
   "dryRun": true,
   "sourceSummary": {
@@ -12,6 +12,11 @@
       "brand": "Fujifilm",
       "model": "X-T5",
       "query": "Fujifilm X-T5",
+      "specs": {
+        "weightGrams": 557,
+        "filterThreadMm": null,
+        "specSource": "built-in-db"
+      },
       "valuations": {
         "tradeIn": 989.8,
         "privateSale": 1200.48,
@@ -32,6 +37,11 @@
       "brand": "Fujifilm",
       "model": "XF 35mm f/1.4 R",
       "query": "Fujifilm XF 35mm f/1.4 R",
+      "specs": {
+        "weightGrams": 187,
+        "filterThreadMm": 52,
+        "specSource": "built-in-db"
+      },
       "valuations": {
         "tradeIn": 247.45,
         "privateSale": 324.72,
@@ -52,6 +62,11 @@
       "brand": "Fujifilm",
       "model": "XF 16-55mm f/2.8 R LM WR",
       "query": "Fujifilm XF 16-55mm f/2.8 R LM WR",
+      "specs": {
+        "weightGrams": 655,
+        "filterThreadMm": 77,
+        "specSource": "built-in-db"
+      },
       "valuations": {
         "tradeIn": 464.6,
         "privateSale": 600.24,
@@ -72,6 +87,11 @@
       "brand": "Nikon",
       "model": "Zf",
       "query": "Nikon Zf",
+      "specs": {
+        "weightGrams": 710,
+        "filterThreadMm": null,
+        "specSource": "built-in-db"
+      },
       "valuations": {
         "tradeIn": 1302.9,
         "privateSale": 1535.04,
@@ -92,6 +112,11 @@
       "brand": "Nikon",
       "model": "NIKKOR Z 24-120mm f/4 S",
       "query": "Nikon NIKKOR Z 24-120mm f/4 S",
+      "specs": {
+        "weightGrams": 630,
+        "filterThreadMm": 77,
+        "specSource": "built-in-db"
+      },
       "valuations": {
         "tradeIn": 626.2,
         "privateSale": 767.52,
@@ -112,6 +137,11 @@
       "brand": "Sony",
       "model": "A7 IV",
       "query": "Sony A7 IV",
+      "specs": {
+        "weightGrams": 658,
+        "filterThreadMm": null,
+        "specSource": "built-in-db"
+      },
       "valuations": {
         "tradeIn": 1262.5,
         "privateSale": 1495.68,
@@ -132,6 +162,11 @@
       "brand": "Sony",
       "model": "FE 24-70mm f/2.8 GM II",
       "query": "Sony FE 24-70mm f/2.8 GM II",
+      "specs": {
+        "weightGrams": 695,
+        "filterThreadMm": 82,
+        "specSource": "built-in-db"
+      },
       "valuations": {
         "tradeIn": 1434.2,
         "privateSale": 1722.0,

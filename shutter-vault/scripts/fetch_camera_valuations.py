@@ -395,6 +395,76 @@ def synthesize_dry_run_market(item: Dict[str, Any]) -> Tuple[Dict[str, Any], Dic
     return cex_data, ebay_data
 
 
+# Built-in physical specification lookup table (weightGrams & filterThreadMm)
+GEAR_SPECS_DB: List[Dict[str, Any]] = [
+    {"brand": "Fujifilm", "model": "X-T5", "weightGrams": 557, "filterThreadMm": None},
+    {"brand": "Fujifilm", "model": "X-T4", "weightGrams": 607, "filterThreadMm": None},
+    {"brand": "Fujifilm", "model": "X-T3", "weightGrams": 539, "filterThreadMm": None},
+    {"brand": "Fujifilm", "model": "X-T50", "weightGrams": 438, "filterThreadMm": None},
+    {"brand": "Fujifilm", "model": "X-T30 II", "weightGrams": 378, "filterThreadMm": None},
+    {"brand": "Fujifilm", "model": "X-H2", "weightGrams": 660, "filterThreadMm": None},
+    {"brand": "Fujifilm", "model": "X-H2S", "weightGrams": 660, "filterThreadMm": None},
+    {"brand": "Fujifilm", "model": "X-S20", "weightGrams": 491, "filterThreadMm": None},
+    {"brand": "Fujifilm", "model": "X100VI", "weightGrams": 521, "filterThreadMm": 49},
+    {"brand": "Fujifilm", "model": "X100V", "weightGrams": 478, "filterThreadMm": 49},
+    {"brand": "Fujifilm", "model": "XF 35mm f/1.4 R", "weightGrams": 187, "filterThreadMm": 52},
+    {"brand": "Fujifilm", "model": "XF 33mm f/1.4 R LM WR", "weightGrams": 360, "filterThreadMm": 58},
+    {"brand": "Fujifilm", "model": "XF 23mm f/1.4 R LM WR", "weightGrams": 375, "filterThreadMm": 58},
+    {"brand": "Fujifilm", "model": "XF 18mm f/1.4 R LM WR", "weightGrams": 370, "filterThreadMm": 62},
+    {"brand": "Fujifilm", "model": "XF 56mm f/1.2 R WR", "weightGrams": 445, "filterThreadMm": 67},
+    {"brand": "Fujifilm", "model": "XF 16-55mm f/2.8 R LM WR", "weightGrams": 655, "filterThreadMm": 77},
+    {"brand": "Fujifilm", "model": "XF 16-55mm f/2.8 R LM WR II", "weightGrams": 410, "filterThreadMm": 72},
+    {"brand": "Fujifilm", "model": "XF 50-140mm f/2.8 R LM OIS WR", "weightGrams": 995, "filterThreadMm": 72},
+    {"brand": "Fujifilm", "model": "XF 70-300mm f/4-5.6 R LM OIS WR", "weightGrams": 580, "filterThreadMm": 67},
+    {"brand": "Nikon", "model": "Zf", "weightGrams": 710, "filterThreadMm": None},
+    {"brand": "Nikon", "model": "Z8", "weightGrams": 910, "filterThreadMm": None},
+    {"brand": "Nikon", "model": "Z9", "weightGrams": 1340, "filterThreadMm": None},
+    {"brand": "Nikon", "model": "Z6 III", "weightGrams": 760, "filterThreadMm": None},
+    {"brand": "Nikon", "model": "Z6 II", "weightGrams": 705, "filterThreadMm": None},
+    {"brand": "Nikon", "model": "Z7 II", "weightGrams": 705, "filterThreadMm": None},
+    {"brand": "Nikon", "model": "NIKKOR Z 24-120mm f/4 S", "weightGrams": 630, "filterThreadMm": 77},
+    {"brand": "Nikon", "model": "NIKKOR Z 24-70mm f/2.8 S", "weightGrams": 805, "filterThreadMm": 82},
+    {"brand": "Nikon", "model": "NIKKOR Z 70-200mm f/2.8 VR S", "weightGrams": 1360, "filterThreadMm": 77},
+    {"brand": "Nikon", "model": "NIKKOR Z 50mm f/1.8 S", "weightGrams": 415, "filterThreadMm": 62},
+    {"brand": "Nikon", "model": "NIKKOR Z 85mm f/1.8 S", "weightGrams": 470, "filterThreadMm": 67},
+    {"brand": "Sony", "model": "A7 IV", "weightGrams": 658, "filterThreadMm": None},
+    {"brand": "Sony", "model": "A7R V", "weightGrams": 723, "filterThreadMm": None},
+    {"brand": "Sony", "model": "A7C II", "weightGrams": 514, "filterThreadMm": None},
+    {"brand": "Sony", "model": "A7S III", "weightGrams": 699, "filterThreadMm": None},
+    {"brand": "Sony", "model": "A1", "weightGrams": 737, "filterThreadMm": None},
+    {"brand": "Sony", "model": "FE 24-70mm f/2.8 GM II", "weightGrams": 695, "filterThreadMm": 82},
+    {"brand": "Sony", "model": "FE 70-200mm f/2.8 GM OSS II", "weightGrams": 1045, "filterThreadMm": 77},
+    {"brand": "Sony", "model": "FE 35mm f/1.4 GM", "weightGrams": 524, "filterThreadMm": 67},
+    {"brand": "Sony", "model": "FE 50mm f/1.4 GM", "weightGrams": 516, "filterThreadMm": 67},
+    {"brand": "Sony", "model": "FE 85mm f/1.4 GM II", "weightGrams": 642, "filterThreadMm": 77},
+]
+
+
+def lookup_gear_specs(brand: str, model: str, existing_item: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """
+    Resolve weightGrams and filterThreadMm for an input gear item from GEAR_SPECS_DB,
+    falling back to any existing values on the item.
+    """
+    norm_q = re.sub(r"[^a-z0-9.]+", " ", f"{brand} {model}".lower()).strip()
+    norm_model = re.sub(r"[^a-z0-9.]+", " ", model.lower()).strip()
+
+    for entry in GEAR_SPECS_DB:
+        entry_full = re.sub(r"[^a-z0-9.]+", " ", f"{entry['brand']} {entry['model']}".lower()).strip()
+        entry_model = re.sub(r"[^a-z0-9.]+", " ", entry["model"].lower()).strip()
+        if norm_q == entry_full or norm_model == entry_model or entry_model in norm_q:
+            return {
+                "weightGrams": entry["weightGrams"],
+                "filterThreadMm": entry["filterThreadMm"],
+                "specSource": "built-in-db",
+            }
+
+    return {
+        "weightGrams": existing_item.get("weightGrams") if existing_item else None,
+        "filterThreadMm": existing_item.get("filterThreadMm") if existing_item else None,
+        "specSource": "input-preserved",
+    }
+
+
 def format_output_payload(
     results: List[Dict[str, Any]],
     ebay_enabled: bool,
@@ -542,12 +612,15 @@ def main(argv: Optional[List[str]] = None) -> int:
         else:
             private_sale = float(existing_val.get("privateSale") or 0.0)
 
+        specs_info = lookup_gear_specs(brand, model, existing_item=item)
+
         results.append(
             {
                 "id": item_id,
                 "brand": brand,
                 "model": model,
                 "query": query,
+                "specs": specs_info,
                 "valuations": {
                     "tradeIn": round(trade_in, 2),
                     "privateSale": round(private_sale, 2),
