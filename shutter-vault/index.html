@@ -1,0 +1,2613 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShutterVault — UK Camera Gear Catalogue &amp; Tiered Valuation</title>
+  <style>
+    :root {
+      --bg-base: #0b0f17;
+      --bg-surface: #111827;
+      --bg-elevated: #1e293b;
+      --bg-hover: #263449;
+      --bg-input: #0f172a;
+      --border-subtle: #1f2937;
+      --border-default: #334155;
+      --border-focus: #38bdf8;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --accent-primary: #38bdf8;
+      --accent-primary-hover: #0284c7;
+      --accent-emerald: #10b981;
+      --accent-emerald-bg: rgba(16, 185, 129, 0.14);
+      --accent-amber: #f59e0b;
+      --accent-amber-bg: rgba(245, 158, 11, 0.15);
+      --accent-rose: #f43f5e;
+      --accent-rose-bg: rgba(244, 63, 94, 0.15);
+      --accent-indigo: #818cf8;
+      --accent-indigo-bg: rgba(129, 140, 248, 0.15);
+      --shadow-lg: 0 20px 35px -10px rgba(0, 0, 0, 0.65);
+      --radius-sm: 6px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+      padding-bottom: 110px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .tabular {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Layout Container */
+    .app-shell {
+      max-width: 1540px;
+      margin: 0 auto;
+      padding: 20px 24px;
+    }
+
+    /* Top Header */
+    .top-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      margin-bottom: 18px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      color: #0b0f17;
+      letter-spacing: -0.5px;
+      flex-shrink: 0;
+    }
+
+    .brand-title h1 {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-uk {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-default);
+      color: var(--accent-primary);
+    }
+
+    .brand-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .header-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      padding: 4px 10px;
+    }
+
+    .control-group label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    select, input[type="text"], input[type="number"], input[type="date"], textarea {
+      background: var(--bg-input);
+      color: var(--text-primary);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-sm);
+      padding: 7px 10px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .control-group select {
+      border: none;
+      padding: 4px 6px;
+      font-weight: 600;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    select:focus, input:focus, textarea:focus {
+      border-color: var(--border-focus);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 13px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border-default);
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--text-muted);
+    }
+
+    .btn-primary {
+      background: var(--accent-primary);
+      color: #0b0f17;
+      border-color: var(--accent-primary);
+      font-weight: 700;
+    }
+
+    .btn-primary:hover {
+      background: #7dd3fc;
+      border-color: #7dd3fc;
+    }
+
+    .btn-danger-outline {
+      background: transparent;
+      color: var(--accent-rose);
+      border-color: rgba(244, 63, 94, 0.45);
+    }
+
+    .btn-danger-outline:hover {
+      background: var(--accent-rose-bg);
+      border-color: var(--accent-rose);
+    }
+
+    .btn-sm {
+      padding: 5px 9px;
+      font-size: 12px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* KPI Ribbon */
+    .kpi-ribbon {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    @media (max-width: 1180px) {
+      .kpi-ribbon {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+    }
+
+    .kpi-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      padding: 15px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card.kpi-overweight {
+      border-color: var(--accent-rose);
+      background: linear-gradient(180deg, rgba(244, 63, 94, 0.12), var(--bg-surface));
+    }
+
+    .kpi-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .kpi-value {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-primary);
+    }
+
+    .kpi-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .delta-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .delta-pos {
+      background: var(--accent-emerald-bg);
+      color: var(--accent-emerald);
+    }
+
+    .delta-neg {
+      background: var(--accent-amber-bg);
+      color: var(--accent-amber);
+    }
+
+    .delta-alert {
+      background: var(--accent-rose-bg);
+      color: var(--accent-rose);
+      border: 1px solid rgba(244, 63, 94, 0.45);
+    }
+
+    .weight-progress {
+      width: 100%;
+      height: 5px;
+      background: var(--bg-elevated);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .weight-progress-bar {
+      height: 100%;
+      background: var(--accent-emerald);
+      transition: width 0.2s ease, background-color 0.2s ease;
+    }
+
+    /* Filter Bar: Search, Category Pills & Sell-to-Fund Toggle */
+    .filter-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      padding: 12px 16px;
+      margin-bottom: 16px;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1 1 260px;
+      max-width: 360px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 8px 12px 8px 32px;
+      font-size: 13px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 13px;
+      pointer-events: none;
+    }
+
+    .category-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .cat-pill {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 600;
+      border: 1px solid var(--border-default);
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cat-pill:hover {
+      border-color: var(--text-muted);
+      color: var(--text-primary);
+    }
+
+    .cat-pill.active {
+      background: var(--accent-primary);
+      color: #0b0f17;
+      border-color: var(--accent-primary);
+      font-weight: 700;
+    }
+
+    .cat-count {
+      font-size: 11px;
+      opacity: 0.8;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .simulator-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 13px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-default);
+      background: var(--bg-elevated);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12.5px;
+      color: var(--text-primary);
+      user-select: none;
+    }
+
+    .simulator-toggle.active {
+      background: var(--accent-indigo-bg);
+      border-color: var(--accent-indigo);
+      color: #c7d2fe;
+    }
+
+    /* Gear Table */
+    .table-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      overflow-x: auto;
+    }
+
+    table.gear-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1150px;
+    }
+
+    .gear-table th {
+      background: #0d131f;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-default);
+      white-space: nowrap;
+    }
+
+    .gear-table th.num,
+    .gear-table td.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .gear-table td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      vertical-align: middle;
+    }
+
+    .gear-table tbody tr:hover {
+      background: rgba(30, 41, 59, 0.55);
+    }
+
+    .gear-table tbody tr.selected-row {
+      background: rgba(129, 140, 248, 0.12);
+    }
+
+    .item-primary {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-mount {
+      background: var(--bg-elevated);
+      color: var(--accent-primary);
+      border: 1px solid var(--border-default);
+    }
+
+    .badge-cat {
+      background: rgba(148, 163, 184, 0.12);
+      color: var(--text-secondary);
+    }
+
+    .badge-kit {
+      background: var(--accent-indigo-bg);
+      color: #a5b4fc;
+      border: 1px solid rgba(129, 140, 248, 0.3);
+      font-size: 10.5px;
+    }
+
+    .badge-boxed {
+      background: var(--accent-emerald-bg);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-unboxed {
+      background: rgba(148, 163, 184, 0.1);
+      color: var(--text-muted);
+    }
+
+    .item-notes {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 3px;
+      max-width: 320px;
+    }
+
+    .specs-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .specs-list span.label {
+      color: var(--text-dim);
+      font-size: 11px;
+    }
+
+    /* Inline Editable Valuation Cell */
+    .val-cell {
+      cursor: pointer;
+      padding: 5px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px dashed transparent;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-end;
+      transition: all 0.12s ease;
+      min-width: 92px;
+    }
+
+    .val-cell:hover {
+      background: var(--bg-elevated);
+      border-color: var(--border-focus);
+    }
+
+    .val-cell .val-main {
+      font-weight: 700;
+      font-size: 13.5px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .val-cell .val-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .inline-val-input {
+      width: 96px;
+      text-align: right;
+      padding: 4px 6px;
+      font-weight: 700;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      background: var(--bg-base);
+      border: 1px solid var(--accent-primary);
+      color: var(--text-primary);
+    }
+
+    /* Quick Lookup Links */
+    .lookup-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+
+    .lookup-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-default);
+      color: var(--accent-primary);
+      text-decoration: none;
+      transition: all 0.12s ease;
+    }
+
+    .lookup-pill:hover {
+      background: var(--accent-primary);
+      color: #0b0f17;
+      border-color: var(--accent-primary);
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+
+    /* Sticky Bottom Sell-to-Fund Bar */
+    .sell-simulator-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15, 23, 42, 0.97);
+      backdrop-filter: blur(10px);
+      border-top: 2px solid var(--accent-indigo);
+      padding: 14px 24px;
+      box-shadow: var(--shadow-lg);
+      z-index: 40;
+      display: none;
+    }
+
+    .sell-simulator-bar.visible {
+      display: block;
+    }
+
+    .sim-inner {
+      max-width: 1540px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .sim-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .sim-stat {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sim-stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .sim-stat-val {
+      font-size: 18px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Slide-over Drawer */
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 7, 18, 0.72);
+      backdrop-filter: blur(3px);
+      z-index: 60;
+      display: none;
+    }
+
+    .drawer-backdrop.open {
+      display: block;
+    }
+
+    .slide-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      max-width: 560px;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border-default);
+      box-shadow: var(--shadow-lg);
+      z-index: 70;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .slide-drawer.open {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border-default);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .drawer-header h2 {
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .drawer-body {
+      padding: 20px 22px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .drawer-footer {
+      padding: 16px 22px;
+      border-top: 1px solid var(--border-default);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background: #0d131f;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-field.full {
+      grid-column: 1 / -1;
+    }
+
+    .form-field label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .exif-dropzone {
+      border: 1px dashed var(--accent-primary);
+      background: rgba(56, 189, 248, 0.06);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .exif-dropzone:hover {
+      background: rgba(56, 189, 248, 0.12);
+    }
+
+    .exif-status {
+      font-size: 12px;
+      color: var(--accent-emerald);
+      margin-top: 4px;
+      font-weight: 600;
+    }
+
+    .kit-checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+    }
+
+    .kit-checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    /* Modals */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 7, 18, 0.78);
+      backdrop-filter: blur(3px);
+      z-index: 80;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 760px;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-default);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-body {
+      padding: 18px 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .modal-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border-default);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text-muted);
+    }
+
+    .toast-banner {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      background: #0f172a;
+      border: 1px solid var(--accent-primary);
+      color: var(--text-primary);
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 100;
+      display: none;
+    }
+
+    .toast-banner.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Header & Kit Switcher -->
+    <header class="top-header">
+      <div class="brand-group">
+        <div class="brand-logo">SV</div>
+        <div class="brand-title">
+          <h1>
+            ShutterVault
+            <span class="badge-uk">UK GBP (£)</span>
+          </h1>
+          <div class="brand-subtitle">Local-First Camera Gear Catalogue, Bag Weight &amp; 3-Tier Market Valuation</div>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <!-- System / Mount Filter -->
+        <div class="control-group">
+          <label for="filterMount">System</label>
+          <select id="filterMount" aria-label="Filter by System or Mount">
+            <option value="ALL">All Systems</option>
+            <option value="Fujifilm X">Fujifilm X</option>
+            <option value="Nikon Z">Nikon Z</option>
+            <option value="Sony E">Sony E</option>
+            <option value="Universal">Universal</option>
+          </select>
+        </div>
+
+        <!-- Kit Loadout Filter -->
+        <div class="control-group">
+          <label for="filterKit">Kit Loadout</label>
+          <select id="filterKit" aria-label="Filter by Kit Loadout">
+            <option value="ALL">All Gear</option>
+          </select>
+          <button type="button" class="btn btn-sm" id="btnManageKits" title="Create or Edit Kit Loadouts">+ Manage Kits</button>
+        </div>
+
+        <!-- Action Buttons -->
+        <button type="button" class="btn btn-primary" id="btnAddGear">+ Add Gear</button>
+        <button type="button" class="btn" id="btnImportValuations">Import Valuations (JSON)</button>
+        <button type="button" class="btn" id="btnBackupRestore">Backup / Restore JSON</button>
+        <button type="button" class="btn" id="btnExportCsv">Export CSV</button>
+        <button type="button" class="btn btn-danger-outline" id="btnClearSample">Clear Sample Data</button>
+      </div>
+    </header>
+
+    <!-- Live KPI Ribbon -->
+    <section class="kpi-ribbon" aria-label="Portfolio Key Performance Indicators">
+      <div class="kpi-card">
+        <div class="kpi-label">
+          <span>Total Paid (Cost Basis)</span>
+          <span id="kpiItemCount" class="mono">0 items</span>
+        </div>
+        <div class="kpi-value tabular" id="kpiTotalPaid">£0.00</div>
+        <div class="kpi-meta" id="kpiPaidSubtitle">Active view original purchase total</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">
+          <span>Instant Trade-In Value</span>
+          <span>MPB / Wex / CeX Floor</span>
+        </div>
+        <div class="kpi-value tabular" id="kpiTradeIn">£0.00</div>
+        <div class="kpi-meta">
+          <span class="delta-pill delta-neg" id="kpiTradeInDelta">0.0%</span>
+          <span id="kpiTradeInDiff" class="tabular">£0.00 vs paid</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">
+          <span>Private Sale Estimate</span>
+          <span>eBay UK Sold 30th %</span>
+        </div>
+        <div class="kpi-value tabular" id="kpiPrivateSale">£0.00</div>
+        <div class="kpi-meta">
+          <span class="delta-pill delta-pos" id="kpiPrivateDelta">0.0%</span>
+          <span id="kpiPrivateDiff" class="tabular">£0.00 vs paid</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">
+          <span>Insurance Replacement</span>
+          <span>UK Like-for-Like</span>
+        </div>
+        <div class="kpi-value tabular" id="kpiReplacement">£0.00</div>
+        <div class="kpi-meta" id="kpiReplacementMeta">Insured schedule value</div>
+      </div>
+
+      <div class="kpi-card" id="kpiWeightCard">
+        <div class="kpi-label">
+          <span>Total Loadout Weight</span>
+          <span id="kpiWeightBadge">Metric</span>
+        </div>
+        <div class="kpi-value tabular" id="kpiTotalWeight">0 g</div>
+        <div class="kpi-meta" id="kpiWeightMeta">0.00 kg total</div>
+        <div class="weight-progress" id="kpiWeightProgressWrap" style="display: none;">
+          <div class="weight-progress-bar" id="kpiWeightProgressBar" style="width: 0%;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search, Category Pills & Sell-to-Fund Toggle -->
+    <section class="filter-toolbar">
+      <div class="search-box">
+        <span class="search-icon">&#128269;</span>
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search brand, model, serial number, notes..."
+          aria-label="Search gear catalogue"
+        />
+      </div>
+
+      <div class="category-pills" id="categoryPills" role="tablist" aria-label="Gear Categories">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <button type="button" class="simulator-toggle" id="btnToggleSimulator" aria-pressed="false">
+        <span>&#9878; Sell-to-Fund Simulator</span>
+      </button>
+    </section>
+
+    <!-- Gear Table -->
+    <main class="table-container">
+      <table class="gear-table">
+        <thead>
+          <tr>
+            <th id="thSelectCol" style="width: 38px; display: none;">
+              <input type="checkbox" id="chkSelectAll" title="Select all visible gear" />
+            </th>
+            <th>Item &amp; Mount</th>
+            <th>Specs (Serial / Weight / Ø)</th>
+            <th>Condition &amp; Box</th>
+            <th class="num">Paid (£)</th>
+            <th class="num" title="Click any cell to inline-edit Trade-In valuation">Trade-In (£) &#9998;</th>
+            <th class="num" title="Click any cell to inline-edit Private Sale valuation">Private Sale (£) &#9998;</th>
+            <th class="num" title="Click any cell to inline-edit Insurance Replacement valuation">Replacement (£) &#9998;</th>
+            <th style="text-align: right;">UK Market Lookups &amp; Actions</th>
+          </tr>
+        </thead>
+        <tbody id="gearTableBody">
+          <!-- Rendered dynamically -->
+        </tbody>
+      </table>
+    </main>
+  </div>
+
+  <!-- Sticky Bottom Sell-to-Fund Simulator Bar -->
+  <aside class="sell-simulator-bar" id="sellSimulatorBar" aria-label="Sell-to-Fund Upgrade Simulator">
+    <div class="sim-inner">
+      <div class="sim-metrics">
+        <div class="sim-stat">
+          <span class="sim-stat-label">Selected to Sell</span>
+          <span class="sim-stat-val tabular" id="simSelectedCount">0 items (0 g)</span>
+        </div>
+        <div class="sim-stat">
+          <span class="sim-stat-label">Combined Trade-In Proceeds</span>
+          <span class="sim-stat-val tabular" style="color: var(--accent-amber);" id="simTradeInTotal">£0.00</span>
+        </div>
+        <div class="sim-stat">
+          <span class="sim-stat-label">Combined Private Sale Proceeds</span>
+          <span class="sim-stat-val tabular" style="color: var(--accent-emerald);" id="simPrivateTotal">£0.00</span>
+        </div>
+        <div class="sim-stat">
+          <label class="sim-stat-label" for="simTargetPrice">Target Upgrade Price (£)</label>
+          <input
+            type="number"
+            id="simTargetPrice"
+            class="tabular"
+            min="0"
+            step="10"
+            value="1800"
+            style="width: 140px; font-weight: 700; margin-top: 3px;"
+          />
+        </div>
+        <div class="sim-stat">
+          <span class="sim-stat-label">Net Cash Required (Trade-In)</span>
+          <span class="sim-stat-val tabular" id="simNetTradeIn">£1,800.00</span>
+        </div>
+        <div class="sim-stat">
+          <span class="sim-stat-label">Net Cash Required (Private Sale)</span>
+          <span class="sim-stat-val tabular" id="simNetPrivate">£1,800.00</span>
+        </div>
+      </div>
+      <div>
+        <button type="button" class="btn btn-sm" id="btnClearSimSelection">Clear Selection</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Slide-Over Add/Edit Gear Drawer -->
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="slide-drawer" id="gearDrawer" aria-labelledby="drawerTitle">
+    <div class="drawer-header">
+      <h2 id="drawerTitle">Add Camera Gear</h2>
+      <button type="button" class="btn btn-sm" id="btnCloseDrawer" aria-label="Close drawer">&#10005;</button>
+    </div>
+
+    <form id="gearForm" class="drawer-body">
+      <input type="hidden" id="fieldId" />
+
+      <!-- Client-Side EXIF Auto-Fill Dropzone -->
+      <div class="exif-dropzone" id="exifDropzone">
+        <input type="file" id="exifFileInput" accept="image/jpeg,.jpg,.jpeg" style="display: none;" />
+        <div style="font-weight: 600; color: var(--accent-primary);">
+          &#128247; Client-Side EXIF Auto-Fill (Optional)
+        </div>
+        <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
+          Drop a JPEG photo here or click to extract Camera/Lens Make, Model &amp; Serial Number locally in your browser.
+        </div>
+        <div id="exifStatus" class="exif-status" style="display: none;"></div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="fieldCategory">Category *</label>
+          <select id="fieldCategory" required>
+            <option value="Body">Body</option>
+            <option value="Lens">Lens</option>
+            <option value="Filter">Filter</option>
+            <option value="Tripod">Tripod</option>
+            <option value="Bag">Bag</option>
+            <option value="Accessory">Accessory</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="fieldMount">System / Mount *</label>
+          <select id="fieldMount" required>
+            <option value="Fujifilm X">Fujifilm X</option>
+            <option value="Nikon Z">Nikon Z</option>
+            <option value="Sony E">Sony E</option>
+            <option value="Universal">Universal</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="fieldBrand">Brand *</label>
+          <input type="text" id="fieldBrand" placeholder="e.g. Fujifilm, Nikon, Sony" required />
+        </div>
+
+        <div class="form-field">
+          <label for="fieldModel">Model *</label>
+          <input type="text" id="fieldModel" placeholder="e.g. XF 23mm f/1.4 R LM WR" required />
+        </div>
+
+        <div class="form-field">
+          <label for="fieldSerial">Serial Number</label>
+          <input type="text" id="fieldSerial" class="mono" placeholder="e.g. 4B029184" />
+        </div>
+
+        <div class="form-field">
+          <label for="fieldCondition">Condition *</label>
+          <select id="fieldCondition" required>
+            <option value="Mint">Mint</option>
+            <option value="Excellent" selected>Excellent</option>
+            <option value="Good">Good</option>
+            <option value="Well Used">Well Used</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="fieldPurchaseDate">Purchase Date</label>
+          <input type="date" id="fieldPurchaseDate" />
+        </div>
+
+        <div class="form-field">
+          <label for="fieldPurchasePrice">Purchase Price (£) *</label>
+          <input type="number" id="fieldPurchasePrice" class="tabular" step="0.01" min="0" placeholder="0.00" required />
+        </div>
+      </div>
+
+      <div class="form-grid-3">
+        <div class="form-field">
+          <label for="fieldWeight">Weight (grams) *</label>
+          <input type="number" id="fieldWeight" class="tabular" step="1" min="0" placeholder="e.g. 375" required />
+        </div>
+
+        <div class="form-field">
+          <label for="fieldShutterCount">Shutter Count (Bodies)</label>
+          <input type="number" id="fieldShutterCount" class="tabular" step="1" min="0" placeholder="e.g. 8420" />
+        </div>
+
+        <div class="form-field">
+          <label for="fieldFilterThread">Filter Thread Ø (mm)</label>
+          <input type="number" id="fieldFilterThread" class="tabular" step="1" min="0" placeholder="e.g. 58, 77" />
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label class="kit-checkbox-item" style="font-weight: 600;">
+          <input type="checkbox" id="fieldHasBox" checked />
+          <span>Includes Original Box &amp; Packaging</span>
+        </label>
+      </div>
+
+      <div style="border-top: 1px solid var(--border-subtle); padding-top: 12px;">
+        <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--accent-primary); margin-bottom: 10px;">
+          3-Tier UK Market Valuations (£ GBP)
+        </div>
+        <div class="form-grid-3">
+          <div class="form-field">
+            <label for="fieldValTradeIn">Trade-In (£)</label>
+            <input type="number" id="fieldValTradeIn" class="tabular" step="0.01" min="0" placeholder="0.00" required />
+          </div>
+          <div class="form-field">
+            <label for="fieldValPrivate">Private Sale (£)</label>
+            <input type="number" id="fieldValPrivate" class="tabular" step="0.01" min="0" placeholder="0.00" required />
+          </div>
+          <div class="form-field">
+            <label for="fieldValReplacement">Replacement (£)</label>
+            <input type="number" id="fieldValReplacement" class="tabular" step="0.01" min="0" placeholder="0.00" required />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-field full">
+        <label>Assign to Kit Loadouts</label>
+        <div class="kit-checkbox-group" id="drawerKitCheckboxes">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <div class="form-field full">
+        <label for="fieldNotes">Notes / Included Accessories</label>
+        <textarea id="fieldNotes" rows="2" placeholder="e.g. Includes hood, B+W UV filter, SmallRig plate..."></textarea>
+      </div>
+    </form>
+
+    <div class="drawer-footer">
+      <button type="button" class="btn" id="btnCancelDrawer">Cancel</button>
+      <button type="submit" form="gearForm" class="btn btn-primary" id="btnSaveGear">Save Gear</button>
+    </div>
+  </aside>
+
+  <!-- Manage Kits Modal -->
+  <div class="modal-backdrop" id="kitsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Manage Kit Loadouts &amp; Bag Weight Limits</h3>
+        <button type="button" class="btn btn-sm" id="btnCloseKitsModal">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <div id="kitsListContainer" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        <form id="addKitForm" style="display: grid; grid-template-columns: 1fr 160px auto; gap: 10px; border-top: 1px solid var(--border-default); padding-top: 14px;">
+          <input type="text" id="newKitName" placeholder="New kit name (e.g. Peak Design 6L Sling)" required />
+          <input type="number" id="newKitMaxWeight" class="tabular" placeholder="Max weight (g)" min="100" step="50" value="3500" required />
+          <button type="submit" class="btn btn-primary">+ Add Kit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Valuations JSON Modal -->
+  <div class="modal-backdrop" id="importValModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Import UK Market Valuations (`valuations.json`)</h3>
+        <button type="button" class="btn btn-sm" id="btnCloseImportValModal">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-secondary);">
+          Select the <code>valuations.json</code> output generated by <code>scripts/fetch_camera_valuations.py</code> (or paste its JSON below). Items are matched by <code>id</code> or case-insensitive <code>brand + model</code>.
+        </p>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <input type="file" id="valJsonFileInput" accept=".json,application/json" />
+        </div>
+        <div id="valPreviewContainer" style="display: none;">
+          <div style="font-size: 12px; font-weight: 700; color: var(--accent-primary); margin-bottom: 8px;">
+            Proposed Price Updates Preview:
+          </div>
+          <div class="table-container" style="max-height: 280px; overflow-y: auto;">
+            <table class="gear-table" style="min-width: 100%;">
+              <thead>
+                <tr>
+                  <th>Match</th>
+                  <th>Item</th>
+                  <th class="num">Trade-In (£)</th>
+                  <th class="num">Private Sale (£)</th>
+                  <th class="num">Replacement (£)</th>
+                </tr>
+              </thead>
+              <tbody id="valPreviewTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" id="btnCancelImportVal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btnApplyImportVal" disabled>Apply Matched Valuations</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Backup / Restore JSON Modal -->
+  <div class="modal-backdrop" id="backupModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Full Catalogue JSON Backup &amp; Restore (`shutterVault_v1`)</h3>
+        <button type="button" class="btn btn-sm" id="btnCloseBackupModal">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;">
+          <div>
+            <strong>Export Full Backup:</strong>
+            <div style="font-size: 12px; color: var(--text-muted);">Download your complete <code>shutterVault_v1</code> state for offline safekeeping or passing to <code>fetch_camera_valuations.py --input</code>.</div>
+          </div>
+          <button type="button" class="btn btn-primary" id="btnDownloadBackupJson">Download Backup JSON</button>
+        </div>
+        <hr style="border: none; border-top: 1px solid var(--border-default);" />
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <strong>Restore from JSON File or Paste:</strong>
+          <input type="file" id="restoreFileInput" accept=".json,application/json" />
+          <textarea id="backupJsonTextarea" class="mono" rows="9" style="font-size: 12px;"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" id="btnResetDefaultSample">Reset to Default Sample Data</button>
+        <button type="button" class="btn btn-primary" id="btnRestoreFromJson">Restore JSON State</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-banner" id="toastBanner" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const STORAGE_KEY = "shutterVault_v1";
+      const CATEGORIES = ["All", "Body", "Lens", "Filter", "Tripod", "Bag", "Accessory"];
+
+      const gbpFormatter = new Intl.NumberFormat("en-GB", {
+        style: "currency",
+        currency: "GBP",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
+      const intFormatter = new Intl.NumberFormat("en-GB");
+
+      function formatGBP(amount) {
+        const num = Number(amount);
+        return gbpFormatter.format(Number.isFinite(num) ? num : 0);
+      }
+
+      function formatWeight(grams) {
+        const g = Math.round(Number(grams) || 0);
+        const kg = (g / 1000).toFixed(2);
+        return {
+          gramsStr: `${intFormatter.format(g)} g`,
+          kgStr: `${kg} kg`,
+          combined: g >= 1000 ? `${intFormatter.format(g)} g (${kg} kg)` : `${intFormatter.format(g)} g`
+        };
+      }
+
+      function todayISO() {
+        return new Date().toISOString().slice(0, 10);
+      }
+
+      function getDefaultSampleData() {
+        return {
+          meta: {
+            schemaVersion: "1.0.0",
+            currency: "GBP",
+            lastUpdated: new Date().toISOString()
+          },
+          gear: [
+            {
+              id: "gear_1",
+              category: "Body",
+              mount: "Fujifilm X",
+              brand: "Fujifilm",
+              model: "X-T5",
+              serialNumber: "3A019482",
+              purchaseDate: "2024-05-14",
+              purchasePrice: 1549.00,
+              condition: "Excellent",
+              hasBox: true,
+              shutterCount: 8420,
+              weightGrams: 557,
+              filterThreadMm: null,
+              valuations: {
+                tradeIn: 980.00,
+                privateSale: 1220.00,
+                replacement: 1499.00,
+                lastChecked: "2026-11-19"
+              },
+              kitIds: ["kit_travel", "kit_street"],
+              notes: "Includes SmallRig L-bracket and spare NP-W235 battery."
+            },
+            {
+              id: "gear_2",
+              category: "Lens",
+              mount: "Fujifilm X",
+              brand: "Fujifilm",
+              model: "XF 35mm f/1.4 R",
+              serialNumber: "14A08821",
+              purchaseDate: "2023-08-02",
+              purchasePrice: 379.00,
+              condition: "Good",
+              hasBox: true,
+              shutterCount: null,
+              weightGrams: 187,
+              filterThreadMm: 52,
+              valuations: {
+                tradeIn: 245.00,
+                privateSale: 330.00,
+                replacement: 419.00,
+                lastChecked: "2026-11-19"
+              },
+              kitIds: ["kit_travel", "kit_street"],
+              notes: "Includes original metal square hood and cap."
+            },
+            {
+              id: "gear_3",
+              category: "Lens",
+              mount: "Fujifilm X",
+              brand: "Fujifilm",
+              model: "XF 16-55mm f/2.8 R LM WR",
+              serialNumber: "21B04519",
+              purchaseDate: "2024-02-19",
+              purchasePrice: 699.00,
+              condition: "Excellent",
+              hasBox: true,
+              shutterCount: null,
+              weightGrams: 655,
+              filterThreadMm: 77,
+              valuations: {
+                tradeIn: 460.00,
+                privateSale: 610.00,
+                replacement: 749.00,
+                lastChecked: "2026-11-19"
+              },
+              kitIds: ["kit_travel"],
+              notes: "Red Badge standard zoom with pouch."
+            },
+            {
+              id: "gear_4",
+              category: "Body",
+              mount: "Nikon Z",
+              brand: "Nikon",
+              model: "Zf",
+              serialNumber: "6014982",
+              purchaseDate: "2025-01-11",
+              purchasePrice: 1799.00,
+              condition: "Mint",
+              hasBox: true,
+              shutterCount: 3150,
+              weightGrams: 710,
+              filterThreadMm: null,
+              valuations: {
+                tradeIn: 1290.00,
+                privateSale: 1560.00,
+                replacement: 1849.00,
+                lastChecked: "2026-11-19"
+              },
+              kitIds: ["kit_travel"],
+              notes: "Black brass edition with Nikon Zf-GR1 extension grip."
+            },
+            {
+              id: "gear_5",
+              category: "Lens",
+              mount: "Nikon Z",
+              brand: "Nikon",
+              model: "NIKKOR Z 24-120mm f/4 S",
+              serialNumber: "20049182",
+              purchaseDate: "2025-01-11",
+              purchasePrice: 899.00,
+              condition: "Mint",
+              hasBox: true,
+              shutterCount: null,
+              weightGrams: 630,
+              filterThreadMm: 77,
+              valuations: {
+                tradeIn: 620.00,
+                privateSale: 780.00,
+                replacement: 929.00,
+                lastChecked: "2026-11-19"
+              },
+              kitIds: ["kit_travel"],
+              notes: "HB-102 hood and CL-C2 cloth wrap included."
+            },
+            {
+              id: "gear_6",
+              category: "Body",
+              mount: "Sony E",
+              brand: "Sony",
+              model: "A7 IV",
+              serialNumber: "3784910",
+              purchaseDate: "2023-11-24",
+              purchasePrice: 1899.00,
+              condition: "Excellent",
+              hasBox: true,
+              shutterCount: 14200,
+              weightGrams: 658,
+              filterThreadMm: null,
+              valuations: {
+                tradeIn: 1250.00,
+                privateSale: 1520.00,
+                replacement: 1799.00,
+                lastChecked: "2026-11-19"
+              },
+              kitIds: [],
+              notes: "Tempered glass screen protector fitted from day one."
+            },
+            {
+              id: "gear_7",
+              category: "Lens",
+              mount: "Sony E",
+              brand: "Sony",
+              model: "FE 24-70mm f/2.8 GM II",
+              serialNumber: "1839204",
+              purchaseDate: "2024-03-10",
+              purchasePrice: 1949.00,
+              condition: "Mint",
+              hasBox: true,
+              shutterCount: null,
+              weightGrams: 695,
+              filterThreadMm: 82,
+              valuations: {
+                tradeIn: 1420.00,
+                privateSale: 1750.00,
+                replacement: 2049.00,
+                lastChecked: "2026-11-19"
+              },
+              kitIds: [],
+              notes: "Includes padded Sony GM case and strap."
+            },
+            {
+              id: "gear_8",
+              category: "Filter",
+              mount: "Universal",
+              brand: "Kase",
+              model: "Wolverine Magnetic CPL 77mm",
+              serialNumber: "KW-77-CPL",
+              purchaseDate: "2024-06-01",
+              purchasePrice: 115.00,
+              condition: "Excellent",
+              hasBox: true,
+              shutterCount: null,
+              weightGrams: 48,
+              filterThreadMm: 77,
+              valuations: {
+                tradeIn: 45.00,
+                privateSale: 75.00,
+                replacement: 115.00,
+                lastChecked: "2026-11-19"
+              },
+              kitIds: ["kit_travel"],
+              notes: "Shared across Fujifilm 16-55mm and NIKKOR 24-120mm via 77mm magnetic adapter."
+            }
+          ],
+          kits: [
+            {
+              id: "kit_travel",
+              name: "Under-Seat Cabin Kit (45x36x20cm)",
+              maxWeightGrams: 7000
+            },
+            {
+              id: "kit_street",
+              name: "Everyday Street & Documentary",
+              maxWeightGrams: 1800
+            }
+          ]
+        };
+      }
+
+      // Application State
+      let appData = loadState();
+      let activeMount = "ALL";
+      let activeKitId = "ALL";
+      let activeCategory = "All";
+      let searchQuery = "";
+      let sellSimulatorActive = false;
+      let selectedForSaleIds = new Set();
+      let pendingImportedValuations = [];
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+            const initial = getDefaultSampleData();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+            return initial;
+          }
+          const parsed = JSON.parse(raw);
+          if (!parsed || !Array.isArray(parsed.gear) || !Array.isArray(parsed.kits)) {
+            const fallback = getDefaultSampleData();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(fallback));
+            return fallback;
+          }
+          return parsed;
+        } catch (err) {
+          console.error("Failed to read localStorage, falling back to default sample data:", err);
+          return getDefaultSampleData();
+        }
+      }
+
+      function saveState() {
+        appData.meta = appData.meta || { schemaVersion: "1.0.0", currency: "GBP" };
+        appData.meta.lastUpdated = new Date().toISOString();
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+        } catch (err) {
+          console.error("Failed to save state to localStorage:", err);
+        }
+      }
+
+      function showToast(message) {
+        const el = document.getElementById("toastBanner");
+        el.textContent = message;
+        el.classList.add("show");
+        clearTimeout(showToast._timer);
+        showToast._timer = setTimeout(() => el.classList.remove("show"), 3200);
+      }
+
+      function escapeHtml(str) {
+        return String(str ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function getFilteredGear(ignoreCategory = false) {
+        const q = searchQuery.trim().toLowerCase();
+        return appData.gear.filter((item) => {
+          if (activeMount !== "ALL" && item.mount !== activeMount) return false;
+          if (activeKitId !== "ALL" && !(Array.isArray(item.kitIds) && item.kitIds.includes(activeKitId))) {
+            return false;
+          }
+          if (!ignoreCategory && activeCategory !== "All" && item.category !== activeCategory) {
+            return false;
+          }
+          if (q) {
+            const hay = `${item.brand} ${item.model} ${item.serialNumber || ""} ${item.notes || ""} ${item.mount || ""}`.toLowerCase();
+            if (!hay.includes(q)) return false;
+          }
+          return true;
+        });
+      }
+
+      function renderKitDropdown() {
+        const sel = document.getElementById("filterKit");
+        const prev = activeKitId;
+        sel.innerHTML = `<option value="ALL">All Gear (${appData.gear.length})</option>`;
+        for (const kit of appData.kits) {
+          const count = appData.gear.filter((g) => Array.isArray(g.kitIds) && g.kitIds.includes(kit.id)).length;
+          const opt = document.createElement("option");
+          opt.value = kit.id;
+          opt.textContent = `${kit.name} [${count} items / max ${formatWeight(kit.maxWeightGrams).combined}]`;
+          sel.appendChild(opt);
+        }
+        if (prev !== "ALL" && appData.kits.some((k) => k.id === prev)) {
+          sel.value = prev;
+        } else {
+          activeKitId = "ALL";
+          sel.value = "ALL";
+        }
+      }
+
+      function renderKpiRibbon(filteredItems) {
+        let totalPaid = 0;
+        let totalTradeIn = 0;
+        let totalPrivate = 0;
+        let totalReplacement = 0;
+        let totalWeightGrams = 0;
+
+        for (const item of filteredItems) {
+          totalPaid += Number(item.purchasePrice) || 0;
+          const vals = item.valuations || {};
+          totalTradeIn += Number(vals.tradeIn) || 0;
+          totalPrivate += Number(vals.privateSale) || 0;
+          totalReplacement += Number(vals.replacement) || 0;
+          totalWeightGrams += Number(item.weightGrams) || 0;
+        }
+
+        document.getElementById("kpiItemCount").textContent = `${filteredItems.length} ${filteredItems.length === 1 ? "item" : "items"}`;
+        document.getElementById("kpiTotalPaid").textContent = formatGBP(totalPaid);
+        document.getElementById("kpiTradeIn").textContent = formatGBP(totalTradeIn);
+        document.getElementById("kpiPrivateSale").textContent = formatGBP(totalPrivate);
+        document.getElementById("kpiReplacement").textContent = formatGBP(totalReplacement);
+
+        // Trade-in delta vs paid
+        const tradeDiff = totalTradeIn - totalPaid;
+        const tradePct = totalPaid > 0 ? (tradeDiff / totalPaid) * 100 : 0;
+        const tradeDeltaEl = document.getElementById("kpiTradeInDelta");
+        tradeDeltaEl.textContent = `${tradePct >= 0 ? "+" : ""}${tradePct.toFixed(1)}%`;
+        tradeDeltaEl.className = `delta-pill ${tradeDiff >= 0 ? "delta-pos" : "delta-neg"}`;
+        document.getElementById("kpiTradeInDiff").textContent = `${tradeDiff >= 0 ? "+" : ""}${formatGBP(tradeDiff)} vs paid`;
+
+        // Private sale delta vs paid
+        const privDiff = totalPrivate - totalPaid;
+        const privPct = totalPaid > 0 ? (privDiff / totalPaid) * 100 : 0;
+        const privDeltaEl = document.getElementById("kpiPrivateDelta");
+        privDeltaEl.textContent = `${privPct >= 0 ? "+" : ""}${privPct.toFixed(1)}%`;
+        privDeltaEl.className = `delta-pill ${privDiff >= 0 ? "delta-pos" : "delta-neg"}`;
+        document.getElementById("kpiPrivateDiff").textContent = `${privDiff >= 0 ? "+" : ""}${formatGBP(privDiff)} vs paid`;
+
+        // Weight card & active kit limit warning
+        const w = formatWeight(totalWeightGrams);
+        document.getElementById("kpiTotalWeight").textContent = w.gramsStr;
+        const weightCard = document.getElementById("kpiWeightCard");
+        const weightBadge = document.getElementById("kpiWeightBadge");
+        const weightMeta = document.getElementById("kpiWeightMeta");
+        const progWrap = document.getElementById("kpiWeightProgressWrap");
+        const progBar = document.getElementById("kpiWeightProgressBar");
+
+        const activeKit = activeKitId !== "ALL" ? appData.kits.find((k) => k.id === activeKitId) : null;
+        if (activeKit && activeKit.maxWeightGrams > 0) {
+          const maxG = Number(activeKit.maxWeightGrams);
+          const ratio = Math.min(100, (totalWeightGrams / maxG) * 100);
+          progWrap.style.display = "block";
+          progBar.style.width = `${ratio.toFixed(1)}%`;
+
+          if (totalWeightGrams > maxG) {
+            const overBy = totalWeightGrams - maxG;
+            weightCard.classList.add("kpi-overweight");
+            weightBadge.innerHTML = `<span class="delta-pill delta-alert">OVER LIMIT (+${intFormatter.format(overBy)} g)</span>`;
+            progBar.style.backgroundColor = "var(--accent-rose)";
+            weightMeta.textContent = `${w.kgStr} / ${formatWeight(maxG).combined} limit`;
+          } else {
+            const remaining = maxG - totalWeightGrams;
+            weightCard.classList.remove("kpi-overweight");
+            weightBadge.innerHTML = `<span class="delta-pill delta-pos">WITHIN LIMIT</span>`;
+            progBar.style.backgroundColor = ratio > 85 ? "var(--accent-amber)" : "var(--accent-emerald)";
+            weightMeta.textContent = `${w.kgStr} (${intFormatter.format(remaining)} g spare of ${intFormatter.format(maxG)} g)`;
+          }
+        } else {
+          weightCard.classList.remove("kpi-overweight");
+          weightBadge.textContent = "Metric";
+          weightMeta.textContent = `${w.kgStr} total across active view`;
+          progWrap.style.display = "none";
+        }
+      }
+
+      function renderCategoryPills() {
+        const baseItems = getFilteredGear(true);
+        const counts = { All: baseItems.length };
+        for (const cat of CATEGORIES.slice(1)) counts[cat] = 0;
+        for (const item of baseItems) {
+          counts[item.category] = (counts[item.category] || 0) + 1;
+        }
+
+        const container = document.getElementById("categoryPills");
+        container.innerHTML = "";
+        for (const cat of CATEGORIES) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = `cat-pill ${activeCategory === cat ? "active" : ""}`;
+          btn.innerHTML = `<span>${escapeHtml(cat)}</span><span class="cat-count">(${counts[cat] || 0})</span>`;
+          btn.addEventListener("click", () => {
+            activeCategory = cat;
+            renderAll();
+          });
+          container.appendChild(btn);
+        }
+      }
+
+      function buildMarketSearchQuery(item) {
+        const brand = (item.brand || "").trim();
+        const model = (item.model || "").trim();
+        const full = brand && !model.toLowerCase().includes(brand.toLowerCase())
+          ? `${brand} ${model}`
+          : model;
+        return encodeURIComponent(full.trim());
+      }
+
+      function renderGearTable(filteredItems) {
+        const tbody = document.getElementById("gearTableBody");
+        const thSelect = document.getElementById("thSelectCol");
+        thSelect.style.display = sellSimulatorActive ? "table-cell" : "none";
+
+        if (filteredItems.length === 0) {
+          const colSpan = sellSimulatorActive ? 9 : 8;
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="${colSpan}" class="empty-state">
+                <div style="font-size: 16px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">
+                  No camera gear matches the current filter
+                </div>
+                <div style="font-size: 13px;">
+                  Click <strong>+ Add Gear</strong> to catalogue a body, lens, or accessory, or reset your filters above.
+                </div>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        const kitMap = new Map(appData.kits.map((k) => [k.id, k.name]));
+        tbody.innerHTML = "";
+
+        for (const item of filteredItems) {
+          const tr = document.createElement("tr");
+          const isSelected = selectedForSaleIds.has(item.id);
+          if (sellSimulatorActive && isSelected) {
+            tr.classList.add("selected-row");
+          }
+
+          const vals = item.valuations || {};
+          const paid = Number(item.purchasePrice) || 0;
+          const tradeIn = Number(vals.tradeIn) || 0;
+          const privateSale = Number(vals.privateSale) || 0;
+          const replacement = Number(vals.replacement) || 0;
+          const netPrivate = privateSale - paid;
+
+          const encodedModel = buildMarketSearchQuery(item);
+          const mpbUrl = `https://www.mpb.com/en-uk/search?q=${encodedModel}`;
+          const wexUrl = `https://www.wexphotovideo.com/search/?q=${encodedModel}&used=1`;
+          const ebayUrl = `https://www.ebay.co.uk/sch/i.html?_nkw=${encodedModel}&LH_Sold=1&LH_Complete=1`;
+          const cpbUrl = `https://www.camerapricebuster.co.uk/search?q=${encodedModel}`;
+
+          const kitPills = (item.kitIds || [])
+            .map((kid) => kitMap.get(kid))
+            .filter(Boolean)
+            .map((kname) => `<span class="badge badge-kit">${escapeHtml(kname)}</span>`)
+            .join(" ");
+
+          const specExtra = item.category === "Body" && item.shutterCount != null
+            ? `<div><span class="label">Shutter:</span> ${intFormatter.format(item.shutterCount)}</div>`
+            : item.filterThreadMm
+              ? `<div><span class="label">Filter Ø:</span> ${escapeHtml(item.filterThreadMm)}mm</div>`
+              : "";
+
+          tr.innerHTML = `
+            <td style="display: ${sellSimulatorActive ? "table-cell" : "none"};">
+              <input type="checkbox" class="row-sale-chk" data-id="${escapeHtml(item.id)}" ${isSelected ? "checked" : ""} aria-label="Select ${escapeHtml(item.brand)} ${escapeHtml(item.model)} for Sell-to-Fund simulator" />
+            </td>
+            <td>
+              <div class="item-primary">
+                <span>${escapeHtml(item.brand)} ${escapeHtml(item.model)}</span>
+                <span class="badge badge-cat">${escapeHtml(item.category)}</span>
+                <span class="badge badge-mount">${escapeHtml(item.mount)}</span>
+              </div>
+              ${kitPills ? `<div style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px;">${kitPills}</div>` : ""}
+              ${item.notes ? `<div class="item-notes">${escapeHtml(item.notes)}</div>` : ""}
+            </td>
+            <td>
+              <div class="specs-list">
+                <div><span class="label">S/N:</span> <span class="mono">${escapeHtml(item.serialNumber || "—")}</span></div>
+                <div><span class="label">Weight:</span> ${formatWeight(item.weightGrams).combined}</div>
+                ${specExtra}
+              </div>
+            </td>
+            <td>
+              <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+                <span class="badge badge-cat">${escapeHtml(item.condition || "Excellent")}</span>
+                <span class="badge ${item.hasBox ? "badge-boxed" : "badge-unboxed"}">${item.hasBox ? "Boxed" : "Unboxed"}</span>
+              </div>
+            </td>
+            <td class="num">
+              <div style="font-weight: 700;">${formatGBP(paid)}</div>
+              <div style="font-size: 11px; color: var(--text-muted);">${escapeHtml(item.purchaseDate || "—")}</div>
+            </td>
+            <td class="num">
+              <div class="val-cell" data-id="${escapeHtml(item.id)}" data-tier="tradeIn" title="Click to edit Trade-In valuation">
+                <span class="val-main" style="color: var(--accent-amber);">${formatGBP(tradeIn)}</span>
+                <span class="val-sub">${paid > 0 ? `${Math.round((tradeIn / paid) * 100)}% of paid` : "—"}</span>
+              </div>
+            </td>
+            <td class="num">
+              <div class="val-cell" data-id="${escapeHtml(item.id)}" data-tier="privateSale" title="Click to edit Private Sale valuation">
+                <span class="val-main" style="color: var(--accent-emerald);">${formatGBP(privateSale)}</span>
+                <span class="val-sub" style="color: ${netPrivate >= 0 ? "var(--accent-emerald)" : "var(--text-muted)"};">
+                  ${netPrivate >= 0 ? "+" : ""}${formatGBP(netPrivate)}
+                </span>
+              </div>
+            </td>
+            <td class="num">
+              <div class="val-cell" data-id="${escapeHtml(item.id)}" data-tier="replacement" title="Click to edit Insurance Replacement valuation">
+                <span class="val-main" style="color: var(--accent-primary);">${formatGBP(replacement)}</span>
+                <span class="val-sub">Checked ${escapeHtml(vals.lastChecked || "—")}</span>
+              </div>
+            </td>
+            <td style="text-align: right;">
+              <div class="lookup-links" style="justify-content: flex-end;">
+                <a class="lookup-pill" href="${mpbUrl}" target="_blank" rel="noopener noreferrer" title="Search MPB UK">MPB</a>
+                <a class="lookup-pill" href="${wexUrl}" target="_blank" rel="noopener noreferrer" title="Search Wex Used UK">Wex</a>
+                <a class="lookup-pill" href="${ebayUrl}" target="_blank" rel="noopener noreferrer" title="Search eBay UK Sold Listings">eBay Sold</a>
+                <a class="lookup-pill" href="${cpbUrl}" target="_blank" rel="noopener noreferrer" title="Search CameraPriceBuster UK">CPB</a>
+              </div>
+              <div class="row-actions">
+                <button type="button" class="btn btn-sm btn-edit-gear" data-id="${escapeHtml(item.id)}">Edit</button>
+                <button type="button" class="btn btn-sm btn-danger-outline btn-delete-gear" data-id="${escapeHtml(item.id)}">Delete</button>
+              </div>
+            </td>
+          `;
+
+          tbody.appendChild(tr);
+        }
+
+        // Bind inline valuation cell editors
+        tbody.querySelectorAll(".val-cell").forEach((cell) => {
+          cell.addEventListener("click", () => startInlineValuationEdit(cell));
+        });
+
+        // Bind edit / delete buttons
+        tbody.querySelectorAll(".btn-edit-gear").forEach((btn) => {
+          btn.addEventListener("click", () => openGearDrawer(btn.dataset.id));
+        });
+
+        tbody.querySelectorAll(".btn-delete-gear").forEach((btn) => {
+          btn.addEventListener("click", () => deleteGearItem(btn.dataset.id));
+        });
+
+        // Bind Sell-to-Fund row checkboxes
+        tbody.querySelectorAll(".row-sale-chk").forEach((chk) => {
+          chk.addEventListener("change", () => {
+            const id = chk.dataset.id;
+            if (chk.checked) selectedForSaleIds.add(id);
+            else selectedForSaleIds.delete(id);
+            renderAll();
+          });
+        });
+      }
+
+      function startInlineValuationEdit(cell) {
+        if (cell.querySelector("input")) return;
+        const id = cell.dataset.id;
+        const tier = cell.dataset.tier;
+        const item = appData.gear.find((g) => g.id === id);
+        if (!item) return;
+
+        const currentVal = Number(item.valuations?.[tier] || 0).toFixed(2);
+        cell.innerHTML = `<input type="number" step="0.01" min="0" class="inline-val-input" value="${currentVal}" aria-label="Edit ${tier} valuation" />`;
+        const input = cell.querySelector("input");
+        input.focus();
+        input.select();
+
+        let committed = false;
+        const commit = (save) => {
+          if (committed) return;
+          committed = true;
+          if (save) {
+            const nextVal = parseFloat(input.value);
+            if (Number.isFinite(nextVal) && nextVal >= 0) {
+              item.valuations = item.valuations || {};
+              item.valuations[tier] = Math.round(nextVal * 100) / 100;
+              item.valuations.lastChecked = todayISO();
+              saveState();
+              showToast(`Updated ${item.brand} ${item.model} (${tier}) to ${formatGBP(item.valuations[tier])}`);
+            }
+          }
+          renderAll();
+        };
+
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            commit(true);
+          } else if (e.key === "Escape") {
+            e.preventDefault();
+            commit(false);
+          }
+        });
+        input.addEventListener("blur", () => commit(true));
+      }
+
+      function renderSellSimulator() {
+        const bar = document.getElementById("sellSimulatorBar");
+        const toggleBtn = document.getElementById("btnToggleSimulator");
+        toggleBtn.classList.toggle("active", sellSimulatorActive);
+        toggleBtn.setAttribute("aria-pressed", String(sellSimulatorActive));
+        bar.classList.toggle("visible", sellSimulatorActive);
+
+        if (!sellSimulatorActive) return;
+
+        let count = 0;
+        let weightRelief = 0;
+        let tradeInSum = 0;
+        let privateSum = 0;
+
+        for (const item of appData.gear) {
+          if (selectedForSaleIds.has(item.id)) {
+            count++;
+            weightRelief += Number(item.weightGrams) || 0;
+            tradeInSum += Number(item.valuations?.tradeIn) || 0;
+            privateSum += Number(item.valuations?.privateSale) || 0;
+          }
+        }
+
+        const targetInput = document.getElementById("simTargetPrice");
+        const targetPrice = Math.max(0, Number(targetInput.value) || 0);
+        const netTrade = targetPrice - tradeInSum;
+        const netPrivate = targetPrice - privateSum;
+
+        document.getElementById("simSelectedCount").textContent = `${count} ${count === 1 ? "item" : "items"} (-${intFormatter.format(weightRelief)} g)`;
+        document.getElementById("simTradeInTotal").textContent = formatGBP(tradeInSum);
+        document.getElementById("simPrivateTotal").textContent = formatGBP(privateSum);
+
+        const netTradeEl = document.getElementById("simNetTradeIn");
+        if (netTrade > 0) {
+          netTradeEl.textContent = `${formatGBP(netTrade)} needed`;
+          netTradeEl.style.color = "var(--text-primary)";
+        } else {
+          netTradeEl.textContent = `+${formatGBP(Math.abs(netTrade))} surplus`;
+          netTradeEl.style.color = "var(--accent-emerald)";
+        }
+
+        const netPrivEl = document.getElementById("simNetPrivate");
+        if (netPrivate > 0) {
+          netPrivEl.textContent = `${formatGBP(netPrivate)} needed`;
+          netPrivEl.style.color = "var(--text-primary)";
+        } else {
+          netPrivEl.textContent = `+${formatGBP(Math.abs(netPrivate))} surplus`;
+          netPrivEl.style.color = "var(--accent-emerald)";
+        }
+      }
+
+      function renderAll() {
+        renderKitDropdown();
+        renderCategoryPills();
+        const filtered = getFilteredGear(false);
+        renderKpiRibbon(filtered);
+        renderGearTable(filtered);
+        renderSellSimulator();
+      }
+
+      // Slide-Over Add/Edit Drawer
+      function openGearDrawer(editId = null) {
+        const drawer = document.getElementById("gearDrawer");
+        const backdrop = document.getElementById("drawerBackdrop");
+        const form = document.getElementById("gearForm");
+        const exifStatus = document.getElementById("exifStatus");
+        exifStatus.style.display = "none";
+        exifStatus.textContent = "";
+        form.reset();
+
+        // Populate Kit Checkboxes
+        const kitBox = document.getElementById("drawerKitCheckboxes");
+        kitBox.innerHTML = "";
+        const editItem = editId ? appData.gear.find((g) => g.id === editId) : null;
+
+        for (const kit of appData.kits) {
+          const checked = editItem
+            ? Array.isArray(editItem.kitIds) && editItem.kitIds.includes(kit.id)
+            : activeKitId !== "ALL" && activeKitId === kit.id;
+          const lbl = document.createElement("label");
+          lbl.className = "kit-checkbox-item";
+          lbl.innerHTML = `
+            <input type="checkbox" name="kitIds" value="${escapeHtml(kit.id)}" ${checked ? "checked" : ""} />
+            <span>${escapeHtml(kit.name)} (max ${formatWeight(kit.maxWeightGrams).combined})</span>
+          `;
+          kitBox.appendChild(lbl);
+        }
+
+        if (editItem) {
+          document.getElementById("drawerTitle").textContent = `Edit ${editItem.brand} ${editItem.model}`;
+          document.getElementById("fieldId").value = editItem.id;
+          document.getElementById("fieldCategory").value = editItem.category || "Body";
+          document.getElementById("fieldMount").value = editItem.mount || "Fujifilm X";
+          document.getElementById("fieldBrand").value = editItem.brand || "";
+          document.getElementById("fieldModel").value = editItem.model || "";
+          document.getElementById("fieldSerial").value = editItem.serialNumber || "";
+          document.getElementById("fieldCondition").value = editItem.condition || "Excellent";
+          document.getElementById("fieldPurchaseDate").value = editItem.purchaseDate || todayISO();
+          document.getElementById("fieldPurchasePrice").value = editItem.purchasePrice ?? 0;
+          document.getElementById("fieldWeight").value = editItem.weightGrams ?? 0;
+          document.getElementById("fieldShutterCount").value = editItem.shutterCount ?? "";
+          document.getElementById("fieldFilterThread").value = editItem.filterThreadMm ?? "";
+          document.getElementById("fieldHasBox").checked = Boolean(editItem.hasBox);
+          document.getElementById("fieldValTradeIn").value = editItem.valuations?.tradeIn ?? 0;
+          document.getElementById("fieldValPrivate").value = editItem.valuations?.privateSale ?? 0;
+          document.getElementById("fieldValReplacement").value = editItem.valuations?.replacement ?? 0;
+          document.getElementById("fieldNotes").value = editItem.notes || "";
+        } else {
+          document.getElementById("drawerTitle").textContent = "Add Camera Gear";
+          document.getElementById("fieldId").value = "";
+          document.getElementById("fieldPurchaseDate").value = todayISO();
+          if (activeMount !== "ALL") {
+            document.getElementById("fieldMount").value = activeMount;
+          }
+          if (activeCategory !== "All") {
+            document.getElementById("fieldCategory").value = activeCategory;
+          }
+        }
+
+        backdrop.classList.add("open");
+        drawer.classList.add("open");
+        setTimeout(() => document.getElementById("fieldBrand").focus(), 60);
+      }
+
+      function closeGearDrawer() {
+        document.getElementById("gearDrawer").classList.remove("open");
+        document.getElementById("drawerBackdrop").classList.remove("open");
+      }
+
+      function deleteGearItem(id) {
+        const item = appData.gear.find((g) => g.id === id);
+        if (!item) return;
+        if (!confirm(`Delete "${item.brand} ${item.model}" from ShutterVault?`)) return;
+        appData.gear = appData.gear.filter((g) => g.id !== id);
+        selectedForSaleIds.delete(id);
+        saveState();
+        renderAll();
+        showToast(`Removed ${item.brand} ${item.model}`);
+      }
+
+      // Lightweight Client-Side Binary JPEG EXIF Parser (Make, Model, BodySerialNumber, LensModel, LensSerialNumber)
+      function parseExifFromArrayBuffer(buffer) {
+        const view = new DataView(buffer);
+        if (view.byteLength < 12 || view.getUint16(0, false) !== 0xFFD8) {
+          throw new Error("Not a valid JPEG file.");
+        }
+        let offset = 2;
+        while (offset + 4 < view.byteLength) {
+          const marker = view.getUint16(offset, false);
+          offset += 2;
+          if (marker === 0xFFD9 || marker === 0xFFDA) break;
+          const size = view.getUint16(offset, false);
+          if (marker === 0xFFE1 && size >= 14) {
+            // Check "Exif\0\0"
+            if (
+              view.getUint32(offset + 2, false) === 0x45786966 &&
+              view.getUint16(offset + 6, false) === 0x0000
+            ) {
+              return readTiffHeader(view, offset + 8);
+            }
+          }
+          offset += size;
+        }
+        return {};
+      }
+
+      function readTiffHeader(view, tiffStart) {
+        const endianMarker = view.getUint16(tiffStart, false);
+        const littleEndian = endianMarker === 0x4949;
+        const firstIfdOffset = view.getUint32(tiffStart + 4, littleEndian);
+        const tags = {};
+
+        function readAscii(strOffset, count) {
+          let out = "";
+          for (let i = 0; i < count - 1 && strOffset + i < view.byteLength; i++) {
+            const code = view.getUint8(strOffset + i);
+            if (code === 0) break;
+            out += String.fromCharCode(code);
+          }
+          return out.trim();
+        }
+
+        function parseIfd(ifdOffset) {
+          const dirStart = tiffStart + ifdOffset;
+          if (dirStart + 2 > view.byteLength) return;
+          const entries = view.getUint16(dirStart, littleEndian);
+          for (let i = 0; i < entries; i++) {
+            const entryOffset = dirStart + 2 + i * 12;
+            if (entryOffset + 12 > view.byteLength) break;
+            const tag = view.getUint16(entryOffset, littleEndian);
+            const type = view.getUint16(entryOffset + 2, littleEndian);
+            const count = view.getUint32(entryOffset + 4, littleEndian);
+            const valueOffset = entryOffset + 8;
+
+            if (tag === 0x8769) {
+              // Exif SubIFD pointer
+              const subOffset = view.getUint32(valueOffset, littleEndian);
+              parseIfd(subOffset);
+            } else if (type === 2 && count > 0) {
+              // ASCII string
+              const strPos = count <= 4 ? valueOffset : tiffStart + view.getUint32(valueOffset, littleEndian);
+              const val = readAscii(strPos, count);
+              if (tag === 0x010F) tags.make = val;
+              if (tag === 0x0110) tags.model = val;
+              if (tag === 0xA431) tags.bodySerial = val;
+              if (tag === 0xA434) tags.lensModel = val;
+              if (tag === 0xA435) tags.lensSerial = val;
+            }
+          }
+        }
+
+        parseIfd(firstIfdOffset);
+        return tags;
+      }
+
+      // CSV Schedule Export
+      function exportCsvSchedule() {
+        const items = getFilteredGear(false);
+        const kitMap = new Map(appData.kits.map((k) => [k.id, k.name]));
+        const headers = [
+          "ID",
+          "Category",
+          "Mount",
+          "Brand",
+          "Model",
+          "Serial_Number",
+          "Purchase_Date",
+          "Purchase_Price_GBP",
+          "Condition",
+          "Boxed",
+          "Shutter_Count",
+          "Weight_Grams",
+          "Filter_Thread_Mm",
+          "Trade_In_GBP",
+          "Private_Sale_GBP",
+          "Insurance_Replacement_GBP",
+          "Net_Gain_Loss_Private_GBP",
+          "Last_Checked",
+          "Assigned_Kits",
+          "Notes"
+        ];
+
+        const csvEscape = (val) => {
+          const str = String(val ?? "");
+          if (/[",\r\n]/.test(str)) {
+            return `"${str.replace(/"/g, '""')}"`;
+          }
+          return str;
+        };
+
+        const rows = [headers.join(",")];
+        for (const item of items) {
+          const paid = Number(item.purchasePrice) || 0;
+          const tradeIn = Number(item.valuations?.tradeIn) || 0;
+          const privateSale = Number(item.valuations?.privateSale) || 0;
+          const replacement = Number(item.valuations?.replacement) || 0;
+          const netGainLoss = (privateSale - paid).toFixed(2);
+          const kitNames = (item.kitIds || [])
+            .map((id) => kitMap.get(id))
+            .filter(Boolean)
+            .join("; ");
+
+          rows.push(
+            [
+              item.id,
+              item.category,
+              item.mount,
+              item.brand,
+              item.model,
+              item.serialNumber || "",
+              item.purchaseDate || "",
+              paid.toFixed(2),
+              item.condition || "",
+              item.hasBox ? "Yes" : "No",
+              item.shutterCount ?? "",
+              item.weightGrams ?? 0,
+              item.filterThreadMm ?? "",
+              tradeIn.toFixed(2),
+              privateSale.toFixed(2),
+              replacement.toFixed(2),
+              netGainLoss,
+              item.valuations?.lastChecked || "",
+              kitNames,
+              item.notes || ""
+            ]
+              .map(csvEscape)
+              .join(",")
+          );
+        }
+
+        const csvContent = "\uFEFF" + rows.join("\r\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        const dateStr = todayISO();
+        a.href = url;
+        a.download = `camera_gear_schedule_${dateStr}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast(`Exported ${items.length} gear rows to camera_gear_schedule_${dateStr}.csv`);
+      }
+
+      // Manage Kits Modal
+      function renderManageKitsList() {
+        const container = document.getElementById("kitsListContainer");
+        container.innerHTML = "";
+        for (const kit of appData.kits) {
+          const assignedGear = appData.gear.filter((g) => Array.isArray(g.kitIds) && g.kitIds.includes(kit.id));
+          const currentWeight = assignedGear.reduce((acc, g) => acc + (Number(g.weightGrams) || 0), 0);
+
+          const row = document.createElement("div");
+          row.style.cssText = "display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--bg-input); border: 1px solid var(--border-default); padding: 10px 12px; border-radius: var(--radius-sm);";
+          row.innerHTML = `
+            <div>
+              <div style="font-weight: 700;">${escapeHtml(kit.name)}</div>
+              <div class="tabular" style="font-size: 12px; color: var(--text-muted);">
+                ${assignedGear.length} items assigned &bull; Current: ${formatWeight(currentWeight).combined} / Limit: ${formatWeight(kit.maxWeightGrams).combined}
+              </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-danger-outline" data-kit-id="${escapeHtml(kit.id)}">Delete Kit</button>
+          `;
+          row.querySelector("button").addEventListener("click", () => {
+            appData.kits = appData.kits.filter((k) => k.id !== kit.id);
+            for (const g of appData.gear) {
+              if (Array.isArray(g.kitIds)) {
+                g.kitIds = g.kitIds.filter((id) => id !== kit.id);
+              }
+            }
+            if (activeKitId === kit.id) activeKitId = "ALL";
+            saveState();
+            renderManageKitsList();
+            renderAll();
+          });
+          container.appendChild(row);
+        }
+      }
+
+      // Event Listeners Setup
+      function bindEvents() {
+        document.getElementById("filterMount").addEventListener("change", (e) => {
+          activeMount = e.target.value;
+          renderAll();
+        });
+
+        document.getElementById("filterKit").addEventListener("change", (e) => {
+          activeKitId = e.target.value;
+          renderAll();
+        });
+
+        document.getElementById("searchInput").addEventListener("input", (e) => {
+          searchQuery = e.target.value;
+          renderAll();
+        });
+
+        document.getElementById("btnToggleSimulator").addEventListener("click", () => {
+          sellSimulatorActive = !sellSimulatorActive;
+          renderAll();
+        });
+
+        document.getElementById("simTargetPrice").addEventListener("input", () => {
+          renderSellSimulator();
+        });
+
+        document.getElementById("btnClearSimSelection").addEventListener("click", () => {
+          selectedForSaleIds.clear();
+          document.getElementById("chkSelectAll").checked = false;
+          renderAll();
+        });
+
+        document.getElementById("chkSelectAll").addEventListener("change", (e) => {
+          const visible = getFilteredGear(false);
+          if (e.target.checked) {
+            for (const item of visible) selectedForSaleIds.add(item.id);
+          } else {
+            for (const item of visible) selectedForSaleIds.delete(item.id);
+          }
+          renderAll();
+        });
+
+        // Add/Edit Gear Drawer
+        document.getElementById("btnAddGear").addEventListener("click", () => openGearDrawer(null));
+        document.getElementById("btnCloseDrawer").addEventListener("click", closeGearDrawer);
+        document.getElementById("btnCancelDrawer").addEventListener("click", closeGearDrawer);
+        document.getElementById("drawerBackdrop").addEventListener("click", closeGearDrawer);
+
+        document.getElementById("gearForm").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const editId = document.getElementById("fieldId").value.trim();
+          const checkedKits = Array.from(
+            document.querySelectorAll('#drawerKitCheckboxes input[name="kitIds"]:checked')
+          ).map((el) => el.value);
+
+          const shutterRaw = document.getElementById("fieldShutterCount").value.trim();
+          const filterRaw = document.getElementById("fieldFilterThread").value.trim();
+
+          const payload = {
+            id: editId || `gear_${Date.now()}`,
+            category: document.getElementById("fieldCategory").value,
+            mount: document.getElementById("fieldMount").value,
+            brand: document.getElementById("fieldBrand").value.trim(),
+            model: document.getElementById("fieldModel").value.trim(),
+            serialNumber: document.getElementById("fieldSerial").value.trim(),
+            purchaseDate: document.getElementById("fieldPurchaseDate").value || todayISO(),
+            purchasePrice: Math.round((parseFloat(document.getElementById("fieldPurchasePrice").value) || 0) * 100) / 100,
+            condition: document.getElementById("fieldCondition").value,
+            hasBox: document.getElementById("fieldHasBox").checked,
+            shutterCount: shutterRaw !== "" ? parseInt(shutterRaw, 10) : null,
+            weightGrams: parseInt(document.getElementById("fieldWeight").value, 10) || 0,
+            filterThreadMm: filterRaw !== "" ? parseInt(filterRaw, 10) : null,
+            valuations: {
+              tradeIn: Math.round((parseFloat(document.getElementById("fieldValTradeIn").value) || 0) * 100) / 100,
+              privateSale: Math.round((parseFloat(document.getElementById("fieldValPrivate").value) || 0) * 100) / 100,
+              replacement: Math.round((parseFloat(document.getElementById("fieldValReplacement").value) || 0) * 100) / 100,
+              lastChecked: todayISO()
+            },
+            kitIds: checkedKits,
+            notes: document.getElementById("fieldNotes").value.trim()
+          };
+
+          if (editId) {
+            const idx = appData.gear.findIndex((g) => g.id === editId);
+            if (idx !== -1) appData.gear[idx] = payload;
+          } else {
+            appData.gear.push(payload);
+          }
+
+          saveState();
+          closeGearDrawer();
+          renderAll();
+          showToast(`Saved ${payload.brand} ${payload.model}`);
+        });
+
+        // EXIF Dropzone
+        const dropzone = document.getElementById("exifDropzone");
+        const exifInput = document.getElementById("exifFileInput");
+        const handleExifFile = async (file) => {
+          const statusEl = document.getElementById("exifStatus");
+          statusEl.style.display = "block";
+          try {
+            const buf = await file.arrayBuffer();
+            const tags = parseExifFromArrayBuffer(buf);
+            const category = document.getElementById("fieldCategory").value;
+            if (tags.make) document.getElementById("fieldBrand").value = tags.make;
+            if (category === "Lens" && tags.lensModel) {
+              document.getElementById("fieldModel").value = tags.lensModel;
+            } else if (tags.model) {
+              document.getElementById("fieldModel").value = tags.model;
+            }
+            if (category === "Lens" && tags.lensSerial) {
+              document.getElementById("fieldSerial").value = tags.lensSerial;
+            } else if (tags.bodySerial) {
+              document.getElementById("fieldSerial").value = tags.bodySerial;
+            }
+            const foundList = Object.entries(tags).map(([k, v]) => `${k}: ${v}`).join(" | ");
+            statusEl.style.color = "var(--accent-emerald)";
+            statusEl.textContent = foundList
+              ? `EXIF Extracted: ${foundList}`
+              : "No camera EXIF tags found in this JPEG.";
+          } catch (err) {
+            statusEl.style.color = "var(--accent-amber)";
+            statusEl.textContent = `Could not parse EXIF: ${err.message}`;
+          }
+        };
+
+        dropzone.addEventListener("click", () => exifInput.click());
+        exifInput.addEventListener("change", (e) => {
+          if (e.target.files?.[0]) handleExifFile(e.target.files[0]);
+        });
+        dropzone.addEventListener("dragover", (e) => e.preventDefault());
+        dropzone.addEventListener("drop", (e) => {
+          e.preventDefault();
+          if (e.dataTransfer?.files?.[0]) handleExifFile(e.dataTransfer.files[0]);
+        });
+
+        // Clear Sample Data
+        document.getElementById("btnClearSample").addEventListener("click", () => {
+          if (!confirm("Clear all gear items from ShutterVault to start with an empty catalogue?")) return;
+          appData.gear = [];
+          selectedForSaleIds.clear();
+          saveState();
+          renderAll();
+          showToast("Cleared sample gear data.");
+        });
+
+        // Export CSV
+        document.getElementById("btnExportCsv").addEventListener("click", exportCsvSchedule);
+
+        // Manage Kits Modal
+        const kitsModal = document.getElementById("kitsModal");
+        document.getElementById("btnManageKits").addEventListener("click", () => {
+          renderManageKitsList();
+          kitsModal.classList.add("open");
+        });
+        document.getElementById("btnCloseKitsModal").addEventListener("click", () => {
+          kitsModal.classList.remove("open");
+        });
+        document.getElementById("addKitForm").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const name = document.getElementById("newKitName").value.trim();
+          const maxW = parseInt(document.getElementById("newKitMaxWeight").value, 10) || 5000;
+          if (!name) return;
+          appData.kits.push({
+            id: `kit_${Date.now()}`,
+            name,
+            maxWeightGrams: maxW
+          });
+          document.getElementById("newKitName").value = "";
+          saveState();
+          renderManageKitsList();
+          renderAll();
+          showToast(`Created kit "${name}"`);
+        });
+
+        // Import Valuations JSON Modal
+        const importValModal = document.getElementById("importValModal");
+        document.getElementById("btnImportValuations").addEventListener("click", () => {
+          pendingImportedValuations = [];
+          document.getElementById("valJsonFileInput").value = "";
+          document.getElementById("valPreviewContainer").style.display = "none";
+          document.getElementById("btnApplyImportVal").disabled = true;
+          importValModal.classList.add("open");
+        });
+        const closeImportModal = () => importValModal.classList.remove("open");
+        document.getElementById("btnCloseImportValModal").addEventListener("click", closeImportModal);
+        document.getElementById("btnCancelImportVal").addEventListener("click", closeImportModal);
+
+        document.getElementById("valJsonFileInput").addEventListener("change", async (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          try {
+            const text = await file.text();
+            const parsed = JSON.parse(text);
+            const incomingItems = Array.isArray(parsed.items)
+              ? parsed.items
+              : Array.isArray(parsed.gear)
+                ? parsed.gear
+                : Array.isArray(parsed)
+                  ? parsed
+                  : [];
+
+            pendingImportedValuations = [];
+            const tbody = document.getElementById("valPreviewTableBody");
+            tbody.innerHTML = "";
+
+            for (const inc of incomingItems) {
+              const incVals = inc.valuations || inc;
+              const match = appData.gear.find(
+                (g) =>
+                  (inc.id && g.id === inc.id) ||
+                  (`${g.brand} ${g.model}`.toLowerCase() === `${inc.brand || ""} ${inc.model || ""}`.trim().toLowerCase()) ||
+                  (g.model && inc.model && g.model.toLowerCase() === inc.model.toLowerCase())
+              );
+              if (!match) continue;
+
+              const nextTrade = Number(incVals.tradeIn ?? match.valuations?.tradeIn ?? 0);
+              const nextPriv = Number(incVals.privateSale ?? match.valuations?.privateSale ?? 0);
+              const nextRepl = Number(incVals.replacement ?? match.valuations?.replacement ?? 0);
+
+              pendingImportedValuations.push({
+                targetId: match.id,
+                tradeIn: nextTrade,
+                privateSale: nextPriv,
+                replacement: nextRepl,
+                lastChecked: incVals.lastChecked || todayISO()
+              });
+
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td><span class="badge badge-boxed">Matched</span></td>
+                <td><strong>${escapeHtml(match.brand)} ${escapeHtml(match.model)}</strong></td>
+                <td class="num">${formatGBP(match.valuations?.tradeIn)} &rarr; <strong>${formatGBP(nextTrade)}</strong></td>
+                <td class="num">${formatGBP(match.valuations?.privateSale)} &rarr; <strong>${formatGBP(nextPriv)}</strong></td>
+                <td class="num">${formatGBP(match.valuations?.replacement)} &rarr; <strong>${formatGBP(nextRepl)}</strong></td>
+              `;
+              tbody.appendChild(tr);
+            }
+
+            document.getElementById("valPreviewContainer").style.display = "block";
+            document.getElementById("btnApplyImportVal").disabled = pendingImportedValuations.length === 0;
+          } catch (err) {
+            alert(`Invalid valuations JSON file: ${err.message}`);
+          }
+        });
+
+        document.getElementById("btnApplyImportVal").addEventListener("click", () => {
+          for (const upd of pendingImportedValuations) {
+            const item = appData.gear.find((g) => g.id === upd.targetId);
+            if (item) {
+              item.valuations = {
+                tradeIn: Math.round(upd.tradeIn * 100) / 100,
+                privateSale: Math.round(upd.privateSale * 100) / 100,
+                replacement: Math.round(upd.replacement * 100) / 100,
+                lastChecked: upd.lastChecked
+              };
+            }
+          }
+          saveState();
+          closeImportModal();
+          renderAll();
+          showToast(`Applied ${pendingImportedValuations.length} valuation updates.`);
+        });
+
+        // Backup / Restore JSON Modal
+        const backupModal = document.getElementById("backupModal");
+        document.getElementById("btnBackupRestore").addEventListener("click", () => {
+          document.getElementById("backupJsonTextarea").value = JSON.stringify(appData, null, 2);
+          backupModal.classList.add("open");
+        });
+        document.getElementById("btnCloseBackupModal").addEventListener("click", () => {
+          backupModal.classList.remove("open");
+        });
+        document.getElementById("btnDownloadBackupJson").addEventListener("click", () => {
+          const blob = new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `shutterVault_backup_${todayISO()}.json`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+          showToast("Downloaded shutterVault_v1 JSON backup.");
+        });
+        document.getElementById("restoreFileInput").addEventListener("change", async (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          document.getElementById("backupJsonTextarea").value = await file.text();
+        });
+        document.getElementById("btnRestoreFromJson").addEventListener("click", () => {
+          try {
+            const parsed = JSON.parse(document.getElementById("backupJsonTextarea").value);
+            if (!parsed || !Array.isArray(parsed.gear) || !Array.isArray(parsed.kits)) {
+              throw new Error("JSON must contain 'gear' and 'kits' arrays.");
+            }
+            appData = parsed;
+            saveState();
+            backupModal.classList.remove("open");
+            renderAll();
+            showToast(`Restored ${appData.gear.length} gear items from JSON.`);
+          } catch (err) {
+            alert(`Restore failed: ${err.message}`);
+          }
+        });
+        document.getElementById("btnResetDefaultSample").addEventListener("click", () => {
+          appData = getDefaultSampleData();
+          saveState();
+          backupModal.classList.remove("open");
+          renderAll();
+          showToast("Reset catalogue to default UK sample data.");
+        });
+      }
+
+      // Initialize App
+      bindEvents();
+      renderAll();
+    })();
+  </script>
+</body>
+</html>

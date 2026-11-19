@@ -1,0 +1,151 @@
+{
+  "generatedAt": "2026-11-19T17:03:56Z",
+  "currency": "GBP",
+  "dryRun": true,
+  "sourceSummary": {
+    "cexUkApi": "https://wss2.cex.uk.webuy.io/v3/boxes",
+    "ebayUkBrowseApiEnabled": true
+  },
+  "items": [
+    {
+      "id": "gear_1",
+      "brand": "Fujifilm",
+      "model": "X-T5",
+      "query": "Fujifilm X-T5",
+      "valuations": {
+        "tradeIn": 989.8,
+        "privateSale": 1200.48,
+        "replacement": 1484.01,
+        "lastChecked": "2026-11-19"
+      },
+      "marketData": {
+        "cexCashPrice": 989.8,
+        "cexExchangePrice": 1117.2,
+        "cexSellPrice": 1484.01,
+        "cexMatchedBoxes": 2,
+        "ebayUk30thPercentile": 1200.48,
+        "ebayUkMatchedListings": 3
+      }
+    },
+    {
+      "id": "gear_2",
+      "brand": "Fujifilm",
+      "model": "XF 35mm f/1.4 R",
+      "query": "Fujifilm XF 35mm f/1.4 R",
+      "valuations": {
+        "tradeIn": 247.45,
+        "privateSale": 324.72,
+        "replacement": 414.81,
+        "lastChecked": "2026-11-19"
+      },
+      "marketData": {
+        "cexCashPrice": 247.45,
+        "cexExchangePrice": 279.3,
+        "cexSellPrice": 414.81,
+        "cexMatchedBoxes": 2,
+        "ebayUk30thPercentile": 324.72,
+        "ebayUkMatchedListings": 3
+      }
+    },
+    {
+      "id": "gear_3",
+      "brand": "Fujifilm",
+      "model": "XF 16-55mm f/2.8 R LM WR",
+      "query": "Fujifilm XF 16-55mm f/2.8 R LM WR",
+      "valuations": {
+        "tradeIn": 464.6,
+        "privateSale": 600.24,
+        "replacement": 741.51,
+        "lastChecked": "2026-11-19"
+      },
+      "marketData": {
+        "cexCashPrice": 464.6,
+        "cexExchangePrice": 524.4,
+        "cexSellPrice": 741.51,
+        "cexMatchedBoxes": 2,
+        "ebayUk30thPercentile": 600.24,
+        "ebayUkMatchedListings": 3
+      }
+    },
+    {
+      "id": "gear_4",
+      "brand": "Nikon",
+      "model": "Zf",
+      "query": "Nikon Zf",
+      "valuations": {
+        "tradeIn": 1302.9,
+        "privateSale": 1535.04,
+        "replacement": 1830.51,
+        "lastChecked": "2026-11-19"
+      },
+      "marketData": {
+        "cexCashPrice": 1302.9,
+        "cexExchangePrice": 1470.6,
+        "cexSellPrice": 1830.51,
+        "cexMatchedBoxes": 2,
+        "ebayUk30thPercentile": 1535.04,
+        "ebayUkMatchedListings": 3
+      }
+    },
+    {
+      "id": "gear_5",
+      "brand": "Nikon",
+      "model": "NIKKOR Z 24-120mm f/4 S",
+      "query": "Nikon NIKKOR Z 24-120mm f/4 S",
+      "valuations": {
+        "tradeIn": 626.2,
+        "privateSale": 767.52,
+        "replacement": 919.71,
+        "lastChecked": "2026-11-19"
+      },
+      "marketData": {
+        "cexCashPrice": 626.2,
+        "cexExchangePrice": 706.8,
+        "cexSellPrice": 919.71,
+        "cexMatchedBoxes": 2,
+        "ebayUk30thPercentile": 767.52,
+        "ebayUkMatchedListings": 3
+      }
+    },
+    {
+      "id": "gear_6",
+      "brand": "Sony",
+      "model": "A7 IV",
+      "query": "Sony A7 IV",
+      "valuations": {
+        "tradeIn": 1262.5,
+        "privateSale": 1495.68,
+        "replacement": 1781.01,
+        "lastChecked": "2026-11-19"
+      },
+      "marketData": {
+        "cexCashPrice": 1262.5,
+        "cexExchangePrice": 1425.0,
+        "cexSellPrice": 1781.01,
+        "cexMatchedBoxes": 2,
+        "ebayUk30thPercentile": 1495.68,
+        "ebayUkMatchedListings": 3
+      }
+    },
+    {
+      "id": "gear_7",
+      "brand": "Sony",
+      "model": "FE 24-70mm f/2.8 GM II",
+      "query": "Sony FE 24-70mm f/2.8 GM II",
+      "valuations": {
+        "tradeIn": 1434.2,
+        "privateSale": 1722.0,
+        "replacement": 2028.51,
+        "lastChecked": "2026-11-19"
+      },
+      "marketData": {
+        "cexCashPrice": 1434.2,
+        "cexExchangePrice": 1618.8,
+        "cexSellPrice": 2028.51,
+        "cexMatchedBoxes": 2,
+        "ebayUk30thPercentile": 1722.0,
+        "ebayUkMatchedListings": 3
+      }
+    }
+  ]
+}
