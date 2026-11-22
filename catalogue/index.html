@@ -856,6 +856,17 @@
     html.theme-light .eq-bar {
       background-color: #059669 !important;
     }
+
+    /* High-FPS Record Card & Row Rendering Optimization */
+    .record-card {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 380px;
+    }
+
+    .record-row {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 64px;
+    }
   </style>
 </head>
 
@@ -1572,7 +1583,8 @@
         </button>
       </div>
 
-      <div class="p-6 space-y-4 text-xs text-slate-300">
+      <div id="valuationModalBody" class="p-6 space-y-4 text-xs text-slate-300"></div>
+      <template id="valuationModalBodyTemplate">
         <!-- How Valuation Works -->
         <div class="p-3 bg-vinyl-850 border border-vinyl-800 rounded-xl space-y-2">
           <div class="font-bold text-brass-400 flex items-center gap-1.5">
@@ -1749,7 +1761,7 @@
 
           </div>
         </div>
-      </div>
+      </template>
 
       <div class="border-t border-vinyl-800 px-6 py-3.5 flex justify-end bg-vinyl-850">
         <button onclick="closeValuationModal()"
@@ -1803,8 +1815,9 @@
         </div>
       </div>
 
-      <!-- Modal Body (Scrollable) -->
-      <div class="p-4 sm:p-6 space-y-6 overflow-y-auto text-xs text-slate-300 leading-relaxed">
+      <!-- Modal Body (Lazy-Rendered on Open) -->
+      <div id="insuranceModalBody" class="p-4 sm:p-6 space-y-6 overflow-y-auto text-xs text-slate-300 leading-relaxed"></div>
+      <template id="insuranceModalBodyTemplate">
 
         <!-- Lead-in Banner -->
         <div class="p-4 bg-brass-500/10 border border-brass-500/30 rounded-xl space-y-2">
@@ -2071,7 +2084,7 @@
           </div>
         </div>
 
-      </div>
+      </template>
 
       <!-- Modal Footer -->
       <div
@@ -7491,8 +7504,7 @@
       item.coverImage = '';
       saveRecordsToStorage();
       if (isCloudActive && currentUser && supabaseClient) {
-        const dbRow = mapRecordToDb(item, currentUser.id);
-        supabaseClient.from('records').upsert(dbRow, { onConflict: 'id' }).then(() => { }).catch(e => console.warn(e));
+        syncRecordToCloud(item);
       }
       renderStats();
       renderRecords();
@@ -8987,6 +8999,53 @@
       'Not Digitized': 'Not Digitized'
     };
 
+    /* =========================================================
+       HIGH-FPS SEARCH INDEX & STATS CACHE STATE
+       ========================================================= */
+    let statsDirty = true;
+    let _cachedStatsData = null;
+
+    function markStatsDirty() {
+      statsDirty = true;
+    }
+
+    function buildRecordSearchIndex(item) {
+      if (!item || typeof item !== 'object') return '';
+      const yNum = parseInt(item.year, 10);
+      const itemDecade = (!isNaN(yNum) && yNum > 1900 && yNum < 2100) ? (Math.floor(yNum / 10) * 10 + 's') : '';
+      const tracksText = (item.tracks || []).map(t => `${t.section || ''} ${t.pos || t.index || ''} ${t.title || ''}`).join(' ');
+      const stylesText = Array.isArray(item.styles) ? item.styles.join(' ') : (item.styles || '');
+      const indexStr = (
+        (item.artist || '') + ' ' +
+        (item.title || '') + ' ' +
+        (item.format || '') + ' ' +
+        (item.label || '') + ' ' +
+        (item.catNo || '') + ' ' +
+        (item.year || '') + ' ' +
+        itemDecade + ' ' +
+        (item.country || '') + ' ' +
+        (item.seriesName || '') + ' ' +
+        (item.seriesNumber || '') + ' ' +
+        (item.discogsId || '') + ' ' +
+        (item.sideATitle || '') + ' ' +
+        (item.sideBTitle || '') + ' ' +
+        tracksText + ' ' +
+        (item.matrixA || '') + ' ' +
+        (item.matrixB || '') + ' ' +
+        (item.genre || '') + ' ' +
+        stylesText + ' ' +
+        (item.genres || '') + ' ' +
+        (item.vinylColor || '') + ' ' +
+        (item.vinylWeight || '') + ' ' +
+        (item.producer || '') + ' ' +
+        (item.researchNotes || '') + ' ' +
+        (item.mastering || '') + ' ' +
+        (item.pressingPlant || '')
+      ).toLowerCase();
+      item._searchIndex = indexStr;
+      return indexStr;
+    }
+
     function sanitizeLoadedRecords(arr) {
       if (!Array.isArray(arr)) return [];
       arr.forEach(r => {
@@ -9076,7 +9135,11 @@
             r.albumBio = sampleSeed.albumBio || '';
           }
         }
+
+        // Pre-compute lowercase _searchIndex property on load
+        buildRecordSearchIndex(r);
       });
+      markStatsDirty();
       return arr;
     }
 
@@ -9149,7 +9212,14 @@
       }
     }
 
-    function saveRecordsToStorage() {
+    let _saveRecordsDebounceTimer = null;
+    const PERSIST_DEBOUNCE_MS = 750;
+
+    function _flushSaveRecordsToStorage() {
+      if (_saveRecordsDebounceTimer) {
+        clearTimeout(_saveRecordsDebounceTimer);
+        _saveRecordsDebounceTimer = null;
+      }
       // 1. Always write full records with images to IndexedDB (multi-gigabyte capacity)
       saveRecordsToIndexedDB(records);
 
@@ -9178,6 +9248,34 @@
           console.warn("localStorage completely full; IndexedDB and Supabase Cloud serving as active stores:", innerE);
         }
       }
+    }
+
+    function saveRecordsToStorage(immediate = false) {
+      markStatsDirty();
+      if (Array.isArray(records)) {
+        for (let i = 0; i < records.length; i++) {
+          buildRecordSearchIndex(records[i]);
+        }
+      }
+      if (immediate) {
+        _flushSaveRecordsToStorage();
+        return;
+      }
+      if (_saveRecordsDebounceTimer) clearTimeout(_saveRecordsDebounceTimer);
+      _saveRecordsDebounceTimer = setTimeout(() => {
+        _flushSaveRecordsToStorage();
+      }, PERSIST_DEBOUNCE_MS);
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', () => {
+        if (_saveRecordsDebounceTimer) {
+          _flushSaveRecordsToStorage();
+        }
+        if (typeof _flushCloudSyncQueue === 'function') {
+          _flushCloudSyncQueue();
+        }
+      });
     }
 
     /* =========================================================
@@ -14178,18 +14276,14 @@
     }
 
     /* =========================================================
-       STATISTICS & VALUATION SUMMARY
+       STATISTICS & VALUATION SUMMARY (CACHED BEHIND statsDirty)
        ========================================================= */
-    function renderStats(skipDropdownRebuild = false) {
+    function getCachedArchiveStats() {
+      if (!statsDirty && _cachedStatsData && _cachedStatsData.recordCount === records.length) {
+        return _cachedStatsData;
+      }
+
       const total = records.length;
-      const totalEl = document.getElementById('statTotalItems');
-      if (totalEl) totalEl.innerText = total;
-      const mobileTotalEl = document.getElementById('mobileStatTotalItems');
-      if (mobileTotalEl) mobileTotalEl.innerText = total;
-
-      const currentFormatFilter = document.getElementById('filterFormat')?.value || 'ALL';
-
-      // Calibrated format categories covering ALL formats in QMC Archive
       const formatDefs = [
         {
           key: '12" LP',
@@ -14331,8 +14425,31 @@
         }
       ];
 
-      // Match each record to its proper format category
-      records.forEach(r => {
+      const groupCounts = {};
+      if (typeof FORMAT_GROUP_DEFS !== 'undefined' && Array.isArray(FORMAT_GROUP_DEFS)) {
+        FORMAT_GROUP_DEFS.forEach(g => { groupCounts[g.key] = 0; });
+      }
+
+      const genreCounts = {};
+      const labelCounts = {};
+      const seriesCounts = {};
+      const decadeMap = {};
+      const analyticsDecCounts = {};
+
+      let totalVal = 0;
+      let totalLow = 0;
+      let totalHigh = 0;
+      let valuedCount = 0;
+      let digitizedCount = 0;
+
+      const gradeRanks = { 'M': 8, 'NM': 7, 'VG+': 6, 'VG': 5, 'G+': 4, 'G': 3, 'F': 2, 'P': 1 };
+      let sumGrades = 0;
+      let gradedCount = 0;
+
+      for (let idx = 0; idx < records.length; idx++) {
+        const r = records[idx];
+
+        // Format category match
         let matched = false;
         for (let i = 0; i < formatDefs.length - 1; i++) {
           if (formatDefs[i].matcher(r)) {
@@ -14344,7 +14461,119 @@
         if (!matched) {
           formatDefs[formatDefs.length - 1].count++;
         }
+
+        // Format group counts
+        if (typeof FORMAT_GROUP_DEFS !== 'undefined' && Array.isArray(FORMAT_GROUP_DEFS)) {
+          for (let gIdx = 0; gIdx < FORMAT_GROUP_DEFS.length; gIdx++) {
+            const g = FORMAT_GROUP_DEFS[gIdx];
+            if (g.matcher(r.format || '')) {
+              groupCounts[g.key] = (groupCounts[g.key] || 0) + 1;
+            }
+          }
+        }
+
+        // Genre, Label, Series counts
+        const gs = parseGenreAndStyles(r.genres || '', r.genre || '', r.styles || '');
+        const genreTokens = new Set();
+        if (gs.genre) genreTokens.add(gs.genre);
+        (gs.styles || []).forEach(s => { if (s) genreTokens.add(s); });
+        genreTokens.forEach(g => {
+          genreCounts[g] = (genreCounts[g] || 0) + 1;
+        });
+
+        const lbl = (r.label || '').trim();
+        if (lbl) labelCounts[lbl] = (labelCounts[lbl] || 0) + 1;
+
+        const ser = (r.seriesName || r.series_name || '').trim();
+        if (ser) seriesCounts[ser] = (seriesCounts[ser] || 0) + 1;
+
+        // Valuation
+        let val = null;
+        if (r.estimatedValue !== undefined && r.estimatedValue !== null && r.estimatedValue !== '') {
+          const num = parseFloat(String(r.estimatedValue).replace(/[^0-9.-]/g, ''));
+          if (!isNaN(num) && num > 0) val = num;
+        }
+        if (val !== null) {
+          totalVal += val;
+          totalLow += (r.priceLow && !isNaN(r.priceLow)) ? parseFloat(r.priceLow) : (val * 0.6);
+          totalHigh += (r.priceHigh && !isNaN(r.priceHigh)) ? parseFloat(r.priceHigh) : (val * 1.5);
+          valuedCount++;
+        }
+
+        // Digitized
+        if (r.transferStatus && r.transferStatus !== 'Not Digitized') {
+          digitizedCount++;
+        }
+
+        // Grade
+        if (gradeRanks[r.mediaGrade]) {
+          sumGrades += gradeRanks[r.mediaGrade];
+          gradedCount++;
+        }
+
+        // Decades
+        if (r.year) {
+          const y = parseInt(r.year, 10);
+          if (!isNaN(y)) {
+            const dec = Math.floor(y / 10) * 10 + 's';
+            decadeMap[dec] = (decadeMap[dec] || 0) + 1;
+          }
+          const dk = (!isNaN(y) && y > 1900 && y < 2100) ? `${Math.floor(y / 10) * 10}s` : 'Unknown';
+          analyticsDecCounts[dk] = (analyticsDecCounts[dk] || 0) + 1;
+        } else {
+          analyticsDecCounts['Unknown'] = (analyticsDecCounts['Unknown'] || 0) + 1;
+        }
+      }
+
+      const avgScore = gradedCount ? Math.round(sumGrades / gradedCount) : 6;
+      const reverseGrade = Object.keys(gradeRanks).find(k => gradeRanks[k] === avgScore) || 'VG+';
+
+      const decadeKeys = Object.keys(decadeMap).sort();
+      let topDecade = '';
+      let topCount = 0;
+      decadeKeys.forEach(k => {
+        if (decadeMap[k] > topCount) {
+          topCount = decadeMap[k];
+          topDecade = k;
+        }
       });
+
+      const sortedGenres = Object.entries(genreCounts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
+      _cachedStatsData = {
+        recordCount: total,
+        formatDefs,
+        groupCounts,
+        genreCounts,
+        sortedGenres,
+        labelCounts,
+        seriesCounts,
+        totalVal,
+        totalLow,
+        totalHigh,
+        valuedCount,
+        digitizedCount,
+        reverseGrade,
+        decadeMap,
+        decadeKeys,
+        topDecade,
+        topCount,
+        analyticsDecCounts
+      };
+      statsDirty = false;
+      return _cachedStatsData;
+    }
+
+    function renderStats(skipDropdownRebuild = false) {
+      const stats = getCachedArchiveStats();
+      const total = stats.recordCount;
+      const totalEl = document.getElementById('statTotalItems');
+      if (totalEl) totalEl.innerText = total;
+      const mobileTotalEl = document.getElementById('mobileStatTotalItems');
+      if (mobileTotalEl) mobileTotalEl.innerText = total;
+
+      const currentFormatFilter = document.getElementById('filterFormat')?.value || 'ALL';
+      const formatDefs = stats.formatDefs;
 
       // Populate legacy compatibility counters
       const lpTotal = formatDefs.find(f => f.key === '12" LP')?.count || 0;
@@ -14359,11 +14588,11 @@
       const stat7 = document.getElementById('statTotalSingles');
       if (stat7) stat7.innerText = sevenTotal;
 
-      // Render interactive Collection Group refinement pills inside Stats Strip
+      // Render interactive Collection Group refinement pills inside Stats Strip (using cached groupCounts)
       const catRefEl = document.getElementById('statCategoryRefinement');
       if (catRefEl) {
         catRefEl.innerHTML = FORMAT_GROUP_DEFS.map(g => {
-          const cnt = records.reduce((acc, r) => acc + (g.matcher(r.format || '') ? 1 : 0), 0);
+          const cnt = stats.groupCounts[g.key] || 0;
           const isActive = currentFormatFilter === g.key;
           const chipCls = isActive
             ? `${g.activeBg} font-bold`
@@ -14385,18 +14614,7 @@
       // Render multi-select Genre toggle chips in the Formats & Decades strip
       const genreChipsEl = document.getElementById('genreQuickChips');
       if (genreChipsEl) {
-        const genreCounts = {};
-        records.forEach(r => {
-          const gs = parseGenreAndStyles(r.genres || '', r.genre || '', r.styles || '');
-          const genreTokens = new Set();
-          if (gs.genre) genreTokens.add(gs.genre);
-          (gs.styles || []).forEach(s => { if (s) genreTokens.add(s); });
-          genreTokens.forEach(g => {
-            genreCounts[g] = (genreCounts[g] || 0) + 1;
-          });
-        });
-
-        const sortedGenres = Object.entries(genreCounts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+        const sortedGenres = stats.sortedGenres;
         const curGenreList = Array.isArray(activeGenreFilters) ? activeGenreFilters.map(g => g.toLowerCase().trim()) : [];
 
         if (sortedGenres.length === 0) {
@@ -14414,24 +14632,11 @@
         }
       }
 
-      // Valuation calculations
-      let totalVal = 0;
-      let totalLow = 0;
-      let totalHigh = 0;
-      let valuedCount = 0;
-      records.forEach(r => {
-        let val = null;
-        if (r.estimatedValue !== undefined && r.estimatedValue !== null && r.estimatedValue !== '') {
-          const num = parseFloat(String(r.estimatedValue).replace(/[^0-9.-]/g, ''));
-          if (!isNaN(num) && num > 0) val = num;
-        }
-        if (val !== null) {
-          totalVal += val;
-          totalLow += (r.priceLow && !isNaN(r.priceLow)) ? parseFloat(r.priceLow) : (val * 0.6);
-          totalHigh += (r.priceHigh && !isNaN(r.priceHigh)) ? parseFloat(r.priceHigh) : (val * 1.5);
-          valuedCount++;
-        }
-      });
+      // Valuation calculations (from cached stats)
+      const totalVal = stats.totalVal;
+      const totalLow = stats.totalLow;
+      const totalHigh = stats.totalHigh;
+      const valuedCount = stats.valuedCount;
 
       const sym = getCurrencySymbol();
       const totalValEl = document.getElementById('statTotalValue');
@@ -14464,43 +14669,19 @@
       }
 
       // Digitized count
-      const digitizedCount = records.filter(r => r.transferStatus && r.transferStatus !== 'Not Digitized').length;
-      document.getElementById('statTransfers').innerText = digitizedCount;
+      document.getElementById('statTransfers').innerText = stats.digitizedCount;
 
       // Grade breakdown
-      const gradeRanks = { 'M': 8, 'NM': 7, 'VG+': 6, 'VG': 5, 'G+': 4, 'G': 3, 'F': 2, 'P': 1 };
-      let sumGrades = 0;
-      let gradedCount = 0;
-      records.forEach(r => {
-        if (gradeRanks[r.mediaGrade]) {
-          sumGrades += gradeRanks[r.mediaGrade];
-          gradedCount++;
-        }
-      });
-      const avgScore = gradedCount ? Math.round(sumGrades / gradedCount) : 6;
-      const reverseGrade = Object.keys(gradeRanks).find(k => gradeRanks[k] === avgScore) || 'VG+';
+      const reverseGrade = stats.reverseGrade;
       document.getElementById('statAvgGrade').innerText = reverseGrade;
       const mobileAvgGrade = document.getElementById('mobileStatAvgGrade');
       if (mobileAvgGrade) mobileAvgGrade.innerText = reverseGrade;
 
       // Decades distribution
-      const decadeMap = {};
-      records.forEach(r => {
-        if (r.year) {
-          const dec = Math.floor(r.year / 10) * 10 + 's';
-          decadeMap[dec] = (decadeMap[dec] || 0) + 1;
-        }
-      });
-
-      const decadeKeys = Object.keys(decadeMap).sort();
-      let topDecade = '';
-      let topCount = 0;
-      decadeKeys.forEach(k => {
-        if (decadeMap[k] > topCount) {
-          topCount = decadeMap[k];
-          topDecade = k;
-        }
-      });
+      const decadeMap = stats.decadeMap;
+      const decadeKeys = stats.decadeKeys;
+      const topDecade = stats.topDecade;
+      const topCount = stats.topCount;
       const topPct = total ? Math.round((topCount / total) * 100) : 0;
       const statDecSummaryEl = document.getElementById('statDecadesSummary');
       if (statDecSummaryEl) {
@@ -14557,25 +14738,10 @@
       const seriesSel = document.getElementById('filterSeries');
       if (!genreSel && !labelSel && !seriesSel) return;
 
-      const genreCounts = {};
-      const labelCounts = {};
-      const seriesCounts = {};
-
-      records.forEach(r => {
-        const gs = parseGenreAndStyles(r.genres || '', r.genre || '', r.styles || '');
-        const genreTokens = new Set();
-        if (gs.genre) genreTokens.add(gs.genre);
-        (gs.styles || []).forEach(s => { if (s) genreTokens.add(s); });
-        genreTokens.forEach(g => {
-          genreCounts[g] = (genreCounts[g] || 0) + 1;
-        });
-
-        const lbl = (r.label || '').trim();
-        if (lbl) labelCounts[lbl] = (labelCounts[lbl] || 0) + 1;
-
-        const ser = (r.seriesName || r.series_name || '').trim();
-        if (ser) seriesCounts[ser] = (seriesCounts[ser] || 0) + 1;
-      });
+      const stats = getCachedArchiveStats();
+      const genreCounts = stats.genreCounts;
+      const labelCounts = stats.labelCounts;
+      const seriesCounts = stats.seriesCounts;
 
       const fillSelect = (sel, counts, allLabel, emptyHint) => {
         if (!sel) return;
@@ -14719,42 +14885,13 @@
           if (!matchedDecade) return false;
         }
 
-        // 2. Search Bar Filter
+        // 2. Search Bar Filter (uses pre-computed lowercase _searchIndex)
         if (searchDecadeList) {
           if (!searchDecadeList.includes(itemDecade)) return false;
         } else if (isUnknownYearSearch) {
           if (itemDecade !== '') return false;
         } else if (searchTerm) {
-          const tracksText = (item.tracks || []).map(t => `${t.section || ''} ${t.pos || t.index || ''} ${t.title || ''}`).join(' ');
-          const stylesText = Array.isArray(item.styles) ? item.styles.join(' ') : (item.styles || '');
-          const matchText = (
-            (item.artist || '') + ' ' +
-            (item.title || '') + ' ' +
-            (item.format || '') + ' ' +
-            (item.label || '') + ' ' +
-            (item.catNo || '') + ' ' +
-            (item.year || '') + ' ' +
-            itemDecade + ' ' +
-            (item.country || '') + ' ' +
-            (item.seriesName || '') + ' ' +
-            (item.seriesNumber || '') + ' ' +
-            (item.discogsId || '') + ' ' +
-            (item.sideATitle || '') + ' ' +
-            (item.sideBTitle || '') + ' ' +
-            tracksText + ' ' +
-            (item.matrixA || '') + ' ' +
-            (item.matrixB || '') + ' ' +
-            (item.genre || '') + ' ' +
-            stylesText + ' ' +
-            (item.genres || '') + ' ' +
-            (item.vinylColor || '') + ' ' +
-            (item.vinylWeight || '') + ' ' +
-            (item.producer || '') + ' ' +
-            (item.researchNotes || '') + ' ' +
-            (item.mastering || '') + ' ' +
-            (item.pressingPlant || '')
-          ).toLowerCase();
-
+          const matchText = item._searchIndex !== undefined ? item._searchIndex : buildRecordSearchIndex(item);
           if (!matchText.includes(searchTerm)) return false;
         }
         if (formatFilter !== 'ALL') {
@@ -14853,7 +14990,7 @@
       _searchDebounceTimer = setTimeout(() => {
         _searchDebounceTimer = null;
         handleSearchFilterChange();
-      }, 180);
+      }, 200);
     }
 
     function handleSearchFilterChange() {
@@ -15654,11 +15791,8 @@
         if (!areValuesVisible) {
           ribbonArchiveEl.innerText = `(Archive Total: •••••• across ${records.length} records)`;
         } else {
-          let archVal = 0;
-          records.forEach(r => {
-            let num = parseFloat(String(r.estimatedValue || '').replace(/[^0-9.-]/g, ''));
-            if (!isNaN(num) && num > 0) archVal += num;
-          });
+          const cachedArchStats = getCachedArchiveStats();
+          const archVal = cachedArchStats.totalVal;
           ribbonArchiveEl.innerText = `(Archive Total: ${sym}${archVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} across ${records.length} records)`;
         }
       }
@@ -18272,376 +18406,555 @@
       return new Set(box.map(b => String(b.record_id || b.id || b)));
     }
 
-    function renderGridView(list, container) {
-      const sym = getCurrencySymbol();
-      const membershipMap = buildMembershipLookupMap();
-      const boxIdSet = membershipMap.boxSet;
+    const CHUNK_RENDER_BATCH_SIZE = 50;
+    let _chunkIntersectionObserver = null;
 
-      // Compact Mode: 2-column mobile grid maximizing screen real estate (4-6 albums visible simultaneously)
-      if (currentGridDensity === 'compact') {
-        let html = '<div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-4">';
-        list.forEach(item => {
-          const coverSrc = escapeHtml(item.coverImage || getDefaultCover(item.format, item.artist, item.title));
-          const safeId = escapeJsString(item.id);
-          const isAlbum = item.format && item.format.includes('LP');
-          const hasVal = areValuesVisible && item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
-          const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
-          const telemetry = deriveRecordTelemetry(item);
-          const inBox = boxIdSet.has(String(item.id));
-          const isSelected = selectedRecordIds.has(String(item.id));
+    function _disconnectChunkObserver() {
+      if (_chunkIntersectionObserver) {
+        try { _chunkIntersectionObserver.disconnect(); } catch (_) { }
+        _chunkIntersectionObserver = null;
+      }
+    }
 
-          html += `
-            <div ontouchstart="handleCardTouchStart(event, '${safeId}')" ontouchmove="handleCardTouchMove(event)" ontouchend="handleCardTouchEnd(event, '${safeId}')" class="bg-vinyl-900 rounded-xl border ${isSelected ? 'border-brass-400 ring-2 ring-brass-400/50' : 'border-vinyl-800 hover:border-brass-500/50'} transition-all duration-200 overflow-hidden shadow-md flex flex-col group cursor-pointer" onclick="viewRecordDetail('${safeId}')">
-              
-              <!-- Sleeve Visual Cover -->
-              <div class="relative w-full aspect-square bg-vinyl-950 overflow-hidden flex-shrink-0">
-                <img src="${coverSrc}" alt="${escapeHtml(item.title)}" loading="lazy" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" onerror="this.onerror=null; this.src=getDefaultCover('${safeEncodeUriPart(item.format)}', '${safeEncodeUriPart(item.artist)}', '${safeEncodeUriPart(item.title)}', true)">
-                
-                <!-- Format Indicator & Price Badge -->
-                <div class="absolute top-1.5 left-1.5 flex flex-col gap-0.5 items-start z-10 pointer-events-none">
-                  ${getFormatBadge(item.format)}
-                  ${hasVal ? `
-                    <span class="bg-emerald-950/90 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold shadow backdrop-blur">
-                      ${sym}${parseFloat(item.estimatedValue).toFixed(2)}
-                    </span>
-                  ` : ''}
-                </div>
+    function _buildCompactCardHtml(item, sym, membershipMap, boxIdSet) {
+      const coverSrc = escapeHtml(item.coverImage || getDefaultCover(item.format, item.artist, item.title));
+      const safeId = escapeJsString(item.id);
+      const isAlbum = item.format && item.format.includes('LP');
+      const hasVal = areValuesVisible && item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
+      const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
+      const telemetry = deriveRecordTelemetry(item);
+      const inBox = boxIdSet.has(String(item.id));
+      const isSelected = selectedRecordIds.has(String(item.id));
 
-                <!-- Media Grade Badge + Multi-Select Checkbox -->
-                <div class="absolute top-1.5 right-1.5 z-10 flex items-center gap-1">
-                  <span class="pointer-events-none">${getGradeBadge(item.mediaGrade)}</span>
-                  <button type="button" onclick="toggleRecordSelection('${safeId}', event)"
-                    class="w-5 h-5 rounded-md flex items-center justify-center border transition shadow ${isSelected ? 'bg-brass-500 text-vinyl-950 border-brass-300 font-bold' : 'bg-black/75 text-slate-300 border-white/25 hover:border-brass-400'}"
-                    title="${isSelected ? 'Deselect record' : 'Select record for bulk actions'}">
-                    <i class="fa-solid fa-check text-[9px] ${isSelected ? '' : 'opacity-40'}"></i>
-                  </button>
-                </div>
+      return `
+        <div ontouchstart="handleCardTouchStart(event, '${safeId}')" ontouchmove="handleCardTouchMove(event)" ontouchend="handleCardTouchEnd(event, '${safeId}')" style="content-visibility: auto; contain-intrinsic-size: auto 320px;" class="record-card bg-vinyl-900 rounded-xl border ${isSelected ? 'border-brass-400 ring-2 ring-brass-400/50' : 'border-vinyl-800 hover:border-brass-500/50'} transition-all duration-200 overflow-hidden shadow-md flex flex-col group cursor-pointer" onclick="viewRecordDetail('${safeId}')">
+          
+          <!-- Sleeve Visual Cover -->
+          <div class="relative w-full aspect-square bg-vinyl-950 overflow-hidden flex-shrink-0">
+            <img src="${coverSrc}" alt="${escapeHtml(item.title)}" loading="lazy" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" onerror="this.onerror=null; this.src=getDefaultCover('${safeEncodeUriPart(item.format)}', '${safeEncodeUriPart(item.artist)}', '${safeEncodeUriPart(item.title)}', true)">
+            
+            <!-- Format Indicator & Price Badge -->
+            <div class="absolute top-1.5 left-1.5 flex flex-col gap-0.5 items-start z-10 pointer-events-none">
+              ${getFormatBadge(item.format)}
+              ${hasVal ? `
+                <span class="bg-emerald-950/90 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold shadow backdrop-blur">
+                  ${sym}${parseFloat(item.estimatedValue).toFixed(2)}
+                </span>
+              ` : ''}
+            </div>
 
-                <!-- Bottom Vignette -->
-                <div class="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none"></div>
+            <!-- Media Grade Badge + Multi-Select Checkbox -->
+            <div class="absolute top-1.5 right-1.5 z-10 flex items-center gap-1">
+              <span class="pointer-events-none">${getGradeBadge(item.mediaGrade)}</span>
+              <button type="button" onclick="toggleRecordSelection('${safeId}', event)"
+                class="w-5 h-5 rounded-md flex items-center justify-center border transition shadow ${isSelected ? 'bg-brass-500 text-vinyl-950 border-brass-300 font-bold' : 'bg-black/75 text-slate-300 border-white/25 hover:border-brass-400'}"
+                title="${isSelected ? 'Deselect record' : 'Select record for bulk actions'}">
+                <i class="fa-solid fa-check text-[9px] ${isSelected ? '' : 'opacity-40'}"></i>
+              </button>
+            </div>
 
-                <!-- Speed, Weight, Label / Year Pill Overlay -->
-                <div class="absolute bottom-1.5 inset-x-1.5 flex items-center justify-between text-[9px] text-white/90 gap-1 pointer-events-none">
-                  ${isSpeedApplicable(item.format) ? `
-                    <span class="bg-black/80 backdrop-blur-sm px-1.5 py-0.2 rounded border border-white/10 font-mono">
-                      ${item.speed || (isAlbum ? '33 RPM' : '45 RPM')}
-                    </span>
-                  ` : `<span></span>`}
-                  <span class="bg-black/80 backdrop-blur-sm px-1.5 py-0.2 rounded border border-white/10 font-mono text-brass-400 font-bold">
-                    ${item.year || '--'}
+            <!-- Bottom Vignette -->
+            <div class="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none"></div>
+
+            <!-- Speed, Weight, Label / Year Pill Overlay -->
+            <div class="absolute bottom-1.5 inset-x-1.5 flex items-center justify-between text-[9px] text-white/90 gap-1 pointer-events-none">
+              ${isSpeedApplicable(item.format) ? `
+                <span class="bg-black/80 backdrop-blur-sm px-1.5 py-0.2 rounded border border-white/10 font-mono">
+                  ${item.speed || (isAlbum ? '33 RPM' : '45 RPM')}
+                </span>
+              ` : `<span></span>`}
+              <span class="bg-black/80 backdrop-blur-sm px-1.5 py-0.2 rounded border border-white/10 font-mono text-brass-400 font-bold">
+                ${item.year || '--'}
+              </span>
+            </div>
+          </div>
+
+          <!-- Card Body -->
+          <div class="p-2 sm:p-2.5 flex-1 flex flex-col justify-between gap-1">
+            <div>
+              <h3 class="text-xs font-bold text-white tracking-tight truncate group-hover:text-brass-400 transition" onclick="event.stopPropagation(); filterByArtist('${escapeJsString(item.artist)}')" title="${escapeHtml(item.artist)}">
+                ${escapeHtml(item.artist)}
+              </h3>
+              <h4 class="text-[11px] font-medium text-slate-300 truncate" title="${escapeHtml(item.title)}">
+                ${escapeHtml(item.title)}
+              </h4>
+              ${formatSeriesLabel(item) ? `
+                <div class="mt-0.5">
+                  <span onclick="event.stopPropagation(); filterBySeries('${escapeJsString(item.seriesName || item.series_name)}')" class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-pink-950/60 text-pink-300 border border-pink-500/30 text-[9px] font-mono truncate max-w-full hover:border-pink-400 transition" title="Filter series: ${escapeHtml(formatSeriesLabel(item))}">
+                    <i class="fa-solid fa-layer-group text-[8px]"></i> ${escapeHtml(formatSeriesLabel(item))}
                   </span>
                 </div>
+              ` : ''}
+              <div class="flex items-center justify-between text-[10px] text-slate-500 font-mono truncate mt-0.5 gap-1">
+                ${item.label && String(item.label).trim() ? `
+                  <button type="button" onclick="event.stopPropagation(); filterByLabel('${escapeJsString(item.label)}')" class="truncate text-left text-brass-400/90 hover:text-brass-300 hover:underline cursor-pointer transition font-mono" title="Filter archive by label: ${escapeHtml(item.label)}">
+                    ${escapeHtml(item.label)}
+                  </button>
+                ` : `<span></span>`}
+                <span class="text-emerald-400/90 text-[9px] font-mono flex-shrink-0" title="Harmonic Telemetry: ${telemetry.bpm} BPM • ${telemetry.musicalKey}">${telemetry.bpm} BPM</span>
               </div>
+              ${renderRecordMembershipChips(item.id, true, membershipMap)}
+            </div>
 
-              <!-- Card Body -->
-              <div class="p-2 sm:p-2.5 flex-1 flex flex-col justify-between gap-1">
-                <div>
-                  <h3 class="text-xs font-bold text-white tracking-tight truncate group-hover:text-brass-400 transition" onclick="event.stopPropagation(); filterByArtist('${escapeJsString(item.artist)}')" title="${escapeHtml(item.artist)}">
-                    ${escapeHtml(item.artist)}
-                  </h3>
-                  <h4 class="text-[11px] font-medium text-slate-300 truncate" title="${escapeHtml(item.title)}">
-                    ${escapeHtml(item.title)}
-                  </h4>
-                  ${formatSeriesLabel(item) ? `
-                    <div class="mt-0.5">
-                      <span onclick="event.stopPropagation(); filterBySeries('${escapeJsString(item.seriesName || item.series_name)}')" class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-pink-950/60 text-pink-300 border border-pink-500/30 text-[9px] font-mono truncate max-w-full hover:border-pink-400 transition" title="Filter series: ${escapeHtml(formatSeriesLabel(item))}">
-                        <i class="fa-solid fa-layer-group text-[8px]"></i> ${escapeHtml(formatSeriesLabel(item))}
-                      </span>
-                    </div>
-                  ` : ''}
-                  <div class="flex items-center justify-between text-[10px] text-slate-500 font-mono truncate mt-0.5 gap-1">
-                    ${item.label && String(item.label).trim() ? `
-                      <button type="button" onclick="event.stopPropagation(); filterByLabel('${escapeJsString(item.label)}')" class="truncate text-left text-brass-400/90 hover:text-brass-300 hover:underline cursor-pointer transition font-mono" title="Filter archive by label: ${escapeHtml(item.label)}">
-                        ${escapeHtml(item.label)}
-                      </button>
-                    ` : `<span></span>`}
-                    <span class="text-emerald-400/90 text-[9px] font-mono flex-shrink-0" title="Harmonic Telemetry: ${telemetry.bpm} BPM • ${telemetry.musicalKey}">${telemetry.bpm} BPM</span>
-                  </div>
-                  ${renderRecordMembershipChips(item.id, true, membershipMap)}
-                </div>
-
-                <!-- Quick Action Bar -->
-                <div class="pt-1.5 border-t border-vinyl-800 flex items-center justify-between text-[10px] text-slate-400" onclick="event.stopPropagation()">
-                  <div class="flex items-center gap-1">
-                    <span class="text-brass-400 hover:text-brass-300 flex items-center gap-0.5 font-semibold cursor-pointer" onclick="viewRecordDetail('${safeId}')">
-                      <i class="fa-solid fa-file-lines text-[9px]"></i> Dossier
-                    </span>
-                    <button type="button" onclick="event.stopPropagation(); toggleBoxForRecord('${safeId}')" id="compactBoxBtn-${safeId}" class="px-1 py-0.2 rounded text-[9px] font-mono transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border-vinyl-700'}" title="${inBox ? 'Remove from Record Box' : 'Pack into Record Box'}">
-                      ${inBox ? '✓ Box' : '+ Box'}
-                    </button>
-                    <button type="button" onclick="event.stopPropagation(); openAddToModal('${safeId}', 'all')" class="px-1 py-0.2 rounded text-[9px] font-mono bg-vinyl-850 hover:bg-vinyl-800 text-slate-300 hover:text-white border border-vinyl-700 transition" title="Add to Box, Crate, or Set">
-                      + Add…
-                    </button>
-                  </div>
-                  <div class="flex items-center gap-1.5">
-                    <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center p-0.5 hover:text-blue-400 transition" title="eBay Sold"><i class="fa-brands fa-ebay text-xs"></i></a>
-                    <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center p-0.5 hover:text-amber-400 transition" title="Discogs"><i class="fa-solid fa-compact-disc text-[10px]"></i></a>
-                    <a href="${getStreamingLinks(item).spotify}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center p-0.5 text-emerald-400/90 hover:text-emerald-300 transition" title="Audition on Spotify"><i class="fa-brands fa-spotify text-[11px]"></i></a>
-                    ${isOwner ? `
-                      <button type="button" onclick="event.stopPropagation(); editRecord('${safeId}')" class="inline-flex items-center justify-center p-0.5 hover:text-amber-400 transition" title="Edit"><i class="fa-solid fa-pen-to-square text-[10px]"></i></button>
-                    ` : ''}
-                  </div>
-                </div>
-
+            <!-- Quick Action Bar -->
+            <div class="pt-1.5 border-t border-vinyl-800 flex items-center justify-between text-[10px] text-slate-400" onclick="event.stopPropagation()">
+              <div class="flex items-center gap-1">
+                <span class="text-brass-400 hover:text-brass-300 flex items-center gap-0.5 font-semibold cursor-pointer" onclick="viewRecordDetail('${safeId}')">
+                  <i class="fa-solid fa-file-lines text-[9px]"></i> Dossier
+                </span>
+                <button type="button" onclick="event.stopPropagation(); toggleBoxForRecord('${safeId}')" id="compactBoxBtn-${safeId}" class="px-1 py-0.2 rounded text-[9px] font-mono transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border-vinyl-700'}" title="${inBox ? 'Remove from Record Box' : 'Pack into Record Box'}">
+                  ${inBox ? '✓ Box' : '+ Box'}
+                </button>
+                <button type="button" onclick="event.stopPropagation(); openAddToModal('${safeId}', 'all')" class="px-1 py-0.2 rounded text-[9px] font-mono bg-vinyl-850 hover:bg-vinyl-800 text-slate-300 hover:text-white border border-vinyl-700 transition" title="Add to Box, Crate, or Set">
+                  + Add…
+                </button>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center p-0.5 hover:text-blue-400 transition" title="eBay Sold"><i class="fa-brands fa-ebay text-xs"></i></a>
+                <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center p-0.5 hover:text-amber-400 transition" title="Discogs"><i class="fa-solid fa-compact-disc text-[10px]"></i></a>
+                <a href="${getStreamingLinks(item).spotify}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center p-0.5 text-emerald-400/90 hover:text-emerald-300 transition" title="Audition on Spotify"><i class="fa-brands fa-spotify text-[11px]"></i></a>
+                ${isOwner ? `
+                  <button type="button" onclick="event.stopPropagation(); editRecord('${safeId}')" class="inline-flex items-center justify-center p-0.5 hover:text-amber-400 transition" title="Edit"><i class="fa-solid fa-pen-to-square text-[10px]"></i></button>
+                ` : ''}
               </div>
             </div>
-          `;
-        });
-        html += '</div>';
-        container.innerHTML = html;
-        return;
-      }
 
-      // Detailed Mode: 1-column on mobile, 2-4 on larger displays
-      let html = '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">';
+          </div>
+        </div>
+      `;
+    }
 
-      list.forEach(item => {
-        const coverSrc = escapeHtml(item.coverImage || getDefaultCover(item.format, item.artist, item.title));
-        const safeId = escapeJsString(item.id);
-        const isAlbum = item.format && item.format.includes('LP');
-        const hasVal = areValuesVisible && item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
-        const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
-        const telemetry = deriveRecordTelemetry(item);
-        const inBox = boxIdSet.has(String(item.id));
-        const isSelected = selectedRecordIds.has(String(item.id));
+    function _buildDetailedCardHtml(item, sym, membershipMap, boxIdSet) {
+      const coverSrc = escapeHtml(item.coverImage || getDefaultCover(item.format, item.artist, item.title));
+      const safeId = escapeJsString(item.id);
+      const isAlbum = item.format && item.format.includes('LP');
+      const hasVal = areValuesVisible && item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
+      const isOwner = !isReadOnlyShareView && (!item.userId || (currentUser && item.userId === currentUser.id));
+      const telemetry = deriveRecordTelemetry(item);
+      const inBox = boxIdSet.has(String(item.id));
+      const isSelected = selectedRecordIds.has(String(item.id));
 
-        html += `
-          <div ontouchstart="handleCardTouchStart(event, '${safeId}')" ontouchmove="handleCardTouchMove(event)" ontouchend="handleCardTouchEnd(event, '${safeId}')" class="bg-vinyl-900 rounded-2xl border ${isSelected ? 'border-brass-400 ring-2 ring-brass-400/50' : 'border-vinyl-800 hover:border-brass-500/50'} transition-all duration-200 overflow-hidden shadow-lg hover:shadow-2xl flex flex-col group">
+      return `
+        <div ontouchstart="handleCardTouchStart(event, '${safeId}')" ontouchmove="handleCardTouchMove(event)" ontouchend="handleCardTouchEnd(event, '${safeId}')" style="content-visibility: auto; contain-intrinsic-size: auto 440px;" class="record-card bg-vinyl-900 rounded-2xl border ${isSelected ? 'border-brass-400 ring-2 ring-brass-400/50' : 'border-vinyl-800 hover:border-brass-500/50'} transition-all duration-200 overflow-hidden shadow-lg hover:shadow-2xl flex flex-col group">
+          
+          <!-- Sleeve Visual Card Header -->
+          <div class="relative w-full aspect-square bg-vinyl-950 overflow-hidden cursor-pointer flex-shrink-0" onclick="viewRecordDetail('${safeId}')">
+            <img src="${coverSrc}" alt="${escapeHtml(item.title)}" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src=getDefaultCover('${safeEncodeUriPart(item.format)}', '${safeEncodeUriPart(item.artist)}', '${safeEncodeUriPart(item.title)}', true)">
             
-            <!-- Sleeve Visual Card Header -->
-            <div class="relative w-full aspect-square bg-vinyl-950 overflow-hidden cursor-pointer flex-shrink-0" onclick="viewRecordDetail('${safeId}')">
-              <img src="${coverSrc}" alt="${escapeHtml(item.title)}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src=getDefaultCover('${safeEncodeUriPart(item.format)}', '${safeEncodeUriPart(item.artist)}', '${safeEncodeUriPart(item.title)}', true)">
-              
-              <!-- Direct Choose Sleeve Hover Button -->
-              ${isOwner ? `
-                <button type="button" onclick="event.stopPropagation(); openArtworkChooserModal('record', '${safeId}')" class="opacity-0 group-hover:opacity-100 transition-all duration-200 absolute inset-0 m-auto w-max h-max px-3.5 py-1.5 rounded-lg bg-black/85 hover:bg-black text-brass-400 hover:text-white border border-brass-500/50 hover:border-brass-400 text-xs font-semibold backdrop-blur-md flex items-center gap-1.5 shadow-2xl z-20 cursor-pointer pointer-events-none group-hover:pointer-events-auto" title="Choose from online sleeve choices or generic">
-                  <i class="fa-solid fa-images text-xs text-sky-400"></i>
-                  <span>Choose Sleeve</span>
-                </button>
+            <!-- Direct Choose Sleeve Hover Button -->
+            ${isOwner ? `
+              <button type="button" onclick="event.stopPropagation(); openArtworkChooserModal('record', '${safeId}')" class="opacity-0 group-hover:opacity-100 transition-all duration-200 absolute inset-0 m-auto w-max h-max px-3.5 py-1.5 rounded-lg bg-black/85 hover:bg-black text-brass-400 hover:text-white border border-brass-500/50 hover:border-brass-400 text-xs font-semibold backdrop-blur-md flex items-center gap-1.5 shadow-2xl z-20 cursor-pointer pointer-events-none group-hover:pointer-events-auto" title="Choose from online sleeve choices or generic">
+                <i class="fa-solid fa-images text-xs text-sky-400"></i>
+                <span>Choose Sleeve</span>
+              </button>
+            ` : ''}
+            
+            <!-- Format Indicator Badge -->
+            <div class="absolute top-3 left-3 flex flex-col gap-1 items-start">
+              ${getFormatBadge(item.format)}
+              ${hasVal ? `
+                <span class="bg-emerald-950/90 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded text-[10px] font-mono font-bold shadow backdrop-blur">
+                  ${sym}${parseFloat(item.estimatedValue).toFixed(2)}
+                </span>
               ` : ''}
-              
-              <!-- Format Indicator Badge -->
-              <div class="absolute top-3 left-3 flex flex-col gap-1 items-start">
-                ${getFormatBadge(item.format)}
-                ${hasVal ? `
-                  <span class="bg-emerald-950/90 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded text-[10px] font-mono font-bold shadow backdrop-blur">
-                    ${sym}${parseFloat(item.estimatedValue).toFixed(2)}
+            </div>
+
+            <!-- Media Grade Badge + Multi-Select Checkbox -->
+            <div class="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+              ${getGradeBadge(item.mediaGrade)}
+              <button type="button" onclick="toggleRecordSelection('${safeId}', event)"
+                class="w-6 h-6 rounded-lg flex items-center justify-center border transition shadow ${isSelected ? 'bg-brass-500 text-vinyl-950 border-brass-300 font-bold' : 'bg-black/75 text-slate-300 border-white/25 hover:border-brass-400'}"
+                title="${isSelected ? 'Deselect record' : 'Select record for bulk actions'}">
+                <i class="fa-solid fa-check text-[10px] ${isSelected ? '' : 'opacity-40'}"></i>
+              </button>
+            </div>
+
+            <!-- Subtle Bottom Dark Vignette to keep overlays readable -->
+            <div class="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none"></div>
+
+            <!-- Speed, Vinyl Weight, Colour and Label Pill -->
+            <div class="absolute bottom-2.5 inset-x-2.5 flex items-center justify-between text-[10px] text-white/90 gap-1.5">
+              <div class="flex items-center gap-1 min-w-0 flex-wrap">
+                ${isSpeedApplicable(item.format) ? `
+                  <span class="bg-black/85 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/15 font-mono shadow-sm">
+                    ${item.speed || (isAlbum ? '33 1/3 RPM' : '45 RPM')}
+                  </span>
+                ` : ''}
+                ${(isSpeedApplicable(item.format) && item.vinylWeight) ? `
+                  <span class="bg-black/85 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-emerald-500/30 font-mono text-[9px] text-emerald-400 font-bold shadow-sm whitespace-nowrap" title="Vinyl Weight: ${escapeHtml(item.vinylWeight)}">
+                    ${escapeHtml(item.vinylWeight.match(/\d+g/i)?.[0] || item.vinylWeight)}
+                  </span>
+                ` : ''}
+                ${(isSpeedApplicable(item.format) && item.vinylColor && !item.vinylColor.toLowerCase().includes('black')) ? `
+                  <span class="bg-black/85 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-pink-500/40 text-[9px] text-pink-300 font-semibold shadow-sm truncate max-w-[85px]" title="Vinyl Colour: ${escapeHtml(item.vinylColor)}">
+                    <i class="fa-solid fa-palette text-[8px] mr-0.5"></i>${escapeHtml(item.vinylColor)}
                   </span>
                 ` : ''}
               </div>
+              ${item.label && String(item.label).trim() ? `
+                <button type="button" onclick="event.stopPropagation(); filterByLabel('${escapeJsString(item.label)}')" class="bg-black/85 hover:bg-brass-500/20 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/15 hover:border-brass-400/60 truncate max-w-[120px] font-medium text-brass-400 hover:text-brass-300 shadow-sm cursor-pointer transition" title="Filter archive by label: ${escapeHtml(item.label)}">
+                  ${escapeHtml(item.label)}
+                </button>
+              ` : `
+                <span class="bg-black/85 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/15 truncate max-w-[120px] font-medium text-slate-400 shadow-sm" title="Unknown Label">
+                  Unknown Label
+                </span>
+              `}
+            </div>
+          </div>
 
-              <!-- Media Grade Badge + Multi-Select Checkbox -->
-              <div class="absolute top-3 right-3 flex items-center gap-1.5 z-10">
-                ${getGradeBadge(item.mediaGrade)}
-                <button type="button" onclick="toggleRecordSelection('${safeId}', event)"
-                  class="w-6 h-6 rounded-lg flex items-center justify-center border transition shadow ${isSelected ? 'bg-brass-500 text-vinyl-950 border-brass-300 font-bold' : 'bg-black/75 text-slate-300 border-white/25 hover:border-brass-400'}"
-                  title="${isSelected ? 'Deselect record' : 'Select record for bulk actions'}">
-                  <i class="fa-solid fa-check text-[10px] ${isSelected ? '' : 'opacity-40'}"></i>
+          <!-- Content Card Body -->
+          <div class="p-4 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="flex items-baseline justify-between gap-1 mb-1">
+                <h3 class="text-sm font-bold text-white tracking-tight truncate hover:text-brass-400 cursor-pointer transition" onclick="filterByArtist('${escapeJsString(item.artist)}')" title="Filter archive for all by ${escapeHtml(item.artist)}">
+                  ${escapeHtml(item.artist)}
+                </h3>
+                <div class="flex items-center gap-1.5 flex-shrink-0 font-mono text-xs">
+                  <span class="text-emerald-400/90 text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/10 border border-emerald-500/20" title="Harmonic Telemetry: ${telemetry.bpm} BPM • ${telemetry.musicalKey} (${telemetry.camelot})">
+                    ${telemetry.bpm} BPM
+                  </span>
+                  <span class="text-slate-400">${escapeHtml(item.year || '--')}</span>
+                </div>
+              </div>
+              
+              <h4 class="text-xs font-semibold text-slate-200 hover:text-brass-400 truncate mb-1.5 cursor-pointer transition" onclick="viewRecordDetail('${safeId}')" title="View dossier for ${escapeHtml(item.title)}">
+                ${escapeHtml(item.title)}
+              </h4>
+
+              <div class="mb-2">
+                ${renderRecordMembershipChips(item.id, false, membershipMap)}
+              </div>
+
+              ${formatSeriesLabel(item) ? `
+                <div class="mb-2">
+                  <button type="button" onclick="event.stopPropagation(); filterBySeries('${escapeJsString(item.seriesName || item.series_name)}')" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-pink-500/10 hover:bg-pink-500/20 text-pink-300 border border-pink-500/30 text-[10px] font-mono transition max-w-full leading-tight" title="Filter archive by series">
+                    <i class="fa-solid fa-layer-group text-[9px] flex-shrink-0"></i>
+                    <span class="min-w-0 break-words">${escapeHtml(formatSeriesLabel(item))}</span>
+                  </button>
+                </div>
+              ` : ''}
+
+              <!-- Member Crate Attribution -->
+              ${item.ownerName ? `
+                <div class="flex items-center justify-between text-[10px] text-slate-400 mb-2">
+                  <span class="flex items-center gap-1.5 truncate max-w-[160px]" title="Catalogued by ${escapeHtml(item.ownerName)}">
+                    <i class="fa-solid fa-circle-user text-brass-400 text-[11px]"></i>
+                    <span class="truncate">${escapeHtml(item.ownerName)}</span>
+                  </span>
+                  ${isOwner && currentUser ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-brass-500/10 text-brass-400 border border-brass-500/20 font-mono">Your Crate</span>' : ''}
+                </div>
+              ` : ''}
+
+              <!-- Tracks Summary Quick Info (click to expand full tracklist) -->
+              ${(() => {
+          const recKey = String(item.id || '');
+          const safeDomId = escapeHtml(recKey);
+          const isTracksExpanded = expandedCardTracklists.has(recKey);
+          const hasTracks = item.tracks && item.tracks.length > 0;
+          const tracksRowsHtml = hasTracks
+            ? item.tracks.map((t, idx) => `
+                      <div class="flex items-center justify-between gap-2 text-[10px] py-0.5 border-b border-vinyl-800/50 last:border-b-0">
+                        <span class="text-slate-200 truncate"><span class="text-brass-400/90 font-mono mr-1.5">${escapeHtml(t.position || t.side || String(idx + 1))}</span>${escapeHtml(t.title || 'Untitled Track')}</span>
+                        ${t.duration ? `<span class="text-slate-500 font-mono flex-shrink-0">${escapeHtml(t.duration)}</span>` : ''}
+                      </div>
+                    `).join('')
+            : `
+                      <div class="flex items-center justify-between gap-2 text-[10px] py-0.5 border-b border-vinyl-800/50">
+                        <span class="text-slate-200 truncate"><span class="text-brass-400 font-mono mr-1.5">A</span>${escapeHtml(item.sideATitle || item.title)}</span>
+                        ${item.sideADuration ? `<span class="text-slate-500 font-mono flex-shrink-0">${escapeHtml(item.sideADuration)}</span>` : ''}
+                      </div>
+                      <div class="flex items-center justify-between gap-2 text-[10px] py-0.5">
+                        <span class="text-slate-300 truncate"><span class="text-slate-400 font-mono mr-1.5">B</span>${escapeHtml(item.sideBTitle || 'Side B Track')}</span>
+                        ${item.sideBDuration ? `<span class="text-slate-500 font-mono flex-shrink-0">${escapeHtml(item.sideBDuration)}</span>` : ''}
+                      </div>
+                    `;
+          return `
+                  <div id="cardTracksToggle-${safeDomId}" role="button" tabindex="0" aria-expanded="${isTracksExpanded ? 'true' : 'false'}" onclick="toggleCardTracklist(event, '${safeId}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleCardTracklist(event,'${safeId}');}" class="bg-vinyl-850 hover:bg-vinyl-850/80 p-2.5 rounded-lg border border-vinyl-800 hover:border-brass-500/40 space-y-1 text-[11px] cursor-pointer transition select-none" title="Click to show/hide full tracklist">
+                    ${hasTracks ? `
+                      <div class="flex items-center justify-between text-slate-300 gap-1.5">
+                        <span class="font-medium text-brass-400 truncate flex-1">
+                          <i class="fa-solid fa-list text-[10px] mr-1"></i> ${item.tracks.length} Tracks Tracklist
+                        </span>
+                        <span class="flex items-center gap-1.5 flex-shrink-0">
+                          ${item.country ? `<span class="text-[10px] text-slate-500 font-mono">${escapeHtml(item.country)}</span>` : ''}
+                          <i id="cardTracksChevron-${safeDomId}" class="fa-solid fa-chevron-down text-[9px] text-slate-500 transition-transform duration-200 ${isTracksExpanded ? 'rotate-180' : ''}"></i>
+                        </span>
+                      </div>
+                      <div class="text-[10px] text-slate-400 truncate">
+                        ${escapeHtml(item.tracks.slice(0, 2).map(t => t.title).join(' · '))}${item.tracks.length > 2 ? '...' : ''}
+                      </div>
+                    ` : `
+                      <div class="flex items-center justify-between gap-1.5">
+                        <div class="flex items-center gap-1.5 text-slate-300 truncate min-w-0">
+                          <span class="w-3.5 h-3.5 rounded-full bg-vinyl-800 text-[8px] font-bold text-brass-400 flex items-center justify-center flex-shrink-0">A</span>
+                          <span class="truncate">${escapeHtml(item.sideATitle || item.title)}</span>
+                        </div>
+                        <i id="cardTracksChevron-${safeDomId}" class="fa-solid fa-chevron-down text-[9px] text-slate-500 transition-transform duration-200 flex-shrink-0 ${isTracksExpanded ? 'rotate-180' : ''}"></i>
+                      </div>
+                      <div class="flex items-center gap-1.5 text-slate-400 truncate">
+                        <span class="w-3.5 h-3.5 rounded-full bg-vinyl-800 text-[8px] font-bold text-slate-400 flex items-center justify-center flex-shrink-0">B</span>
+                        <span class="truncate">${escapeHtml(item.sideBTitle || 'Side B Track')}</span>
+                      </div>
+                    `}
+                    <div id="cardTracksExpanded-${safeDomId}" class="${isTracksExpanded ? '' : 'hidden'} mt-2 pt-2 border-t border-vinyl-800/80 space-y-0.5 max-h-44 overflow-y-auto pr-1" onclick="event.stopPropagation()">
+                      ${tracksRowsHtml}
+                    </div>
+                  </div>
+                `;
+        })()}
+
+              <!-- Matrix snippet -->
+              ${item.matrixA ? `
+                <div class="mt-2 text-[10px] text-emerald-400/90 font-mono truncate" title="Matrix A: ${escapeHtml(item.matrixA)}">
+                  <i class="fa-solid fa-compact-disc mr-1 text-slate-600"></i>${escapeHtml(item.matrixA)}
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Action Bar Footer with 1-Click Market Checks -->
+            <div class="card-action-bar mt-4 pt-3 border-t border-vinyl-800 flex items-center justify-between flex-wrap gap-2 text-xs text-slate-400">
+              <div class="flex items-center gap-1.5 flex-wrap flex-shrink-0">
+                <button type="button" onclick="viewRecordDetail('${safeId}')" class="hover:text-brass-400 transition flex items-center gap-1 flex-shrink-0">
+                  <i class="fa-solid fa-file-lines"></i> Dossier
+                </button>
+                <button type="button" onclick="event.stopPropagation(); toggleBoxForRecord('${safeId}')" id="cardBoxBtn-${safeId}" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border-vinyl-700'}" title="${inBox ? 'Remove from Record Box' : 'Pack into Record Box'}">
+                  <span>${inBox ? '✓ In Box' : '+ Box'}</span>
+                </button>
+                <button type="button" onclick="event.stopPropagation(); openCrateAssignModal('${safeId}', 'all')" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-vinyl-850 hover:bg-vinyl-800 text-slate-300 hover:text-white border border-vinyl-700 transition" title="Add to Box, Thematic Crate, or Set Timeline">
+                  <span>+ Add to…</span>
                 </button>
               </div>
 
-              <!-- Subtle Bottom Dark Vignette to keep overlays readable -->
-              <div class="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none"></div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <!-- 1-Click eBay Sold Link -->
+                <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center flex-shrink-0 p-1.5 rounded hover:bg-vinyl-800 hover:text-blue-400 transition" title="Check eBay Sold Listings (90 Days)">
+                  <i class="fa-brands fa-ebay text-base"></i>
+                </a>
 
-              <!-- Speed, Vinyl Weight, Colour and Label Pill -->
-              <div class="absolute bottom-2.5 inset-x-2.5 flex items-center justify-between text-[10px] text-white/90 gap-1.5">
-                <div class="flex items-center gap-1 min-w-0 flex-wrap">
-                  ${isSpeedApplicable(item.format) ? `
-                    <span class="bg-black/85 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/15 font-mono shadow-sm">
-                      ${item.speed || (isAlbum ? '33 1/3 RPM' : '45 RPM')}
-                    </span>
-                  ` : ''}
-                  ${(isSpeedApplicable(item.format) && item.vinylWeight) ? `
-                    <span class="bg-black/85 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-emerald-500/30 font-mono text-[9px] text-emerald-400 font-bold shadow-sm whitespace-nowrap" title="Vinyl Weight: ${escapeHtml(item.vinylWeight)}">
-                      ${escapeHtml(item.vinylWeight.match(/\d+g/i)?.[0] || item.vinylWeight)}
-                    </span>
-                  ` : ''}
-                  ${(isSpeedApplicable(item.format) && item.vinylColor && !item.vinylColor.toLowerCase().includes('black')) ? `
-                    <span class="bg-black/85 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-pink-500/40 text-[9px] text-pink-300 font-semibold shadow-sm truncate max-w-[85px]" title="Vinyl Colour: ${escapeHtml(item.vinylColor)}">
-                      <i class="fa-solid fa-palette text-[8px] mr-0.5"></i>${escapeHtml(item.vinylColor)}
-                    </span>
-                  ` : ''}
-                </div>
-                ${item.label && String(item.label).trim() ? `
-                  <button type="button" onclick="event.stopPropagation(); filterByLabel('${escapeJsString(item.label)}')" class="bg-black/85 hover:bg-brass-500/20 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/15 hover:border-brass-400/60 truncate max-w-[120px] font-medium text-brass-400 hover:text-brass-300 shadow-sm cursor-pointer transition" title="Filter archive by label: ${escapeHtml(item.label)}">
-                    ${escapeHtml(item.label)}
+                <!-- 1-Click Discogs Market Link -->
+                <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center flex-shrink-0 p-1.5 rounded hover:bg-vinyl-800 hover:text-amber-400 transition" title="Check Discogs Marketplace Average">
+                  <i class="fa-solid fa-compact-disc"></i>
+                </a>
+
+                <!-- 1-Click Spotify Audition Link -->
+                <a href="${getStreamingLinks(item).spotify}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center flex-shrink-0 p-1.5 rounded hover:bg-emerald-500/15 text-emerald-400/90 hover:text-emerald-300 transition" title="Audition on Spotify">
+                  <i class="fa-brands fa-spotify text-sm"></i>
+                </a>
+
+                ${isOwner ? `
+                  <span class="w-px h-3.5 bg-vinyl-700/80 mx-0.5 flex-shrink-0" aria-hidden="true"></span>
+                  <button type="button" onclick="event.stopPropagation(); openArtworkChooserModal('record', '${safeId}')" class="inline-flex items-center justify-center flex-shrink-0 p-1.5 rounded hover:bg-vinyl-800 text-slate-400 hover:text-sky-400 transition" title="Choose Cover Sleeve">
+                    <i class="fa-solid fa-images"></i>
+                  </button>
+                  <button type="button" onclick="event.stopPropagation(); editRecord('${safeId}')" class="inline-flex items-center justify-center flex-shrink-0 p-1.5 rounded hover:bg-vinyl-800 hover:text-amber-400 transition" title="Edit Metadata">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button type="button" onclick="event.stopPropagation(); deleteRecordPrompt('${safeId}')" class="inline-flex items-center justify-center flex-shrink-0 p-1.5 rounded hover:bg-vinyl-800 hover:text-red-400 transition" title="Delete Entry">
+                    <i class="fa-solid fa-trash-can"></i>
                   </button>
                 ` : `
-                  <span class="bg-black/85 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/15 truncate max-w-[120px] font-medium text-slate-400 shadow-sm" title="Unknown Label">
-                    Unknown Label
+                  <span class="inline-flex items-center justify-center p-1 text-slate-600 cursor-default" title="Contributed by ${escapeHtml(item.ownerName || 'another member')}">
+                    <i class="fa-solid fa-shield-halved text-xs"></i>
                   </span>
                 `}
               </div>
             </div>
 
-            <!-- Content Card Body -->
-            <div class="p-4 flex-1 flex flex-col justify-between">
-              <div>
-                <div class="flex items-baseline justify-between gap-1 mb-1">
-                  <h3 class="text-sm font-bold text-white tracking-tight truncate hover:text-brass-400 cursor-pointer transition" onclick="filterByArtist('${escapeJsString(item.artist)}')" title="Filter archive for all by ${escapeHtml(item.artist)}">
-                    ${escapeHtml(item.artist)}
-                  </h3>
-                  <div class="flex items-center gap-1.5 flex-shrink-0 font-mono text-xs">
-                    <span class="text-emerald-400/90 text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/10 border border-emerald-500/20" title="Harmonic Telemetry: ${telemetry.bpm} BPM • ${telemetry.musicalKey} (${telemetry.camelot})">
-                      ${telemetry.bpm} BPM
-                    </span>
-                    <span class="text-slate-400">${escapeHtml(item.year || '--')}</span>
-                  </div>
-                </div>
-                
-                <h4 class="text-xs font-semibold text-slate-200 hover:text-brass-400 truncate mb-1.5 cursor-pointer transition" onclick="viewRecordDetail('${safeId}')" title="View dossier for ${escapeHtml(item.title)}">
-                  ${escapeHtml(item.title)}
-                </h4>
-
-                <div class="mb-2">
-                  ${renderRecordMembershipChips(item.id, false, membershipMap)}
-                </div>
-
-                ${formatSeriesLabel(item) ? `
-                  <div class="mb-2">
-                    <button type="button" onclick="event.stopPropagation(); filterBySeries('${escapeJsString(item.seriesName || item.series_name)}')" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-pink-500/10 hover:bg-pink-500/20 text-pink-300 border border-pink-500/30 text-[10px] font-mono transition max-w-full leading-tight" title="Filter archive by series">
-                      <i class="fa-solid fa-layer-group text-[9px] flex-shrink-0"></i>
-                      <span class="min-w-0 break-words">${escapeHtml(formatSeriesLabel(item))}</span>
-                    </button>
-                  </div>
-                ` : ''}
-
-                <!-- Member Crate Attribution -->
-                ${item.ownerName ? `
-                  <div class="flex items-center justify-between text-[10px] text-slate-400 mb-2">
-                    <span class="flex items-center gap-1.5 truncate max-w-[160px]" title="Catalogued by ${escapeHtml(item.ownerName)}">
-                      <i class="fa-solid fa-circle-user text-brass-400 text-[11px]"></i>
-                      <span class="truncate">${escapeHtml(item.ownerName)}</span>
-                    </span>
-                    ${isOwner && currentUser ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-brass-500/10 text-brass-400 border border-brass-500/20 font-mono">Your Crate</span>' : ''}
-                  </div>
-                ` : ''}
-
-                <!-- Tracks Summary Quick Info (click to expand full tracklist) -->
-                ${(() => {
-            const recKey = String(item.id || '');
-            const safeDomId = escapeHtml(recKey);
-            const isTracksExpanded = expandedCardTracklists.has(recKey);
-            const hasTracks = item.tracks && item.tracks.length > 0;
-            const tracksRowsHtml = hasTracks
-              ? item.tracks.map((t, idx) => `
-                        <div class="flex items-center justify-between gap-2 text-[10px] py-0.5 border-b border-vinyl-800/50 last:border-b-0">
-                          <span class="text-slate-200 truncate"><span class="text-brass-400/90 font-mono mr-1.5">${escapeHtml(t.position || t.side || String(idx + 1))}</span>${escapeHtml(t.title || 'Untitled Track')}</span>
-                          ${t.duration ? `<span class="text-slate-500 font-mono flex-shrink-0">${escapeHtml(t.duration)}</span>` : ''}
-                        </div>
-                      `).join('')
-              : `
-                        <div class="flex items-center justify-between gap-2 text-[10px] py-0.5 border-b border-vinyl-800/50">
-                          <span class="text-slate-200 truncate"><span class="text-brass-400 font-mono mr-1.5">A</span>${escapeHtml(item.sideATitle || item.title)}</span>
-                          ${item.sideADuration ? `<span class="text-slate-500 font-mono flex-shrink-0">${escapeHtml(item.sideADuration)}</span>` : ''}
-                        </div>
-                        <div class="flex items-center justify-between gap-2 text-[10px] py-0.5">
-                          <span class="text-slate-300 truncate"><span class="text-slate-400 font-mono mr-1.5">B</span>${escapeHtml(item.sideBTitle || 'Side B Track')}</span>
-                          ${item.sideBDuration ? `<span class="text-slate-500 font-mono flex-shrink-0">${escapeHtml(item.sideBDuration)}</span>` : ''}
-                        </div>
-                      `;
-            return `
-                    <div id="cardTracksToggle-${safeDomId}" role="button" tabindex="0" aria-expanded="${isTracksExpanded ? 'true' : 'false'}" onclick="toggleCardTracklist(event, '${safeId}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleCardTracklist(event,'${safeId}');}" class="bg-vinyl-850 hover:bg-vinyl-850/80 p-2.5 rounded-lg border border-vinyl-800 hover:border-brass-500/40 space-y-1 text-[11px] cursor-pointer transition select-none" title="Click to show/hide full tracklist">
-                      ${hasTracks ? `
-                        <div class="flex items-center justify-between text-slate-300 gap-1.5">
-                          <span class="font-medium text-brass-400 truncate flex-1">
-                            <i class="fa-solid fa-list text-[10px] mr-1"></i> ${item.tracks.length} Tracks Tracklist
-                          </span>
-                          <span class="flex items-center gap-1.5 flex-shrink-0">
-                            ${item.country ? `<span class="text-[10px] text-slate-500 font-mono">${escapeHtml(item.country)}</span>` : ''}
-                            <i id="cardTracksChevron-${safeDomId}" class="fa-solid fa-chevron-down text-[9px] text-slate-500 transition-transform duration-200 ${isTracksExpanded ? 'rotate-180' : ''}"></i>
-                          </span>
-                        </div>
-                        <div class="text-[10px] text-slate-400 truncate">
-                          ${escapeHtml(item.tracks.slice(0, 2).map(t => t.title).join(' · '))}${item.tracks.length > 2 ? '...' : ''}
-                        </div>
-                      ` : `
-                        <div class="flex items-center justify-between gap-1.5">
-                          <div class="flex items-center gap-1.5 text-slate-300 truncate min-w-0">
-                            <span class="w-3.5 h-3.5 rounded-full bg-vinyl-800 text-[8px] font-bold text-brass-400 flex items-center justify-center flex-shrink-0">A</span>
-                            <span class="truncate">${escapeHtml(item.sideATitle || item.title)}</span>
-                          </div>
-                          <i id="cardTracksChevron-${safeDomId}" class="fa-solid fa-chevron-down text-[9px] text-slate-500 transition-transform duration-200 flex-shrink-0 ${isTracksExpanded ? 'rotate-180' : ''}"></i>
-                        </div>
-                        <div class="flex items-center gap-1.5 text-slate-400 truncate">
-                          <span class="w-3.5 h-3.5 rounded-full bg-vinyl-800 text-[8px] font-bold text-slate-400 flex items-center justify-center flex-shrink-0">B</span>
-                          <span class="truncate">${escapeHtml(item.sideBTitle || 'Side B Track')}</span>
-                        </div>
-                      `}
-                      <div id="cardTracksExpanded-${safeDomId}" class="${isTracksExpanded ? '' : 'hidden'} mt-2 pt-2 border-t border-vinyl-800/80 space-y-0.5 max-h-44 overflow-y-auto pr-1" onclick="event.stopPropagation()">
-                        ${tracksRowsHtml}
-                      </div>
-                    </div>
-                  `;
-          })()}
-
-                <!-- Matrix snippet -->
-                ${item.matrixA ? `
-                  <div class="mt-2 text-[10px] text-emerald-400/90 font-mono truncate" title="Matrix A: ${escapeHtml(item.matrixA)}">
-                    <i class="fa-solid fa-compact-disc mr-1 text-slate-600"></i>${escapeHtml(item.matrixA)}
-                  </div>
-                ` : ''}
-              </div>
-
-              <!-- Action Bar Footer with 1-Click Market Checks -->
-              <div class="card-action-bar mt-4 pt-3 border-t border-vinyl-800 flex items-center justify-between flex-wrap gap-2 text-xs text-slate-400">
-                <div class="flex items-center gap-1.5 flex-wrap flex-shrink-0">
-                  <button type="button" onclick="viewRecordDetail('${safeId}')" class="hover:text-brass-400 transition flex items-center gap-1 flex-shrink-0">
-                    <i class="fa-solid fa-file-lines"></i> Dossier
-                  </button>
-                  <button type="button" onclick="event.stopPropagation(); toggleBoxForRecord('${safeId}')" id="cardBoxBtn-${safeId}" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border-vinyl-700'}" title="${inBox ? 'Remove from Record Box' : 'Pack into Record Box'}">
-                    <span>${inBox ? '✓ In Box' : '+ Box'}</span>
-                  </button>
-                  <button type="button" onclick="event.stopPropagation(); openCrateAssignModal('${safeId}', 'all')" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-vinyl-850 hover:bg-vinyl-800 text-slate-300 hover:text-white border border-vinyl-700 transition" title="Add to Box, Thematic Crate, or Set Timeline">
-                    <span>+ Add to…</span>
-                  </button>
-                </div>
-
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <!-- 1-Click eBay Sold Link -->
-                  <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center flex-shrink-0 p-1.5 rounded hover:bg-vinyl-800 hover:text-blue-400 transition" title="Check eBay Sold Listings (90 Days)">
-                    <i class="fa-brands fa-ebay text-base"></i>
-                  </a>
-
-                  <!-- 1-Click Discogs Market Link -->
-                  <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center flex-shrink-0 p-1.5 rounded hover:bg-vinyl-800 hover:text-amber-400 transition" title="Check Discogs Marketplace Average">
-                    <i class="fa-solid fa-compact-disc"></i>
-                  </a>
-
-                  <!-- 1-Click Spotify Audition Link -->
-                  <a href="${getStreamingLinks(item).spotify}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center flex-shrink-0 p-1.5 rounded hover:bg-emerald-500/15 text-emerald-400/90 hover:text-emerald-300 transition" title="Audition on Spotify">
-                    <i class="fa-brands fa-spotify text-sm"></i>
-                  </a>
-
-                  ${isOwner ? `
-                    <span class="w-px h-3.5 bg-vinyl-700/80 mx-0.5 flex-shrink-0" aria-hidden="true"></span>
-                    <button type="button" onclick="event.stopPropagation(); openArtworkChooserModal('record', '${safeId}')" class="inline-flex items-center justify-center flex-shrink-0 p-1.5 rounded hover:bg-vinyl-800 text-slate-400 hover:text-sky-400 transition" title="Choose Cover Sleeve">
-                      <i class="fa-solid fa-images"></i>
-                    </button>
-                    <button type="button" onclick="event.stopPropagation(); editRecord('${safeId}')" class="inline-flex items-center justify-center flex-shrink-0 p-1.5 rounded hover:bg-vinyl-800 hover:text-amber-400 transition" title="Edit Metadata">
-                      <i class="fa-solid fa-pen-to-square"></i>
-                    </button>
-                    <button type="button" onclick="event.stopPropagation(); deleteRecordPrompt('${safeId}')" class="inline-flex items-center justify-center flex-shrink-0 p-1.5 rounded hover:bg-vinyl-800 hover:text-red-400 transition" title="Delete Entry">
-                      <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                  ` : `
-                    <span class="inline-flex items-center justify-center p-1 text-slate-600 cursor-default" title="Contributed by ${escapeHtml(item.ownerName || 'another member')}">
-                      <i class="fa-solid fa-shield-halved text-xs"></i>
-                    </span>
-                  `}
-                </div>
-              </div>
-
-            </div>
           </div>
-        `;
-      });
+        </div>
+      `;
+    }
 
-      html += '</div>';
-      container.innerHTML = html;
+    function renderGridView(list, container) {
+      _disconnectChunkObserver();
+      const sym = getCurrencySymbol();
+      const membershipMap = buildMembershipLookupMap();
+      const boxIdSet = membershipMap.boxSet;
+      const isCompact = currentGridDensity === 'compact';
+      const gridClass = isCompact
+        ? 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-4'
+        : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5';
+
+      const cardBuilder = isCompact ? _buildCompactCardHtml : _buildDetailedCardHtml;
+      const firstBatch = list.slice(0, CHUNK_RENDER_BATCH_SIZE);
+      const firstHtml = firstBatch.map(item => cardBuilder(item, sym, membershipMap, boxIdSet)).join('');
+
+      container.innerHTML = `
+        <div id="recordsGridChunkHost" class="${gridClass}">
+          ${firstHtml}
+        </div>
+        <div id="recordsChunkSentinel" class="${list.length > CHUNK_RENDER_BATCH_SIZE ? 'py-4 text-center text-xs text-slate-500 font-mono' : 'hidden'}">
+          Showing ${firstBatch.length} of ${list.length} releases…
+        </div>
+      `;
+
+      if (list.length <= CHUNK_RENDER_BATCH_SIZE) return;
+
+      let renderedCount = firstBatch.length;
+      const gridHost = document.getElementById('recordsGridChunkHost');
+      const sentinel = document.getElementById('recordsChunkSentinel');
+      if (!gridHost || !sentinel) return;
+
+      const appendNextBatch = () => {
+        if (renderedCount >= list.length) {
+          sentinel.classList.add('hidden');
+          _disconnectChunkObserver();
+          return;
+        }
+        const nextSlice = list.slice(renderedCount, renderedCount + CHUNK_RENDER_BATCH_SIZE);
+        const batchHtml = nextSlice.map(item => cardBuilder(item, sym, membershipMap, boxIdSet)).join('');
+        gridHost.insertAdjacentHTML('beforeend', batchHtml);
+        renderedCount += nextSlice.length;
+        if (renderedCount >= list.length) {
+          sentinel.classList.add('hidden');
+          _disconnectChunkObserver();
+        } else {
+          sentinel.textContent = `Showing ${renderedCount} of ${list.length} releases…`;
+        }
+      };
+
+      if (typeof IntersectionObserver === 'function') {
+        _chunkIntersectionObserver = new IntersectionObserver((entries) => {
+          if (entries.some(e => e.isIntersecting)) {
+            appendNextBatch();
+          }
+        }, { rootMargin: '450px 0px' });
+        _chunkIntersectionObserver.observe(sentinel);
+      } else {
+        while (renderedCount < list.length) appendNextBatch();
+      }
+    }
+
+    function _buildListViewRowHtml(item, sym, membershipMap) {
+      const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
+      const hasVal = areValuesVisible && item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
+      const isOwner = !isReadOnlyShareView && (!item.userId || !currentUser || item.userId === currentUser.id);
+      const streamLinks = getStreamingLinks(item);
+      const safeId = escapeJsString(String(item.id));
+      const telemetry = deriveRecordTelemetry(item);
+      const inBox = membershipMap.boxSet.has(String(item.id));
+      const isSelected = selectedRecordIds.has(String(item.id));
+
+      return `
+        <tr style="content-visibility: auto; contain-intrinsic-size: auto 64px;" class="record-row ${isSelected ? 'bg-brass-500/10' : 'hover:bg-vinyl-850/60'} transition group cursor-pointer" onclick="viewRecordDetail('${safeId}')">
+          <td class="py-2.5 px-3">
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="toggleRecordSelection('${safeId}', event)"
+                class="w-4 h-4 rounded flex items-center justify-center border transition shrink-0 ${isSelected ? 'bg-brass-500 text-vinyl-950 border-brass-300 font-bold' : 'bg-vinyl-950 text-slate-500 border-vinyl-700 hover:border-brass-400'}"
+                title="${isSelected ? 'Deselect record' : 'Select record for bulk actions'}">
+                <i class="fa-solid fa-check text-[8px] ${isSelected ? '' : 'opacity-0 group-hover:opacity-60'}"></i>
+              </button>
+              <div class="relative group/thumb cursor-pointer flex-shrink-0" onclick="event.stopPropagation(); ${isOwner ? `openArtworkChooserModal('record', '${safeId}')` : `viewRecordDetail('${safeId}')`}" title="${isOwner ? 'Click to choose cover sleeve' : 'View dossier'}">
+                <img src="${coverSrc}" alt="" loading="lazy" class="w-9 h-9 rounded object-cover border border-vinyl-700 bg-vinyl-950 group-hover/thumb:border-brass-400 transition" onerror="this.onerror=null; this.src=getDefaultCover('${encodeURIComponent(item.format || '')}', '${encodeURIComponent(item.artist || '')}', '${encodeURIComponent(item.title || '')}', true)">
+                ${isOwner ? `
+                  <div class="absolute inset-0 bg-black/60 rounded opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center text-sky-400 transition">
+                    <i class="fa-solid fa-images text-[10px]"></i>
+                  </div>
+                ` : ''}
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-white hover:text-brass-400 cursor-pointer truncate transition" onclick="event.stopPropagation(); filterByArtist('${escapeJsString(item.artist)}')" title="Filter archive for all by ${escapeHtml(item.artist)}">
+                  ${item.artist}
+                </div>
+                <div class="text-slate-300 hover:text-brass-400 text-[11px] font-medium truncate cursor-pointer transition" onclick="event.stopPropagation(); viewRecordDetail('${safeId}')" title="View dossier for ${escapeHtml(item.title)}">
+                  ${item.title}
+                </div>
+                ${renderRecordMembershipChips(item.id, true, membershipMap)}
+                ${formatSeriesLabel(item) ? `
+                  <div class="mt-0.5">
+                    <button type="button" onclick="event.stopPropagation(); filterBySeries('${escapeJsString(item.seriesName || item.series_name)}')" class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-pink-500/10 text-pink-300 border border-pink-500/30 text-[9px] font-mono hover:border-pink-400 transition">
+                      <i class="fa-solid fa-layer-group text-[8px]"></i> ${escapeHtml(formatSeriesLabel(item))}
+                    </button>
+                  </div>
+                ` : ''}
+                ${item.ownerName ? `
+                  <div class="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5 font-mono truncate">
+                    <i class="fa-solid fa-circle-user text-brass-500/80 text-[9px]"></i>
+                    <span>${item.ownerName}${isOwner && currentUser ? ' (You)' : ''}</span>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </td>
+          <td class="py-2.5 px-3 whitespace-nowrap">
+            <div class="flex flex-col gap-0.5 items-start">
+              ${getFormatBadge(item.format)}
+              <span class="text-[9px] font-mono text-emerald-400/90 font-medium" title="Harmonic Telemetry: ${telemetry.bpm} BPM • ${telemetry.musicalKey}">${telemetry.bpm} BPM</span>
+              ${item.vinylWeight ? `<span class="text-[10px] font-mono text-emerald-400 font-bold" title="Vinyl Weight: ${escapeHtml(item.vinylWeight)}">⚖️ ${escapeHtml(item.vinylWeight.match(/\d+g/i)?.[0] || item.vinylWeight)}</span>` : ''}
+              ${(item.vinylColor && !item.vinylColor.toLowerCase().includes('black')) ? `<span class="text-[10px] text-pink-300 font-semibold truncate max-w-[120px]" title="Vinyl Colour: ${escapeHtml(item.vinylColor)}">🎨 ${escapeHtml(item.vinylColor)}</span>` : ''}
+            </div>
+          </td>
+          <td class="py-2.5 px-3 font-mono">${item.year || '--'}</td>
+          <td class="py-2.5 px-3 whitespace-nowrap">${getGradeBadge(item.mediaGrade)}</td>
+          <td class="py-2.5 px-3 whitespace-nowrap font-mono font-bold text-emerald-400">
+            ${!areValuesVisible ? '<span class="text-slate-500 font-normal">••••••</span>' : (hasVal ? `${sym}${parseFloat(item.estimatedValue).toFixed(2)}` : '<span class="text-slate-600 font-normal">--</span>')}
+          </td>
+          <td class="py-2.5 px-3 font-mono text-brass-400/90 whitespace-nowrap">
+            ${item.catNo || 'S/N'}
+          </td>
+          <td class="py-2.5 px-3 whitespace-nowrap">
+            ${item.label && String(item.label).trim() ? `
+              <button type="button" onclick="event.stopPropagation(); filterByLabel('${escapeJsString(item.label)}')" class="text-left text-brass-400/90 hover:text-brass-300 hover:underline cursor-pointer transition" title="Filter archive by label: ${escapeHtml(item.label)}">
+                ${escapeHtml(item.label)}
+              </button>
+            ` : '--'}
+          </td>
+          <td class="py-2.5 px-3 whitespace-nowrap min-w-[125px]">
+            <div class="flex items-center gap-2">
+              <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-blue-400 p-0.5 inline-flex items-center justify-center transition-transform hover:scale-110" title="eBay Sold Listings">
+                <i class="fa-brands fa-ebay text-sm"></i>
+              </a>
+              <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-amber-400 p-0.5 inline-flex items-center justify-center transition-transform hover:scale-110" title="Discogs Marketplace">
+                <i class="fa-solid fa-compact-disc"></i>
+              </a>
+              <a href="${streamLinks.spotify}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-emerald-400 p-0.5 inline-flex items-center justify-center transition-transform hover:scale-110" title="Audition on Spotify">
+                <i class="fa-brands fa-spotify text-sm"></i>
+              </a>
+              <a href="${streamLinks.youtube}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-red-400 p-0.5 inline-flex items-center justify-center transition-transform hover:scale-110" title="Search on YouTube">
+                <i class="fa-brands fa-youtube text-sm"></i>
+              </a>
+            </div>
+          </td>
+          <td class="py-2 px-1.5 md:py-2.5 md:px-3 text-right whitespace-nowrap sticky right-0 bg-vinyl-900 border-l border-vinyl-800 table-action-sticky z-10 shadow-md">
+            <div class="flex items-center justify-end gap-1">
+              <button type="button" onclick="event.stopPropagation(); toggleMobileTableActions(true)" class="table-action-collapsed-only md:hidden min-w-[32px] min-h-[32px] p-1 rounded-lg bg-vinyl-850/90 hover:bg-vinyl-750 text-brass-400 border border-vinyl-700/70 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Expand Actions">
+                <i class="fa-solid fa-ellipsis text-xs"></i>
+              </button>
+              <div class="table-action-buttons flex items-center justify-end gap-1">
+              <button type="button" onclick="event.stopPropagation(); viewRecordDetail('${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-brass-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Inspect dossier">
+                <i class="fa-solid fa-eye text-xs"></i>
+              </button>
+              <button type="button" onclick="event.stopPropagation(); toggleBoxForRecord('${safeId}')" id="tableBoxBtn-${safeId}" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg border transition active:scale-95 inline-flex items-center justify-center shadow-sm ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850/80 hover:bg-vinyl-750 text-amber-300 border-vinyl-700/60'}" title="${inBox ? 'In Record Box (Click to remove)' : 'Pack into Record Box'}">
+                <i class="fa-solid fa-box-archive text-xs"></i>
+              </button>
+              <button type="button" onclick="event.stopPropagation(); openCrateAssignModal('${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-brass-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Assign to Thematic Crate">
+                <i class="fa-solid fa-layer-group text-xs"></i>
+              </button>
+              ${isOwner ? `
+                <button type="button" onclick="event.stopPropagation(); openArtworkChooserModal('record', '${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-sky-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Choose Cover Sleeve">
+                  <i class="fa-solid fa-images text-xs"></i>
+                </button>
+                <button type="button" onclick="event.stopPropagation(); editRecord('${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-amber-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Edit Metadata">
+                  <i class="fa-solid fa-pen text-xs"></i>
+                </button>
+                <button type="button" onclick="event.stopPropagation(); deleteRecordPrompt('${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-rose-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Delete Entry">
+                  <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+              ` : `
+                <span class="min-w-[34px] min-h-[34px] p-1.5 text-slate-500 inline-flex items-center justify-center" title="Contributed by ${escapeHtml(item.ownerName || 'another member')}">
+                  <i class="fa-solid fa-shield-halved text-xs"></i>
+                </span>
+              `}
+              </div>
+            </div>
+          </td>
+        </tr>
+      `;
     }
 
     function renderListView(list, container) {
+      _disconnectChunkObserver();
       const sym = getCurrencySymbol();
       let tableTotalVal = 0;
       let tableValuedCount = 0;
@@ -18657,7 +18970,11 @@
       });
       const tableAvgVal = tableValuedCount > 0 ? (tableTotalVal / tableValuedCount).toFixed(2) : '0.00';
 
-      let html = `
+      const membershipMap = buildMembershipLookupMap();
+      const firstBatch = list.slice(0, CHUNK_RENDER_BATCH_SIZE);
+      const firstRowsHtml = firstBatch.map(item => _buildListViewRowHtml(item, sym, membershipMap)).join('');
+
+      const html = `
         <div class="bg-vinyl-900 rounded-xl border border-vinyl-800 overflow-x-auto shadow-xl">
           <table id="catalogueDataTable" class="w-full text-left text-xs text-slate-300 ${typeof isMobileTableActionsExpanded !== 'undefined' && isMobileTableActionsExpanded ? 'mobile-actions-expanded' : ''}">
             <thead class="bg-vinyl-850 border-b border-vinyl-800 text-[10px] uppercase font-bold tracking-wider text-slate-400 font-mono">
@@ -18682,138 +18999,8 @@
                 </th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-vinyl-800">
-      `;
-
-      const membershipMap = buildMembershipLookupMap();
-      list.forEach(item => {
-        const coverSrc = item.coverImage || getDefaultCover(item.format, item.artist, item.title);
-        const hasVal = areValuesVisible && item.estimatedValue !== undefined && item.estimatedValue !== null && !isNaN(parseFloat(item.estimatedValue)) && parseFloat(item.estimatedValue) > 0;
-        const isOwner = !isReadOnlyShareView && (!item.userId || !currentUser || item.userId === currentUser.id);
-        const streamLinks = getStreamingLinks(item);
-        const safeId = escapeJsString(String(item.id));
-        const telemetry = deriveRecordTelemetry(item);
-        const inBox = membershipMap.boxSet.has(String(item.id));
-        const isSelected = selectedRecordIds.has(String(item.id));
-
-        html += `
-          <tr class="${isSelected ? 'bg-brass-500/10' : 'hover:bg-vinyl-850/60'} transition group cursor-pointer" onclick="viewRecordDetail('${safeId}')">
-            <td class="py-2.5 px-3">
-              <div class="flex items-center gap-2">
-                <button type="button" onclick="toggleRecordSelection('${safeId}', event)"
-                  class="w-4 h-4 rounded flex items-center justify-center border transition shrink-0 ${isSelected ? 'bg-brass-500 text-vinyl-950 border-brass-300 font-bold' : 'bg-vinyl-950 text-slate-500 border-vinyl-700 hover:border-brass-400'}"
-                  title="${isSelected ? 'Deselect record' : 'Select record for bulk actions'}">
-                  <i class="fa-solid fa-check text-[8px] ${isSelected ? '' : 'opacity-0 group-hover:opacity-60'}"></i>
-                </button>
-                <div class="relative group/thumb cursor-pointer flex-shrink-0" onclick="event.stopPropagation(); ${isOwner ? `openArtworkChooserModal('record', '${safeId}')` : `viewRecordDetail('${safeId}')`}" title="${isOwner ? 'Click to choose cover sleeve' : 'View dossier'}">
-                  <img src="${coverSrc}" alt="" class="w-9 h-9 rounded object-cover border border-vinyl-700 bg-vinyl-950 group-hover/thumb:border-brass-400 transition" onerror="this.onerror=null; this.src=getDefaultCover('${encodeURIComponent(item.format || '')}', '${encodeURIComponent(item.artist || '')}', '${encodeURIComponent(item.title || '')}', true)">
-                  ${isOwner ? `
-                    <div class="absolute inset-0 bg-black/60 rounded opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center text-sky-400 transition">
-                      <i class="fa-solid fa-images text-[10px]"></i>
-                    </div>
-                  ` : ''}
-                </div>
-                <div class="min-w-0">
-                  <div class="font-bold text-white hover:text-brass-400 cursor-pointer truncate transition" onclick="event.stopPropagation(); filterByArtist('${escapeJsString(item.artist)}')" title="Filter archive for all by ${escapeHtml(item.artist)}">
-                    ${item.artist}
-                  </div>
-                  <div class="text-slate-300 hover:text-brass-400 text-[11px] font-medium truncate cursor-pointer transition" onclick="event.stopPropagation(); viewRecordDetail('${safeId}')" title="View dossier for ${escapeHtml(item.title)}">
-                    ${item.title}
-                  </div>
-                  ${renderRecordMembershipChips(item.id, true, membershipMap)}
-                  ${formatSeriesLabel(item) ? `
-                    <div class="mt-0.5">
-                      <button type="button" onclick="event.stopPropagation(); filterBySeries('${escapeJsString(item.seriesName || item.series_name)}')" class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-pink-500/10 text-pink-300 border border-pink-500/30 text-[9px] font-mono hover:border-pink-400 transition">
-                        <i class="fa-solid fa-layer-group text-[8px]"></i> ${escapeHtml(formatSeriesLabel(item))}
-                      </button>
-                    </div>
-                  ` : ''}
-                  ${item.ownerName ? `
-                    <div class="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5 font-mono truncate">
-                      <i class="fa-solid fa-circle-user text-brass-500/80 text-[9px]"></i>
-                      <span>${item.ownerName}${isOwner && currentUser ? ' (You)' : ''}</span>
-                    </div>
-                  ` : ''}
-                </div>
-              </div>
-            </td>
-            <td class="py-2.5 px-3 whitespace-nowrap">
-              <div class="flex flex-col gap-0.5 items-start">
-                ${getFormatBadge(item.format)}
-                <span class="text-[9px] font-mono text-emerald-400/90 font-medium" title="Harmonic Telemetry: ${telemetry.bpm} BPM • ${telemetry.musicalKey}">${telemetry.bpm} BPM</span>
-                ${item.vinylWeight ? `<span class="text-[10px] font-mono text-emerald-400 font-bold" title="Vinyl Weight: ${escapeHtml(item.vinylWeight)}">⚖️ ${escapeHtml(item.vinylWeight.match(/\d+g/i)?.[0] || item.vinylWeight)}</span>` : ''}
-                ${(item.vinylColor && !item.vinylColor.toLowerCase().includes('black')) ? `<span class="text-[10px] text-pink-300 font-semibold truncate max-w-[120px]" title="Vinyl Colour: ${escapeHtml(item.vinylColor)}">🎨 ${escapeHtml(item.vinylColor)}</span>` : ''}
-              </div>
-            </td>
-            <td class="py-2.5 px-3 font-mono">${item.year || '--'}</td>
-            <td class="py-2.5 px-3 whitespace-nowrap">${getGradeBadge(item.mediaGrade)}</td>
-            <td class="py-2.5 px-3 whitespace-nowrap font-mono font-bold text-emerald-400">
-              ${!areValuesVisible ? '<span class="text-slate-500 font-normal">••••••</span>' : (hasVal ? `${sym}${parseFloat(item.estimatedValue).toFixed(2)}` : '<span class="text-slate-600 font-normal">--</span>')}
-            </td>
-            <td class="py-2.5 px-3 font-mono text-brass-400/90 whitespace-nowrap">
-              ${item.catNo || 'S/N'}
-            </td>
-            <td class="py-2.5 px-3 whitespace-nowrap">
-              ${item.label && String(item.label).trim() ? `
-                <button type="button" onclick="event.stopPropagation(); filterByLabel('${escapeJsString(item.label)}')" class="text-left text-brass-400/90 hover:text-brass-300 hover:underline cursor-pointer transition" title="Filter archive by label: ${escapeHtml(item.label)}">
-                  ${escapeHtml(item.label)}
-                </button>
-              ` : '--'}
-            </td>
-            <td class="py-2.5 px-3 whitespace-nowrap min-w-[125px]">
-              <div class="flex items-center gap-2">
-                <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-blue-400 p-0.5 inline-flex items-center justify-center transition-transform hover:scale-110" title="eBay Sold Listings">
-                  <i class="fa-brands fa-ebay text-sm"></i>
-                </a>
-                <a href="${getDiscogsSearchUrl(item)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-amber-400 p-0.5 inline-flex items-center justify-center transition-transform hover:scale-110" title="Discogs Marketplace">
-                  <i class="fa-solid fa-compact-disc"></i>
-                </a>
-                <a href="${streamLinks.spotify}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-emerald-400 p-0.5 inline-flex items-center justify-center transition-transform hover:scale-110" title="Audition on Spotify">
-                  <i class="fa-brands fa-spotify text-sm"></i>
-                </a>
-                <a href="${streamLinks.youtube}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-400 hover:text-red-400 p-0.5 inline-flex items-center justify-center transition-transform hover:scale-110" title="Search on YouTube">
-                  <i class="fa-brands fa-youtube text-sm"></i>
-                </a>
-              </div>
-            </td>
-            <td class="py-2 px-1.5 md:py-2.5 md:px-3 text-right whitespace-nowrap sticky right-0 bg-vinyl-900 border-l border-vinyl-800 table-action-sticky z-10 shadow-md">
-              <div class="flex items-center justify-end gap-1">
-                <button type="button" onclick="event.stopPropagation(); toggleMobileTableActions(true)" class="table-action-collapsed-only md:hidden min-w-[32px] min-h-[32px] p-1 rounded-lg bg-vinyl-850/90 hover:bg-vinyl-750 text-brass-400 border border-vinyl-700/70 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Expand Actions">
-                  <i class="fa-solid fa-ellipsis text-xs"></i>
-                </button>
-                <div class="table-action-buttons flex items-center justify-end gap-1">
-                <button type="button" onclick="event.stopPropagation(); viewRecordDetail('${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-brass-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Inspect dossier">
-                  <i class="fa-solid fa-eye text-xs"></i>
-                </button>
-                <button type="button" onclick="event.stopPropagation(); toggleBoxForRecord('${safeId}')" id="tableBoxBtn-${safeId}" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg border transition active:scale-95 inline-flex items-center justify-center shadow-sm ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850/80 hover:bg-vinyl-750 text-amber-300 border-vinyl-700/60'}" title="${inBox ? 'In Record Box (Click to remove)' : 'Pack into Record Box'}">
-                  <i class="fa-solid fa-box-archive text-xs"></i>
-                </button>
-                <button type="button" onclick="event.stopPropagation(); openCrateAssignModal('${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-brass-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Assign to Thematic Crate">
-                  <i class="fa-solid fa-layer-group text-xs"></i>
-                </button>
-                ${isOwner ? `
-                  <button type="button" onclick="event.stopPropagation(); openArtworkChooserModal('record', '${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-sky-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Choose Cover Sleeve">
-                    <i class="fa-solid fa-images text-xs"></i>
-                  </button>
-                  <button type="button" onclick="event.stopPropagation(); editRecord('${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-amber-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Edit Metadata">
-                    <i class="fa-solid fa-pen text-xs"></i>
-                  </button>
-                  <button type="button" onclick="event.stopPropagation(); deleteRecordPrompt('${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-rose-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Delete Entry">
-                    <i class="fa-solid fa-trash-can text-xs"></i>
-                  </button>
-                ` : `
-                  <span class="min-w-[34px] min-h-[34px] p-1.5 text-slate-500 inline-flex items-center justify-center" title="Contributed by ${escapeHtml(item.ownerName || 'another member')}">
-                    <i class="fa-solid fa-shield-halved text-xs"></i>
-                  </span>
-                `}
-                </div>
-              </div>
-            </td>
-          </tr>
-        `;
-      });
-
-      html += `
+            <tbody id="catalogueTableBodyChunkHost" class="divide-y divide-vinyl-800">
+              ${firstRowsHtml}
             </tbody>
             <tfoot class="bg-vinyl-850/95 border-t-2 border-brass-500/40 text-xs font-mono font-bold text-slate-200 sticky bottom-0 backdrop-blur-md z-10 shadow-lg">
               <tr>
@@ -18849,8 +19036,47 @@
             </tfoot>
           </table>
         </div>
+        <div id="recordsChunkSentinel" class="${list.length > CHUNK_RENDER_BATCH_SIZE ? 'py-3 text-center text-xs text-slate-500 font-mono' : 'hidden'}">
+          Showing ${firstBatch.length} of ${list.length} rows…
+        </div>
       `;
       container.innerHTML = html;
+
+      if (list.length <= CHUNK_RENDER_BATCH_SIZE) return;
+
+      let renderedCount = firstBatch.length;
+      const tbodyHost = document.getElementById('catalogueTableBodyChunkHost');
+      const sentinel = document.getElementById('recordsChunkSentinel');
+      if (!tbodyHost || !sentinel) return;
+
+      const appendNextBatch = () => {
+        if (renderedCount >= list.length) {
+          sentinel.classList.add('hidden');
+          _disconnectChunkObserver();
+          return;
+        }
+        const nextSlice = list.slice(renderedCount, renderedCount + CHUNK_RENDER_BATCH_SIZE);
+        const batchHtml = nextSlice.map(item => _buildListViewRowHtml(item, sym, membershipMap)).join('');
+        tbodyHost.insertAdjacentHTML('beforeend', batchHtml);
+        renderedCount += nextSlice.length;
+        if (renderedCount >= list.length) {
+          sentinel.classList.add('hidden');
+          _disconnectChunkObserver();
+        } else {
+          sentinel.textContent = `Showing ${renderedCount} of ${list.length} rows…`;
+        }
+      };
+
+      if (typeof IntersectionObserver === 'function') {
+        _chunkIntersectionObserver = new IntersectionObserver((entries) => {
+          if (entries.some(e => e.isIntersecting)) {
+            appendNextBatch();
+          }
+        }, { rootMargin: '450px 0px' });
+        _chunkIntersectionObserver.observe(sentinel);
+      } else {
+        while (renderedCount < list.length) appendNextBatch();
+      }
     }
 
     let isMobileTableActionsExpanded = false;
@@ -19061,14 +19287,9 @@
     }
 
     function _renderAnalyticsFormatRefinementBar(curFormatFilter) {
-      const basePool = records;
+      const stats = getCachedArchiveStats();
       const allActive = !curFormatFilter || curFormatFilter === 'ALL';
-      const decCounts = {};
-      basePool.forEach(r => {
-        const y = parseInt(r.year);
-        const dk = (!isNaN(y) && y > 1900 && y < 2100) ? `${Math.floor(y / 10) * 10}s` : 'Unknown';
-        decCounts[dk] = (decCounts[dk] || 0) + 1;
-      });
+      const decCounts = stats.analyticsDecCounts || {};
       const decKeys = _sortDecadeList(Object.keys(decCounts));
       const curDecs = Array.isArray(activeDecadeFilters) ? activeDecadeFilters : [];
 
@@ -19082,16 +19303,16 @@
             <div class="flex flex-wrap items-center gap-1.5">
               <button type="button" onclick="toggleFormatFilter('ALL', true)" class="px-2.5 py-1 rounded-lg border text-xs font-semibold transition flex items-center gap-1.5 ${allActive ? 'bg-brass-500/20 border-brass-400 text-brass-200 ring-1 ring-brass-400/40' : 'bg-vinyl-950/80 border-vinyl-700 text-slate-300 hover:border-brass-500/50'}">
                 <span>All Formats</span>
-                <span class="font-mono text-[10px] px-1.5 py-0.2 rounded bg-vinyl-900 text-slate-300">${basePool.length}</span>
+                <span class="font-mono text-[10px] px-1.5 py-0.2 rounded bg-vinyl-900 text-slate-300">${stats.recordCount}</span>
               </button>
               ${FORMAT_GROUP_DEFS.map(g => {
-        const groupItems = basePool.filter(r => g.matcher(r.format || ''));
+        const groupCount = stats.groupCounts[g.key] || 0;
         const isActive = curFormatFilter === g.key;
         return `
-                  <button type="button" onclick="toggleFormatFilter('${escapeHtml(g.key)}', true)" class="px-2.5 py-1 rounded-lg border text-xs font-semibold transition flex items-center gap-1.5 ${isActive ? g.activeBg : `bg-vinyl-950/80 border-vinyl-700 ${groupItems.length > 0 ? g.color + ' hover:border-brass-500/50' : 'text-slate-500 opacity-60 hover:opacity-90'}`}" title="${escapeHtml(g.fullLabel)}">
+                  <button type="button" onclick="toggleFormatFilter('${escapeHtml(g.key)}', true)" class="px-2.5 py-1 rounded-lg border text-xs font-semibold transition flex items-center gap-1.5 ${isActive ? g.activeBg : `bg-vinyl-950/80 border-vinyl-700 ${groupCount > 0 ? g.color + ' hover:border-brass-500/50' : 'text-slate-500 opacity-60 hover:opacity-90'}`}" title="${escapeHtml(g.fullLabel)}">
                     <i class="${g.icon} text-[11px]"></i>
                     <span>${escapeHtml(g.label)}</span>
-                    <span class="font-mono text-[10px] px-1.5 py-0.2 rounded bg-vinyl-900 ${isActive ? 'text-white' : 'text-slate-300'}">${groupItems.length}</span>
+                    <span class="font-mono text-[10px] px-1.5 py-0.2 rounded bg-vinyl-900 ${isActive ? 'text-white' : 'text-slate-300'}">${groupCount}</span>
                   </button>
                 `;
       }).join('')}
@@ -21102,24 +21323,69 @@
       showToast('Biography & album notes saved!', 'success');
     }
 
-    async function syncRecordToCloud(item, { showErrorToast = false } = {}) {
-      if (!item || isReadOnlyShareView || !currentUser || !supabaseClient) return false;
-      if (item.userId && item.userId !== currentUser.id) return false;
-      if (!item.userId) item.userId = currentUser.id;
+    let _cloudSyncDebounceTimer = null;
+    const _pendingCloudSyncMap = new Map();
+    let _pendingCloudSyncShowErrorToast = false;
+    let _pendingCloudSyncResolvers = [];
+
+    async function _flushCloudSyncQueue() {
+      if (_cloudSyncDebounceTimer) {
+        clearTimeout(_cloudSyncDebounceTimer);
+        _cloudSyncDebounceTimer = null;
+      }
+      if (_pendingCloudSyncMap.size === 0) return true;
+      const itemsToSync = Array.from(_pendingCloudSyncMap.values());
+      const showErrorToast = _pendingCloudSyncShowErrorToast;
+      const resolvers = _pendingCloudSyncResolvers.splice(0, _pendingCloudSyncResolvers.length);
+      _pendingCloudSyncMap.clear();
+      _pendingCloudSyncShowErrorToast = false;
+
+      if (isReadOnlyShareView || !currentUser || !supabaseClient) {
+        resolvers.forEach(r => r(false));
+        return false;
+      }
+
       try {
-        const dbRow = mapRecordToDb(item, currentUser.id);
-        const res = await supabaseClient.from('records').upsert(dbRow);
+        const dbRows = itemsToSync.map(it => {
+          if (!it.userId) it.userId = currentUser.id;
+          return mapRecordToDb(it, currentUser.id);
+        });
+        const res = await supabaseClient.from('records').upsert(dbRows.length === 1 ? dbRows[0] : dbRows);
         if (res && res.error) {
           console.warn("Cloud sync record error:", res.error);
           if (showErrorToast) showToast("Saved locally, cloud sync warning: " + res.error.message, "warning");
+          resolvers.forEach(r => r(false));
           return false;
         }
+        resolvers.forEach(r => r(true));
         return true;
       } catch (e) {
         console.warn("Cloud sync record notice:", e);
         if (showErrorToast) showToast("Saved locally; cloud sync will retry when online.", "warning");
+        resolvers.forEach(r => r(false));
         return false;
       }
+    }
+
+    function syncRecordToCloud(item, { showErrorToast = false, immediate = false } = {}) {
+      if (!item || isReadOnlyShareView || !currentUser || !supabaseClient) return Promise.resolve(false);
+      if (item.userId && item.userId !== currentUser.id) return Promise.resolve(false);
+      if (!item.userId) item.userId = currentUser.id;
+
+      _pendingCloudSyncMap.set(String(item.id), item);
+      if (showErrorToast) _pendingCloudSyncShowErrorToast = true;
+
+      if (immediate) {
+        return _flushCloudSyncQueue();
+      }
+
+      return new Promise(resolve => {
+        _pendingCloudSyncResolvers.push(resolve);
+        if (_cloudSyncDebounceTimer) clearTimeout(_cloudSyncDebounceTimer);
+        _cloudSyncDebounceTimer = setTimeout(() => {
+          _flushCloudSyncQueue();
+        }, PERSIST_DEBOUNCE_MS);
+      });
     }
 
     function closeDetailModal() {
@@ -22049,7 +22315,7 @@
         cur.priceSource = res.source || 'eBay Benchmark';
         saveRecordsToStorage();
         if (currentUser && supabaseClient) {
-          supabaseClient.from('records').upsert(mapRecordToDb(cur, currentUser.id)).then(() => { });
+          syncRecordToCloud(cur);
         }
         renderStats();
         renderRecords();
@@ -22417,16 +22683,10 @@
         recordObj.userId = currentUser.id;
         recordObj.ownerName = memberProfile.display_name || currentUserProfile?.display_name || currentUser.user_metadata?.display_name || currentUser.email.split('@')[0];
 
-        // Push to Supabase Cloud
-        if (supabaseClient) {
-          const dbRow = mapRecordToDb(recordObj, currentUser.id);
-          supabaseClient.from('records').upsert(dbRow).then(({ error }) => {
-            if (error) {
-              console.warn("Cloud save error:", error);
-              showToast("Saved locally, but cloud sync warning: " + error.message, "error");
-            } else {
-              populateMemberFilter(records);
-            }
+        // Debounced Push to Supabase Cloud (750ms)
+        if (supabaseClient && typeof syncRecordToCloud === 'function') {
+          syncRecordToCloud(recordObj, { showErrorToast: true }).then((ok) => {
+            if (ok) populateMemberFilter(records);
           });
         }
       }
@@ -22689,8 +22949,7 @@
       rec.priceSource = 'Collector Assessed Value';
       saveRecordsToStorage();
       if (isCloudActive && currentUser && supabaseClient) {
-        const dbRow = mapRecordToDb(rec, currentUser.id);
-        supabaseClient.from('records').upsert(dbRow).catch(e => console.warn(e));
+        syncRecordToCloud(rec);
       }
       renderStats();
       renderRecords();
@@ -22724,7 +22983,7 @@
               if (Array.isArray(relData.genres) && !record.genres) record.genres = relData.genres.join(', ');
               saveRecordsToStorage();
               if (isCloudActive && currentUser && supabaseClient) {
-                supabaseClient.from('records').upsert(mapRecordToDb(record, currentUser.id)).catch(e => console.warn(e));
+                syncRecordToCloud(record);
               }
               renderStats();
               renderRecords();
@@ -22753,8 +23012,7 @@
           if (priceResult.genres && !record.genres) record.genres = priceResult.genres;
           saveRecordsToStorage();
           if (isCloudActive && currentUser && supabaseClient) {
-            const dbRow = mapRecordToDb(record, currentUser.id);
-            supabaseClient.from('records').upsert(dbRow).catch(e => console.warn("Discogs cloud save error:", e));
+            syncRecordToCloud(record);
           }
           renderStats();
           renderRecords();
@@ -22779,7 +23037,7 @@
           record.priceSource = 'Discogs Marketplace';
           saveRecordsToStorage();
           if (isCloudActive && currentUser && supabaseClient) {
-            supabaseClient.from('records').upsert(mapRecordToDb(record, currentUser.id)).catch(e => console.warn(e));
+            syncRecordToCloud(record);
           }
           renderStats();
           renderRecords();
@@ -23228,7 +23486,7 @@
         record.currency = priceResult.currency || globalCurrency;
         saveRecordsToStorage();
         if (isCloudActive && currentUser && supabaseClient) {
-          supabaseClient.from('records').upsert(mapRecordToDb(record, currentUser.id)).catch(e => console.warn(e));
+          syncRecordToCloud(record);
         }
         renderStats();
         renderRecords();
@@ -23255,7 +23513,7 @@
           record.currency = globalCurrency;
           saveRecordsToStorage();
           if (isCloudActive && currentUser && supabaseClient) {
-            supabaseClient.from('records').upsert(mapRecordToDb(record, currentUser.id)).catch(e => console.warn(e));
+            syncRecordToCloud(record);
           }
           renderStats();
           renderRecords();
@@ -23610,10 +23868,9 @@
         renderRecords();
         viewRecordDetail(item.id);
 
-        // Push update to Supabase Cloud if signed in
+        // Push update to Supabase Cloud if signed in (debounced 750ms)
         if (isCloudActive && currentUser && supabaseClient) {
-          const dbRow = mapRecordToDb(item, currentUser.id);
-          supabaseClient.from('records').upsert(dbRow).catch(e => console.warn("Cloud sync genre notice:", e));
+          syncRecordToCloud(item);
         }
 
         showToast(`Updated genres: ${genres}`, "success");
