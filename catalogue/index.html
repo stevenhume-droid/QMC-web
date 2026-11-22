@@ -4502,9 +4502,15 @@
                 </button>
                 <button type="button" onclick="syncSortedSetToSpotify()" id="btnSyncSpotifySet"
                   class="px-2 py-1 text-[10.5px] rounded-lg bg-[#1DB954]/20 hover:bg-[#1DB954]/30 active:scale-95 text-[#1ed760] border border-[#1DB954]/40 font-bold transition cursor-pointer flex items-center gap-1"
-                  title="Sync this track sequence to Spotify playlist in-place">
+                  title="Push this track sequence to Spotify playlist in-place">
                   <i class="fa-brands fa-spotify text-xs text-[#1DB954]"></i>
-                  <span id="btnSyncSpotifySetLabel">Sync Spotify</span>
+                  <span id="btnSyncSpotifySetLabel">Push Spotify</span>
+                </button>
+                <button type="button" onclick="pullSetFromSpotify()" id="btnPullSpotifySet"
+                  class="px-2 py-1 text-[10.5px] rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 active:scale-95 text-emerald-300 border border-emerald-500/40 font-bold transition cursor-pointer flex items-center gap-1"
+                  title="Pull playlist track order, additions &amp; removals back from Spotify into this Set">
+                  <i class="fa-solid fa-cloud-arrow-down text-[10px] text-emerald-400"></i>
+                  <span id="btnPullSpotifySetLabel">Pull Spotify</span>
                 </button>
               </div>
             </div>
@@ -11888,15 +11894,28 @@
 
       const syncBtn = document.getElementById('btnSyncSpotifySet');
       const syncLabel = document.getElementById('btnSyncSpotifySetLabel');
+      const pullBtn = document.getElementById('btnPullSpotifySet');
+      const pullLabel = document.getElementById('btnPullSpotifySetLabel');
       if (syncBtn && syncLabel) {
         if (activeSetState.spotify_playlist_id) {
-          syncLabel.textContent = 'Sync Spotify';
-          syncBtn.title = `Sync ordered sequence to linked Spotify playlist: "${activeSetState.title}"`;
+          syncLabel.textContent = 'Push Spotify';
+          syncBtn.title = `Push ordered sequence to linked Spotify playlist: "${activeSetState.title}"`;
           syncBtn.classList.add('ring-1', 'ring-[#1DB954]/50');
         } else {
-          syncLabel.textContent = 'Sync Spotify';
-          syncBtn.title = 'Sync this track sequence to Spotify (exports if not yet on Spotify)';
+          syncLabel.textContent = 'Push Spotify';
+          syncBtn.title = 'Push this track sequence to Spotify (creates playlist if not yet on Spotify)';
           syncBtn.classList.remove('ring-1', 'ring-[#1DB954]/50');
+        }
+      }
+      if (pullBtn && pullLabel) {
+        if (activeSetState.spotify_playlist_id) {
+          pullLabel.textContent = 'Pull Spotify';
+          pullBtn.title = `Pull latest playlist changes from Spotify into "${activeSetState.title}"`;
+          pullBtn.classList.add('ring-1', 'ring-emerald-400/50');
+        } else {
+          pullLabel.textContent = 'Pull Spotify';
+          pullBtn.title = 'Import or link a Spotify playlist into this Set and auto-match physical vinyl';
+          pullBtn.classList.remove('ring-1', 'ring-emerald-400/50');
         }
       }
 
@@ -11928,6 +11947,12 @@
                 class="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-vinyl-950 font-bold text-xs inline-flex items-center gap-1.5 transition shadow cursor-pointer">
                 <i class="fa-solid fa-bolt"></i>
                 <span>Build Set from Box (${boxLen} packed)</span>
+              </button>
+              <button type="button" onclick="pullSetFromSpotify()"
+                class="px-3.5 py-2 rounded-xl bg-[#1DB954]/20 hover:bg-[#1DB954]/30 text-[#1ed760] border border-[#1DB954]/40 font-bold text-xs inline-flex items-center gap-1.5 transition shadow cursor-pointer"
+                title="Import or sync a Spotify playlist into this Set and auto-match your physical records">
+                <i class="fa-brands fa-spotify"></i>
+                <span>Pull from Spotify Playlist</span>
               </button>
             </div>
           </div>
@@ -12031,8 +12056,19 @@
             <!-- Cue Badges & Inline Note Bar -->
             <div class="flex items-center justify-between text-[10px] font-mono pt-1 border-t border-vinyl-800/60 flex-wrap gap-1">
               <div class="flex items-center gap-1.5 flex-wrap">
-                ${safeSide ? `<span class="px-1.5 py-0.2 rounded bg-vinyl-800 text-brass-300 border border-vinyl-700 font-bold" title="Physical Side / Track Index">[${safeSide}]</span>` : ''}
-                <span class="px-1.5 py-0.2 rounded ${is45 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-vinyl-800 text-slate-300 border border-vinyl-700'}" title="Playback Speed">${safeSpeed}</span>
+                ${track.is_spotify_only || !track.record_id ? `
+                  <span class="px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 font-bold flex items-center gap-1" title="Pulled from Spotify — physical release not yet in Archive">
+                    <i class="fa-brands fa-spotify text-[9px]"></i><span>Digital / Unowned</span>
+                  </span>
+                  <button type="button" onclick="addSpotifySetTrackToWishlist(${index})"
+                    class="px-1.5 py-0.2 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 font-bold flex items-center gap-1 transition cursor-pointer"
+                    title="Add this unowned track/album to your Physical Wantlist">
+                    <i class="fa-solid fa-bookmark text-[8px]"></i><span>+ Wishlist</span>
+                  </button>
+                ` : `
+                  ${safeSide ? `<span class="px-1.5 py-0.2 rounded bg-vinyl-800 text-brass-300 border border-vinyl-700 font-bold" title="Physical Side / Track Index">[${safeSide}]</span>` : ''}
+                  <span class="px-1.5 py-0.2 rounded ${is45 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-vinyl-800 text-slate-300 border border-vinyl-700'}" title="Playback Speed">${safeSpeed}</span>
+                `}
                 <span class="text-slate-400 font-medium">${safeDur}</span>
                 <select onchange="updateTrackSetGenre(${index}, this.value)"
                   title="Track Genre / Era Stage for Set Ordering (click to assign or override stage)"
@@ -13900,6 +13936,12 @@
                 <option value="afterhours-cooldown">Late Night Cool Down (BPM ↓)</option>
                 <option value="club-45s">45 RPM 7" Club Session</option>
               </select>
+              <button type="button" onclick="importNewSetFromSpotifyPrompt()"
+                class="px-3 py-1.5 rounded-xl bg-[#1DB954]/20 hover:bg-[#1DB954]/30 active:scale-95 text-[#1ed760] border border-[#1DB954]/40 font-bold text-xs flex items-center gap-1.5 transition shadow cursor-pointer"
+                title="Import any Spotify playlist into a new Set and auto-match against your physical vinyl archive">
+                <i class="fa-brands fa-spotify text-xs"></i>
+                <span>Import from Spotify</span>
+              </button>
               <button type="button" onclick="openRecordBoxDrawer('sets')"
                 class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-vinyl-950 font-bold text-xs flex items-center gap-1.5 transition shadow cursor-pointer">
                 <i class="fa-solid fa-plus text-xs"></i>
@@ -13999,11 +14041,17 @@
                   <span class="hidden sm:inline">Window</span>
                 </button>
                 ${hasSpotify ? `
+                  <button type="button" onclick="pullSetFromSpotify('${safeSetId}')"
+                    class="py-1.5 px-2 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
+                    title="Pull latest track sequence, additions &amp; removals back from Spotify into this Set">
+                    <i class="fa-solid fa-arrows-rotate text-[10px] text-emerald-400"></i>
+                    <span>Sync</span>
+                  </button>
                   <a href="${set.spotify_playlist_url}" target="_blank" rel="noopener noreferrer"
                     class="py-1.5 px-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-semibold flex items-center gap-1 transition"
                     title="Open playlist in Spotify app">
                     <i class="fa-brands fa-spotify text-emerald-400"></i>
-                    <span>Spotify ↗</span>
+                    <span>↗</span>
                   </a>
                 ` : `
                   <button type="button" onclick="exportSetToSpotify('${safeSetId}')"
@@ -14382,6 +14430,537 @@
       }
 
       return targetSet;
+    }
+
+    /* =========================================================
+       TWO-WAY SPOTIFY -> SET SYNC ("PULL FROM SPOTIFY") ENGINE
+       ========================================================= */
+    function extractSpotifyPlaylistId(inputStr = '') {
+      const raw = String(inputStr || '').trim();
+      if (!raw) return '';
+      // spotify:playlist:37i9dQZF1DXcBWIGoYBM5M
+      const uriMatch = raw.match(/spotify:playlist:([a-zA-Z0-9]+)/i);
+      if (uriMatch && uriMatch[1]) return uriMatch[1];
+      // https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M?si=...
+      const urlMatch = raw.match(/open\.spotify\.com\/playlist\/([a-zA-Z0-9]+)/i);
+      if (urlMatch && urlMatch[1]) return urlMatch[1];
+      // Direct ID (22 alphanumeric chars or demo_set_*)
+      if (/^(?:[a-zA-Z0-9]{15,32}|demo_set_\d+|demo_\d+)$/.test(raw)) return raw;
+      return '';
+    }
+
+    function normalizeTrackMatchToken(str = '') {
+      if (!str) return '';
+      const cleaned = (typeof cleanSpotifySearchTerm === 'function')
+        ? cleanSpotifySearchTerm(str)
+        : String(str);
+      return cleaned.toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    function formatSpotifyDurationMs(ms) {
+      const totalSec = Math.max(0, Math.round((Number(ms) || 0) / 1000));
+      if (!totalSec) return '';
+      const mins = Math.floor(totalSec / 60);
+      const secs = totalSec % 60;
+      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    function matchSpotifyTrackToPhysicalArchive(spTrack) {
+      if (!spTrack) return null;
+      const allRecords = (typeof records !== 'undefined' && Array.isArray(records)) ? records : [];
+      if (allRecords.length === 0) return null;
+
+      const spUri = String(spTrack.uri || '').trim();
+      const spTitleNorm = normalizeTrackMatchToken(spTrack.title || '');
+      const spPrimaryArtistNorm = normalizeTrackMatchToken((spTrack.artists && spTrack.artists[0]) || spTrack.artist || '');
+      const spFullArtistNorm = normalizeTrackMatchToken(spTrack.artist || '');
+      const spAlbumNorm = normalizeTrackMatchToken(spTrack.albumName || '');
+
+      if (!spTitleNorm && !spUri) return null;
+
+      let bestCandidate = null;
+      let bestScore = 0;
+
+      for (let rIdx = 0; rIdx < allRecords.length; rIdx++) {
+        const rec = allRecords[rIdx];
+        if (!rec) continue;
+
+        const recArtistNorm = normalizeTrackMatchToken(rec.artist || '');
+        const recTitleNorm = normalizeTrackMatchToken(rec.title || '');
+        const recIsVA = (typeof isVariousArtistsName === 'function') && isVariousArtistsName(rec.artist || '');
+        const artistMatchesRec = Boolean(
+          recArtistNorm && (
+            recArtistNorm === spPrimaryArtistNorm ||
+            recArtistNorm === spFullArtistNorm ||
+            recArtistNorm.includes(spPrimaryArtistNorm) ||
+            spPrimaryArtistNorm.includes(recArtistNorm)
+          )
+        );
+
+        const rawTracks = rec.tracks || rec.tracklist || [];
+        const normTracks = (typeof normalizeTracklist === 'function' ? normalizeTracklist(rawTracks, rec.format, rec.artist) : rawTracks) || [];
+
+        // 1. Check tracklist entries
+        for (let tIdx = 0; tIdx < normTracks.length; tIdx++) {
+          const tr = normTracks[tIdx];
+          if (!tr) continue;
+
+          // Exact URI match wins immediately
+          if (spUri && tr.spotify_uri && tr.spotify_uri === spUri) {
+            return { rec, track: tr, trackIndex: tIdx, score: 100 };
+          }
+
+          const trTitleNorm = normalizeTrackMatchToken(tr.title || '');
+          if (!trTitleNorm) continue;
+
+          const titleExact = trTitleNorm === spTitleNorm;
+          const titleFuzzy = !titleExact && spTitleNorm.length >= 5 && trTitleNorm.length >= 5 &&
+            (trTitleNorm.includes(spTitleNorm) || spTitleNorm.includes(trTitleNorm));
+          if (!titleExact && !titleFuzzy) continue;
+
+          const trArtistNorm = normalizeTrackMatchToken(tr.artist || '');
+          const artistMatchesTrack = Boolean(
+            trArtistNorm && (
+              trArtistNorm === spPrimaryArtistNorm ||
+              trArtistNorm === spFullArtistNorm ||
+              trArtistNorm.includes(spPrimaryArtistNorm) ||
+              spPrimaryArtistNorm.includes(trArtistNorm)
+            )
+          );
+
+          let score = titleExact ? 10 : 6;
+          if (artistMatchesTrack) score += 12;
+          else if (artistMatchesRec && !recIsVA) score += 10;
+          else if (recIsVA && !trArtistNorm) score += 3; // VA compilation without track artist captured yet
+          else if (!artistMatchesRec && !artistMatchesTrack) continue; // Different artist
+
+          if (spAlbumNorm && recTitleNorm && (recTitleNorm === spAlbumNorm || recTitleNorm.includes(spAlbumNorm))) {
+            score += 4;
+          }
+
+          if (score > bestScore) {
+            bestScore = score;
+            bestCandidate = { rec, track: tr, trackIndex: tIdx, score };
+          }
+        }
+
+        // 2. Fallback check against Side A / Side B / Release Title (for 7" / 12" singles without full tracklist array)
+        if (normTracks.length === 0 && (artistMatchesRec || recIsVA)) {
+          const kind = (typeof getMediaKind === 'function') ? getMediaKind(rec.format) : 'vinyl';
+          const aLabel = kind === 'cd' ? '01' : (kind === 'tape' ? '1A' : 'A');
+          const bLabel = kind === 'cd' ? '02' : (kind === 'tape' ? '2B' : 'B');
+          const sideACand = rec.sideATitle || rec.title || '';
+          const sideBCand = rec.sideBTitle || '';
+          const aNorm = normalizeTrackMatchToken(sideACand);
+          const bNorm = normalizeTrackMatchToken(sideBCand);
+
+          if (aNorm && aNorm === spTitleNorm) {
+            const sc = artistMatchesRec ? 18 : 11;
+            if (sc > bestScore) {
+              bestScore = sc;
+              bestCandidate = {
+                rec,
+                track: { pos: aLabel, position: aLabel, title: sideACand, duration: rec.sideADuration || '' },
+                trackIndex: 0,
+                score: sc
+              };
+            }
+          } else if (bNorm && bNorm === spTitleNorm) {
+            const sc = artistMatchesRec ? 18 : 11;
+            if (sc > bestScore) {
+              bestScore = sc;
+              bestCandidate = {
+                rec,
+                track: { pos: bLabel, position: bLabel, title: sideBCand, duration: rec.sideBDuration || '' },
+                trackIndex: 1,
+                score: sc
+              };
+            }
+          }
+        }
+      }
+
+      return (bestCandidate && bestScore >= 12) ? bestCandidate : null;
+    }
+
+    function addSpotifySetTrackToWishlist(trackIdx) {
+      if (!activeSetState || !Array.isArray(activeSetState.tracks) || !activeSetState.tracks[trackIdx]) return;
+      const tr = activeSetState.tracks[trackIdx];
+      const list = (typeof getMMAWantlist === 'function') ? getMMAWantlist() : [];
+      const artist = tr.artist || 'Unknown Artist';
+      const title = tr.album_title || tr.title || 'Untitled';
+      const normA = artist.toLowerCase().trim();
+      const normT = title.toLowerCase().trim();
+      if (list.some(w => (w.artist || '').toLowerCase().trim() === normA && (w.title || '').toLowerCase().trim() === normT)) {
+        showToast(`"${artist} — ${title}" is already in your Physical Wantlist.`, 'info');
+        return;
+      }
+      list.push({
+        id: 'want_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        artist,
+        title,
+        year: tr.year || new Date().getFullYear(),
+        format: '12" LP (Album)',
+        estPrice: 18,
+        notes: `Discovered via Spotify Set sync ("${activeSetState.title || 'Set'}") — Track: ${tr.title}`,
+        addedAt: new Date().toISOString()
+      });
+      if (typeof saveMMAWantlist === 'function') saveMMAWantlist(list);
+      showToast(`Added "${artist} — ${title}" to your Physical Wantlist!`, 'success');
+    }
+
+    async function importNewSetFromSpotifyPrompt() {
+      // Create or prepare a fresh active set and pull a Spotify playlist into it
+      openRecordBoxDrawer('sets');
+      await pullSetFromSpotify(null, true);
+    }
+
+    async function pullSetFromSpotify(targetSetId = null, forcePromptForPlaylist = false) {
+      let targetSet = null;
+      let isTargetActiveSet = true;
+
+      if (targetSetId && typeof targetSetId === 'string') {
+        const saved = getQmcSavedSets().find(s => String(s.set_id) === String(targetSetId));
+        if (saved) {
+          chooseActiveSet(saved.set_id);
+          targetSet = activeSetState;
+        }
+      }
+      if (!targetSet) {
+        targetSet = activeSetState;
+      }
+
+      if (typeof isSpotifyAuthenticated === 'function' && !isSpotifyAuthenticated()) {
+        if (confirm('Connect your Spotify account in Member Portal to sync playlists from Spotify into your Sets.\n\nOpen Spotify Connection now?')) {
+          openSpotifyAuthModal();
+        }
+        return null;
+      }
+
+      const isDemo = localStorage.getItem('spotify_demo_connected') === 'true' || localStorage.getItem('qmc_spotify_demo_mode') === 'true';
+      let token = localStorage.getItem('spotify_access_token') || localStorage.getItem('qmc_spotify_access_token');
+
+      const expiresAt = parseInt(localStorage.getItem('spotify_token_expires_at') || '0', 10);
+      if (!isDemo && expiresAt && Date.now() > (expiresAt - 60000)) {
+        try {
+          const refreshedToken = await refreshSpotifyAccessToken();
+          if (refreshedToken) token = refreshedToken;
+        } catch (_) { }
+      }
+
+      let playlistId = (!forcePromptForPlaylist)
+        ? (extractSpotifyPlaylistId(targetSet.spotify_playlist_id) || extractSpotifyPlaylistId(targetSet.spotify_playlist_url))
+        : '';
+
+      // If no playlist is linked to this Set yet, let the user pick from their Spotify playlists or paste a URL/URI
+      if (!playlistId) {
+        let userPlaylists = [];
+        if (!isDemo && token) {
+          try {
+            const plRes = await fetch('https://api.spotify.com/v1/me/playlists?limit=15', {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (plRes.ok) {
+              const plData = await plRes.json();
+              userPlaylists = Array.isArray(plData.items) ? plData.items.filter(Boolean) : [];
+            }
+          } catch (_) { }
+        }
+
+        let promptMsg = 'Paste a Spotify Playlist URL, URI, or ID to sync into this Set:';
+        if (userPlaylists.length > 0) {
+          const listLines = userPlaylists.slice(0, 10).map((p, idx) => `${idx + 1}. ${p.name} (${p.tracks?.total ?? '?'} tracks)`).join('\n');
+          promptMsg = `Enter a number (1-${Math.min(10, userPlaylists.length)}) to pick one of your Spotify playlists, or paste any Spotify Playlist URL / ID:\n\n${listLines}`;
+        }
+
+        const userChoice = prompt(promptMsg, targetSet.spotify_playlist_url || '');
+        if (!userChoice) return null;
+
+        const trimmedChoice = userChoice.trim();
+        if (/^\d+$/.test(trimmedChoice)) {
+          const pickIdx = parseInt(trimmedChoice, 10) - 1;
+          if (userPlaylists[pickIdx] && userPlaylists[pickIdx].id) {
+            playlistId = userPlaylists[pickIdx].id;
+            if (forcePromptForPlaylist || !targetSet.tracks || targetSet.tracks.length === 0) {
+              targetSet.title = userPlaylists[pickIdx].name || targetSet.title;
+            }
+          }
+        }
+        if (!playlistId) {
+          playlistId = extractSpotifyPlaylistId(trimmedChoice);
+        }
+        if (!playlistId) {
+          showToast('Invalid Spotify Playlist URL or ID.', 'warning');
+          return null;
+        }
+      }
+
+      const previousTracksSnapshot = JSON.parse(JSON.stringify(targetSet.tracks || []));
+      const previousTitleSnapshot = targetSet.title;
+
+      // Demo Mode Simulation
+      if (isDemo || !token || String(playlistId).startsWith('demo_')) {
+        showToast('Demo Mode: Simulating Spotify playlist pull & physical archive matching...', 'info');
+        targetSet.spotify_playlist_id = playlistId;
+        targetSet.spotify_playlist_url = `https://open.spotify.com/playlist/${playlistId}`;
+        saveActiveSet(targetSet);
+        renderSetBuilderPane();
+        if (currentView === 'sets') renderSetsView(document.getElementById('recordsContainer'));
+        return targetSet;
+      }
+
+      showToast(`Pulling playlist tracks from Spotify...`, 'info');
+
+      try {
+        // 1. Fetch Playlist header metadata (name, external URL)
+        let remotePlaylistName = '';
+        let remotePlaylistUrl = `https://open.spotify.com/playlist/${playlistId}`;
+        try {
+          const metaRes = await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (metaRes.ok) {
+            const metaJson = await metaRes.json();
+            remotePlaylistName = metaJson.name || '';
+            remotePlaylistUrl = metaJson.external_urls?.spotify || remotePlaylistUrl;
+          }
+        } catch (_) { }
+
+        // 2. Fetch ordered playlist tracks (paginating up to 500 tracks, supporting both /items and /tracks)
+        const remoteSpotifyTracks = [];
+        let offset = 0;
+        const limit = 100;
+        while (offset < 500) {
+          let trRes = await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}/tracks?limit=${limit}&offset=${offset}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (!trRes.ok && (trRes.status === 404 || trRes.status === 400)) {
+            trRes = await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}/items?limit=${limit}&offset=${offset}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+          }
+          if (!trRes.ok) {
+            const errBody = await trRes.json().catch(() => ({}));
+            throw new Error(errBody?.error?.message || `HTTP ${trRes.status}`);
+          }
+          const pageData = await trRes.json();
+          const items = Array.isArray(pageData.items) ? pageData.items : [];
+          items.forEach(item => {
+            const trackNode = item?.track || item?.item || (item?.uri ? item : null);
+            if (!trackNode || trackNode.is_local) return;
+            const artistList = Array.isArray(trackNode.artists)
+              ? trackNode.artists.map(a => a?.name || '').filter(Boolean)
+              : [];
+            remoteSpotifyTracks.push({
+              uri: trackNode.uri || (trackNode.id ? `spotify:track:${trackNode.id}` : ''),
+              title: trackNode.name || 'Untitled Track',
+              artist: artistList.join(', ') || 'Unknown Artist',
+              artists: artistList,
+              albumName: trackNode.album?.name || '',
+              releaseYear: trackNode.album?.release_date ? parseInt(String(trackNode.album.release_date).slice(0, 4), 10) : null,
+              duration: formatSpotifyDurationMs(trackNode.duration_ms)
+            });
+          });
+          if (!pageData.next || items.length < limit) break;
+          offset += limit;
+        }
+
+        if (remoteSpotifyTracks.length === 0) {
+          showToast('Spotify playlist is empty or contains no playable tracks.', 'warning');
+          return null;
+        }
+
+        // 3. Reconcile remote Spotify tracks against:
+        //    (a) Existing tracks in targetSet.tracks (preserving cue notes, RPM, side_index, BPM, key)
+        //    (b) Physical records in user's Archive (`records`)
+        //    (c) Digital/Unowned tracks (flagged with is_spotify_only: true & +Wishlist action)
+        const existingPool = (targetSet.tracks || []).map((t, i) => ({ track: t, consumed: false, origIndex: i }));
+        const reconciledTracks = [];
+        let preservedExistingCount = 0;
+        let newlyMatchedArchiveCount = 0;
+        let unownedDigitalCount = 0;
+        const newlyMatchedRecordIds = new Set();
+
+        remoteSpotifyTracks.forEach((spTr, seqIdx) => {
+          const spUri = spTr.uri;
+          const spTitleNorm = normalizeTrackMatchToken(spTr.title);
+          const spArtistNorm = normalizeTrackMatchToken(spTr.artists[0] || spTr.artist);
+
+          // Tier 1: Match existing track in Set (by Spotify URI first, then by normalized Artist + Title)
+          let poolHit = existingPool.find(p => !p.consumed && spUri && p.track.spotify_uri === spUri);
+          if (!poolHit && spTitleNorm) {
+            poolHit = existingPool.find(p => {
+              if (p.consumed) return false;
+              const pTitleNorm = normalizeTrackMatchToken(p.track.title || '');
+              if (pTitleNorm !== spTitleNorm) return false;
+              const pArtistNorm = normalizeTrackMatchToken(p.track.artist || '');
+              if (!pArtistNorm || pArtistNorm === 'various' || pArtistNorm === 'unknownartist') return true;
+              return pArtistNorm === spArtistNorm || pArtistNorm.includes(spArtistNorm) || spArtistNorm.includes(pArtistNorm);
+            });
+          }
+
+          if (poolHit) {
+            poolHit.consumed = true;
+            preservedExistingCount++;
+            const mergedExisting = {
+              ...poolHit.track,
+              position: seqIdx + 1,
+              spotify_uri: spUri || poolHit.track.spotify_uri || null,
+              duration: poolHit.track.duration || spTr.duration || ''
+            };
+            // If the existing track had "Various" as artist, upgrade it to the specific track artist from Spotify
+            if (typeof isVariousArtistsName === 'function' && isVariousArtistsName(mergedExisting.artist) && spTr.artist) {
+              mergedExisting.artist = spTr.artist;
+            }
+            reconciledTracks.push(mergedExisting);
+            return;
+          }
+
+          // Tier 2: Newly added in Spotify -> Match against Physical Vinyl Archive
+          const archiveHit = matchSpotifyTrackToPhysicalArchive(spTr);
+          if (archiveHit && archiveHit.rec) {
+            newlyMatchedArchiveCount++;
+            const rec = archiveHit.rec;
+            const tr = archiveHit.track || {};
+            newlyMatchedRecordIds.add(String(rec.id));
+
+            // Backfill spotify_uri on the archive record's track so future syncs are instant
+            if (spUri && Array.isArray(rec.tracks) && rec.tracks[archiveHit.trackIndex]) {
+              rec.tracks[archiveHit.trackIndex].spotify_uri = spUri;
+            }
+
+            const recFormat = Array.isArray(rec.format) ? rec.format.join(', ') : String(rec.format || 'Vinyl');
+            const recSpeed = rec.speed || (recFormat.includes('45') ? '45 RPM' : '33 1/3 RPM');
+            const telemetry = (typeof deriveRecordTelemetry === 'function') ? deriveRecordTelemetry(rec) : null;
+            const finalBpm = tr.bpm || rec.bpm || telemetry?.bpm || '';
+            const finalKey = tr.key || tr.musical_key || rec.musical_key || rec.key || telemetry?.musicalKey || '';
+            const finalCamelot = tr.camelot || rec.camelot || telemetry?.camelot || ((typeof CAMELOT_KEY_MAP !== 'undefined' && CAMELOT_KEY_MAP[finalKey]) ? CAMELOT_KEY_MAP[finalKey] : '');
+            const gs = (typeof parseGenreAndStyles === 'function')
+              ? parseGenreAndStyles(rec.genres || '', rec.genre || '', rec.styles || [])
+              : { genre: rec.genre || '', styles: Array.isArray(rec.styles) ? rec.styles : [], genres: rec.genres || '' };
+
+            reconciledTracks.push({
+              position: seqIdx + 1,
+              record_id: String(rec.id),
+              artist: tr.artist || (!isVariousArtistsName(rec.artist) ? rec.artist : '') || spTr.artist || rec.artist || 'Unknown Artist',
+              title: tr.title || spTr.title || 'Untitled Track',
+              side_index: tr.position || tr.pos || tr.index || '',
+              duration: tr.duration || spTr.duration || '',
+              bpm: finalBpm,
+              key: finalKey,
+              musical_key: finalKey,
+              camelot: finalCamelot,
+              genre: gs.genre || '',
+              styles: gs.styles || [],
+              genres: gs.genres || '',
+              year: rec.year ? parseInt(rec.year, 10) : (spTr.releaseYear || null),
+              set_genre: '',
+              rpm: recSpeed,
+              speed: recSpeed,
+              cue_note: '',
+              spotify_uri: spUri || null
+            });
+            return;
+          }
+
+          // Tier 3: Unowned / Digital-Only Track added in Spotify
+          unownedDigitalCount++;
+          const fallbackTelem = (typeof deriveRecordTelemetry === 'function')
+            ? deriveRecordTelemetry({ artist: spTr.artist, title: spTr.title, id: spUri })
+            : { bpm: 112, musicalKey: 'A Minor', camelot: '8A' };
+
+          reconciledTracks.push({
+            position: seqIdx + 1,
+            record_id: null,
+            is_spotify_only: true,
+            artist: spTr.artist || 'Unknown Artist',
+            title: spTr.title || 'Untitled Track',
+            album_title: spTr.albumName || '',
+            side_index: 'SPOTIFY',
+            duration: spTr.duration || '',
+            bpm: fallbackTelem.bpm || '',
+            key: fallbackTelem.musicalKey || '',
+            musical_key: fallbackTelem.musicalKey || '',
+            camelot: fallbackTelem.camelot || '',
+            genre: '',
+            styles: [],
+            genres: '',
+            year: spTr.releaseYear || null,
+            set_genre: '',
+            rpm: 'Digital',
+            speed: 'Digital',
+            cue_note: spTr.albumName ? `Spotify Album: ${spTr.albumName}` : '',
+            spotify_uri: spUri || null
+          });
+        });
+
+        // Check if there were local vinyl-only tracks without a Spotify URI that weren't in Spotify
+        const unconsumedVinylOnly = existingPool.filter(p => !p.consumed && !p.track.spotify_uri && p.track.record_id);
+        if (unconsumedVinylOnly.length > 0) {
+          const keepVinylOnly = confirm(
+            `${unconsumedVinylOnly.length} local vinyl-only track(s) in your Set did not have a Spotify link.\n\nClick OK to keep them at the end of your Set, or Cancel to mirror the Spotify playlist strictly.`
+          );
+          if (keepVinylOnly) {
+            unconsumedVinylOnly.forEach(p => {
+              reconciledTracks.push({
+                ...p.track,
+                position: reconciledTracks.length + 1
+              });
+            });
+          }
+        }
+
+        // Pack any newly matched physical archive records into the active Record Box automatically
+        if (newlyMatchedRecordIds.size > 0 && typeof addRecordToBox === 'function') {
+          newlyMatchedRecordIds.forEach(rid => {
+            if (typeof isRecordInBox === 'function' && !isRecordInBox(rid)) {
+              addRecordToBox(rid);
+            }
+          });
+        }
+
+        // Update Set state
+        if (remotePlaylistName && (forcePromptForPlaylist || previousTracksSnapshot.length === 0 || /^Session Set /i.test(targetSet.title || ''))) {
+          targetSet.title = remotePlaylistName;
+        }
+        targetSet.spotify_playlist_id = playlistId;
+        targetSet.spotify_playlist_url = remotePlaylistUrl;
+        targetSet.tracks = reconciledTracks;
+
+        const saved = saveActiveSet(targetSet);
+        targetSet.id = saved.set_id;
+        saveRecordsToStorage();
+
+        renderRecordBoxDrawer();
+        if (currentView === 'sets') {
+          renderSetsView(document.getElementById('recordsContainer'));
+        }
+
+        const summaryParts = [];
+        if (preservedExistingCount > 0) summaryParts.push(`${preservedExistingCount} synced`);
+        if (newlyMatchedArchiveCount > 0) summaryParts.push(`${newlyMatchedArchiveCount} linked to physical vinyl`);
+        if (unownedDigitalCount > 0) summaryParts.push(`${unownedDigitalCount} digital/unowned`);
+
+        showToast(
+          `Pulled ${reconciledTracks.length} tracks from Spotify (${summaryParts.join(', ')})!`,
+          'success',
+          () => {
+            targetSet.tracks = previousTracksSnapshot;
+            targetSet.title = previousTitleSnapshot;
+            saveActiveSet(targetSet);
+            renderRecordBoxDrawer();
+            if (currentView === 'sets') {
+              renderSetsView(document.getElementById('recordsContainer'));
+            }
+          }
+        );
+
+        return targetSet;
+      } catch (err) {
+        console.warn('Failed to pull Spotify playlist into Set:', err);
+        showToast(`Spotify pull failed: ${err.message || err}`, 'error');
+        return null;
+      }
     }
 
     /* =========================================================
