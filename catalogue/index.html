@@ -875,15 +875,9 @@
 
   <!-- TOP APP BAR -->
   <header id="appHeader"
-    class="border-b border-vinyl-800 bg-vinyl-900/95 backdrop-blur sticky top-0 z-40 px-3 sm:px-4 lg:px-8 py-2 sm:py-3 flex items-center justify-between gap-2 sm:gap-4">
-    <div class="flex items-center gap-2 sm:gap-3.5 min-w-0 relative z-10">
-      <!-- Original QMC Circular Brand Badge -->
-      <a href="../index.html"
-        class="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-vinyl-950 p-[1px] flex-shrink-0 flex items-center justify-center border border-brass-500/40 shadow-sm group hover:scale-105 transition overflow-hidden"
-        title="Queensferry Music Club (QMC) Home">
-        <img src="qmc-logo.jpg" alt="Queensferry Music Club" class="w-full h-full object-cover rounded-full">
-      </a>
-      <!-- MMA Graphic Logo in Protective Black Shell (Guarantees high contrast on both Dark & Light themes) -->
+    class="border-b border-vinyl-800 bg-vinyl-900/95 backdrop-blur sticky top-0 z-40 px-2.5 sm:px-4 lg:px-8 py-2 sm:py-2.5 flex items-center justify-between gap-1.5 sm:gap-3">
+    <div class="flex items-center min-w-0 relative z-10 -ml-0.5 sm:ml-0">
+      <!-- MMA Graphic Logo in Protective Black Shell (Moved to far left, QMC badge removed) -->
       <a href="index.html" class="flex items-center group flex-shrink-0" title="Music Media Archive">
         <div
           class="mma-logo-shell bg-[#0a0a0c] px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border border-brass-500/40 shadow-md flex items-center justify-center group-hover:border-brass-400 group-hover:scale-105 transition-all duration-200">
@@ -894,14 +888,14 @@
       </a>
     </div>
 
-    <!-- Global Actions -->
-    <div class="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0 relative z-30">
+    <!-- Global Actions (Consolidated Top Menu) -->
+    <div class="flex items-center gap-1 sm:gap-2 flex-shrink-0 relative z-30">
       <!-- Member Sign-In / User Profile Button (Opens Member Portal in separate frame) -->
       <div id="memberAuthContainer"
         class="relative z-30 flex items-stretch rounded-lg bg-vinyl-900 sm:bg-vinyl-850 border border-vinyl-700 hover:border-brass-400/50 shadow-md overflow-hidden transition-all duration-200">
         <!-- Collapsed Trigger Button: User Icon (Directly opens Member Portal in separate frame) -->
         <button type="button" onclick="openAuthModal()" id="authNavBtn"
-          class="px-2 sm:px-2.5 py-1 sm:py-1.5 hover:bg-vinyl-800 text-slate-200 transition flex items-center gap-1 sm:gap-1.5 focus:outline-none select-none cursor-pointer"
+          class="px-2 sm:px-2.5 py-1 sm:py-1.5 hover:bg-vinyl-800 text-slate-200 transition flex items-center gap-1 focus:outline-none select-none cursor-pointer"
           title="Open Member Portal &amp; Cloud Sync" aria-label="Member Profile">
           <div class="relative flex items-center justify-center">
             <i class="fa-solid fa-circle-user text-xs sm:text-sm text-brass-400"></i>
@@ -932,26 +926,26 @@
 
       <!-- Spotify Connection Status Pill (PKCE OAuth Session) -->
       <button type="button" onclick="openSpotifyAuthModal()" id="spotifyAuthPill"
-        class="px-2 sm:px-3 py-1.5 sm:py-2 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 hover:border-emerald-500/50 transition flex items-center gap-1.5 sm:gap-2 shadow-sm"
+        class="px-2 sm:px-2.5 py-1 sm:py-1.5 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 hover:border-emerald-500/50 transition flex items-center gap-1.5 shadow-sm"
         title="Spotify Connection Status &amp; PKCE Session">
         <span id="spotifyStatusDot" class="w-2 h-2 rounded-full bg-slate-500 transition-colors"></span>
         <i class="fa-brands fa-spotify text-xs sm:text-sm text-emerald-400"></i>
-        <span id="spotifyStatusText" class="hidden lg:inline text-[11px] sm:text-xs">Connect Spotify</span>
+        <span id="spotifyStatusText" class="hidden xl:inline text-[11px] sm:text-xs">Connect Spotify</span>
       </button>
 
-      <!-- Estimated Archive Value: Collapsed to currency icon (£) by default, expands to show price & actions on click -->
+      <!-- Estimated Archive Value: Collapsed to currency icon (£) by default, expands to show price & recalculate on click -->
       <div id="topValuationContainer"
         class="relative z-30 flex items-stretch rounded-lg bg-vinyl-900 border border-emerald-500/40 shadow-md overflow-hidden transition-all duration-200">
         <!-- Collapsed Trigger Button: £ Currency Icon -->
         <button type="button" onclick="toggleTopValuationExpanded()" id="topValuationToggleBtn"
-          class="px-2 sm:px-2.5 py-1 sm:py-1.5 bg-vinyl-900 hover:bg-vinyl-800 text-emerald-400 font-bold transition flex items-center gap-1 sm:gap-1.5 focus:outline-none select-none"
+          class="px-2 sm:px-2.5 py-1 sm:py-1.5 bg-vinyl-900 hover:bg-vinyl-800 text-emerald-400 font-bold transition flex items-center gap-1 focus:outline-none select-none"
           title="Archive Valuation — Click to show price" aria-expanded="false">
           <span id="topValuationCurrencyIcon" class="text-xs sm:text-sm font-extrabold font-mono leading-none">£</span>
           <i id="topValuationChevron"
             class="fa-solid fa-chevron-right text-[8px] sm:text-[9px] text-emerald-400/60 transition-transform duration-200"></i>
         </button>
 
-        <!-- Expandable Content: Price amount & Quick Actions (100% solid opaque background) -->
+        <!-- Expandable Content: Price amount & Recalculate Action (Value visibility toggle removed from slider) -->
         <div id="topValuationBody" class="hidden items-stretch border-l border-emerald-500/20 bg-vinyl-900">
           <div onclick="switchView('analytics')"
             class="px-2 sm:px-2.5 py-1 sm:py-1.5 bg-vinyl-900 hover:bg-vinyl-800 cursor-pointer transition flex items-center gap-1 sm:gap-1.5"
@@ -966,12 +960,6 @@
               <div id="statAvgValue" class="hidden">Avg: £0.00 / disc</div>
             </div>
           </div>
-          <button type="button" onclick="event.stopPropagation(); toggleGlobalValueVisibility()"
-            id="btnToggleValueVisibility"
-            class="px-1.5 sm:px-2 py-1 sm:py-1.5 bg-vinyl-900 hover:bg-vinyl-800 text-emerald-400/80 hover:text-emerald-300 border-l border-emerald-500/20 transition flex items-center justify-center"
-            title="Toggle valuation visibility (Show/Hide monetary amounts)">
-            <i id="iconToggleValueVisibility" class="fa-solid fa-eye text-[10px] sm:text-[11px]"></i>
-          </button>
           <button type="button" onclick="event.stopPropagation(); recalculateArchiveTotals(true)"
             class="px-1.5 sm:px-2 py-1 sm:py-1.5 bg-vinyl-900 hover:bg-vinyl-800 text-emerald-400/80 hover:text-emerald-300 border-l border-emerald-500/20 transition flex items-center justify-center"
             title="Recalculate &amp; sum archive totals on demand">
@@ -979,6 +967,14 @@
           </button>
         </div>
       </div>
+
+      <!-- Top Menu Value Visibility Toggle Button (Moved to top menu for mobile & desktop) -->
+      <button type="button" id="toggleValueBtn" onclick="toggleGlobalValueVisibility()"
+        class="px-2 sm:px-2.5 py-1 sm:py-1.5 text-xs font-semibold rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 hover:border-emerald-500/50 transition flex items-center gap-1.5 shadow-sm"
+        title="Toggle Est. Value Visibility across catalog">
+        <i id="toggleValueBtnIcon" class="fa-solid fa-eye text-xs text-emerald-400"></i>
+        <span id="toggleValueBtnLabel" class="text-[11px] font-mono hidden xl:inline">Values: On</span>
+      </button>
 
       <!-- Mobile Barcode Scan & Visual Matcher Buttons -->
       <button type="button" onclick="openScannerModal()"
@@ -1284,36 +1280,36 @@
       <div
         class="flex flex-col items-stretch justify-between gap-2 bg-transparent p-1 sm:p-1.5 rounded-xl border border-transparent">
 
-        <!-- View Switcher & Filters Row -->
-        <div id="filtersRow" class="flex flex-wrap items-center justify-between sm:justify-start gap-1.5 sm:gap-2">
-          <!-- Prominent View Switcher (Gallery, Table, Crates, Sets) -->
+        <!-- View Switcher & Filters Row (Consolidated Toolbar Layout) -->
+        <div id="filtersRow" class="flex flex-wrap items-center justify-between sm:justify-start gap-1 sm:gap-1.5">
+          <!-- Prominent View Switcher (Gallery, Table, Crates, Sets, Wishlist) -->
           <div class="flex items-center bg-vinyl-850 border border-vinyl-700 rounded-lg p-0.5">
             <button id="viewGridBtn" onclick="switchView('grid')"
-              class="px-2 sm:px-2.5 py-1.5 rounded text-xs bg-vinyl-700 text-brass-400 font-medium transition flex items-center gap-1 sm:gap-1.5 shadow-sm"
+              class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded text-xs bg-vinyl-700 text-brass-400 font-medium transition flex items-center gap-1 shadow-sm"
               title="Gallery Sleeve View">
               <i class="fa-solid fa-grip"></i>
               <span>Gallery</span>
             </button>
             <button id="viewListBtn" onclick="switchView('list')"
-              class="px-2 sm:px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1 sm:gap-1.5"
+              class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1"
               title="Table List View">
               <i class="fa-solid fa-table-list"></i>
               <span>Table</span>
             </button>
             <button id="viewCratesBtn" onclick="switchView('crates')"
-              class="px-2 sm:px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1 sm:gap-1.5"
+              class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1"
               title="Thematic Crates Pool">
               <i class="fa-solid fa-layer-group text-brass-400"></i>
               <span>Crates</span>
             </button>
             <button id="viewSetsBtn" onclick="switchView('sets')"
-              class="px-2 sm:px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1 sm:gap-1.5"
+              class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1"
               title="Sequenced Sets &amp; Playlists">
               <i class="fa-solid fa-list-ol text-amber-400"></i>
               <span>Sets</span>
             </button>
             <button id="viewWishlistBtn" onclick="switchView('wishlist')"
-              class="px-2 sm:px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1 sm:gap-1.5"
+              class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded text-xs text-slate-400 hover:text-slate-200 transition flex items-center gap-1"
               title="Physical Vinyl &amp; Media Wishlist / Wantlist">
               <i class="fa-solid fa-bookmark text-rose-400"></i>
               <span>Wishlist</span>
@@ -1323,7 +1319,7 @@
 
           <!-- Grid Density Toggle Button (2-Col Compact Grid vs 1-Col Detailed Cards) -->
           <button type="button" id="gridDensityBtn" onclick="toggleGridDensity()"
-            class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-brass-500/50 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-slate-300 font-semibold flex items-center gap-1 sm:gap-1.5 transition shadow-sm"
+            class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-brass-500/50 rounded-lg px-2 py-1 sm:py-1.5 text-xs text-slate-300 font-semibold flex items-center gap-1 transition shadow-sm"
             title="Toggle Compact 2-Column Grid / Detailed Cards">
             <i id="gridDensityIcon" class="fa-solid fa-table-cells text-xs text-brass-400"></i>
             <span id="gridDensityLabel" class="text-[11px] font-mono hidden sm:inline">Compact</span>
@@ -1332,50 +1328,34 @@
           <!-- Search Bar Toggle Button (next to Gallery expand/minimise toggle) -->
           <button type="button" id="searchToggleBtn" onclick="toggleSearchBar()" aria-expanded="false"
             aria-controls="globalSearchWrapper"
-            class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-brass-500/50 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-slate-300 font-semibold flex items-center gap-1 transition shadow-sm"
+            class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-brass-500/50 rounded-lg px-2 py-1 sm:py-1.5 text-xs text-slate-300 font-semibold flex items-center gap-1 transition shadow-sm"
             title="Toggle Search Bar">
             <i id="searchToggleIcon" class="fa-solid fa-magnifying-glass text-xs text-slate-300"></i>
           </button>
 
-          <!-- Value Visibility Overall Toggle Button -->
-          <button type="button" id="toggleValueBtn" onclick="toggleGlobalValueVisibility()"
-            class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-emerald-500/50 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-slate-300 font-semibold flex items-center gap-1 sm:gap-1.5 transition shadow-sm"
-            title="Toggle Est. Value Visibility across catalog">
-            <i id="toggleValueBtnIcon" class="fa-solid fa-eye text-xs text-emerald-400"></i>
-            <span id="toggleValueBtnLabel" class="text-[11px] font-mono hidden sm:inline">Values: On</span>
-          </button>
-
-          <!-- Record Box Trigger Button -->
-          <button type="button" id="btnRecordBoxDrawer" onclick="openRecordBoxDrawer()"
-            class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-amber-500/50 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-amber-300 font-semibold flex items-center gap-1 sm:gap-1.5 transition shadow-sm cursor-pointer"
-            title="Active Record Box (Session Working Bag)">
-            <span>🧳</span>
-            <span class="text-[11px] font-mono hidden sm:inline">Box</span>
-            <span id="recordBoxBadgeCount"
-              class="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-mono record-box-count">0</span>
-          </button>
-
-          <!-- Persistent Working Context Pill (Box -> Active Set Quick Jump) -->
+          <!-- Consolidated Record Box & Active Set Working Context Pill -->
           <div id="workingContextPill"
             class="inline-flex items-center rounded-lg bg-vinyl-850 border border-vinyl-700 text-[11px] font-mono overflow-hidden shadow-sm">
-            <button type="button" onclick="openRecordBoxDrawer('box-full')"
-              class="px-2 py-1.5 hover:bg-vinyl-800 text-amber-300 font-semibold flex items-center gap-1 transition cursor-pointer"
-              title="Open Active Record Box">
+            <button type="button" id="btnRecordBoxDrawer" onclick="openRecordBoxDrawer('box-full')"
+              class="px-2 py-1 sm:py-1.5 hover:bg-vinyl-800 text-amber-300 font-semibold flex items-center gap-1 transition cursor-pointer"
+              title="Open Active Record Box (Session Working Bag)">
               <span>🧳</span>
-              <span id="workingContextBoxLabel" class="truncate max-w-[95px] sm:max-w-[125px]">Box (0)</span>
+              <span id="workingContextBoxLabel" class="truncate max-w-[85px] sm:max-w-[120px]">Box (0)</span>
+              <span id="recordBoxBadgeCount"
+                class="hidden px-1 py-0.2 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-mono record-box-count">0</span>
             </button>
             <span class="text-slate-600 px-0.5 select-none">→</span>
             <button type="button" onclick="openRecordBoxDrawer('sets')"
-              class="px-2 py-1.5 hover:bg-vinyl-800 text-purple-300 font-semibold flex items-center gap-1 transition cursor-pointer"
+              class="px-2 py-1 sm:py-1.5 hover:bg-vinyl-800 text-purple-300 font-semibold flex items-center gap-1 transition cursor-pointer"
               title="Open Active Set Timeline">
               <i class="fa-solid fa-list-ol text-[9px] text-amber-400"></i>
-              <span id="workingContextSetLabel" class="truncate max-w-[100px] sm:max-w-[140px]">Set (0)</span>
+              <span id="workingContextSetLabel" class="truncate max-w-[85px] sm:max-w-[130px]">Set (0)</span>
             </button>
           </div>
 
           <!-- Multi-Select Mode / Select All Trigger Button -->
           <button type="button" id="btnToggleMultiSelectMode" onclick="toggleMultiSelectMode()"
-            class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-brass-500/50 rounded-lg px-2 sm:px-2.5 py-1.5 text-xs text-slate-300 font-semibold flex items-center gap-1 sm:gap-1.5 transition shadow-sm cursor-pointer"
+            class="bg-vinyl-850 hover:bg-vinyl-800 border border-vinyl-700 hover:border-brass-500/50 rounded-lg px-2 py-1 sm:py-1.5 text-xs text-slate-300 font-semibold flex items-center gap-1 transition shadow-sm cursor-pointer"
             title="Select multiple records for bulk Box, Crate, or Set actions">
             <i class="fa-solid fa-check-double text-xs text-brass-400"></i>
             <span id="multiSelectBtnLabel" class="text-[11px] font-mono hidden sm:inline">Select</span>
@@ -1383,7 +1363,7 @@
 
           <!-- Mobile-only filters toggle -->
           <button type="button" onclick="document.getElementById('filtersRow').classList.toggle('filters-open')"
-            class="sm:hidden bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-semibold flex items-center gap-1.5 shadow-sm">
+            class="sm:hidden bg-vinyl-850 border border-vinyl-700 rounded-lg px-2 py-1 text-xs text-slate-200 font-semibold flex items-center gap-1 shadow-sm">
             <i class="fa-solid fa-sliders text-xs text-brass-400"></i><span>Filters</span>
           </button>
           <!-- Share Link Trigger in Filters -->
@@ -6263,28 +6243,143 @@
       return 'Tracklist';
     }
 
-    function normalizeTracklist(rawTracks, format = '') {
+    function isVariousArtistsName(name = '') {
+      const n = String(name || '').trim().toLowerCase().replace(/\s*\(\d+\)$/, '');
+      if (!n) return false;
+      return n === 'various' ||
+        n === 'various artists' ||
+        n === 'v/a' ||
+        n === 'va' ||
+        n === 'v.a.' ||
+        n === 'compilation' ||
+        n.startsWith('various artists ') ||
+        n.startsWith('various /') ||
+        n.startsWith('various -');
+    }
+
+    function cleanDiscogsArtistName(name = '') {
+      return String(name || '').replace(/\s*\(\d+\)$/, '').replace(/\*+$/, '').trim();
+    }
+
+    function formatDiscogsArtistsArray(artistsArr = []) {
+      if (!Array.isArray(artistsArr) || artistsArr.length === 0) return '';
+      let out = '';
+      artistsArr.forEach((a, idx) => {
+        if (!a) return;
+        const name = cleanDiscogsArtistName(a.anv || a.name || '');
+        if (!name) return;
+        out += name;
+        const joinRaw = String(a.join || '').trim();
+        if (idx < artistsArr.length - 1) {
+          if (!joinRaw) {
+            out += ', ';
+          } else if (joinRaw === ',' || joinRaw === ';') {
+            out += `${joinRaw} `;
+          } else if (joinRaw === '/') {
+            out += ' / ';
+          } else {
+            out += ` ${joinRaw} `;
+          }
+        }
+      });
+      return out.replace(/\s+/g, ' ').trim();
+    }
+
+    function splitTrackArtistAndTitle(rawTitle = '', releaseArtist = '', explicitArtist = '') {
+      const cleanExplicit = cleanDiscogsArtistName(explicitArtist || '');
+      let titleStr = String(rawTitle || '').trim();
+      if (cleanExplicit && !isVariousArtistsName(cleanExplicit)) {
+        // Strip redundant leading "Artist — " or "Artist - " if title already prefixed with explicitArtist
+        const esc = cleanExplicit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const dupPrefix = new RegExp(`^${esc}\\s*(?:—|–|-|:)\\s*(.+)$`, 'i');
+        const mDup = titleStr.match(dupPrefix);
+        if (mDup && mDup[1]) {
+          titleStr = mDup[1].trim();
+        }
+        return { artist: cleanExplicit, title: titleStr };
+      }
+
+      // Check em-dash separator "Artist — Title" (always treated as explicit track artist separator)
+      const emMatch = titleStr.match(/^(.+?)\s+—\s+(.+)$/);
+      if (emMatch && emMatch[1] && emMatch[2] && !isVariousArtistsName(emMatch[1])) {
+        return { artist: cleanDiscogsArtistName(emMatch[1]), title: emMatch[2].trim() };
+      }
+
+      // If the release is a Various Artists compilation (or no release artist specified), also parse "Artist - Title" / "Artist – Title"
+      if (!releaseArtist || isVariousArtistsName(releaseArtist)) {
+        const dashMatch = titleStr.match(/^(.+?)\s+(?:–|-|\/)\s+(.+)$/);
+        if (dashMatch && dashMatch[1] && dashMatch[2] && !isVariousArtistsName(dashMatch[1])) {
+          return { artist: cleanDiscogsArtistName(dashMatch[1]), title: dashMatch[2].trim() };
+        }
+      }
+
+      return { artist: '', title: titleStr };
+    }
+
+    function extractDiscogsTrackArtist(trackNode, parentTrackNode = null, releaseArtist = '') {
+      if (!trackNode || typeof trackNode !== 'object') return '';
+      if (Array.isArray(trackNode.artists) && trackNode.artists.length > 0) {
+        const formatted = formatDiscogsArtistsArray(trackNode.artists);
+        if (formatted && !isVariousArtistsName(formatted)) return formatted;
+      }
+      if (parentTrackNode && Array.isArray(parentTrackNode.artists) && parentTrackNode.artists.length > 0) {
+        const formatted = formatDiscogsArtistsArray(parentTrackNode.artists);
+        if (formatted && !isVariousArtistsName(formatted)) return formatted;
+      }
+      const split = splitTrackArtistAndTitle(trackNode.title || '', releaseArtist, '');
+      return split.artist || '';
+    }
+
+    function extractMusicBrainzTrackArtist(trackNode, releaseArtist = '') {
+      if (!trackNode || typeof trackNode !== 'object') return '';
+      const credits = (Array.isArray(trackNode['artist-credit']) && trackNode['artist-credit'].length > 0)
+        ? trackNode['artist-credit']
+        : ((trackNode.recording && Array.isArray(trackNode.recording['artist-credit'])) ? trackNode.recording['artist-credit'] : []);
+      if (credits.length > 0) {
+        const joined = credits.map(c => {
+          if (!c) return '';
+          if (typeof c === 'string') return c;
+          const nm = c.name || c.artist?.name || '';
+          const jp = c.joinphrase || '';
+          return `${nm}${jp}`;
+        }).join('').trim();
+        if (joined && !isVariousArtistsName(joined)) return joined;
+      }
+      const rawTitle = trackNode.title || trackNode.recording?.title || '';
+      const split = splitTrackArtistAndTitle(rawTitle, releaseArtist, '');
+      return split.artist || '';
+    }
+
+    function normalizeTracklist(rawTracks, format = '', releaseArtist = '') {
       if (!Array.isArray(rawTracks)) return undefined;
       const cleaned = rawTracks
         .filter(t => t && (typeof t === 'string' ? t.trim() : (t.title || t.pos || t.index)))
         .map((t, idx) => {
           if (typeof t === 'string') {
-            return {
+            const split = splitTrackArtistAndTitle(t.trim(), releaseArtist, '');
+            const trackEntry = {
               section: deriveTrackSection(String(idx + 1), format),
               index: String(idx + 1),
               pos: String(idx + 1),
-              title: t.trim(),
+              title: split.title || t.trim(),
               duration: ''
             };
+            if (split.artist) trackEntry.artist = split.artist;
+            return trackEntry;
           }
           const index = String(t.position || t.pos || t.index || (idx + 1)).trim();
           const section = String(t.section || deriveTrackSection(index, format)).trim();
-          return {
+          const split = splitTrackArtistAndTitle(
+            String(t.title || `Track ${idx + 1}`).trim(),
+            releaseArtist,
+            t.artist || t.trackArtist || ''
+          );
+          const normObj = {
             section,
             index,
             pos: index,
             position: index,
-            title: String(t.title || `Track ${idx + 1}`).trim(),
+            title: split.title || String(t.title || `Track ${idx + 1}`).trim(),
             duration: String(t.duration || '').trim(),
             bpm: (t.bpm !== undefined && t.bpm !== null && t.bpm !== '') ? t.bpm : '',
             key: t.key || t.musical_key || t.musicalKey || '',
@@ -6292,6 +6387,10 @@
             camelot: t.camelot || '',
             spotify_uri: t.spotify_uri || null
           };
+          if (split.artist) {
+            normObj.artist = split.artist;
+          }
+          return normObj;
         });
       return cleaned.length > 0 ? cleaned : undefined;
     }
@@ -9013,7 +9112,7 @@
       if (!item || typeof item !== 'object') return '';
       const yNum = parseInt(item.year, 10);
       const itemDecade = (!isNaN(yNum) && yNum > 1900 && yNum < 2100) ? (Math.floor(yNum / 10) * 10 + 's') : '';
-      const tracksText = (item.tracks || []).map(t => `${t.section || ''} ${t.pos || t.index || ''} ${t.title || ''}`).join(' ');
+      const tracksText = (item.tracks || []).map(t => `${t.section || ''} ${t.pos || t.index || ''} ${t.artist || ''} ${t.title || ''}`).join(' ');
       const stylesText = Array.isArray(item.styles) ? item.styles.join(' ') : (item.styles || '');
       const indexStr = (
         (item.artist || '') + ' ' +
@@ -11134,7 +11233,7 @@
           const rawTracks = rec?.tracklist || rec?.tracks || [];
           let normTracks = [];
           if (typeof normalizeTracklist === 'function') {
-            const res = normalizeTracklist(rawTracks, formatStr);
+            const res = normalizeTracklist(rawTracks, formatStr, rec?.artist || '');
             normTracks = Array.isArray(res) ? res : [];
           } else if (Array.isArray(rawTracks)) {
             normTracks = rawTracks;
@@ -11188,6 +11287,7 @@
                   ${normTracks.length > 0 ? normTracks.map((tr, tIdx) => {
             const trPos = escapeHtml(tr.position || tr.pos || tr.index || (tIdx + 1));
             const trTitle = escapeHtml(tr.title || `Track ${tIdx + 1}`);
+            const trArtist = (tr.artist && String(tr.artist).toLowerCase() !== String(rec?.artist || '').toLowerCase()) ? escapeHtml(tr.artist) : '';
             const trDur = escapeHtml(tr.duration || '');
             const inSet = activeSetState.tracks.some(st => String(st.record_id) === recId && String(st.title).toLowerCase() === String(tr.title || '').toLowerCase());
 
@@ -11195,7 +11295,7 @@
                       <div draggable="true" ondragstart="handleBoxTrackDragStart(event, '${safeId}', ${tIdx})" class="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-vinyl-900/90 text-xs border border-vinyl-800/60 hover:border-vinyl-700 transition cursor-grab active:cursor-grabbing" title="Drag track to Set Timeline or click [+ Set]">
                         <div class="flex items-center gap-1.5 min-w-0">
                           <span class="w-6 text-center font-mono text-[10px] font-bold text-amber-400 bg-vinyl-800/80 px-1 py-0.2 rounded shrink-0">${trPos}</span>
-                          <span class="truncate font-medium text-slate-200" title="${trTitle}">${trTitle}</span>
+                          <span class="truncate font-medium text-slate-200" title="${trArtist ? `${trArtist} — ${trTitle}` : trTitle}">${trArtist ? `<span class="text-amber-300 font-semibold">${trArtist}</span> <span class="text-slate-500">—</span> ` : ''}${trTitle}</span>
                           ${trDur ? `<span class="text-[10px] font-mono text-slate-500 shrink-0">(${trDur})</span>` : ''}
                         </div>
                         <button type="button" onclick="addTrackToActiveSet('${safeId}', ${tIdx})"
@@ -11970,7 +12070,7 @@
         const rawTracks = rec?.tracklist || rec?.tracks || [];
         let normTracks = [];
         if (typeof normalizeTracklist === 'function') {
-          const res = normalizeTracklist(rawTracks, rec?.format || '');
+          const res = normalizeTracklist(rawTracks, rec?.format || '', rec?.artist || '');
           normTracks = Array.isArray(res) ? res : [];
         } else if (Array.isArray(rawTracks)) {
           normTracks = rawTracks;
@@ -11981,9 +12081,15 @@
           const kind = (typeof getMediaKind === 'function') ? getMediaKind(rec.format) : 'vinyl';
           const aLabel = kind === 'cd' ? '01' : (kind === 'tape' ? '1A' : 'A');
           const bLabel = kind === 'cd' ? '02' : (kind === 'tape' ? '2B' : 'B');
+          const splitA = (typeof splitTrackArtistAndTitle === 'function')
+            ? splitTrackArtistAndTitle(rec.sideATitle || rec.title || 'Side A Track', rec.artist, '')
+            : { artist: '', title: rec.sideATitle || rec.title || 'Side A Track' };
+          const splitB = (typeof splitTrackArtistAndTitle === 'function')
+            ? splitTrackArtistAndTitle(rec.sideBTitle || 'Side B Track', rec.artist, '')
+            : { artist: '', title: rec.sideBTitle || 'Side B Track' };
           normTracks = [
-            { pos: aLabel, position: aLabel, title: rec.sideATitle || rec.title || 'Side A Track', duration: rec.sideADuration || '' },
-            { pos: bLabel, position: bLabel, title: rec.sideBTitle || 'Side B Track', duration: rec.sideBDuration || '' }
+            { pos: aLabel, position: aLabel, artist: splitA.artist || '', title: splitA.title || 'Side A Track', duration: rec.sideADuration || '' },
+            { pos: bLabel, position: bLabel, artist: splitB.artist || '', title: splitB.title || 'Side B Track', duration: rec.sideBDuration || '' }
           ];
         }
 
@@ -11996,12 +12102,15 @@
         const trackBpm = tr.bpm || rec?.bpm || telemetry?.bpm || '';
         const trackKey = tr.musical_key || tr.musicalKey || tr.key || rec?.musical_key || rec?.musicalKey || rec?.key || telemetry?.musicalKey || '';
         const trackCamelot = tr.camelot || rec?.camelot || (telemetry ? telemetry.camelot : '') || ((typeof CAMELOT_KEY_MAP !== 'undefined' && CAMELOT_KEY_MAP[trackKey]) ? CAMELOT_KEY_MAP[trackKey] : '');
+        const splitTr = (typeof splitTrackArtistAndTitle === 'function')
+          ? splitTrackArtistAndTitle(tr.title || `Track ${idx + 1}`, rec?.artist || '', tr.artist || '')
+          : { artist: tr.artist || '', title: tr.title || `Track ${idx + 1}` };
 
         trackObj = {
           position: trPos,
           side_index: trPos,
-          title: tr.title || `Track ${idx + 1}`,
-          artist: rec?.artist || 'Unknown Artist',
+          title: splitTr.title || tr.title || `Track ${idx + 1}`,
+          artist: splitTr.artist || tr.artist || rec?.artist || 'Unknown Artist',
           duration: tr.duration || '',
           bpm: trackBpm,
           key: trackKey,
@@ -18181,7 +18290,7 @@
       const rec = (typeof records !== 'undefined' ? records : []).find(r => String(r.id) === String(dossierPlaybackState.recordId));
       const currentTrack = dossierPlaybackState.tracks[dossierPlaybackState.trackIndex];
       const trackTitle = currentTrack?.title || (rec ? rec.title : '');
-      const artist = rec ? rec.artist : '';
+      const artist = currentTrack?.artist || (rec && !isVariousArtistsName(rec.artist) ? rec.artist : '');
 
       // If audio already initialized for this track, resume playback
       if (dossierPlaybackState.audio && dossierPlaybackState.currentTrackTitle === trackTitle) {
@@ -18292,7 +18401,8 @@
       const activeTrackEl = document.getElementById('dossierActiveTrack');
       if (activeTrackEl) {
         const pos = tr.position || tr.pos || tr.index || (index + 1);
-        activeTrackEl.textContent = `${pos}. ${tr.title || 'Untitled Track'}`;
+        const tArtistPrefix = tr.artist ? `${tr.artist} — ` : '';
+        activeTrackEl.textContent = `${pos}. ${tArtistPrefix}${tr.title || 'Untitled Track'}`;
       }
       dossierPlaybackState.progress = 0;
       if (tr.duration && tr.duration.includes(':')) {
@@ -18653,12 +18763,15 @@
           const isTracksExpanded = expandedCardTracklists.has(recKey);
           const hasTracks = item.tracks && item.tracks.length > 0;
           const tracksRowsHtml = hasTracks
-            ? item.tracks.map((t, idx) => `
+            ? item.tracks.map((t, idx) => {
+                const showTrackArtist = t.artist && String(t.artist).toLowerCase() !== String(item.artist || '').toLowerCase();
+                return `
                       <div class="flex items-center justify-between gap-2 text-[10px] py-0.5 border-b border-vinyl-800/50 last:border-b-0">
-                        <span class="text-slate-200 truncate"><span class="text-brass-400/90 font-mono mr-1.5">${escapeHtml(t.position || t.side || String(idx + 1))}</span>${escapeHtml(t.title || 'Untitled Track')}</span>
+                        <span class="text-slate-200 truncate"><span class="text-brass-400/90 font-mono mr-1.5">${escapeHtml(t.position || t.pos || t.side || String(idx + 1))}</span>${showTrackArtist ? `<span class="text-amber-300/90 font-semibold">${escapeHtml(t.artist)}</span> <span class="text-slate-500">—</span> ` : ''}${escapeHtml(t.title || 'Untitled Track')}</span>
                         ${t.duration ? `<span class="text-slate-500 font-mono flex-shrink-0">${escapeHtml(t.duration)}</span>` : ''}
                       </div>
-                    `).join('')
+                    `;
+              }).join('')
             : `
                       <div class="flex items-center justify-between gap-2 text-[10px] py-0.5 border-b border-vinyl-800/50">
                         <span class="text-slate-200 truncate"><span class="text-brass-400 font-mono mr-1.5">A</span>${escapeHtml(item.sideATitle || item.title)}</span>
@@ -18682,7 +18795,7 @@
                         </span>
                       </div>
                       <div class="text-[10px] text-slate-400 truncate">
-                        ${escapeHtml(item.tracks.slice(0, 2).map(t => t.title).join(' · '))}${item.tracks.length > 2 ? '...' : ''}
+                        ${escapeHtml(item.tracks.slice(0, 2).map(t => (t.artist && String(t.artist).toLowerCase() !== String(item.artist || '').toLowerCase()) ? `${t.artist} — ${t.title}` : t.title).join(' · '))}${item.tracks.length > 2 ? '...' : ''}
                       </div>
                     ` : `
                       <div class="flex items-center justify-between gap-1.5">
@@ -20208,7 +20321,7 @@
       const seriesLabel = formatSeriesLabel(item);
       const gs = parseGenreAndStyles(item.genres || '', item.genre || '', item.styles || '');
       const gradingMeta = getFormatGradingMeta(item.format);
-      const normalizedTracks = normalizeTracklist(item.tracks || item.tracklist || [], item.format) || [];
+      const normalizedTracks = normalizeTracklist(item.tracks || item.tracklist || [], item.format, item.artist) || [];
       const safeId = escapeJsString(String(item.id));
       const telemetry = deriveRecordTelemetry(item);
       const inBox = (typeof isRecordInBox === 'function') ? isRecordInBox(item.id) : false;
@@ -20223,7 +20336,10 @@
       dossierPlaybackState.trackIndex = 0;
       dossierPlaybackState.progress = 0;
       dossierPlaybackState.duration = 30;
-      const firstTrackTitle = (allPlaybackTracks[0] && allPlaybackTracks[0].title) ? allPlaybackTracks[0].title : item.title;
+      const firstTrackObj = allPlaybackTracks[0];
+      const firstTrackTitle = firstTrackObj
+        ? `${firstTrackObj.artist ? firstTrackObj.artist + ' — ' : ''}${firstTrackObj.title || item.title}`
+        : item.title;
 
       // Build Media-Appropriate Tracklist grouped by section (Side A / Disc 1 / Side 1)
       let tracksHTML = '';
@@ -20245,9 +20361,11 @@
               <div class="space-y-1">
                 ${secTracks.map((t, tIdx) => {
             const currentTrackIndex = overallTrackIdx++;
-            const tStream = getStreamingLinks(item, t.title);
+            const effectiveTrackArtist = t.artist || (!isVariousArtistsName(item.artist) ? item.artist : '');
+            const tStream = getStreamingLinks({ ...item, artist: effectiveTrackArtist || item.artist }, t.title);
             const idxBadge = t.index || t.pos || (tIdx + 1);
             const tBpm = (telemetry.bpm - 2 + ((currentTrackIndex * 2) % 5));
+            const showTrackArtist = t.artist && String(t.artist).toLowerCase() !== String(item.artist || '').toLowerCase();
             const inSet = (typeof activeSetState !== 'undefined' && Array.isArray(activeSetState.tracks)) &&
               activeSetState.tracks.some(st => String(st.record_id) === String(item.id) && (
                 (st.side_index && String(st.side_index) === String(idxBadge)) ||
@@ -20257,7 +20375,7 @@
                     <div class="flex items-center justify-between p-2 bg-vinyl-900 rounded-lg border border-vinyl-800 hover:border-emerald-500/40 transition group/track cursor-pointer" onclick="selectDossierTrack(${currentTrackIndex}, true)">
                       <div class="flex items-center gap-2 min-w-0 pr-2">
                         <span class="min-w-[1.5rem] px-1 h-5 rounded bg-vinyl-800 text-brass-400 group-hover/track:text-emerald-400 text-center font-mono font-bold text-[10px] leading-5 flex-shrink-0">${escapeHtml(idxBadge)}</span>
-                        <span class="font-medium text-white truncate group-hover/track:text-emerald-300 transition">${escapeHtml(t.title)}</span>
+                        <span class="font-medium text-white truncate group-hover/track:text-emerald-300 transition">${showTrackArtist ? `<span class="text-amber-300 font-semibold">${escapeHtml(t.artist)}</span> <span class="text-slate-500">—</span> ` : ''}${escapeHtml(t.title)}</span>
                       </div>
                       <div class="flex items-center gap-2 flex-shrink-0">
                         <span class="text-emerald-400/80 font-mono text-[10px] hidden sm:inline">${tBpm} BPM</span>
@@ -20276,7 +20394,7 @@
                           <a href="${tStream.youtube}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-red-400 transition" title="Search on YouTube">
                             <i class="fa-brands fa-youtube text-xs"></i>
                           </a>
-                          <a href="https://www.whosampled.com/search/?q=${encodeURIComponent(item.artist + ' ' + t.title)}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-indigo-400 transition" title="Explore samples, covers &amp; remixes on WhoSampled">
+                          <a href="https://www.whosampled.com/search/?q=${encodeURIComponent((effectiveTrackArtist || item.artist) + ' ' + t.title)}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-indigo-400 transition" title="Explore samples, covers &amp; remixes on WhoSampled">
                             <i class="fa-solid fa-dna text-xs"></i>
                           </a>
                         </div>
@@ -22260,7 +22378,14 @@
       // Tracklist
       const editTracks = item.tracks || item.tracklist || [];
       if (editTracks && editTracks.length > 0) {
-        document.getElementById('formAlbumTracks').value = editTracks.map(t => `${(t.index || t.pos) ? (t.index || t.pos) + '. ' : ''}${t.title}${t.duration ? ' (' + t.duration + ')' : ''}`).join('\n');
+        document.getElementById('formAlbumTracks').value = editTracks.map(t => {
+          const posPrefix = (t.index || t.pos) ? (t.index || t.pos) + '. ' : '';
+          const artistPrefix = (t.artist && String(t.artist).toLowerCase() !== String(item.artist || '').toLowerCase())
+            ? `${t.artist} — `
+            : '';
+          const durSuffix = t.duration ? ` (${t.duration})` : '';
+          return `${posPrefix}${artistPrefix}${t.title}${durSuffix}`;
+        }).join('\n');
       } else {
         document.getElementById('formAlbumTracks').value = '';
       }
@@ -22498,18 +22623,23 @@
             trackTitle = trackTitle.replace(/\(([\d:]+)\)$/, '').trim();
           }
 
+          const split = splitTrackArtistAndTitle(trackTitle, artist, '');
           const section = sectionOverride || activeExplicitSection || deriveTrackSection(pos, format);
-          parsedTracks.push({
+          const trackEntry = {
             section,
             index: pos,
             pos,
-            title: trackTitle,
+            title: split.title || trackTitle,
             duration
-          });
+          };
+          if (split.artist) {
+            trackEntry.artist = split.artist;
+          }
+          parsedTracks.push(trackEntry);
         });
       }
 
-      const normalizedTracks = parsedTracks.length > 0 ? normalizeTracklist(parsedTracks, format) : undefined;
+      const normalizedTracks = parsedTracks.length > 0 ? normalizeTracklist(parsedTracks, format, artist) : undefined;
 
       const valRaw = document.getElementById('formEstimatedValue').value;
       let estValue = valRaw !== '' ? parseFloat(valRaw) : null;
@@ -22804,12 +22934,31 @@
     }
 
     /* =========================================================
-       DISCOGS VALUATION & MARKET API ENGINE
+       DISCOGS VALUATION & MARKET API ENGINE (LAZY-RENDERED MODALS)
        ========================================================= */
+    function ensureValuationModalRendered() {
+      const body = document.getElementById('valuationModalBody');
+      const tpl = document.getElementById('valuationModalBodyTemplate');
+      if (body && tpl && body.children.length === 0) {
+        body.appendChild(tpl.content.cloneNode(true));
+      }
+    }
+
+    function ensureInsuranceModalRendered() {
+      const body = document.getElementById('insuranceModalBody');
+      const tpl = document.getElementById('insuranceModalBodyTemplate');
+      if (body && tpl && body.children.length === 0) {
+        body.appendChild(tpl.content.cloneNode(true));
+      }
+    }
+
     function openValuationModal() {
+      ensureValuationModalRendered();
       const token = localStorage.getItem(TOKEN_KEY) || '';
-      document.getElementById('discogsTokenInput').value = token;
-      document.getElementById('valuationCurrencySelect').value = globalCurrency;
+      const tokenInput = document.getElementById('discogsTokenInput');
+      if (tokenInput) tokenInput.value = token;
+      const currSelect = document.getElementById('valuationCurrencySelect');
+      if (currSelect) currSelect.value = globalCurrency;
       renderStats();
       document.getElementById('valuationModal').classList.remove('hidden');
     }
@@ -22819,6 +22968,7 @@
     }
 
     function openInsuranceModal() {
+      ensureInsuranceModalRendered();
       document.getElementById('insuranceModal').classList.remove('hidden');
     }
 
@@ -23879,7 +24029,7 @@
       }
     }
 
-    function parseDiscogsTracklistForRecord(rawTracklist = [], format = '') {
+    function parseDiscogsTracklistForRecord(rawTracklist = [], format = '', releaseArtist = '') {
       if (!Array.isArray(rawTracklist) || rawTracklist.length === 0) return [];
       const entries = [];
       let currentHeading = '';
@@ -23894,29 +24044,37 @@
           t.sub_tracks.forEach((st) => {
             if (!st) return;
             const pos = String(st.position || t.position || (entries.length + 1)).trim();
-            const title = `${suitePrefix}${String(st.title || `Track ${entries.length + 1}`).trim()}`;
-            entries.push({
+            const trackArtist = extractDiscogsTrackArtist(st, t, releaseArtist);
+            const rawSubTitle = `${suitePrefix}${String(st.title || `Track ${entries.length + 1}`).trim()}`;
+            const split = splitTrackArtistAndTitle(rawSubTitle, releaseArtist, trackArtist);
+            const entry = {
               section: currentHeading || deriveTrackSection(pos, format),
               index: pos,
               pos,
-              title,
+              title: split.title || rawSubTitle,
               duration: String(st.duration || '').trim()
-            });
+            };
+            if (split.artist) entry.artist = split.artist;
+            entries.push(entry);
           });
           return;
         }
         const pos = String(t.position || (entries.length + 1)).trim();
-        const title = String(t.title || `Track ${entries.length + 1}`).trim();
-        if (!title) return;
-        entries.push({
+        const rawTitle = String(t.title || `Track ${entries.length + 1}`).trim();
+        if (!rawTitle) return;
+        const trackArtist = extractDiscogsTrackArtist(t, null, releaseArtist);
+        const split = splitTrackArtistAndTitle(rawTitle, releaseArtist, trackArtist);
+        const entry = {
           section: currentHeading || deriveTrackSection(pos, format),
           index: pos,
           pos,
-          title,
+          title: split.title || rawTitle,
           duration: String(t.duration || '').trim()
-        });
+        };
+        if (split.artist) entry.artist = split.artist;
+        entries.push(entry);
       });
-      return normalizeTracklist(entries, format) || [];
+      return normalizeTracklist(entries, format, releaseArtist) || [];
     }
 
     async function refreshRecordDiscogsMeta(recordId) {
@@ -24055,7 +24213,7 @@
         }
 
         // 1. Tracklist (always prioritize fresh Discogs tracklist when available)
-        const parsedTracks = parseDiscogsTracklistForRecord(dData.tracklist || [], item.format);
+        const parsedTracks = parseDiscogsTracklistForRecord(dData.tracklist || [], item.format, item.artist);
         if (parsedTracks.length > 0) {
           item.tracks = parsedTracks;
           item.sideATitle = parsedTracks[0]?.title || item.sideATitle || '';
@@ -25492,23 +25650,40 @@
                 if (rB && rB !== rA) matrixBVal = rB.value.trim();
               }
 
-              // Tracklist parsing
+              // Tracklist parsing (including per-track artists on Various Artists compilations)
               if (Array.isArray(dData.tracklist)) {
-                dData.tracklist.forEach((t, tIdx) => {
-                  if (t.type_ === 'heading') return;
+                const pushDiscogsTrackLine = (trackNode, parentNode, fallbackIdx) => {
                   totalTracksFound++;
-                  const pos = t.position || String(tIdx + 1);
-                  const tTitle = t.title || `Track ${tIdx + 1}`;
-                  const durSuffix = t.duration ? ` (${t.duration})` : '';
-                  allTrackLines.push(`${pos}. ${tTitle}${durSuffix}`);
+                  const pos = trackNode.position || parentNode?.position || String(fallbackIdx);
+                  const rawTitle = trackNode.title || `Track ${fallbackIdx}`;
+                  const extractedArtist = extractDiscogsTrackArtist(trackNode, parentNode, artistName);
+                  const split = splitTrackArtistAndTitle(rawTitle, artistName, extractedArtist);
+                  const cleanTitle = split.title || rawTitle;
+                  const trackArtist = split.artist || '';
+                  const showTrackArtist = trackArtist && String(trackArtist).toLowerCase() !== String(artistName || '').toLowerCase();
+                  const formattedTitle = showTrackArtist ? `${trackArtist} — ${cleanTitle}` : cleanTitle;
+                  const durSuffix = trackNode.duration ? ` (${trackNode.duration})` : '';
+                  allTrackLines.push(`${pos}. ${formattedTitle}${durSuffix}`);
 
                   if (pos === 'A' || pos === 'A1' || totalTracksFound === 1) {
-                    trackA = tTitle;
-                    trackADur = t.duration || '';
+                    trackA = formattedTitle;
+                    trackADur = trackNode.duration || '';
                   } else if (pos === 'B' || pos === 'B1' || totalTracksFound === 2) {
-                    trackB = tTitle;
-                    trackBDur = t.duration || '';
+                    trackB = formattedTitle;
+                    trackBDur = trackNode.duration || '';
                   }
+                };
+
+                dData.tracklist.forEach((t, tIdx) => {
+                  if (!t || t.type_ === 'heading') return;
+                  if (Array.isArray(t.sub_tracks) && t.sub_tracks.length > 0) {
+                    t.sub_tracks.forEach((st, sIdx) => {
+                      if (!st) return;
+                      pushDiscogsTrackLine(st, t, `${tIdx + 1}.${sIdx + 1}`);
+                    });
+                    return;
+                  }
+                  pushDiscogsTrackLine(t, null, tIdx + 1);
                 });
               }
 
@@ -25815,14 +25990,20 @@
                 }
               }
 
-              const trackTitle = t.title || t.recording?.title || `Track ${tIdx + 1}`;
-              allTrackLines.push(`${pos}. ${trackTitle}${durSuffix}`);
+              const rawTrackTitle = t.title || t.recording?.title || `Track ${tIdx + 1}`;
+              const extractedMbArtist = extractMusicBrainzTrackArtist(t, artistName);
+              const splitMb = splitTrackArtistAndTitle(rawTrackTitle, artistName, extractedMbArtist);
+              const cleanMbTitle = splitMb.title || rawTrackTitle;
+              const mbTrackArtist = splitMb.artist || '';
+              const showMbTrackArtist = mbTrackArtist && String(mbTrackArtist).toLowerCase() !== String(artistName || '').toLowerCase();
+              const formattedMbTitle = showMbTrackArtist ? `${mbTrackArtist} — ${cleanMbTitle}` : cleanMbTitle;
+              allTrackLines.push(`${pos}. ${formattedMbTitle}${durSuffix}`);
 
               if (totalTracksFound === 1) {
-                trackA = trackTitle;
+                trackA = formattedMbTitle;
                 trackADur = durFormatted;
               } else if (totalTracksFound === 2) {
-                trackB = trackTitle;
+                trackB = formattedMbTitle;
                 trackBDur = durFormatted;
               }
             });
