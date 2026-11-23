@@ -4692,6 +4692,77 @@
   </div>
 
   <!-- ============================================== -->
+  <!-- MODAL: SPOTIFY PLAYLIST PICKER (PULL TO SET)   -->
+  <!-- ============================================== -->
+  <div id="spotifyPlaylistPickerModal"
+    class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[92] flex items-center justify-center p-3 sm:p-4 hidden overflow-y-auto" style="z-index: 92;">
+    <div class="bg-vinyl-900 border border-[#1DB954]/50 rounded-2xl w-full max-w-lg flex flex-col shadow-2xl overflow-hidden my-auto animate-fadeIn">
+      <div class="px-5 py-3.5 border-b border-vinyl-800 flex items-center justify-between bg-vinyl-850">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-[#1DB954]/15 border border-[#1DB954]/40 flex items-center justify-center text-[#1ed760]">
+            <i class="fa-brands fa-spotify text-base"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-white text-sm sm:text-base">Pull Playlist from Spotify to Set</h3>
+            <p class="text-[11px] text-slate-400">Sync track order &amp; auto-match your physical vinyl archive</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeSpotifyPlaylistPickerModal()"
+          class="px-2.5 py-1.5 rounded-lg bg-vinyl-800 hover:bg-red-950/60 text-slate-200 hover:text-red-300 border border-vinyl-700 flex items-center gap-1 text-xs font-bold transition cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+          <span>Exit</span>
+        </button>
+      </div>
+
+      <div class="p-4 sm:p-5 space-y-4 overflow-y-auto max-h-[70vh] text-xs">
+        <!-- Paste URL / URI / ID Input -->
+        <div class="space-y-1.5">
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-300">
+            Paste Spotify Playlist Link or ID
+          </label>
+          <div class="flex gap-2">
+            <input type="text" id="spotifyPullPlaylistUrlInput"
+              placeholder="https://open.spotify.com/playlist/..."
+              onkeydown="if(event.key==='Enter'){event.preventDefault();handleSpotifyPickerUrlSubmit();}"
+              class="flex-1 min-w-0 bg-vinyl-950 border border-vinyl-700 focus:border-[#1DB954] rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none">
+            <button type="button" onclick="handleSpotifyPickerUrlSubmit()"
+              class="px-3.5 py-2 rounded-xl bg-[#1DB954] hover:bg-[#1ed760] text-black font-black text-xs shrink-0 flex items-center gap-1.5 transition shadow cursor-pointer">
+              <i class="fa-solid fa-cloud-arrow-down"></i>
+              <span>Pull</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- User's Spotify Playlists List -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-list-ul"></i>
+              <span>Your Spotify Playlists</span>
+            </span>
+            <span id="spotifyPickerLoadingBadge" class="text-[10px] font-mono text-slate-400">Loading...</span>
+          </div>
+          <div id="spotifyPickerPlaylistsContainer" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+            <!-- Dynamically populated by openSpotifyPlaylistPickerModal() -->
+          </div>
+        </div>
+      </div>
+
+      <div class="px-5 py-3 border-t border-vinyl-800 bg-vinyl-850 flex items-center justify-between gap-2">
+        <button type="button" onclick="closeSpotifyPlaylistPickerModal(); openSpotifyAuthModal();"
+          class="px-3 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 border border-vinyl-700 text-[11px] font-semibold transition cursor-pointer flex items-center gap-1.5">
+          <i class="fa-solid fa-key text-amber-400 text-[10px]"></i>
+          <span>Spotify Permissions</span>
+        </button>
+        <button type="button" onclick="closeSpotifyPlaylistPickerModal()"
+          class="px-4 py-1.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 text-xs font-semibold transition cursor-pointer">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
   <!-- MODAL: SHARE READ-ONLY ARCHIVE LINK             -->
   <!-- ============================================== -->
   <div id="shareModal"
@@ -11948,9 +12019,9 @@
                 <i class="fa-solid fa-bolt"></i>
                 <span>Build Set from Box (${boxLen} packed)</span>
               </button>
-              <button type="button" onclick="pullSetFromSpotify()"
+              <button type="button" onclick="pullSetFromSpotify(null, true)"
                 class="px-3.5 py-2 rounded-xl bg-[#1DB954]/20 hover:bg-[#1DB954]/30 text-[#1ed760] border border-[#1DB954]/40 font-bold text-xs inline-flex items-center gap-1.5 transition shadow cursor-pointer"
-                title="Import or sync a Spotify playlist into this Set and auto-match your physical records">
+                title="Choose or paste a Spotify playlist to import into this Set and auto-match your physical records">
                 <i class="fa-brands fa-spotify"></i>
                 <span>Pull from Spotify Playlist</span>
               </button>
@@ -14615,10 +14686,178 @@
       await pullSetFromSpotify(null, true);
     }
 
+    let _spotifyPickerTargetSetId = null;
+
+    function closeSpotifyPlaylistPickerModal() {
+      const modal = document.getElementById('spotifyPlaylistPickerModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function handleSpotifyPickerUrlSubmit() {
+      const input = document.getElementById('spotifyPullPlaylistUrlInput');
+      const raw = input ? input.value.trim() : '';
+      const pid = extractSpotifyPlaylistId(raw);
+      if (!pid) {
+        showToast('Please paste a valid Spotify Playlist URL, URI, or ID.', 'warning');
+        return;
+      }
+      closeSpotifyPlaylistPickerModal();
+      executePullSpotifyPlaylistById(pid, '', _spotifyPickerTargetSetId, true);
+    }
+
+    async function openSpotifyPlaylistPickerModal(targetSetId = null) {
+      _spotifyPickerTargetSetId = targetSetId || (activeSetState && activeSetState.id) || null;
+      const modal = document.getElementById('spotifyPlaylistPickerModal');
+      const listEl = document.getElementById('spotifyPickerPlaylistsContainer');
+      const badgeEl = document.getElementById('spotifyPickerLoadingBadge');
+      const urlInput = document.getElementById('spotifyPullPlaylistUrlInput');
+      if (!modal || !listEl) return;
+
+      const targetSet = (targetSetId && getQmcSavedSets().find(s => String(s.set_id) === String(targetSetId))) || activeSetState;
+      if (urlInput) {
+        urlInput.value = (targetSet && targetSet.spotify_playlist_url) ? targetSet.spotify_playlist_url : '';
+      }
+
+      listEl.innerHTML = `
+        <div class="p-6 text-center text-slate-400 text-xs flex items-center justify-center gap-2">
+          <i class="fa-solid fa-circle-notch fa-spin text-emerald-400"></i>
+          <span>Fetching your Spotify playlists...</span>
+        </div>
+      `;
+      if (badgeEl) badgeEl.textContent = 'Loading...';
+      modal.classList.remove('hidden');
+
+      const isDemo = localStorage.getItem('spotify_demo_connected') === 'true' || localStorage.getItem('qmc_spotify_demo_mode') === 'true';
+      let token = localStorage.getItem('spotify_access_token') || localStorage.getItem('qmc_spotify_access_token');
+      const expiresAt = parseInt(localStorage.getItem('spotify_token_expires_at') || '0', 10);
+      if (!isDemo && expiresAt && Date.now() > (expiresAt - 60000)) {
+        try {
+          const refreshedToken = await refreshSpotifyAccessToken();
+          if (refreshedToken) token = refreshedToken;
+        } catch (_) { }
+      }
+
+      const playlists = [];
+      const seenIds = new Set();
+
+      // 1. Include any linked Spotify playlists from saved QMC Sets first so they are always 1-tap away
+      const savedSets = (typeof getQmcSavedSets === 'function') ? getQmcSavedSets() : [];
+      savedSets.forEach(s => {
+        const pid = extractSpotifyPlaylistId(s.spotify_playlist_id) || extractSpotifyPlaylistId(s.spotify_playlist_url);
+        if (pid && !seenIds.has(pid)) {
+          seenIds.add(pid);
+          playlists.push({
+            id: pid,
+            name: s.title || 'Linked QMC Set Playlist',
+            trackCount: Array.isArray(s.tracks) ? s.tracks.length : '?',
+            image: '',
+            isLinkedSet: true,
+            isCurrentSet: Boolean(targetSet && (String(targetSet.id || targetSet.set_id) === String(s.set_id)))
+          });
+        }
+      });
+
+      // Also check activeSetState if unsaved but linked
+      if (activeSetState) {
+        const activePid = extractSpotifyPlaylistId(activeSetState.spotify_playlist_id) || extractSpotifyPlaylistId(activeSetState.spotify_playlist_url);
+        if (activePid && !seenIds.has(activePid)) {
+          seenIds.add(activePid);
+          playlists.unshift({
+            id: activePid,
+            name: activeSetState.title || 'Active Set Linked Playlist',
+            trackCount: Array.isArray(activeSetState.tracks) ? activeSetState.tracks.length : '?',
+            image: '',
+            isLinkedSet: true,
+            isCurrentSet: true
+          });
+        }
+      }
+
+      // 2. Fetch live playlists from Spotify Web API (/v1/me/playlists)
+      if (!isDemo && token) {
+        try {
+          let plRes = await fetch('https://api.spotify.com/v1/me/playlists?limit=30', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (plRes.ok) {
+            const plData = await plRes.json();
+            const items = Array.isArray(plData.items) ? plData.items.filter(Boolean) : [];
+            items.forEach(p => {
+              if (!p || !p.id || seenIds.has(p.id)) return;
+              seenIds.add(p.id);
+              const totalCount = p.items?.total ?? p.tracks?.total ?? '?';
+              const thumb = (Array.isArray(p.images) && p.images[0]?.url) ? p.images[0].url : '';
+              playlists.push({
+                id: p.id,
+                name: p.name || 'Untitled Playlist',
+                trackCount: totalCount,
+                image: thumb,
+                ownerName: p.owner?.display_name || '',
+                isLinkedSet: false,
+                isCurrentSet: false
+              });
+            });
+          }
+        } catch (e) {
+          console.warn('Could not list Spotify playlists:', e);
+        }
+      }
+
+      if (badgeEl) {
+        badgeEl.textContent = `${playlists.length} playlist${playlists.length === 1 ? '' : 's'}`;
+      }
+
+      if (playlists.length === 0) {
+        listEl.innerHTML = `
+          <div class="p-4 rounded-xl bg-vinyl-950 border border-vinyl-800 text-slate-400 text-xs space-y-2 text-center">
+            <p>No playlists returned from your Spotify library list, or your Spotify session needs read permissions (<code class="text-emerald-300">playlist-read-private</code>).</p>
+            <p class="text-[11px] text-slate-500">Paste any Spotify Playlist URL in the box above and tap <strong>Pull</strong>, or tap <strong>Spotify Permissions</strong> below to refresh your login.</p>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = playlists.map(p => {
+        const safePid = escapeJsString(p.id);
+        const safeNameJs = escapeJsString(p.name || '');
+        const safeNameHtml = escapeHtml(p.name || 'Untitled Playlist');
+        const badgeHtml = p.isCurrentSet
+          ? `<span class="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-mono font-bold">Linked to Set</span>`
+          : (p.isLinkedSet
+            ? `<span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-mono">QMC Set</span>`
+            : '');
+        return `
+          <div onclick="closeSpotifyPlaylistPickerModal(); executePullSpotifyPlaylistById('${safePid}', '${safeNameJs}', _spotifyPickerTargetSetId, true);"
+            class="p-2.5 rounded-xl bg-vinyl-950 hover:bg-vinyl-850 border ${p.isCurrentSet ? 'border-emerald-500/50' : 'border-vinyl-800 hover:border-[#1DB954]/50'} flex items-center justify-between gap-2.5 cursor-pointer transition group">
+            <div class="flex items-center gap-2.5 min-w-0">
+              ${p.image ? `
+                <img src="${escapeHtml(p.image)}" alt="" class="w-10 h-10 rounded-lg object-cover border border-vinyl-700 shrink-0">
+              ` : `
+                <div class="w-10 h-10 rounded-lg bg-[#1DB954]/10 border border-[#1DB954]/30 flex items-center justify-center text-[#1ed760] shrink-0">
+                  <i class="fa-brands fa-spotify text-base"></i>
+                </div>
+              `}
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="font-bold text-white text-xs truncate group-hover:text-[#1ed760] transition">${safeNameHtml}</span>
+                  ${badgeHtml}
+                </div>
+                <div class="text-[10px] text-slate-400 font-mono">
+                  ${escapeHtml(String(p.trackCount))} tracks${p.ownerName ? ` · ${escapeHtml(p.ownerName)}` : ''}
+                </div>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg bg-[#1DB954]/20 group-hover:bg-[#1DB954] text-[#1ed760] group-hover:text-black border border-[#1DB954]/40 font-bold text-[11px] shrink-0 transition flex items-center gap-1">
+              <i class="fa-solid fa-cloud-arrow-down text-[10px]"></i>
+              <span>Pull</span>
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
     async function pullSetFromSpotify(targetSetId = null, forcePromptForPlaylist = false) {
       let targetSet = null;
-      let isTargetActiveSet = true;
-
       if (targetSetId && typeof targetSetId === 'string') {
         const saved = getQmcSavedSets().find(s => String(s.set_id) === String(targetSetId));
         if (saved) {
@@ -14637,6 +14876,31 @@
         return null;
       }
 
+      const existingPid = extractSpotifyPlaylistId(targetSet.spotify_playlist_id) || extractSpotifyPlaylistId(targetSet.spotify_playlist_url);
+      const hasExistingTracks = Array.isArray(targetSet.tracks) && targetSet.tracks.length > 0;
+
+      // If no playlist is linked yet, or the Set timeline is empty, or user explicitly requested picker, open the interactive picker modal
+      if (forcePromptForPlaylist || !existingPid || !hasExistingTracks) {
+        openSpotifyPlaylistPickerModal(targetSetId);
+        return null;
+      }
+
+      return await executePullSpotifyPlaylistById(existingPid, '', targetSetId, false);
+    }
+
+    async function executePullSpotifyPlaylistById(playlistId, suggestedName = '', targetSetId = null, updateTitleFromRemote = false) {
+      let targetSet = null;
+      if (targetSetId && typeof targetSetId === 'string') {
+        const saved = getQmcSavedSets().find(s => String(s.set_id) === String(targetSetId));
+        if (saved) {
+          chooseActiveSet(saved.set_id);
+          targetSet = activeSetState;
+        }
+      }
+      if (!targetSet) {
+        targetSet = activeSetState;
+      }
+
       const isDemo = localStorage.getItem('spotify_demo_connected') === 'true' || localStorage.getItem('qmc_spotify_demo_mode') === 'true';
       let token = localStorage.getItem('spotify_access_token') || localStorage.getItem('qmc_spotify_access_token');
 
@@ -14648,53 +14912,6 @@
         } catch (_) { }
       }
 
-      let playlistId = (!forcePromptForPlaylist)
-        ? (extractSpotifyPlaylistId(targetSet.spotify_playlist_id) || extractSpotifyPlaylistId(targetSet.spotify_playlist_url))
-        : '';
-
-      // If no playlist is linked to this Set yet, let the user pick from their Spotify playlists or paste a URL/URI
-      if (!playlistId) {
-        let userPlaylists = [];
-        if (!isDemo && token) {
-          try {
-            const plRes = await fetch('https://api.spotify.com/v1/me/playlists?limit=15', {
-              headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (plRes.ok) {
-              const plData = await plRes.json();
-              userPlaylists = Array.isArray(plData.items) ? plData.items.filter(Boolean) : [];
-            }
-          } catch (_) { }
-        }
-
-        let promptMsg = 'Paste a Spotify Playlist URL, URI, or ID to sync into this Set:';
-        if (userPlaylists.length > 0) {
-          const listLines = userPlaylists.slice(0, 10).map((p, idx) => `${idx + 1}. ${p.name} (${p.tracks?.total ?? '?'} tracks)`).join('\n');
-          promptMsg = `Enter a number (1-${Math.min(10, userPlaylists.length)}) to pick one of your Spotify playlists, or paste any Spotify Playlist URL / ID:\n\n${listLines}`;
-        }
-
-        const userChoice = prompt(promptMsg, targetSet.spotify_playlist_url || '');
-        if (!userChoice) return null;
-
-        const trimmedChoice = userChoice.trim();
-        if (/^\d+$/.test(trimmedChoice)) {
-          const pickIdx = parseInt(trimmedChoice, 10) - 1;
-          if (userPlaylists[pickIdx] && userPlaylists[pickIdx].id) {
-            playlistId = userPlaylists[pickIdx].id;
-            if (forcePromptForPlaylist || !targetSet.tracks || targetSet.tracks.length === 0) {
-              targetSet.title = userPlaylists[pickIdx].name || targetSet.title;
-            }
-          }
-        }
-        if (!playlistId) {
-          playlistId = extractSpotifyPlaylistId(trimmedChoice);
-        }
-        if (!playlistId) {
-          showToast('Invalid Spotify Playlist URL or ID.', 'warning');
-          return null;
-        }
-      }
-
       const previousTracksSnapshot = JSON.parse(JSON.stringify(targetSet.tracks || []));
       const previousTitleSnapshot = targetSet.title;
 
@@ -14703,6 +14920,7 @@
         showToast('Demo Mode: Simulating Spotify playlist pull & physical archive matching...', 'info');
         targetSet.spotify_playlist_id = playlistId;
         targetSet.spotify_playlist_url = `https://open.spotify.com/playlist/${playlistId}`;
+        if (suggestedName) targetSet.title = suggestedName;
         saveActiveSet(targetSet);
         renderSetBuilderPane();
         if (currentView === 'sets') renderSetsView(document.getElementById('recordsContainer'));
@@ -14712,46 +14930,17 @@
       showToast(`Pulling playlist tracks from Spotify...`, 'info');
 
       try {
-        // 1. Fetch Playlist header metadata (name, external URL)
-        let remotePlaylistName = '';
-        let remotePlaylistUrl = `https://open.spotify.com/playlist/${playlistId}`;
-        try {
-          const metaRes = await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (metaRes.ok) {
-            const metaJson = await metaRes.json();
-            remotePlaylistName = metaJson.name || '';
-            remotePlaylistUrl = metaJson.external_urls?.spotify || remotePlaylistUrl;
-          }
-        } catch (_) { }
-
-        // 2. Fetch ordered playlist tracks (paginating up to 500 tracks, supporting both /items and /tracks)
-        const remoteSpotifyTracks = [];
-        let offset = 0;
-        const limit = 100;
-        while (offset < 500) {
-          let trRes = await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}/tracks?limit=${limit}&offset=${offset}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (!trRes.ok && (trRes.status === 404 || trRes.status === 400)) {
-            trRes = await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}/items?limit=${limit}&offset=${offset}`, {
-              headers: { 'Authorization': `Bearer ${token}` }
-            });
-          }
-          if (!trRes.ok) {
-            const errBody = await trRes.json().catch(() => ({}));
-            throw new Error(errBody?.error?.message || `HTTP ${trRes.status}`);
-          }
-          const pageData = await trRes.json();
-          const items = Array.isArray(pageData.items) ? pageData.items : [];
-          items.forEach(item => {
-            const trackNode = item?.track || item?.item || (item?.uri ? item : null);
+        // Helper to extract normalized track objects from a Spotify items array
+        const extractTracksFromSpotifyItems = (itemsArr) => {
+          const out = [];
+          if (!Array.isArray(itemsArr)) return out;
+          itemsArr.forEach(item => {
+            const trackNode = item?.item || item?.track || (item?.uri && item?.name ? item : null);
             if (!trackNode || trackNode.is_local) return;
             const artistList = Array.isArray(trackNode.artists)
               ? trackNode.artists.map(a => a?.name || '').filter(Boolean)
               : [];
-            remoteSpotifyTracks.push({
+            out.push({
               uri: trackNode.uri || (trackNode.id ? `spotify:track:${trackNode.id}` : ''),
               title: trackNode.name || 'Untitled Track',
               artist: artistList.join(', ') || 'Unknown Artist',
@@ -14761,8 +14950,91 @@
               duration: formatSpotifyDurationMs(trackNode.duration_ms)
             });
           });
+          return out;
+        };
+
+        // 1. Fetch Playlist header metadata (name, external URL, and embedded items/tracks if returned)
+        let remotePlaylistName = suggestedName || '';
+        let remotePlaylistUrl = `https://open.spotify.com/playlist/${playlistId}`;
+        let rootEmbeddedTracks = [];
+        try {
+          const metaRes = await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (metaRes.ok) {
+            const metaJson = await metaRes.json();
+            remotePlaylistName = metaJson.name || remotePlaylistName;
+            remotePlaylistUrl = metaJson.external_urls?.spotify || remotePlaylistUrl;
+            const embeddedItems = metaJson.items?.items || metaJson.tracks?.items || [];
+            if (Array.isArray(embeddedItems) && embeddedItems.length > 0) {
+              rootEmbeddedTracks = extractTracksFromSpotifyItems(embeddedItems);
+            }
+          }
+        } catch (_) { }
+
+        // 2. Fetch ordered playlist tracks using modern Spotify Web API /items endpoint first (avoids 403 deprecation on /tracks!),
+        //    falling back to /tracks on 400, 403, or 404, and finally to rootEmbeddedTracks
+        const remoteSpotifyTracks = [];
+        let offset = 0;
+        const limit = 100;
+        let lastHttpStatus = 0;
+        let lastErrMessage = '';
+
+        while (offset < 500) {
+          // Modern Spotify endpoint: GET /v1/playlists/{playlist_id}/items
+          let trRes = await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}/items?limit=${limit}&offset=${offset}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+
+          // Fallback to legacy GET /v1/playlists/{playlist_id}/tracks if /items returned 400, 403, or 404
+          if (!trRes.ok && (trRes.status === 400 || trRes.status === 403 || trRes.status === 404)) {
+            const fallbackRes = await fetch(`https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}/tracks?limit=${limit}&offset=${offset}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (fallbackRes.ok) {
+              trRes = fallbackRes;
+            }
+          }
+
+          if (!trRes.ok) {
+            lastHttpStatus = trRes.status;
+            const errBody = await trRes.json().catch(() => ({}));
+            lastErrMessage = errBody?.error?.message || `HTTP ${trRes.status}`;
+            break;
+          }
+
+          const pageData = await trRes.json();
+          const items = Array.isArray(pageData.items) ? pageData.items : [];
+          const extracted = extractTracksFromSpotifyItems(items);
+          remoteSpotifyTracks.push(...extracted);
+
           if (!pageData.next || items.length < limit) break;
           offset += limit;
+        }
+
+        // If sub-endpoints failed (e.g. 403 on sub-route) but root playlist object contained the tracks, use them!
+        if (remoteSpotifyTracks.length === 0 && rootEmbeddedTracks.length > 0) {
+          remoteSpotifyTracks.push(...rootEmbeddedTracks);
+        }
+
+        if (remoteSpotifyTracks.length === 0 && lastHttpStatus > 0) {
+          if (lastHttpStatus === 403) {
+            const actionChoice = confirm(
+              `Spotify denied reading playlist tracks (403 Forbidden).\n\n` +
+              `Common causes:\n` +
+              `1. Your Spotify login token needs updated read permissions (playlist-read-private).\n` +
+              `2. Or the linked playlist belongs to a Spotify editorial/algorithmic account blocked in Dev Mode.\n\n` +
+              `Click OK to reconnect Spotify with updated permissions, or Cancel to pick a different playlist.`
+            );
+            if (actionChoice) {
+              disconnectSpotify();
+              openSpotifyAuthModal();
+            } else {
+              openSpotifyPlaylistPickerModal(targetSetId);
+            }
+            return null;
+          }
+          throw new Error(lastErrMessage || `HTTP ${lastHttpStatus}`);
         }
 
         if (remoteSpotifyTracks.length === 0) {
@@ -14920,7 +15192,7 @@
         }
 
         // Update Set state
-        if (remotePlaylistName && (forcePromptForPlaylist || previousTracksSnapshot.length === 0 || /^Session Set /i.test(targetSet.title || ''))) {
+        if (remotePlaylistName && (updateTitleFromRemote || previousTracksSnapshot.length === 0 || /^Session Set /i.test(targetSet.title || ''))) {
           targetSet.title = remotePlaylistName;
         }
         targetSet.spotify_playlist_id = playlistId;
