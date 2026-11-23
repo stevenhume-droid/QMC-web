@@ -5330,12 +5330,21 @@
 
       <!-- Artist Bio Input -->
       <div class="space-y-1.5">
-        <label for="bioEditorArtistInput" class="text-xs font-bold uppercase tracking-wider text-brass-400 flex items-center justify-between">
-          <span>🎙️ Artist Biography</span>
-          <button type="button" onclick="autoFetchSpecificBio('artist')" class="text-[11px] text-sky-400 hover:underline font-normal flex items-center gap-1 cursor-pointer">
-            <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Auto-Fetch Artist
-          </button>
-        </label>
+        <div class="text-xs font-bold uppercase tracking-wider text-brass-400 flex items-center justify-between flex-wrap gap-1.5">
+          <label for="bioEditorArtistInput">🎙️ Artist Biography</label>
+          <div class="flex items-center gap-1 font-normal normal-case">
+            <span class="text-[10px] text-slate-400">Swap from:</span>
+            <button type="button" onclick="autoFetchSpecificBio('artist', 'spotify')" class="px-2 py-0.5 rounded bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold flex items-center gap-1 cursor-pointer" title="Pull artist profile, genres, top tracks &amp; bio via Spotify + AudioDB">
+              <i class="fa-brands fa-spotify text-[10px]"></i> Spotify
+            </button>
+            <button type="button" onclick="autoFetchSpecificBio('artist', 'discogs')" class="px-2 py-0.5 rounded bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-[10px] font-semibold flex items-center gap-1 cursor-pointer" title="Pull collector artist profile &amp; real name/aliases from Discogs">
+              <i class="fa-solid fa-compact-disc text-[10px]"></i> Discogs
+            </button>
+            <button type="button" onclick="autoFetchSpecificBio('artist', 'wikipedia')" class="px-2 py-0.5 rounded bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 text-[10px] font-semibold flex items-center gap-1 cursor-pointer" title="Pull encyclopedic biography from Wikipedia">
+              <i class="fa-brands fa-wikipedia-w text-[10px]"></i> Wiki
+            </button>
+          </div>
+        </div>
         <textarea id="bioEditorArtistInput" rows="4"
           placeholder="Enter artist background, career history, origin, musical era, and band member notes..."
           class="w-full bg-vinyl-950 border border-vinyl-750 focus:border-amber-500 rounded-xl p-3 text-xs text-slate-200 focus:outline-none transition leading-relaxed"></textarea>
@@ -5343,12 +5352,21 @@
 
       <!-- Album Story Input -->
       <div class="space-y-1.5">
-        <label for="bioEditorAlbumInput" class="text-xs font-bold uppercase tracking-wider text-brass-400 flex items-center justify-between">
-          <span>💽 Album Story &amp; Recording Background</span>
-          <button type="button" onclick="autoFetchSpecificBio('album')" class="text-[11px] text-sky-400 hover:underline font-normal flex items-center gap-1 cursor-pointer">
-            <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Auto-Fetch Album
-          </button>
-        </label>
+        <div class="text-xs font-bold uppercase tracking-wider text-brass-400 flex items-center justify-between flex-wrap gap-1.5">
+          <label for="bioEditorAlbumInput">💽 Album Story &amp; Recording Background</label>
+          <div class="flex items-center gap-1 font-normal normal-case">
+            <span class="text-[10px] text-slate-400">Swap from:</span>
+            <button type="button" onclick="autoFetchSpecificBio('album', 'spotify')" class="px-2 py-0.5 rounded bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold flex items-center gap-1 cursor-pointer" title="Pull album release telemetry, label, copyrights &amp; review via Spotify + AudioDB">
+              <i class="fa-brands fa-spotify text-[10px]"></i> Spotify
+            </button>
+            <button type="button" onclick="autoFetchSpecificBio('album', 'discogs')" class="px-2 py-0.5 rounded bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-[10px] font-semibold flex items-center gap-1 cursor-pointer" title="Pull release liner notes, credits &amp; pressing story from Discogs">
+              <i class="fa-solid fa-compact-disc text-[10px]"></i> Discogs
+            </button>
+            <button type="button" onclick="autoFetchSpecificBio('album', 'wikipedia')" class="px-2 py-0.5 rounded bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 text-[10px] font-semibold flex items-center gap-1 cursor-pointer" title="Pull album history &amp; critical reception from Wikipedia">
+              <i class="fa-brands fa-wikipedia-w text-[10px]"></i> Wiki
+            </button>
+          </div>
+        </div>
         <textarea id="bioEditorAlbumInput" rows="4"
           placeholder="Enter album backstory, studio sessions, personnel, concept, and historical impact..."
           class="w-full bg-vinyl-950 border border-vinyl-750 focus:border-amber-500 rounded-xl p-3 text-xs text-slate-200 focus:outline-none transition leading-relaxed"></textarea>
@@ -9456,11 +9474,14 @@
 
     /* =========================================================
        QMC CRATES, RECORD BOX & SAVED SETS STORAGE ENGINE
+       (Unified Crate + Sticky Focus Persistence)
        ========================================================= */
     const QMC_CRATES_KEY = 'qmc_crates_v1';
     const QMC_RECORD_BOX_KEY = 'qmc_record_box_v1';
     const QMC_SAVED_BOXES_KEY = 'qmc_saved_boxes_v1';
     const QMC_SAVED_SETS_KEY = 'qmc_saved_sets_v1';
+    const QMC_ACTIVE_CRATE_STATE_KEY = 'qmc_active_crate_state_v1';
+    const QMC_ACTIVE_SET_ID_KEY = 'qmc_active_set_id_v1';
 
     let qmcCrates = [];
     let qmcRecordBox = [];
@@ -9468,9 +9489,30 @@
     let qmcSavedSets = [];
     let activeBoxState = {
       id: null,
-      title: 'Session Box ' + new Date().toLocaleDateString('en-GB'),
+      title: 'Session Crate ' + new Date().toLocaleDateString('en-GB'),
       crate_id: null
     };
+
+    function persistActiveCrateFocus() {
+      try {
+        if (activeBoxState) {
+          localStorage.setItem(QMC_ACTIVE_CRATE_STATE_KEY, JSON.stringify({
+            id: activeBoxState.id || null,
+            title: activeBoxState.title || 'Session Crate',
+            crate_id: activeBoxState.crate_id || null
+          }));
+        }
+      } catch (_) { }
+    }
+
+    function persistActiveSetFocus(setId = null) {
+      try {
+        const idToSave = setId || (typeof activeSetState !== 'undefined' && activeSetState?.id) || '';
+        if (idToSave) {
+          localStorage.setItem(QMC_ACTIVE_SET_ID_KEY, String(idToSave));
+        }
+      } catch (_) { }
+    }
 
     function notifyQmcCurationUpdate(type) {
       if (typeof window !== 'undefined' && window.dispatchEvent) {
@@ -9535,6 +9577,12 @@
         crate.record_ids.push(sId);
         saveQmcCrates(crates);
       }
+      // Keep active working crate/box in sync if this is the active crate
+      if (activeBoxState && String(activeBoxState.crate_id) === String(crateId) && !isRecordInBox(sId)) {
+        qmcRecordBox.push({ record_id: sId, added_at: new Date().toISOString(), box_note: '' });
+        try { localStorage.setItem(QMC_RECORD_BOX_KEY, JSON.stringify(qmcRecordBox)); } catch (_) { }
+        notifyQmcCurationUpdate('record_box');
+      }
       return true;
     }
 
@@ -9545,6 +9593,15 @@
       const sId = String(recordId);
       crate.record_ids = crate.record_ids.filter(id => String(id) !== sId);
       saveQmcCrates(crates);
+      // Keep active working crate/box in sync if this is the active crate
+      if (activeBoxState && String(activeBoxState.crate_id) === String(crateId)) {
+        qmcRecordBox = (qmcRecordBox || []).filter(item => {
+          const itemId = typeof item === 'object' && item !== null ? String(item.record_id || item.id || '') : String(item || '');
+          return itemId !== sId;
+        });
+        try { localStorage.setItem(QMC_RECORD_BOX_KEY, JSON.stringify(qmcRecordBox)); } catch (_) { }
+        notifyQmcCurationUpdate('record_box');
+      }
       return true;
     }
 
@@ -9589,10 +9646,39 @@
       if (!activeBoxState.id) {
         activeBoxState.id = 'box_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
       }
+      const cleanTitle = (activeBoxState.title || 'Session Crate').trim();
+      const recIds = boxItems.map(it => typeof it === 'object' && it !== null ? String(it.record_id || it.id || '') : String(it || '')).filter(Boolean);
+
+      // Unified Crate & Box model: ensure every active Box is backed by a Crate in qmcCrates
+      const crates = getQmcCrates();
+      let linkedCrate = activeBoxState.crate_id
+        ? crates.find(c => String(c.crate_id) === String(activeBoxState.crate_id))
+        : crates.find(c => !c.is_smart && String(c.name || '').toLowerCase() === cleanTitle.toLowerCase());
+
+      if (linkedCrate) {
+        activeBoxState.crate_id = linkedCrate.crate_id;
+        linkedCrate.name = cleanTitle;
+        if (!linkedCrate.is_smart) {
+          linkedCrate.record_ids = Array.from(new Set(recIds));
+        }
+        saveQmcCrates(crates);
+      } else if (recIds.length > 0 || activeBoxState.crate_id) {
+        const newCrateId = activeBoxState.crate_id || ('crate_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6));
+        activeBoxState.crate_id = newCrateId;
+        crates.push({
+          crate_id: newCrateId,
+          name: cleanTitle,
+          description: 'Active working crate',
+          created_at: new Date().toISOString(),
+          record_ids: Array.from(new Set(recIds))
+        });
+        saveQmcCrates(crates);
+      }
+
       const existingIdx = boxes.findIndex(b => String(b.box_id) === String(activeBoxState.id));
       const boxPayload = {
         box_id: activeBoxState.id,
-        title: (activeBoxState.title || 'Session Box').trim(),
+        title: cleanTitle,
         crate_id: activeBoxState.crate_id || null,
         updated_at: new Date().toISOString(),
         items: JSON.parse(JSON.stringify(boxItems))
@@ -9603,16 +9689,7 @@
         boxes.push(boxPayload);
       }
       saveQmcSavedBoxes(boxes);
-
-      if (activeBoxState.crate_id) {
-        const crates = getQmcCrates();
-        const crate = crates.find(c => String(c.crate_id) === String(activeBoxState.crate_id));
-        if (crate) {
-          crate.name = boxPayload.title;
-          crate.record_ids = boxItems.map(it => typeof it === 'object' && it !== null ? String(it.record_id || it.id || '') : String(it || '')).filter(Boolean);
-          saveQmcCrates(crates);
-        }
-      }
+      persistActiveCrateFocus();
       return boxPayload;
     }
 
@@ -9751,6 +9828,7 @@
         sets.push(payload);
       }
       saveQmcSavedSets(sets);
+      persistActiveSetFocus(payload.set_id);
       return payload;
     }
 
@@ -10115,19 +10193,20 @@
     function renderCurationLifecycleStepper() {
       const el = document.getElementById('curationLifecycleStepper');
       if (!el) return;
-      const cratesCount = (typeof getQmcCrates === 'function') ? getQmcCrates().length : 0;
       const boxCount = (typeof getQmcRecordBox === 'function') ? getQmcRecordBox().length : 0;
       const setCount = (typeof activeSetState !== 'undefined' && Array.isArray(activeSetState?.tracks)) ? activeSetState.tracks.length : 0;
       const mode = (typeof recordBoxDrawerMode !== 'undefined') ? recordBoxDrawerMode : 'split';
+      const activeCrateName = (typeof activeBoxState !== 'undefined' && activeBoxState?.title) ? activeBoxState.title : 'Active Crate';
+      const shortCrateName = activeCrateName.length > 16 ? activeCrateName.slice(0, 15) + '…' : activeCrateName;
 
       const isBoxStage = mode === 'box-full' || (mode === 'split' && setCount === 0);
       const isSetStage = mode === 'set-full' || mode === 'set-focus' || (mode === 'split' && setCount > 0);
 
       let nextCtaHtml = '';
       if (boxCount === 0) {
-        nextCtaHtml = `<button type="button" onclick="closeRecordBoxDrawer()" class="px-2 py-0.5 rounded bg-brass-500/20 hover:bg-brass-500/30 text-brass-300 border border-brass-500/40 font-sans font-bold text-[10px] transition cursor-pointer shrink-0">Next: Pack Records from Archive →</button>`;
+        nextCtaHtml = `<button type="button" onclick="closeRecordBoxDrawer()" class="px-2 py-0.5 rounded bg-brass-500/20 hover:bg-brass-500/30 text-brass-300 border border-brass-500/40 font-sans font-bold text-[10px] transition cursor-pointer shrink-0">Next: Pack Records into Crate →</button>`;
       } else if (setCount === 0) {
-        nextCtaHtml = `<button type="button" onclick="buildSetFromRecordBox('harmonic')" class="px-2 py-0.5 rounded bg-emerald-500 hover:bg-emerald-400 text-vinyl-950 font-sans font-bold text-[10px] transition cursor-pointer shrink-0 shadow">⚡ Next: Build Set (${boxCount} in Box) →</button>`;
+        nextCtaHtml = `<button type="button" onclick="buildSetFromRecordBox('harmonic')" class="px-2 py-0.5 rounded bg-emerald-500 hover:bg-emerald-400 text-vinyl-950 font-sans font-bold text-[10px] transition cursor-pointer shrink-0 shadow">⚡ Next: Build Set (${boxCount} in Crate) →</button>`;
       } else {
         nextCtaHtml = `<button type="button" onclick="saveCurrentActiveSet(); triggerSpotifySetExport();" class="px-2 py-0.5 rounded bg-[#1DB954]/20 hover:bg-[#1DB954]/30 text-[#1ed760] border border-[#1DB954]/40 font-sans font-bold text-[10px] transition cursor-pointer shrink-0">🎵 Next: Save &amp; Sync Spotify →</button>`;
       }
@@ -10138,20 +10217,16 @@
             <span class="text-slate-500">1.</span><span>Archive</span>
           </button>
           <span class="text-slate-600">→</span>
-          <button type="button" onclick="saveRecordBoxAsCrate()" class="px-2 py-0.5 rounded border border-vinyl-800 bg-vinyl-900 hover:bg-vinyl-800 text-brass-300 transition cursor-pointer flex items-center gap-1" title="Step 2: Curate Thematic Crates (${cratesCount} saved)">
-            <span class="text-slate-500">2.</span><span>Crate (${cratesCount})</span>
+          <button type="button" onclick="setRecordBoxDrawerMode('box-full')" class="px-2 py-0.5 rounded border transition cursor-pointer flex items-center gap-1 ${isBoxStage ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 font-bold' : 'border-vinyl-800 bg-vinyl-900 hover:bg-vinyl-800 text-amber-300/80'}" title="Step 2: Active Crate (${escapeHtml(activeCrateName)} · ${boxCount} packed)">
+            <span class="text-slate-500">2.</span><span>🧳 ${escapeHtml(shortCrateName)} (${boxCount})</span>
           </button>
           <span class="text-slate-600">→</span>
-          <button type="button" onclick="setRecordBoxDrawerMode('box-full')" class="px-2 py-0.5 rounded border transition cursor-pointer flex items-center gap-1 ${isBoxStage ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 font-bold' : 'border-vinyl-800 bg-vinyl-900 hover:bg-vinyl-800 text-amber-300/80'}" title="Step 3: Pack Gig Bag Record Box (${boxCount} packed)">
-            <span class="text-slate-500">3.</span><span>🧳 Box (${boxCount})</span>
+          <button type="button" onclick="setRecordBoxDrawerMode('set-full')" class="px-2 py-0.5 rounded border transition cursor-pointer flex items-center gap-1 ${isSetStage ? 'bg-purple-500/20 border-purple-500/50 text-purple-200 font-bold' : 'border-vinyl-800 bg-vinyl-900 hover:bg-vinyl-800 text-purple-300/80'}" title="Step 3: Sequence Set Timeline (${setCount} tracks)">
+            <span class="text-slate-500">3.</span><span>🎵 Set (${setCount})</span>
           </button>
           <span class="text-slate-600">→</span>
-          <button type="button" onclick="setRecordBoxDrawerMode('set-full')" class="px-2 py-0.5 rounded border transition cursor-pointer flex items-center gap-1 ${isSetStage ? 'bg-purple-500/20 border-purple-500/50 text-purple-200 font-bold' : 'border-vinyl-800 bg-vinyl-900 hover:bg-vinyl-800 text-purple-300/80'}" title="Step 4: Sequence Set Timeline (${setCount} tracks)">
-            <span class="text-slate-500">4.</span><span>🎵 Set (${setCount})</span>
-          </button>
-          <span class="text-slate-600">→</span>
-          <button type="button" onclick="triggerSpotifySetExport()" class="px-2 py-0.5 rounded border border-vinyl-800 bg-vinyl-900 hover:bg-vinyl-800 text-emerald-300 transition cursor-pointer flex items-center gap-1" title="Step 5: Export / Sync Set to Spotify">
-            <span class="text-slate-500">5.</span><i class="fa-brands fa-spotify text-[10px]"></i><span>Export</span>
+          <button type="button" onclick="triggerSpotifySetExport()" class="px-2 py-0.5 rounded border border-vinyl-800 bg-vinyl-900 hover:bg-vinyl-800 text-emerald-300 transition cursor-pointer flex items-center gap-1" title="Step 4: Push / Pull Spotify Playlist">
+            <span class="text-slate-500">4.</span><i class="fa-brands fa-spotify text-[10px]"></i><span>Spotify</span>
           </button>
         </div>
         ${nextCtaHtml}
@@ -10273,10 +10348,180 @@
       renderCurationLifecycleStepper();
     }
 
+    function migrateBoxesIntoCrates() {
+      const crates = getQmcCrates();
+      const boxes = getQmcSavedBoxes();
+      let cratesMutated = false;
+      let boxesMutated = false;
+
+      boxes.forEach(b => {
+        if (!b) return;
+        const boxRecIds = (Array.isArray(b.items) ? b.items : [])
+          .map(it => typeof it === 'object' && it !== null ? String(it.record_id || it.id || '') : String(it || ''))
+          .filter(Boolean);
+        let linked = b.crate_id
+          ? crates.find(c => String(c.crate_id) === String(b.crate_id))
+          : crates.find(c => !c.is_smart && String(c.name || '').toLowerCase() === String(b.title || '').trim().toLowerCase());
+
+        if (linked) {
+          if (b.crate_id !== linked.crate_id) {
+            b.crate_id = linked.crate_id;
+            boxesMutated = true;
+          }
+          if (!linked.is_smart && boxRecIds.length > 0) {
+            const merged = Array.from(new Set([...(linked.record_ids || []).map(String), ...boxRecIds]));
+            if (merged.length !== (linked.record_ids || []).length) {
+              linked.record_ids = merged;
+              cratesMutated = true;
+            }
+          }
+        } else if (boxRecIds.length > 0 || b.title) {
+          const newCid = b.crate_id || ('crate_' + (b.box_id || Date.now()));
+          b.crate_id = newCid;
+          boxesMutated = true;
+          crates.push({
+            crate_id: newCid,
+            name: (b.title || 'Saved Crate').trim(),
+            description: 'Unified Crate',
+            created_at: b.updated_at || new Date().toISOString(),
+            record_ids: Array.from(new Set(boxRecIds))
+          });
+          cratesMutated = true;
+        }
+      });
+
+      if (cratesMutated) saveQmcCrates(crates);
+      if (boxesMutated) saveQmcSavedBoxes(boxes);
+    }
+
+    function restoreStickyCrateAndSetState() {
+      migrateBoxesIntoCrates();
+      const crates = getQmcCrates();
+      const boxes = getQmcSavedBoxes();
+      const currentBoxItems = getQmcRecordBox();
+
+      // 1. Restore Sticky Active Crate / Box
+      let restoredCrateFocus = false;
+      try {
+        const rawFocus = localStorage.getItem(QMC_ACTIVE_CRATE_STATE_KEY);
+        if (rawFocus) {
+          const parsed = JSON.parse(rawFocus);
+          if (parsed && typeof parsed === 'object') {
+            const matchedCrate = parsed.crate_id ? crates.find(c => String(c.crate_id) === String(parsed.crate_id)) : null;
+            const matchedBox = parsed.id ? boxes.find(b => String(b.box_id) === String(parsed.id)) : null;
+            if (matchedCrate) {
+              const effIds = (typeof getCrateEffectiveRecordIds === 'function') ? getCrateEffectiveRecordIds(matchedCrate) : (matchedCrate.record_ids || []);
+              activeBoxState = {
+                id: matchedBox ? matchedBox.box_id : (parsed.id || ('box_' + matchedCrate.crate_id)),
+                title: matchedCrate.name || parsed.title || 'Active Crate',
+                crate_id: matchedCrate.crate_id
+              };
+              qmcRecordBox = effIds.map((rid, idx) => ({ record_id: String(rid), added_at: new Date().toISOString(), order_index: idx }));
+              try { localStorage.setItem(QMC_RECORD_BOX_KEY, JSON.stringify(qmcRecordBox)); } catch (_) { }
+              restoredCrateFocus = true;
+            } else if (matchedBox) {
+              activeBoxState = {
+                id: matchedBox.box_id,
+                title: matchedBox.title || 'Active Crate',
+                crate_id: matchedBox.crate_id || null
+              };
+              qmcRecordBox = Array.isArray(matchedBox.items) ? JSON.parse(JSON.stringify(matchedBox.items)) : currentBoxItems;
+              try { localStorage.setItem(QMC_RECORD_BOX_KEY, JSON.stringify(qmcRecordBox)); } catch (_) { }
+              restoredCrateFocus = true;
+            }
+          }
+        }
+      } catch (_) { }
+
+      if (!restoredCrateFocus) {
+        if (boxes.length > 0) {
+          const lastBox = boxes[boxes.length - 1];
+          activeBoxState = {
+            id: lastBox.box_id,
+            title: lastBox.title || 'Active Crate',
+            crate_id: lastBox.crate_id || null
+          };
+          if (currentBoxItems.length === 0 && Array.isArray(lastBox.items) && lastBox.items.length > 0) {
+            qmcRecordBox = JSON.parse(JSON.stringify(lastBox.items));
+            try { localStorage.setItem(QMC_RECORD_BOX_KEY, JSON.stringify(qmcRecordBox)); } catch (_) { }
+          }
+          persistActiveCrateFocus();
+        } else if (crates.length > 0) {
+          const lastCrate = crates[crates.length - 1];
+          const effIds = (typeof getCrateEffectiveRecordIds === 'function') ? getCrateEffectiveRecordIds(lastCrate) : (lastCrate.record_ids || []);
+          activeBoxState = {
+            id: 'box_' + lastCrate.crate_id,
+            title: lastCrate.name || 'Active Crate',
+            crate_id: lastCrate.crate_id
+          };
+          if (currentBoxItems.length === 0 && effIds.length > 0) {
+            qmcRecordBox = effIds.map((rid, idx) => ({ record_id: String(rid), added_at: new Date().toISOString(), order_index: idx }));
+            try { localStorage.setItem(QMC_RECORD_BOX_KEY, JSON.stringify(qmcRecordBox)); } catch (_) { }
+          }
+          persistActiveCrateFocus();
+        }
+      }
+
+      // 2. Restore Sticky Active Set
+      const savedSets = getQmcSavedSets();
+      let restoredSet = null;
+      try {
+        const stickySetId = localStorage.getItem(QMC_ACTIVE_SET_ID_KEY);
+        if (stickySetId && savedSets.length > 0) {
+          restoredSet = savedSets.find(s => String(s.set_id) === String(stickySetId)) || null;
+        }
+        if (!restoredSet) {
+          const rawLive = localStorage.getItem(QMC_LIVE_ACTIVE_SET_KEY);
+          if (rawLive) {
+            const parsedLive = JSON.parse(rawLive);
+            if (parsedLive && typeof parsedLive === 'object') {
+              const matchedSaved = parsedLive.id ? savedSets.find(s => String(s.set_id) === String(parsedLive.id)) : null;
+              if (matchedSaved) {
+                restoredSet = matchedSaved;
+              } else if (Array.isArray(parsedLive.tracks) && parsedLive.tracks.length > 0) {
+                activeSetState = {
+                  id: parsedLive.id || null,
+                  title: parsedLive.title || 'Session Set',
+                  description: parsedLive.description || 'QMC Vinyl Session',
+                  spotify_playlist_id: parsedLive.spotify_playlist_id || null,
+                  spotify_playlist_url: parsedLive.spotify_playlist_url || null,
+                  genre_sort_enabled: Boolean(parsedLive.genre_sort_enabled),
+                  genre_sub_sort: parsedLive.genre_sub_sort || 'harmonic',
+                  genre_sequence: Array.isArray(parsedLive.genre_sequence) ? [...parsedLive.genre_sequence] : [],
+                  tracks: JSON.parse(JSON.stringify(parsedLive.tracks))
+                };
+              }
+            }
+          }
+        }
+      } catch (_) { }
+
+      if (!restoredSet && (!activeSetState || !Array.isArray(activeSetState.tracks) || activeSetState.tracks.length === 0) && savedSets.length > 0) {
+        // Default to most recently updated saved set so last session stays in focus
+        restoredSet = savedSets[savedSets.length - 1];
+      }
+
+      if (restoredSet) {
+        activeSetState = {
+          id: restoredSet.set_id,
+          title: restoredSet.title || 'Untitled Set',
+          description: restoredSet.description || 'QMC Vinyl Session',
+          spotify_playlist_id: restoredSet.spotify_playlist_id || null,
+          spotify_playlist_url: restoredSet.spotify_playlist_url || null,
+          genre_sort_enabled: Boolean(restoredSet.genre_sort_enabled),
+          genre_sub_sort: restoredSet.genre_sub_sort || 'harmonic',
+          genre_sequence: Array.isArray(restoredSet.genre_sequence) ? [...restoredSet.genre_sequence] : [],
+          tracks: JSON.parse(JSON.stringify(restoredSet.tracks || []))
+        };
+        persistActiveSetFocus(restoredSet.set_id);
+      }
+    }
+
     function initQmcCurationStorage() {
       getQmcCrates();
       getQmcRecordBox();
       getQmcSavedSets();
+      restoreStickyCrateAndSetState();
       updateRecordBoxBadges();
       updateWorkingContextPill();
       if (typeof updateWishlistCountBadges === 'function') updateWishlistCountBadges();
@@ -10288,10 +10533,11 @@
     function toggleBoxForRecord(recordId) {
       const rec = (typeof records !== 'undefined' ? records : []).find(r => String(r.id) === String(recordId));
       const title = rec ? `${rec.artist} — ${rec.title}` : 'Record';
+      const crateTitle = (activeBoxState && activeBoxState.title) ? activeBoxState.title : 'Active Crate';
       const inBox = isRecordInBox(recordId);
       if (inBox) {
         removeRecordFromBox(recordId);
-        showToast(`Removed "${title}" from Record Box.`, 'neutral', () => {
+        showToast(`Removed "${title}" from "${crateTitle}".`, 'neutral', () => {
           addRecordToBox(recordId);
           updateBoxButtonElements(recordId);
           if (typeof renderRecords === 'function') renderRecords();
@@ -10299,7 +10545,7 @@
       } else {
         addRecordToBox(recordId);
         const count = getQmcRecordBox().length;
-        showToast(`Packed "${title}" into Record Box! (Total: ${count})`, 'success', () => {
+        showToast(`Added "${title}" to "${crateTitle}"! (${count} in crate)`, 'success', () => {
           removeRecordFromBox(recordId);
           updateBoxButtonElements(recordId);
           if (typeof renderRecords === 'function') renderRecords();
@@ -10311,37 +10557,38 @@
     function updateBoxButtonElements(recordId) {
       const inBox = isRecordInBox(recordId);
       const sId = String(recordId);
+      const crateTitle = (activeBoxState && activeBoxState.title) ? activeBoxState.title : 'Active Crate';
 
-      // Detailed card box button
+      // Detailed card crate button (Option A)
       const cardBtn = document.getElementById(`cardBoxBtn-${sId}`);
       if (cardBtn) {
-        cardBtn.className = `px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border-vinyl-700'}`;
-        cardBtn.title = inBox ? 'Remove from Record Box' : 'Pack into Record Box';
-        cardBtn.innerHTML = `<span>${inBox ? '✓ In Box' : '+ Box'}</span>`;
+        cardBtn.className = `px-2 py-0.5 rounded-l-md text-[10px] font-mono font-semibold transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border-vinyl-700'}`;
+        cardBtn.title = inBox ? `In "${crateTitle}" (Click to remove)` : `1-Tap add to active crate: "${crateTitle}"`;
+        cardBtn.innerHTML = `<span>${inBox ? '✓ In Crate' : '🧳 + Crate'}</span>`;
       }
 
-      // Compact card box button
+      // Compact card crate button (Option A)
       const compactBtn = document.getElementById(`compactBoxBtn-${sId}`);
       if (compactBtn) {
-        compactBtn.className = `px-1 py-0.2 rounded text-[9px] font-mono transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 text-amber-300 border-vinyl-700'}`;
-        compactBtn.title = inBox ? 'Remove from Record Box' : 'Pack into Record Box';
-        compactBtn.textContent = inBox ? '✓ Box' : '+ Box';
+        compactBtn.className = `px-1.5 py-0.2 rounded-l text-[9px] font-mono transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border-vinyl-700'}`;
+        compactBtn.title = inBox ? `In "${crateTitle}" (Click to remove)` : `1-Tap add to active crate: "${crateTitle}"`;
+        compactBtn.textContent = inBox ? '✓ Crate' : '+ Crate';
       }
 
-      // Table row box button
+      // Table row crate button (Option A)
       const tableBtn = document.getElementById(`tableBoxBtn-${sId}`);
       if (tableBtn) {
-        tableBtn.className = `min-w-[34px] min-h-[34px] p-1.5 rounded-lg border transition active:scale-95 inline-flex items-center justify-center shadow-sm ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850/80 hover:bg-vinyl-750 text-amber-300 border-vinyl-700/60'}`;
-        tableBtn.title = inBox ? 'In Record Box (Click to remove)' : 'Pack into Record Box';
+        tableBtn.className = `min-w-[34px] min-h-[34px] p-1.5 rounded-l-lg border transition active:scale-95 inline-flex items-center justify-center shadow-sm ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850/80 hover:bg-vinyl-750 text-amber-300 border-vinyl-700/60'}`;
+        tableBtn.title = inBox ? `In "${crateTitle}" (Click to remove)` : `1-Tap add to active crate: "${crateTitle}"`;
         tableBtn.innerHTML = `<i class="fa-solid fa-box-archive text-xs"></i>`;
       }
 
-      // Dossier modal box button
+      // Dossier modal crate button (Option A)
       const dossierBtn = document.getElementById(`dossierBoxBtn-${sId}`);
       if (dossierBtn) {
-        dossierBtn.className = `px-3 py-2 rounded-lg font-semibold text-xs flex items-center gap-1.5 transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border-amber-500/30'}`;
-        dossierBtn.title = inBox ? 'Remove from Record Box' : 'Pack into Record Box';
-        dossierBtn.innerHTML = `<span>${inBox ? '✓ In Box' : '🧳 + Box'}</span>`;
+        dossierBtn.className = `px-3 py-2 rounded-l-lg font-semibold text-xs flex items-center gap-1.5 transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border-amber-500/30'}`;
+        dossierBtn.title = inBox ? `In "${crateTitle}" (Click to remove)` : `1-Tap add to active crate: "${crateTitle}"`;
+        dossierBtn.innerHTML = `<span>${inBox ? '✓ In Crate' : '🧳 + Crate'}</span>`;
       }
     }
 
@@ -10558,18 +10805,24 @@
       if (!m.inBox && m.crates.length === 0 && m.sets.length === 0) return '';
 
       const chips = [];
+      const activeCrateId = (typeof activeBoxState !== 'undefined' && activeBoxState?.crate_id) ? String(activeBoxState.crate_id) : '';
+      const activeCrateTitle = (typeof activeBoxState !== 'undefined' && activeBoxState?.title) ? activeBoxState.title : 'Active Crate';
+
       if (m.inBox) {
+        const safeActiveName = escapeHtml(activeCrateTitle);
         chips.push(`
           <button type="button" onclick="event.stopPropagation(); openRecordBoxDrawer('box-full')"
-            class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-[9px] font-mono font-semibold transition cursor-pointer"
-            title="Packed in Active Record Box — Click to open Box">
-            <span>🧳</span><span>${compact ? 'Box' : 'In Box'}</span>
+            class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-[9px] font-mono font-semibold truncate max-w-[125px] transition cursor-pointer"
+            title="In Active Crate: ${safeActiveName} — Click to open Crate">
+            <span>🧳</span><span class="truncate">${compact ? safeActiveName : `Crate: ${safeActiveName}`}</span>
           </button>
         `);
       }
 
+      // Filter out the active crate from m.crates so it is never displayed twice when m.inBox is true
+      const otherCrates = m.crates.filter(c => !(m.inBox && activeCrateId && String(c.crate_id) === activeCrateId));
       const maxCrates = compact ? 1 : 2;
-      m.crates.slice(0, maxCrates).forEach(c => {
+      otherCrates.slice(0, maxCrates).forEach(c => {
         const safeCid = escapeJsString(String(c.crate_id));
         const safeCName = escapeHtml(c.name);
         chips.push(`
@@ -10580,8 +10833,8 @@
           </button>
         `);
       });
-      if (m.crates.length > maxCrates) {
-        chips.push(`<span class="text-[9px] font-mono text-brass-400">+${m.crates.length - maxCrates}</span>`);
+      if (otherCrates.length > maxCrates) {
+        chips.push(`<span class="text-[9px] font-mono text-brass-400">+${otherCrates.length - maxCrates}</span>`);
       }
 
       const maxSets = compact ? 1 : 2;
@@ -13431,37 +13684,44 @@
     function renderActiveBoxPicker() {
       const selectEl = document.getElementById('activeBoxSelectPicker');
       if (!selectEl) return;
+      migrateBoxesIntoCrates();
       const savedBoxes = getQmcSavedBoxes();
       const crates = getQmcCrates();
       const currentBox = getQmcRecordBox();
       let html = '';
 
       if (activeBoxState && activeBoxState.id) {
-        html += `<option value="${escapeHtml(activeBoxState.id)}" selected>Active: ${escapeHtml(activeBoxState.title || 'Session Box')} (${currentBox.length} releases)</option>`;
+        html += `<option value="${escapeHtml(activeBoxState.id)}" selected>Active Crate: ${escapeHtml(activeBoxState.title || 'Session Crate')} (${currentBox.length} releases)</option>`;
       } else {
-        html += `<option value="__UNSAVED__" selected>Active: ${escapeHtml((activeBoxState && activeBoxState.title) || 'Session Box')} (${currentBox.length} releases)</option>`;
+        html += `<option value="__UNSAVED__" selected>Active Crate: ${escapeHtml((activeBoxState && activeBoxState.title) || 'Session Crate')} (${currentBox.length} releases)</option>`;
       }
 
-      const otherBoxes = savedBoxes.filter(b => String(b.box_id) !== String(activeBoxState && activeBoxState.id));
-      if (otherBoxes.length > 0) {
-        html += `<optgroup label="Switch Active Box (${otherBoxes.length})">`;
-        otherBoxes.forEach(b => {
-          html += `<option value="${escapeHtml(b.box_id)}">${escapeHtml(b.title || 'Session Box')} (${(b.items || []).length} releases)</option>`;
+      // Unified Crates list (deduplicating crates and boxes linked to the same crate_id)
+      const activeCrateId = activeBoxState && activeBoxState.crate_id ? String(activeBoxState.crate_id) : '';
+      const activeBoxId = activeBoxState && activeBoxState.id ? String(activeBoxState.id) : '';
+
+      const otherCrates = crates.filter(c => String(c.crate_id) !== activeCrateId);
+      if (otherCrates.length > 0) {
+        html += `<optgroup label="Switch Active Crate (${otherCrates.length})">`;
+        otherCrates.forEach(c => {
+          const effIds = (typeof getCrateEffectiveRecordIds === 'function') ? getCrateEffectiveRecordIds(c) : (c.record_ids || []);
+          const count = effIds.length;
+          html += `<option value="CRATE::${escapeHtml(c.crate_id)}">${c.is_smart ? '⚡ ' : ''}${escapeHtml(c.name || 'Untitled Crate')} (${count} releases)</option>`;
         });
         html += `</optgroup>`;
       }
 
-      if (crates.length > 0) {
-        html += `<optgroup label="Pick from Thematic Crates (${crates.length})">`;
-        crates.forEach(c => {
-          const isLinked = activeBoxState && String(activeBoxState.crate_id) === String(c.crate_id);
-          const count = (c.record_ids || []).length;
-          html += `<option value="CRATE::${escapeHtml(c.crate_id)}">${isLinked ? '✓ ' : ''}Crate: ${escapeHtml(c.name || 'Untitled Crate')} (${count} releases)</option>`;
+      // Include any standalone boxes not yet linked to a crate_id
+      const unlinkedBoxes = savedBoxes.filter(b => String(b.box_id) !== activeBoxId && (!b.crate_id || !crates.some(c => String(c.crate_id) === String(b.crate_id))));
+      if (unlinkedBoxes.length > 0) {
+        html += `<optgroup label="Session Crates (${unlinkedBoxes.length})">`;
+        unlinkedBoxes.forEach(b => {
+          html += `<option value="${escapeHtml(b.box_id)}">${escapeHtml(b.title || 'Session Crate')} (${(b.items || []).length} releases)</option>`;
         });
         html += `</optgroup>`;
       }
 
-      html += `<option value="__NEW__">+ Create New Box...</option>`;
+      html += `<option value="__NEW__">+ Create New Crate...</option>`;
       selectEl.innerHTML = html;
     }
 
@@ -13490,28 +13750,36 @@
     }
 
     function chooseActiveBox(boxId) {
-      // Save current box before switching
+      // Save current crate/box before switching
       saveActiveBoxStateToStorage();
 
       const boxes = getQmcSavedBoxes();
       const target = boxes.find(b => String(b.box_id) === String(boxId));
-      if (!target) return;
+      if (!target) {
+        // Also allow passing a crate_id directly to chooseActiveBox
+        const matchingCrate = getQmcCrates().find(c => String(c.crate_id) === String(boxId));
+        if (matchingCrate) {
+          return chooseActiveBoxFromCrate(matchingCrate.crate_id);
+        }
+        return;
+      }
 
       activeBoxState = {
         id: target.box_id,
-        title: target.title || 'Session Box',
+        title: target.title || 'Session Crate',
         crate_id: target.crate_id || null
       };
       qmcRecordBox = Array.isArray(target.items) ? JSON.parse(JSON.stringify(target.items)) : [];
       saveQmcRecordBox(qmcRecordBox);
+      persistActiveCrateFocus();
       if (typeof toggleBoxTitleEdit === 'function') toggleBoxTitleEdit(false);
       renderRecordBoxDrawer();
       refreshAllBoxButtonsInDOM();
-      showToast(`Selected Active Box: "${activeBoxState.title}" (${qmcRecordBox.length} releases)`, 'info');
+      showToast(`Focused Active Crate: "${activeBoxState.title}" (${qmcRecordBox.length} releases)`, 'info');
     }
 
     function chooseActiveBoxFromCrate(crateId) {
-      // Save current box before switching
+      // Save current crate/box before switching
       saveActiveBoxStateToStorage();
 
       const crate = getQmcCrates().find(c => String(c.crate_id) === String(crateId));
@@ -13520,7 +13788,8 @@
       const boxes = getQmcSavedBoxes();
       let existingBox = boxes.find(b => String(b.crate_id) === String(crate.crate_id));
       const nowIso = new Date().toISOString();
-      const items = (crate.record_ids || []).map((rid, idx) => ({
+      const effIds = (typeof getCrateEffectiveRecordIds === 'function') ? getCrateEffectiveRecordIds(crate) : (crate.record_ids || []);
+      const items = effIds.map((rid, idx) => ({
         record_id: String(rid),
         added_at: nowIso,
         order_index: idx
@@ -13529,51 +13798,54 @@
       if (existingBox) {
         activeBoxState = {
           id: existingBox.box_id,
-          title: crate.name || existingBox.title || 'Crate Box',
+          title: crate.name || existingBox.title || 'Active Crate',
           crate_id: crate.crate_id
         };
       } else {
         activeBoxState = {
           id: 'box_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-          title: crate.name || 'Crate Box',
+          title: crate.name || 'Active Crate',
           crate_id: crate.crate_id
         };
       }
 
       qmcRecordBox = items;
       saveQmcRecordBox(qmcRecordBox);
+      persistActiveCrateFocus();
       if (typeof toggleBoxTitleEdit === 'function') toggleBoxTitleEdit(false);
       renderRecordBoxDrawer();
       refreshAllBoxButtonsInDOM();
-      showToast(`Active Box set to "${activeBoxState.title}" (${qmcRecordBox.length} releases)`, 'success');
+      showToast(`Focused Active Crate: "${activeBoxState.title}" (${qmcRecordBox.length} releases)`, 'success');
     }
 
     function createNewActiveBoxPrompt(customTitle = null) {
-      // Auto-save outgoing box
+      // Auto-save outgoing crate/box
       saveActiveBoxStateToStorage();
 
       const todayStr = new Date().toLocaleDateString('en-GB');
-      const boxes = getQmcSavedBoxes();
-      const existingToday = boxes.filter(b => (b.title || '').includes(todayStr)).length;
+      const crates = getQmcCrates();
+      const existingToday = crates.filter(c => (c.name || '').includes(todayStr)).length;
       const suffix = existingToday > 0 ? ` #${existingToday + 1}` : '';
-      const defaultTitle = `Session Box ${todayStr}${suffix}`;
-      const inputTitle = customTitle !== null ? customTitle : prompt('Enter a name for your new Record Box:', defaultTitle);
+      const defaultTitle = `Session Crate ${todayStr}${suffix}`;
+      const inputTitle = customTitle !== null ? customTitle : prompt('Enter a name for your new Crate:', defaultTitle);
       if (inputTitle === null) {
         renderActiveBoxPicker();
         return null;
       }
       const finalTitle = (inputTitle || '').trim() || defaultTitle;
+      const newCrate = createQmcCrate(finalTitle, 'Active working crate', []);
       activeBoxState = {
         id: 'box_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
         title: finalTitle,
-        crate_id: null
+        crate_id: newCrate.crate_id
       };
       qmcRecordBox = [];
       saveQmcRecordBox(qmcRecordBox);
+      persistActiveCrateFocus();
       if (typeof toggleBoxTitleEdit === 'function') toggleBoxTitleEdit(false);
       renderRecordBoxDrawer();
       refreshAllBoxButtonsInDOM();
-      showToast(`Created & activated new Box: "${finalTitle}"!`, 'success');
+      showToast(`Created & focused new Crate: "${finalTitle}"!`, 'success');
       return activeBoxState;
     }
 
@@ -13645,6 +13917,7 @@
         tracks: JSON.parse(JSON.stringify(set.tracks || []))
       };
 
+      persistActiveSetFocus(set.set_id);
       isSetGenrePanelExpanded = false;
       if (typeof toggleSetTitleEdit === 'function') toggleSetTitleEdit(false);
       renderRecordBoxDrawer();
@@ -19463,12 +19736,15 @@
                 <span class="text-brass-400 hover:text-brass-300 flex items-center gap-0.5 font-semibold cursor-pointer" onclick="viewRecordDetail('${safeId}')">
                   <i class="fa-solid fa-file-lines text-[9px]"></i> Dossier
                 </span>
-                <button type="button" onclick="event.stopPropagation(); toggleBoxForRecord('${safeId}')" id="compactBoxBtn-${safeId}" class="px-1 py-0.2 rounded text-[9px] font-mono transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border-vinyl-700'}" title="${inBox ? 'Remove from Record Box' : 'Pack into Record Box'}">
-                  ${inBox ? '✓ Box' : '+ Box'}
-                </button>
-                <button type="button" onclick="event.stopPropagation(); openAddToModal('${safeId}', 'all')" class="px-1 py-0.2 rounded text-[9px] font-mono bg-vinyl-850 hover:bg-vinyl-800 text-slate-300 hover:text-white border border-vinyl-700 transition" title="Add to Box, Crate, or Set">
-                  + Add…
-                </button>
+                <!-- Option A (1-Tap Toggle in Active Crate) + Option B (Choose Crates / Sets Picker) -->
+                <div class="inline-flex items-stretch">
+                  <button type="button" data-box-btn="${safeId}" onclick="event.stopPropagation(); toggleBoxForRecord('${safeId}')" id="compactBoxBtn-${safeId}" class="px-1.5 py-0.2 rounded-l text-[9px] font-mono transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border-vinyl-700'}" title="${inBox ? 'Remove from Active Crate' : '1-Tap add to Active Crate'}">
+                    ${inBox ? '✓ Crate' : '+ Crate'}
+                  </button>
+                  <button type="button" onclick="event.stopPropagation(); openAddToModal('${safeId}', 'crates')" class="px-1 py-0.2 rounded-r text-[9px] font-mono bg-vinyl-850 hover:bg-vinyl-800 text-slate-300 hover:text-white border border-l-0 border-vinyl-700 transition" title="Choose other Crates or add to Set Timeline">
+                    ▾
+                  </button>
+                </div>
               </div>
               <div class="flex items-center gap-1.5">
                 <a href="${getEbaySoldUrl(item)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center p-0.5 hover:text-blue-400 transition" title="eBay Sold"><i class="fa-brands fa-ebay text-xs"></i></a>
@@ -19682,12 +19958,15 @@
                 <button type="button" onclick="viewRecordDetail('${safeId}')" class="hover:text-brass-400 transition flex items-center gap-1 flex-shrink-0">
                   <i class="fa-solid fa-file-lines"></i> Dossier
                 </button>
-                <button type="button" onclick="event.stopPropagation(); toggleBoxForRecord('${safeId}')" id="cardBoxBtn-${safeId}" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border-vinyl-700'}" title="${inBox ? 'Remove from Record Box' : 'Pack into Record Box'}">
-                  <span>${inBox ? '✓ In Box' : '+ Box'}</span>
-                </button>
-                <button type="button" onclick="event.stopPropagation(); openCrateAssignModal('${safeId}', 'all')" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-vinyl-850 hover:bg-vinyl-800 text-slate-300 hover:text-white border border-vinyl-700 transition" title="Add to Box, Thematic Crate, or Set Timeline">
-                  <span>+ Add to…</span>
-                </button>
+                <!-- Option A (1-Tap Toggle in Active Crate) + Option B (Choose Other Crates / Sets) -->
+                <div class="inline-flex items-stretch">
+                  <button type="button" data-box-btn="${safeId}" onclick="event.stopPropagation(); toggleBoxForRecord('${safeId}')" id="cardBoxBtn-${safeId}" class="px-2 py-0.5 rounded-l-md text-[10px] font-mono font-semibold transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border-vinyl-700'}" title="${inBox ? 'Remove from Active Crate' : '1-Tap add to Active Crate'}">
+                    <span>${inBox ? '✓ In Crate' : '🧳 + Crate'}</span>
+                  </button>
+                  <button type="button" onclick="event.stopPropagation(); openCrateAssignModal('${safeId}', 'crates')" class="px-1.5 py-0.5 rounded-r-md text-[10px] font-mono font-semibold bg-vinyl-850 hover:bg-vinyl-800 text-slate-300 hover:text-white border border-l-0 border-vinyl-700 transition flex items-center gap-0.5" title="Assign to other Crates or Set Timeline">
+                    <i class="fa-solid fa-caret-down text-[9px]"></i>
+                  </button>
+                </div>
               </div>
 
               <div class="flex items-center gap-1.5 flex-wrap">
@@ -19889,12 +20168,14 @@
               <button type="button" onclick="event.stopPropagation(); viewRecordDetail('${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-brass-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Inspect dossier">
                 <i class="fa-solid fa-eye text-xs"></i>
               </button>
-              <button type="button" onclick="event.stopPropagation(); toggleBoxForRecord('${safeId}')" id="tableBoxBtn-${safeId}" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg border transition active:scale-95 inline-flex items-center justify-center shadow-sm ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850/80 hover:bg-vinyl-750 text-amber-300 border-vinyl-700/60'}" title="${inBox ? 'In Record Box (Click to remove)' : 'Pack into Record Box'}">
-                <i class="fa-solid fa-box-archive text-xs"></i>
-              </button>
-              <button type="button" onclick="event.stopPropagation(); openCrateAssignModal('${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-brass-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Assign to Thematic Crate">
-                <i class="fa-solid fa-layer-group text-xs"></i>
-              </button>
+              <div class="inline-flex items-stretch">
+                <button type="button" data-box-btn="${safeId}" onclick="event.stopPropagation(); toggleBoxForRecord('${safeId}')" id="tableBoxBtn-${safeId}" class="min-w-[34px] min-h-[34px] p-1.5 rounded-l-lg border transition active:scale-95 inline-flex items-center justify-center shadow-sm ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850/80 hover:bg-vinyl-750 text-amber-300 border-vinyl-700/60'}" title="${inBox ? 'In Active Crate (Click to remove)' : '1-Tap add to Active Crate'}">
+                  <i class="fa-solid fa-box-archive text-xs"></i>
+                </button>
+                <button type="button" onclick="event.stopPropagation(); openCrateAssignModal('${safeId}', 'crates')" class="min-w-[24px] min-h-[34px] px-1 rounded-r-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-brass-400 border border-l-0 border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Choose other Crates or Set Timeline">
+                  <i class="fa-solid fa-caret-down text-[10px]"></i>
+                </button>
+              </div>
               ${isOwner ? `
                 <button type="button" onclick="event.stopPropagation(); openArtworkChooserModal('record', '${safeId}')" class="min-w-[34px] min-h-[34px] p-1.5 rounded-lg bg-vinyl-850/80 hover:bg-vinyl-750 text-slate-300 hover:text-sky-400 border border-vinyl-700/60 transition active:scale-95 inline-flex items-center justify-center shadow-sm" title="Choose Cover Sleeve">
                   <i class="fa-solid fa-images text-xs"></i>
@@ -21700,11 +21981,25 @@
                     <span>WhoSampled</span>
                   </a>
 
-                  <button type="button" onclick="autoFetchBioForRecord('${safeId}')" id="btnDossierAutoFetchBio"
-                    class="px-2.5 py-1 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 active:scale-95 text-sky-300 border border-sky-500/30 text-[11px] font-semibold flex items-center gap-1 transition cursor-pointer shadow-sm"
-                    title="Automatically fetch biography and album context from Wikipedia">
-                    <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>
-                    <span>Auto-Fetch</span>
+                  <button type="button" onclick="autoFetchBioForRecord('${safeId}', 'spotify')" id="btnDossierAutoFetchBioSpotify"
+                    class="px-2 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 active:scale-95 text-emerald-300 border border-emerald-500/30 text-[11px] font-semibold flex items-center gap-1 transition cursor-pointer shadow-sm"
+                    title="Swap Artist &amp; Album Bio using Spotify Artist/Album Telemetry + AudioDB">
+                    <i class="fa-brands fa-spotify text-[10px]"></i>
+                    <span>Spotify Bio</span>
+                  </button>
+
+                  <button type="button" onclick="autoFetchBioForRecord('${safeId}', 'discogs')" id="btnDossierAutoFetchBioDiscogs"
+                    class="px-2 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 active:scale-95 text-amber-300 border border-amber-500/30 text-[11px] font-semibold flex items-center gap-1 transition cursor-pointer shadow-sm"
+                    title="Swap Artist &amp; Album Bio using Discogs Artist Profile &amp; Release Notes">
+                    <i class="fa-solid fa-compact-disc text-[10px]"></i>
+                    <span>Discogs Bio</span>
+                  </button>
+
+                  <button type="button" onclick="autoFetchBioForRecord('${safeId}', 'wikipedia')" id="btnDossierAutoFetchBio"
+                    class="px-2 py-1 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 active:scale-95 text-sky-300 border border-sky-500/30 text-[11px] font-semibold flex items-center gap-1 transition cursor-pointer shadow-sm"
+                    title="Swap Artist &amp; Album Bio from Wikipedia">
+                    <i class="fa-brands fa-wikipedia-w text-[10px]"></i>
+                    <span>Wiki Bio</span>
                   </button>
 
                   ${isOwner ? `
@@ -21892,16 +22187,18 @@
             ${renderRecordMembershipChips(item.id, false)}
           </div>
           <div class="flex gap-2 w-full sm:w-auto justify-end flex-wrap">
-            <button type="button" onclick="toggleBoxForRecord('${safeId}')" id="dossierBoxBtn-${safeId}" class="px-3 py-2 rounded-lg font-semibold text-xs flex items-center gap-1.5 transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border-amber-500/30'}" title="${inBox ? 'Remove from Record Box' : 'Pack into Record Box'}">
-              <span>${inBox ? '✓ In Box' : '🧳 + Box'}</span>
-            </button>
-            <button type="button" onclick="openRecordBoxDrawer('sets')" class="px-3 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border border-amber-500/30 font-semibold text-xs flex items-center gap-1.5 transition shadow" title="Open Set Builder Timeline">
+            <div class="inline-flex items-stretch">
+              <button type="button" data-box-btn="${safeId}" onclick="toggleBoxForRecord('${safeId}')" id="dossierBoxBtn-${safeId}" class="px-3 py-2 rounded-l-lg font-semibold text-xs flex items-center gap-1.5 transition border ${inBox ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border-amber-500/30'}" title="${inBox ? 'Remove from Active Crate' : '1-Tap add to Active Crate'}">
+                <span>${inBox ? '✓ In Crate' : '🧳 + Crate'}</span>
+              </button>
+              <button type="button" onclick="openCrateAssignModal('${safeId}', 'crates')" class="px-2.5 py-2 rounded-r-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-l-0 border-vinyl-700 font-semibold text-xs flex items-center gap-1 transition shadow" title="Choose other Crates or add to Set Timeline">
+                <i class="fa-solid fa-layer-group text-brass-400 text-[10px]"></i>
+                <i class="fa-solid fa-caret-down text-[10px]"></i>
+              </button>
+            </div>
+            <button type="button" onclick="openRecordBoxDrawer('sets')" class="px-3 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border border-amber-500/30 font-semibold text-xs flex items-center gap-1.5 transition shadow" title="Open Active Crate &amp; Set Builder Workspace">
               <i class="fa-solid fa-list-ol text-amber-400"></i>
               <span>Set Builder</span>
-            </button>
-            <button type="button" onclick="openCrateAssignModal('${safeId}', 'all')" class="px-3 py-2 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-200 border border-vinyl-700 font-semibold text-xs flex items-center gap-1.5 transition shadow" title="Add to Box, Thematic Crate, or Set Timeline">
-              <i class="fa-solid fa-layer-group text-brass-400"></i>
-              <span>+ Add to Box / Crate / Set</span>
             </button>
             <a href="https://www.whosampled.com/search/?q=${encodeURIComponent(item.artist + ' ' + item.title)}" target="_blank" rel="noopener noreferrer" class="px-3 py-2 rounded-lg bg-indigo-950/60 hover:bg-indigo-900/70 text-indigo-300 border border-indigo-500/40 text-xs font-semibold flex items-center gap-1.5 transition" title="Explore samples, covers & remixes on WhoSampled">
               <i class="fa-solid fa-dna text-indigo-400"></i>
@@ -22153,33 +22450,258 @@
       return null;
     }
 
-    async function autoFetchBioForRecord(recordId) {
+    async function fetchSpotifyAndAudioDbBio(item) {
+      if (!item) return { artistBio: null, albumBio: null };
+      let artistBioParts = [];
+      let albumBioParts = [];
+
+      const isDemo = localStorage.getItem('spotify_demo_connected') === 'true' || localStorage.getItem('qmc_spotify_demo_mode') === 'true';
+      let token = localStorage.getItem('spotify_access_token') || localStorage.getItem('qmc_spotify_access_token');
+      const expiresAt = parseInt(localStorage.getItem('spotify_token_expires_at') || '0', 10);
+      if (!isDemo && expiresAt && Date.now() > (expiresAt - 60000) && typeof refreshSpotifyAccessToken === 'function') {
+        try {
+          const refreshed = await refreshSpotifyAccessToken();
+          if (refreshed) token = refreshed;
+        } catch (_) { }
+      }
+
+      // 1. Live Spotify Web API Artist & Album Profile (Genres, Popularity, Followers, Top Tracks, Label & Copyrights)
+      if (!isDemo && token && item.artist && !isVariousArtistsName(item.artist)) {
+        try {
+          const qArtist = encodeURIComponent(item.artist);
+          const arRes = await fetch(`https://api.spotify.com/v1/search?q=${qArtist}&type=artist&limit=1`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (arRes.ok) {
+            const arData = await arRes.json();
+            const spArtist = arData.artists?.items?.[0];
+            if (spArtist) {
+              const followers = spArtist.followers?.total ? Number(spArtist.followers.total).toLocaleString('en-GB') : null;
+              const genres = Array.isArray(spArtist.genres) && spArtist.genres.length > 0 ? spArtist.genres.join(', ') : null;
+              const pop = spArtist.popularity !== undefined ? `${spArtist.popularity}/100` : null;
+
+              let topTrackNames = [];
+              try {
+                const topRes = await fetch(`https://api.spotify.com/v1/artists/${encodeURIComponent(spArtist.id)}/top-tracks?market=GB`, {
+                  headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (topRes.ok) {
+                  const topData = await topRes.json();
+                  topTrackNames = (topData.tracks || []).slice(0, 5).map(t => `"${t.name}"`).filter(Boolean);
+                }
+              } catch (_) { }
+
+              const spSummary = [
+                `[Spotify Artist Profile: ${spArtist.name}]`,
+                genres ? `• Classified Genres: ${genres}` : '',
+                followers ? `• Global Spotify Followers: ${followers}` : '',
+                pop ? `• Streaming Popularity Index: ${pop}` : '',
+                topTrackNames.length > 0 ? `• Signature Essential Tracks: ${topTrackNames.join(', ')}` : ''
+              ].filter(Boolean).join('\n');
+              artistBioParts.push(spSummary);
+            }
+          }
+        } catch (_) { }
+      }
+
+      if (!isDemo && token && item.title) {
+        try {
+          const qAlbum = encodeURIComponent(`${!isVariousArtistsName(item.artist) ? item.artist + ' ' : ''}${item.title}`);
+          const alRes = await fetch(`https://api.spotify.com/v1/search?q=${qAlbum}&type=album&limit=1`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (alRes.ok) {
+            const alData = await alRes.json();
+            const spAlbumMatch = alData.albums?.items?.[0];
+            if (spAlbumMatch && spAlbumMatch.id) {
+              const fullAlRes = await fetch(`https://api.spotify.com/v1/albums/${encodeURIComponent(spAlbumMatch.id)}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              const spAlbum = fullAlRes.ok ? await fullAlRes.json() : spAlbumMatch;
+              const label = spAlbum.label || item.label || '';
+              const relDate = spAlbum.release_date || item.year || '';
+              const totalTr = spAlbum.total_tracks || (item.tracks ? item.tracks.length : '');
+              const copyrights = Array.isArray(spAlbum.copyrights)
+                ? spAlbum.copyrights.map(c => c?.text || '').filter(Boolean).slice(0, 2).join(' | ')
+                : '';
+              const trackPreview = Array.isArray(spAlbum.tracks?.items)
+                ? spAlbum.tracks.items.slice(0, 6).map((t, i) => `${i + 1}. ${t.name}`).join(' · ')
+                : '';
+
+              const alSummary = [
+                `[Spotify Release Dossier: ${spAlbum.name}]`,
+                `• Release Date: ${relDate}${label ? ` · Label: ${label}` : ''}${totalTr ? ` · ${totalTr} Tracks` : ''}`,
+                spAlbum.popularity !== undefined ? `• Album Popularity Score: ${spAlbum.popularity}/100` : '',
+                trackPreview ? `• Featured Sequence: ${trackPreview}` : '',
+                copyrights ? `• Phonographic Copyright: ${copyrights}` : ''
+              ].filter(Boolean).join('\n');
+              albumBioParts.push(alSummary);
+            }
+          }
+        } catch (_) { }
+      }
+
+      // 2. Enrich with TheAudioDB open editorial biography & album review (free public API key '2')
+      if (item.artist && !isVariousArtistsName(item.artist)) {
+        try {
+          const adbRes = await fetch(`https://www.theaudiodb.com/api/v1/json/2/search.php?s=${encodeURIComponent(item.artist)}`);
+          if (adbRes.ok) {
+            const adbData = await adbRes.json();
+            const ar = adbData?.artists?.[0];
+            if (ar && ar.strBiographyEN) {
+              artistBioParts.push(String(ar.strBiographyEN).trim());
+            }
+          }
+        } catch (_) { }
+      }
+      if (item.artist && item.title) {
+        try {
+          const adbAlRes = await fetch(`https://www.theaudiodb.com/api/v1/json/2/searchalbum.php?s=${encodeURIComponent(item.artist)}&a=${encodeURIComponent(item.title)}`);
+          if (adbAlRes.ok) {
+            const adbAlData = await adbAlRes.json();
+            const al = adbAlData?.album?.[0];
+            if (al && al.strDescriptionEN) {
+              albumBioParts.push(String(al.strDescriptionEN).trim());
+            }
+          }
+        } catch (_) { }
+      }
+
+      // 3. Fallback to Wikipedia extract if neither Spotify nor AudioDB had prose
+      if (artistBioParts.length === 0) {
+        const wikiAr = await fetchWikipediaExtract(item.artist);
+        if (wikiAr) artistBioParts.push(wikiAr);
+      }
+      if (albumBioParts.length === 0) {
+        const wikiAl = await fetchWikipediaExtract(`${item.title} ${item.artist}`);
+        if (wikiAl) albumBioParts.push(wikiAl);
+      }
+
+      return {
+        artistBio: artistBioParts.join('\n\n') || null,
+        albumBio: albumBioParts.join('\n\n') || null
+      };
+    }
+
+    async function fetchDiscogsArtistAndReleaseBio(item) {
+      if (!item) return { artistBio: null, albumBio: null };
+      const token = (typeof getDiscogsToken === 'function' ? getDiscogsToken() : '') || '';
+      const headers = { 'User-Agent': 'QMCVinylArchive/2.0' };
+      let artistBio = null;
+      let albumBio = null;
+
+      try {
+        let releaseData = null;
+        if (item.discogsId) {
+          let rUrl = `https://api.discogs.com/releases/${encodeURIComponent(item.discogsId)}`;
+          if (token) rUrl += `?token=${encodeURIComponent(token)}`;
+          const rRes = await fetch(rUrl, { headers });
+          if (rRes.ok) releaseData = await rRes.json();
+        }
+
+        if (!releaseData && (item.artist || item.title)) {
+          const qParams = new URLSearchParams({
+            q: `${item.artist || ''} ${item.title || ''}`.trim(),
+            type: 'release',
+            per_page: '3'
+          });
+          if (token) qParams.set('token', token);
+          const sRes = await fetch(`https://api.discogs.com/database/search?${qParams.toString()}`, { headers });
+          if (sRes.ok) {
+            const sData = await sRes.json();
+            const firstId = sData.results?.[0]?.id;
+            if (firstId) {
+              let rUrl = `https://api.discogs.com/releases/${encodeURIComponent(firstId)}`;
+              if (token) rUrl += `?token=${encodeURIComponent(token)}`;
+              const rRes = await fetch(rUrl, { headers });
+              if (rRes.ok) releaseData = await rRes.json();
+            }
+          }
+        }
+
+        if (releaseData) {
+          const notes = String(releaseData.notes || '').replace(/\[\/?[a-zA-Z0-9=_]+\]/g, '').trim();
+          const extraCredits = Array.isArray(releaseData.extraartists)
+            ? releaseData.extraartists.slice(0, 8).map(ea => `${ea.role}: ${cleanDiscogsArtistName(ea.name)}`).join(' · ')
+            : '';
+          const companies = Array.isArray(releaseData.companies)
+            ? releaseData.companies.slice(0, 5).map(c => `${c.entity_type_name}: ${cleanDiscogsArtistName(c.name)}`).join(' · ')
+            : '';
+
+          const albumLines = [
+            `[Discogs Archival Release Dossier #${releaseData.id}]`,
+            releaseData.released ? `• Released: ${releaseData.released} (${releaseData.country || 'Global'})` : '',
+            notes ? `\n${notes}` : '',
+            extraCredits ? `\n• Credits: ${extraCredits}` : '',
+            companies ? `• Pressing & Companies: ${companies}` : ''
+          ].filter(Boolean).join('\n');
+          if (albumLines) albumBio = albumLines;
+
+          // Fetch primary artist profile from Discogs
+          const artistId = releaseData.artists?.[0]?.id;
+          if (artistId && !isVariousArtistsName(releaseData.artists?.[0]?.name || item.artist)) {
+            let aUrl = `https://api.discogs.com/artists/${encodeURIComponent(artistId)}`;
+            if (token) aUrl += `?token=${encodeURIComponent(token)}`;
+            const aRes = await fetch(aUrl, { headers });
+            if (aRes.ok) {
+              const aData = await aRes.json();
+              const cleanProfile = String(aData.profile || '').replace(/\[\/?[a-zA-Z0-9=_]+\]/g, '').trim();
+              const members = Array.isArray(aData.members)
+                ? aData.members.map(m => cleanDiscogsArtistName(m.name)).filter(Boolean).join(', ')
+                : '';
+              const realName = aData.realname ? `Real Name: ${aData.realname}` : '';
+              const arLines = [
+                `[Discogs Artist Profile: ${cleanDiscogsArtistName(aData.name || item.artist)}]`,
+                realName,
+                members ? `Members: ${members}` : '',
+                cleanProfile ? `\n${cleanProfile}` : ''
+              ].filter(Boolean).join('\n');
+              if (arLines) artistBio = arLines;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Discogs bio lookup notice:', e);
+      }
+
+      return { artistBio, albumBio };
+    }
+
+    async function autoFetchBioForRecord(recordId, source = 'wikipedia') {
       const targetId = recordId || currentDetailRecordId;
       const item = records.find(r => String(r.id) === String(targetId));
       if (!item) return;
 
-      showToast(`Fetching Wikipedia biography for "${item.artist}"...`, 'info');
+      const sourceLabel = source === 'spotify' ? 'Spotify + AudioDB' : (source === 'discogs' ? 'Discogs' : 'Wikipedia');
+      showToast(`Swapping biography from ${sourceLabel} for "${item.artist}"...`, 'info');
 
-      const btn = document.getElementById('btnDossierAutoFetchBio');
-      if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[10px]"></i> <span>Fetching...</span>';
+      const btnId = source === 'spotify'
+        ? 'btnDossierAutoFetchBioSpotify'
+        : (source === 'discogs' ? 'btnDossierAutoFetchBioDiscogs' : 'btnDossierAutoFetchBio');
+      const btn = document.getElementById(btnId);
+      const prevHtml = btn ? btn.innerHTML : '';
+      if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[10px]"></i> <span>Loading...</span>';
 
       try {
-        // Fetch Artist Bio
-        let artistBio = await fetchWikipediaExtract(item.artist);
-        if (!artistBio) {
-          artistBio = await fetchWikipediaExtract(`${item.artist} band`);
-        }
-        if (!artistBio) {
-          artistBio = await fetchWikipediaExtract(`${item.artist} musician`);
-        }
+        let artistBio = null;
+        let albumBio = null;
 
-        // Fetch Album Story
-        let albumBio = await fetchWikipediaExtract(`${item.title} ${item.artist}`);
-        if (!albumBio) {
-          albumBio = await fetchWikipediaExtract(`${item.title} album`);
-        }
-        if (!albumBio) {
-          albumBio = await fetchWikipediaExtract(item.title);
+        if (source === 'spotify') {
+          const spRes = await fetchSpotifyAndAudioDbBio(item);
+          artistBio = spRes.artistBio;
+          albumBio = spRes.albumBio;
+        } else if (source === 'discogs') {
+          const dcRes = await fetchDiscogsArtistAndReleaseBio(item);
+          artistBio = dcRes.artistBio;
+          albumBio = dcRes.albumBio;
+        } else {
+          artistBio = await fetchWikipediaExtract(item.artist);
+          if (!artistBio) artistBio = await fetchWikipediaExtract(`${item.artist} band`);
+          if (!artistBio) artistBio = await fetchWikipediaExtract(`${item.artist} musician`);
+
+          albumBio = await fetchWikipediaExtract(`${item.title} ${item.artist}`);
+          if (!albumBio) albumBio = await fetchWikipediaExtract(`${item.title} album`);
+          if (!albumBio) albumBio = await fetchWikipediaExtract(item.title);
         }
 
         let updatedAny = false;
@@ -22198,15 +22720,15 @@
             syncRecordToCloud(item);
           }
           updateDossierBioPanes(item);
-          showToast(`Updated biography for "${item.artist}" & "${item.title}"!`, 'success');
+          showToast(`Swapped biography to ${sourceLabel} for "${item.artist}"!`, 'success');
         } else {
-          showToast(`No Wikipedia bio found for "${item.artist}". You can write your own via Edit!`, 'warning');
+          showToast(`No ${sourceLabel} bio found for "${item.artist}". Try another source or Edit manually.`, 'warning');
         }
       } catch (err) {
         console.warn('Auto-fetch bio error:', err);
         showToast('Could not fetch bio. You can enter custom notes via Edit.', 'error');
       } finally {
-        if (btn) btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> <span>Auto-Fetch</span>';
+        if (btn && prevHtml) btn.innerHTML = prevHtml;
       }
     }
 
@@ -22236,34 +22758,54 @@
       if (modal) modal.classList.add('hidden');
     }
 
-    async function autoFetchSpecificBio(type) {
+    async function autoFetchSpecificBio(type, source = 'wikipedia') {
       const recId = document.getElementById('bioEditorRecordId')?.value;
       const item = records.find(r => String(r.id) === String(recId));
       if (!item) return;
 
+      const sourceLabel = source === 'spotify' ? 'Spotify + AudioDB' : (source === 'discogs' ? 'Discogs' : 'Wikipedia');
+
       if (type === 'artist') {
-        showToast(`Fetching artist bio for "${item.artist}"...`, 'info');
-        let bio = await fetchWikipediaExtract(item.artist);
-        if (!bio) bio = await fetchWikipediaExtract(`${item.artist} band`);
-        if (!bio) bio = await fetchWikipediaExtract(`${item.artist} musician`);
+        showToast(`Fetching artist bio from ${sourceLabel} for "${item.artist}"...`, 'info');
+        let bio = null;
+        if (source === 'spotify') {
+          const res = await fetchSpotifyAndAudioDbBio(item);
+          bio = res.artistBio;
+        } else if (source === 'discogs') {
+          const res = await fetchDiscogsArtistAndReleaseBio(item);
+          bio = res.artistBio;
+        } else {
+          bio = await fetchWikipediaExtract(item.artist);
+          if (!bio) bio = await fetchWikipediaExtract(`${item.artist} band`);
+          if (!bio) bio = await fetchWikipediaExtract(`${item.artist} musician`);
+        }
         if (bio) {
           const input = document.getElementById('bioEditorArtistInput');
           if (input) input.value = bio;
-          showToast('Artist biography populated from Wikipedia!', 'success');
+          showToast(`Artist biography swapped from ${sourceLabel}!`, 'success');
         } else {
-          showToast('Could not find artist page on Wikipedia.', 'warning');
+          showToast(`Could not find artist bio on ${sourceLabel}.`, 'warning');
         }
       } else {
-        showToast(`Fetching album background for "${item.title}"...`, 'info');
-        let bio = await fetchWikipediaExtract(`${item.title} ${item.artist}`);
-        if (!bio) bio = await fetchWikipediaExtract(`${item.title} album`);
-        if (!bio) bio = await fetchWikipediaExtract(item.title);
+        showToast(`Fetching album background from ${sourceLabel} for "${item.title}"...`, 'info');
+        let bio = null;
+        if (source === 'spotify') {
+          const res = await fetchSpotifyAndAudioDbBio(item);
+          bio = res.albumBio;
+        } else if (source === 'discogs') {
+          const res = await fetchDiscogsArtistAndReleaseBio(item);
+          bio = res.albumBio;
+        } else {
+          bio = await fetchWikipediaExtract(`${item.title} ${item.artist}`);
+          if (!bio) bio = await fetchWikipediaExtract(`${item.title} album`);
+          if (!bio) bio = await fetchWikipediaExtract(item.title);
+        }
         if (bio) {
           const input = document.getElementById('bioEditorAlbumInput');
           if (input) input.value = bio;
-          showToast('Album backstory populated from Wikipedia!', 'success');
+          showToast(`Album backstory swapped from ${sourceLabel}!`, 'success');
         } else {
-          showToast('Could not find album page on Wikipedia.', 'warning');
+          showToast(`Could not find album story on ${sourceLabel}.`, 'warning');
         }
       }
     }
