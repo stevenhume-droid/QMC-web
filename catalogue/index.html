@@ -17986,6 +17986,180 @@
       return list.some(item => (item.artist || '').toLowerCase().trim() === normA && (item.title || '').toLowerCase().trim() === normT);
     }
 
+    function normalizeWishlistMatchToken(str = '') {
+      if (!str) return '';
+      return String(str)
+        .toLowerCase()
+        .replace(/^the\s+/i, '')
+        .replace(/\s*[\(\[][^\)\]]*(?:remaster|deluxe|edition|anniversary|mono|stereo|vinyl|lp|ep|single|mix|version)[^\)\]]*[\)\]]/gi, '')
+        .replace(/['’"`]/g, '')
+        .replace(/&/g, 'and')
+        .replace(/[^a-z0-9]/g, '');
+    }
+
+    function findArchiveMatchForWishlistItem(wantItem, archiveRecords = null) {
+      if (!wantItem) return null;
+      const list = Array.isArray(archiveRecords)
+        ? archiveRecords
+        : ((typeof records !== 'undefined' && Array.isArray(records)) ? records : []);
+      if (list.length === 0) return null;
+
+      const wCat = String(wantItem.catNo || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const wArtist = normalizeWishlistMatchToken(wantItem.artist || '');
+      const wTitle = normalizeWishlistMatchToken(wantItem.title || '');
+      const wAlbum = normalizeWishlistMatchToken(wantItem.albumTitle || '');
+
+      if (!wArtist && !wTitle && !wCat) return null;
+
+      for (let i = 0; i < list.length; i++) {
+        const rec = list[i];
+        if (!rec) continue;
+
+        // 1. Exact Catalog Number match (when both have a valid catalog number >= 4 chars)
+        if (wCat && wCat.length >= 4 && !/^(nocat|none|na|sn)$/.test(wCat)) {
+          const rCat = String(rec.catNo || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (rCat && rCat === wCat) {
+            return { record: rec, matchReason: `Catalog # (${rec.catNo})` };
+          }
+        }
+
+        const rArtist = normalizeWishlistMatchToken(rec.artist || '');
+        const rTitle = normalizeWishlistMatchToken(rec.title || '');
+        if (!rTitle) continue;
+
+        const artistMatches = Boolean(
+          wArtist && rArtist && (
+            rArtist === wArtist ||
+            (wArtist.length >= 4 && rArtist.length >= 4 && (rArtist.includes(wArtist) || wArtist.includes(rArtist)))
+          )
+        );
+
+        // 2. Artist + Release Title (or Album Title) match
+        if (artistMatches) {
+          if (wTitle && (rTitle === wTitle || (wTitle.length >= 5 && rTitle.length >= 5 && (rTitle.includes(wTitle) || wTitle.includes(rTitle))))) {
+            return { record: rec, matchReason: 'Artist & Release Title' };
+          }
+          if (wAlbum && (rTitle === wAlbum || (wAlbum.length >= 5 && rTitle.length >= 5 && (rTitle.includes(wAlbum) || wAlbum.includes(rTitle))))) {
+            return { record: rec, matchReason: 'Artist & Album Title' };
+          }
+
+          // 3. Track-level match (e.g. if a single track was added to Wishlist from Spotify)
+          const rawTracks = rec.tracks || rec.tracklist || [];
+          if (wTitle && wTitle.length >= 4 && Array.isArray(rawTracks) && rawTracks.length > 0) {
+            const matchedTrack = rawTracks.find(t => {
+              const tNorm = normalizeWishlistMatchToken(typeof t === 'string' ? t : (t?.title || ''));
+              return tNorm && tNorm === wTitle;
+            });
+            if (matchedTrack) {
+              const trName = typeof matchedTrack === 'string' ? matchedTrack : (matchedTrack.title || '');
+              return { record: rec, matchReason: `Contains track "${trName}"` };
+            }
+          }
+        }
+      }
+
+      return null;
+    }
+
+    function checkAndResolveWishlistOnArchiveAdd(addedRecordOrArray, autoRemove = true) {
+      const incoming = Array.isArray(addedRecordOrArray) ? addedRecordOrArray : (addedRecordOrArray ? [addedRecordOrArray] : []);
+      if (incoming.length === 0) return [];
+      const wantlist = getMMAWantlist();
+      if (wantlist.length === 0) return [];
+
+      const matchedWantItems = [];
+      const matchedWantIds = new Set();
+
+      wantlist.forEach(w => {
+        if (!w || !w.id) return;
+        const hit = findArchiveMatchForWishlistItem(w, incoming);
+        if (hit && hit.record) {
+          matchedWantItems.push({ wantItem: w, archiveRecord: hit.record, matchReason: hit.matchReason });
+          matchedWantIds.add(String(w.id));
+        }
+      });
+
+      if (matchedWantItems.length > 0 && autoRemove) {
+        const snapshotWantlist = wantlist.map(w => ({ ...w }));
+        const remaining = wantlist.filter(w => !matchedWantIds.has(String(w.id)));
+        saveMMAWantlist(remaining);
+        if (currentView === 'wishlist') {
+          renderWishlistView(document.getElementById('recordsViewContainer'));
+        }
+        const firstMatch = matchedWantItems[0].wantItem;
+        const msg = matchedWantItems.length === 1
+          ? `🎉 Wishlist match! "${firstMatch.artist} — ${firstMatch.title}" is now in your Archive and was cleared from your Wishlist.`
+          : `🎉 ${matchedWantItems.length} Wishlist items are now in your Archive and were cleared from your Wishlist!`;
+        if (typeof showToast === 'function') {
+          showToast(msg, 'success', () => {
+            saveMMAWantlist(snapshotWantlist);
+            if (currentView === 'wishlist') {
+              renderWishlistView(document.getElementById('recordsViewContainer'));
+            }
+          }, 'Keep in Wishlist');
+        }
+      }
+
+      return matchedWantItems;
+    }
+
+    function reconcileWishlistAgainstArchive(autoClear = false) {
+      const wantlist = getMMAWantlist();
+      if (wantlist.length === 0) {
+        if (!autoClear && typeof showToast === 'function') {
+          showToast('Your Wishlist is currently empty.', 'info');
+        }
+        return [];
+      }
+
+      const matches = [];
+      const matchedIds = new Set();
+      wantlist.forEach(w => {
+        const hit = findArchiveMatchForWishlistItem(w);
+        if (hit && hit.record) {
+          matches.push({ wantItem: w, archiveRecord: hit.record, matchReason: hit.matchReason });
+          matchedIds.add(String(w.id));
+        }
+      });
+
+      if (matches.length === 0) {
+        if (typeof showToast === 'function') {
+          showToast(`Checked all ${wantlist.length} Wishlist item${wantlist.length === 1 ? '' : 's'} — none are in your physical Archive yet.`, 'info');
+        }
+        return [];
+      }
+
+      if (autoClear) {
+        const snapshot = wantlist.map(w => ({ ...w }));
+        const remaining = wantlist.filter(w => !matchedIds.has(String(w.id)));
+        saveMMAWantlist(remaining);
+        if (currentView === 'wishlist') {
+          renderWishlistView(document.getElementById('recordsViewContainer'));
+        }
+        if (typeof showToast === 'function') {
+          showToast(
+            `Cleared ${matches.length} already-owned release${matches.length === 1 ? '' : 's'} from your Wishlist!`,
+            'success',
+            () => {
+              saveMMAWantlist(snapshot);
+              if (currentView === 'wishlist') {
+                renderWishlistView(document.getElementById('recordsViewContainer'));
+              }
+            }
+          );
+        }
+      } else {
+        setWishlistPriorityFilter('in_archive');
+        if (typeof showToast === 'function') {
+          showToast(
+            `Found ${matches.length} Wishlist item${matches.length === 1 ? '' : 's'} already in your Archive!`,
+            'success'
+          );
+        }
+      }
+      return matches;
+    }
+
     /* =========================================================
        WISHLIST / WANTLIST VIEW, MODAL & ACQUISITION ENGINE
        ========================================================= */
@@ -18019,10 +18193,23 @@
       updateWishlistCountBadges();
       const sym = (typeof getCurrencySymbol === 'function') ? getCurrencySymbol() : '£';
 
+      // Cross-check every Wishlist item against physical Archive records
+      const archiveMatchByWantId = new Map();
+      allWant.forEach(item => {
+        if (!item || !item.id) return;
+        const hit = findArchiveMatchForWishlistItem(item);
+        if (hit && hit.record) {
+          archiveMatchByWantId.set(String(item.id), hit);
+        }
+      });
+      const inArchiveCount = archiveMatchByWantId.size;
+
       // Priority & search filtering
       const q = currentWishlistSearchQuery.toLowerCase();
       const filtered = allWant.filter(item => {
-        if (currentWishlistPriorityFilter !== 'ALL') {
+        if (currentWishlistPriorityFilter === 'in_archive') {
+          if (!archiveMatchByWantId.has(String(item.id))) return false;
+        } else if (currentWishlistPriorityFilter !== 'ALL') {
           const p = (item.priority || 'standard').toLowerCase();
           if (p !== currentWishlistPriorityFilter.toLowerCase()) return false;
         }
@@ -18066,10 +18253,11 @@
                 <div class="flex items-center gap-2 flex-wrap">
                   <h3 class="text-base sm:text-lg font-bold text-white tracking-tight">Physical Vinyl &amp; Media Wishlist</h3>
                   <span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">${allWant.length} Wanted</span>
+                  ${inArchiveCount > 0 ? `<span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">✓ ${inArchiveCount} Already in Archive</span>` : ''}
                   ${grailCount > 0 ? `<span class="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">🔥 ${grailCount} Grail${grailCount === 1 ? '' : 's'}</span>` : ''}
                   ${pricedItemsCount > 0 ? `<span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Est. Hunt Budget: ${!areValuesVisible ? '••••' : `${sym}${totalEstBudget.toFixed(2)}`}</span>` : ''}
                 </div>
-                <p class="text-xs text-slate-400 mt-0.5">Track sought-after pressings, compare live Discogs &amp; eBay listings, and move acquired records directly into your Archive</p>
+                <p class="text-xs text-slate-400 mt-0.5">Track sought-after pressings, auto-detect items already added to your Archive, and compare live Discogs &amp; eBay listings</p>
               </div>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
@@ -18077,6 +18265,12 @@
                 class="px-3.5 py-2 rounded-xl bg-rose-500 hover:bg-rose-400 active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-lg shadow-rose-500/20 cursor-pointer">
                 <i class="fa-solid fa-plus text-xs"></i>
                 <span>+ Add to Wishlist</span>
+              </button>
+              <button type="button" id="btnCheckWishlistArchiveOverlap" onclick="reconcileWishlistAgainstArchive(false)"
+                class="px-3 py-2 rounded-xl bg-vinyl-850 hover:bg-vinyl-800 text-emerald-300 border border-emerald-500/30 font-semibold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                title="Check if any Wishlist records have already been added to your physical Archive">
+                <i class="fa-solid fa-clipboard-check text-emerald-400"></i>
+                <span>Check Archive (${inArchiveCount})</span>
               </button>
               <button type="button" onclick="openGapModal()"
                 class="px-3 py-2 rounded-xl bg-vinyl-850 hover:bg-vinyl-800 text-amber-300 border border-amber-500/30 font-semibold text-xs flex items-center gap-1.5 transition cursor-pointer"
@@ -18095,6 +18289,36 @@
             </div>
           </div>
 
+          ${inArchiveCount > 0 ? `
+            <!-- Auto-Detected Archive Overlap Banner -->
+            <div class="p-3.5 sm:p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+              <div class="flex items-start sm:items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-300 shrink-0">
+                  <i class="fa-solid fa-circle-check text-base"></i>
+                </div>
+                <div class="text-xs">
+                  <div class="font-bold text-white">
+                    🎉 ${inArchiveCount} Wishlist Release${inArchiveCount === 1 ? ' is' : 's are'} Already in Your Physical Archive!
+                  </div>
+                  <p class="text-[11px] text-emerald-200/80 mt-0.5">
+                    We matched ${inArchiveCount} item${inArchiveCount === 1 ? '' : 's'} on your Wishlist against records currently catalogued in your Archive.
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 shrink-0 flex-wrap">
+                <button type="button" onclick="setWishlistPriorityFilter('${currentWishlistPriorityFilter === 'in_archive' ? 'ALL' : 'in_archive'}')"
+                  class="px-3 py-1.5 rounded-xl bg-vinyl-900 hover:bg-vinyl-800 text-emerald-300 border border-emerald-500/40 text-xs font-semibold transition cursor-pointer">
+                  ${currentWishlistPriorityFilter === 'in_archive' ? 'Show All Wishlist' : `Filter Matched (${inArchiveCount})`}
+                </button>
+                <button type="button" onclick="reconcileWishlistAgainstArchive(true)"
+                  class="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-vinyl-950 text-xs font-bold transition shadow cursor-pointer flex items-center gap-1.5">
+                  <i class="fa-solid fa-broom text-[10px]"></i>
+                  <span>Clear ${inArchiveCount} Owned from Wishlist</span>
+                </button>
+              </div>
+            </div>
+          ` : ''}
+
           <!-- Filter & Search Bar -->
           <div class="p-3 bg-vinyl-900/90 border border-vinyl-800 rounded-xl flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-1.5 flex-wrap text-xs">
@@ -18102,6 +18326,12 @@
                 class="px-3 py-1 rounded-lg font-semibold transition cursor-pointer border ${currentWishlistPriorityFilter === 'ALL' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : 'bg-vinyl-850 text-slate-400 hover:text-slate-200 border-vinyl-700'}">
                 All (${allWant.length})
               </button>
+              ${inArchiveCount > 0 ? `
+                <button type="button" onclick="setWishlistPriorityFilter('in_archive')"
+                  class="px-3 py-1 rounded-lg font-semibold transition cursor-pointer border ${currentWishlistPriorityFilter === 'in_archive' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-vinyl-850 text-emerald-400 hover:text-emerald-300 border-emerald-500/30'}">
+                  ✓ In Archive (${inArchiveCount})
+                </button>
+              ` : ''}
               <button type="button" onclick="setWishlistPriorityFilter('grail')"
                 class="px-3 py-1 rounded-lg font-semibold transition cursor-pointer border ${currentWishlistPriorityFilter === 'grail' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-vinyl-850 text-slate-400 hover:text-slate-200 border-vinyl-700'}">
                 🔥 Holy Grails
@@ -18182,8 +18412,12 @@
             : `https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent((item.artist || '') + ' ' + (item.title || '') + ' vinyl')}&LH_Complete=1&LH_Sold=1`;
           const spotifyUrl = `https://open.spotify.com/search/${encodeURIComponent((item.artist || '') + ' ' + (item.title || ''))}`;
 
+          const archiveHit = archiveMatchByWantId.get(String(item.id)) || null;
+          const matchedArchiveRec = archiveHit ? archiveHit.record : null;
+          const safeMatchedRecId = matchedArchiveRec ? escapeJsString(String(matchedArchiveRec.id)) : '';
+
           html += `
-            <div class="p-4 bg-vinyl-900 border ${priority === 'grail' ? 'border-amber-500/40' : 'border-vinyl-800 hover:border-rose-500/40'} rounded-2xl flex flex-col justify-between gap-3 shadow-md transition">
+            <div class="p-4 bg-vinyl-900 border ${matchedArchiveRec ? 'border-emerald-500/60 ring-1 ring-emerald-500/30' : (priority === 'grail' ? 'border-amber-500/40' : 'border-vinyl-800 hover:border-rose-500/40')} rounded-2xl flex flex-col justify-between gap-3 shadow-md transition">
               <div class="space-y-3">
                 <div class="flex items-start gap-3">
                   <img src="${escapeHtml(coverSrc)}" alt="${safeTitle}"
@@ -18191,7 +18425,10 @@
                     onerror="if(typeof getDefaultCover==='function')this.src=getDefaultCover('','','',true)">
                   <div class="min-w-0 flex-1 space-y-1">
                     <div class="flex items-center justify-between gap-1.5 flex-wrap">
-                      ${prioBadge}
+                      <div class="flex items-center gap-1 flex-wrap">
+                        ${prioBadge}
+                        ${matchedArchiveRec ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">✓ In Archive</span>` : ''}
+                      </div>
                       <span class="text-[10px] font-mono text-slate-400">${yr}</span>
                     </div>
                     <h4 class="font-bold text-white text-sm truncate" title="${safeTitle}">${safeTitle}</h4>
@@ -18203,6 +18440,24 @@
                     </div>
                   </div>
                 </div>
+
+                ${matchedArchiveRec ? `
+                  <div class="px-3 py-2 rounded-xl bg-emerald-950/50 border border-emerald-500/40 text-[11px] text-emerald-200 flex items-center justify-between gap-2">
+                    <div class="min-w-0">
+                      <div class="font-bold text-emerald-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-check text-[10px]"></i>
+                        <span class="truncate">Already in Archive (${escapeHtml(archiveHit.matchReason)})</span>
+                      </div>
+                      <div class="text-[10px] text-slate-300 font-mono truncate mt-0.5">
+                        ${escapeHtml(matchedArchiveRec.format || 'Vinyl')} · Grade: ${escapeHtml(matchedArchiveRec.mediaGrade || 'VG+')}${matchedArchiveRec.catNo ? ` · ${escapeHtml(matchedArchiveRec.catNo)}` : ''}
+                      </div>
+                    </div>
+                    <button type="button" onclick="viewRecordDetail('${safeMatchedRecId}')"
+                      class="px-2.5 py-1 rounded-lg bg-vinyl-900 hover:bg-vinyl-800 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold shrink-0 transition cursor-pointer">
+                      Dossier
+                    </button>
+                  </div>
+                ` : ''}
 
                 ${priceDisplay ? `
                   <div class="px-3 py-1.5 rounded-xl bg-vinyl-950/90 border border-vinyl-800 flex items-center justify-between text-xs">
@@ -18244,14 +18499,23 @@
                 </div>
               </div>
 
-              <!-- Card Footer Actions: Acquire to Archive, Edit, Delete -->
+              <!-- Card Footer Actions: Acquire to Archive (or Clear Owned), Edit, Delete -->
               <div class="pt-2.5 border-t border-vinyl-800/80 flex items-center justify-between gap-2">
-                <button type="button" onclick="acquireWishlistItem('${safeId}')"
-                  class="flex-1 py-1.5 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-vinyl-950 border border-emerald-500/40 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-sm"
-                  title="Bought this record? Move it directly into your main Archive!">
-                  <i class="fa-solid fa-check text-[10px]"></i>
-                  <span>Acquired → Move to Archive</span>
-                </button>
+                ${matchedArchiveRec ? `
+                  <button type="button" onclick="removeWishlistItem('${safeId}')"
+                    class="flex-1 py-1.5 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-vinyl-950 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-sm"
+                    title="You already own this release in your Archive — click to clear it from your Wishlist">
+                    <i class="fa-solid fa-check-double text-[10px]"></i>
+                    <span>Owned → Clear from Wishlist</span>
+                  </button>
+                ` : `
+                  <button type="button" onclick="acquireWishlistItem('${safeId}')"
+                    class="flex-1 py-1.5 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-vinyl-950 border border-emerald-500/40 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-sm"
+                    title="Bought this record? Move it directly into your main Archive!">
+                    <i class="fa-solid fa-check text-[10px]"></i>
+                    <span>Acquired → Move to Archive</span>
+                  </button>
+                `}
                 <button type="button" onclick="openWishlistModal('${safeId}')"
                   class="py-1.5 px-2.5 rounded-lg bg-vinyl-800 hover:bg-vinyl-700 text-slate-300 hover:text-white text-xs transition cursor-pointer"
                   title="Edit Wishlist Item">
@@ -24232,6 +24496,11 @@
       populateMemberFilter(records);
       recalculateArchiveTotals(false);
 
+      // Automatically check if this newly catalogued record fulfills an item on the user's Wishlist
+      if (typeof checkAndResolveWishlistOnArchiveAdd === 'function') {
+        checkAndResolveWishlistOnArchiveAdd(recordObj, true);
+      }
+
       // If only a baseline estimate was stored, refine it in the background and update totals when it lands
       if (/baseline|benchmark/i.test(recordObj.priceSource || '')) {
         refineRecordValuation(recordObj.id);
@@ -28206,6 +28475,10 @@
             populateMemberFilter(records);
             recalculateArchiveTotals(false);
 
+            if (typeof checkAndResolveWishlistOnArchiveAdd === 'function') {
+              checkAndResolveWishlistOnArchiveAdd(newRec, true);
+            }
+
             // Refine valuation in background if online
             if (typeof refineRecordValuation === 'function') {
               refineRecordValuation(newRec.id);
@@ -28673,6 +28946,11 @@
       saveRecordsToStorage();
       populateMemberFilter(records);
       recalculateArchiveTotals(false);
+
+      // Automatically check if imported records fulfill any items on the user's Wishlist
+      if (typeof checkAndResolveWishlistOnArchiveAdd === 'function') {
+        checkAndResolveWishlistOnArchiveAdd(stagedBatchRecords, true);
+      }
       closeBatchUploadModal();
       showToast(`Imported ${stagedBatchRecords.length} records successfully!`);
 
@@ -28922,6 +29200,11 @@
       saveRecordsToStorage();
       populateMemberFilter(records);
       recalculateArchiveTotals(false);
+
+      // Automatically check if imported Discogs records fulfill any items on the user's Wishlist
+      if (typeof checkAndResolveWishlistOnArchiveAdd === 'function') {
+        checkAndResolveWishlistOnArchiveAdd(stagedDiscogsRecords, true);
+      }
       closeDiscogsImportModal();
       showToast(`Imported ${stagedDiscogsRecords.length} records from Discogs successfully!`);
 
