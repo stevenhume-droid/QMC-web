@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forth Tubeless | Bicycle Tubeless Conversion &amp; Sealant Service — South Queensferry (EH30)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            charcoal: {
+              950: '#090d16',
+              900: '#0f172a',
+              850: '#151f33',
+              800: '#1e293b',
+              700: '#334155',
+            },
+            sealant: {
+              400: '#fde047',
+              500: '#facc15',
+              600: '#eab308',
+            },
+            trail: {
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* Subtle technical tire-tread geometric background pattern */
+    .tread-pattern {
+      background-color: #0f172a;
+      background-image: 
+        radial-gradient(circle at 85% 15%, rgba(250, 204, 21, 0.08), transparent 40%),
+        radial-gradient(circle at 15% 85%, rgba(16, 185, 129, 0.07), transparent 40%),
+        repeating-linear-gradient(
+          -45deg,
+          rgba(255, 255, 255, 0.015) 0px,
+          rgba(255, 255, 255, 0.015) 2px,
+          transparent 2px,
+          transparent 14px
+        );
+    }
+
+    /* Custom scrollbar for dark workshop aesthetic */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* Pressure gauge arc animation */
+    @keyframes needleSweep {
+      0% { transform: rotate(-65deg); }
+      65% { transform: rotate(32deg); }
+      100% { transform: rotate(24deg); }
+    }
+    .gauge-needle {
+      transform-origin: 50px 55px;
+      animation: needleSweep 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+  </style>
+</head>
+<body class="bg-charcoal-900 text-slate-100 font-sans antialiased selection:bg-sealant-500 selection:text-charcoal-950 overflow-x-hidden">
+
+  <!-- Toast Notification Banner (Non-blocking UI alert replacement) -->
+  <div id="toastBanner" class="fixed bottom-5 right-5 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none max-w-sm">
+    <div class="bg-charcoal-800 border border-slate-600/80 text-slate-100 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+      <span id="toastIcon" class="flex-shrink-0 w-6 h-6 rounded-full bg-trail-500/20 text-trail-400 flex items-center justify-center">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </span>
+      <p id="toastText" class="text-sm font-medium leading-snug"></p>
+    </div>
+  </div>
+
+  <!-- Sticky Navigation Header -->
+  <header class="sticky top-0 z-40 bg-charcoal-900/90 backdrop-blur-md border-b border-slate-800">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+      <!-- Brand Identity -->
+      <a href="#" class="flex items-center gap-2.5 group">
+        <div class="w-9 h-9 rounded-xl bg-sealant-500 text-charcoal-950 flex items-center justify-center shadow-md shadow-sealant-500/20 group-hover:scale-105 transition-transform">
+          <!-- Custom Tire Valve / Rim SVG Icon -->
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+            <circle cx="12" cy="12" r="9" />
+            <circle cx="12" cy="12" r="5" stroke-dasharray="3 2" />
+            <path d="M12 3v4M12 17v4M3 12h4M17 12h4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <span class="font-extrabold tracking-tight text-white text-lg leading-none block">FORTH <span class="text-sealant-500">TUBELESS</span></span>
+          <span class="text-[10px] font-mono uppercase tracking-widest text-slate-400 block mt-0.5">EH30 • Queensferry Lab</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
+        <a href="#services" class="hover:text-sealant-400 transition-colors">Services &amp; Pricing</a>
+        <a href="#booking" class="hover:text-sealant-400 transition-colors">Quote Calculator</a>
+        <a href="#benefits" class="hover:text-sealant-400 transition-colors">Why Tubeless?</a>
+        <a href="#faq" class="hover:text-sealant-400 transition-colors">Workshop FAQ</a>
+      </nav>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button id="openBookingsBtn" type="button" class="relative px-3 py-2 rounded-xl bg-charcoal-800 hover:bg-charcoal-700 border border-slate-700 text-xs sm:text-sm font-semibold text-slate-200 transition-colors flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-trail-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <span class="hidden sm:inline">My Bookings</span>
+          <span id="bookingCountBadge" class="px-1.5 py-0.5 text-[11px] font-mono font-bold rounded-md bg-trail-500/20 text-trail-400">0</span>
+        </button>
+
+        <a href="#booking" class="px-3.5 sm:px-4 py-2 rounded-xl bg-sealant-500 hover:bg-sealant-400 text-charcoal-950 font-bold text-xs sm:text-sm shadow-lg shadow-sealant-500/20 transition-all">
+          Book Conversion
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 1. HERO SECTION -->
+  <section class="tread-pattern relative border-b border-slate-800/80">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-20 lg:py-24">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+        
+        <!-- Left Copy Column -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-charcoal-800/90 border border-slate-700/80 text-xs font-mono text-sealant-400">
+            <span class="w-2 h-2 rounded-full bg-trail-400 animate-pulse"></span>
+            South Queensferry (EH30) • Edinburgh • Dalmeny • Fife
+          </div>
+
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.08]">
+            Ditch the Pinch Flats. <span class="text-transparent bg-clip-text bg-gradient-to-r from-sealant-400 via-sealant-500 to-trail-400">Ride Tubeless.</span>
+          </h1>
+
+          <p class="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl">
+            Skip the messy kitchen floor and stubborn track-pump struggles. We deliver workshop-grade compressor bead seating, precision <span class="text-white font-semibold">Tesa 4289</span> rim taping, CNC alloy valves, and fresh sealant—with <span class="text-trail-400 font-semibold">24-hour turnaround</span> right beside the Forth Bridges.
+          </p>
+
+          <!-- CTA Group -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-1">
+            <a href="#booking" class="px-6 py-4 rounded-xl bg-sealant-500 hover:bg-sealant-400 text-charcoal-950 font-extrabold text-base text-center shadow-xl shadow-sealant-500/20 transition-all flex items-center justify-center gap-2">
+              <span>Build Instant Quote &amp; Book</span>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+            </a>
+            <a href="#services" class="px-6 py-4 rounded-xl bg-charcoal-800 hover:bg-charcoal-700 border border-slate-700 text-slate-100 font-bold text-base text-center transition-colors">
+              View Workshop Pricing
+            </a>
+          </div>
+
+          <!-- Quick Trust Badges -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 border-t border-slate-800/90">
+            <div class="flex items-center gap-2.5 bg-charcoal-800/50 border border-slate-800 rounded-xl p-3">
+              <div class="w-8 h-8 rounded-lg bg-trail-500/15 text-trail-400 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <span class="text-xs font-semibold text-slate-200 leading-tight">TLR &amp; Hookless Certified</span>
+            </div>
+
+            <div class="flex items-center gap-2.5 bg-charcoal-800/50 border border-slate-800 rounded-xl p-3">
+              <div class="w-8 h-8 rounded-lg bg-sealant-500/15 text-sealant-400 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <span class="text-xs font-semibold text-slate-200 leading-tight">Same / Next-Day Turnaround</span>
+            </div>
+
+            <div class="flex items-center gap-2.5 bg-charcoal-800/50 border border-slate-800 rounded-xl p-3">
+              <div class="w-8 h-8 rounded-lg bg-sky-500/15 text-sky-400 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              </div>
+              <span class="text-xs font-semibold text-slate-200 leading-tight">EH30 Drop-off &amp; Local Pickup</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Technical Spec Card / Pressure Gauge UI Motif -->
+        <div class="lg:col-span-5">
+          <div class="bg-charcoal-800/90 border border-slate-700/80 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+            <div class="flex items-center justify-between border-b border-slate-700/80 pb-4 mb-5">
+              <div>
+                <span class="text-[11px] font-mono uppercase tracking-wider text-sealant-400 block">Workshop Spec Sheet</span>
+                <h2 class="text-lg font-bold text-white">The EH30 Conversion Standard</h2>
+              </div>
+              <!-- Animated SVG Pressure Gauge Motif -->
+              <div class="w-16 h-14 flex items-center justify-center bg-charcoal-900 rounded-xl border border-slate-700">
+                <svg viewBox="0 0 100 75" class="w-14 h-11">
+                  <path d="M 15 55 A 35 35 0 0 1 85 55" fill="none" stroke="#334155" stroke-width="7" stroke-linecap="round"/>
+                  <path d="M 15 55 A 35 35 0 0 1 68 25" fill="none" stroke="#10b981" stroke-width="7" stroke-linecap="round"/>
+                  <path d="M 73 30 A 35 35 0 0 1 85 55" fill="none" stroke="#facc15" stroke-width="7" stroke-linecap="round"/>
+                  <line x1="50" y1="55" x2="50" y2="25" stroke="#facc15" stroke-width="3" stroke-linecap="round" class="gauge-needle"/>
+                  <circle cx="50" cy="55" r="5" fill="#f8fafc"/>
+                </svg>
+              </div>
+            </div>
+
+            <ul class="space-y-3.5 text-sm">
+              <li class="flex items-start gap-3">
+                <span class="px-2 py-0.5 rounded bg-charcoal-900 border border-slate-700 font-mono text-xs text-sealant-400 font-bold mt-0.5">01</span>
+                <div>
+                  <p class="font-semibold text-white">99.9% Isopropyl Rim Bed Prep</p>
+                  <p class="text-xs text-slate-400">Strips factory mould-release agents and old adhesive for zero-lift tape adhesion.</p>
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="px-2 py-0.5 rounded bg-charcoal-900 border border-slate-700 font-mono text-xs text-sealant-400 font-bold mt-0.5">02</span>
+                <div>
+                  <p class="font-semibold text-white">Width-Matched Tesa 4289 Strapping Tape</p>
+                  <p class="text-xs text-slate-400">21mm, 25mm, or 32mm high-tensile tape overlapped cleanly at the valve hole.</p>
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="px-2 py-0.5 rounded bg-charcoal-900 border border-slate-700 font-mono text-xs text-sealant-400 font-bold mt-0.5">03</span>
+                <div>
+                  <p class="font-semibold text-white">CNC Alloy Valves + High-Flow Compressor Seat</p>
+                  <p class="text-xs text-slate-400">44mm or 60mm removable-core Presta valves seated cleanly at calibrated PSI.</p>
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="px-2 py-0.5 rounded bg-charcoal-900 border border-slate-700 font-mono text-xs text-trail-400 font-bold mt-0.5">04</span>
+                <div>
+                  <p class="font-semibold text-white">Measured Latex Sealant &amp; Bubble Leak Check</p>
+                  <p class="text-xs text-slate-400">60ml–120ml per tyre injected via syringe, spun, and verified airtight.</p>
+                </div>
+              </li>
+            </ul>
+
+            <div class="mt-5 pt-4 border-t border-slate-700/80 flex items-center justify-between text-xs font-mono text-slate-400">
+              <span>ROAD • GRAVEL • MTB</span>
+              <span class="text-trail-400 font-bold">FROM £12 / WHEEL</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. SERVICE MENU & PRICING CARDS -->
+  <section id="services" class="py-16 sm:py-20 border-b border-slate-800/80">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="max-w-2xl mb-10 sm:mb-12">
+        <span class="text-xs font-mono uppercase tracking-widest text-sealant-400 font-bold">Transparent Workshop Menu</span>
+        <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight mt-1">Fixed-Price Tubeless Services</h2>
+        <p class="text-slate-400 text-sm sm:text-base mt-2">
+          Select a package below to load it directly into the quote builder. No hidden shop fees—just clean, reliable tubeless setups.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <!-- Tier 1: All-In Conversion (Most Popular) -->
+        <div class="bg-charcoal-800 border-2 border-sealant-500 rounded-2xl p-6 flex flex-col justify-between relative shadow-xl shadow-sealant-500/10">
+          <div class="absolute -top-3.5 left-5 px-3 py-1 rounded-full bg-sealant-500 text-charcoal-950 font-extrabold text-[11px] uppercase tracking-wider shadow">
+            Most Popular
+          </div>
+          <div>
+            <div class="flex items-center justify-between gap-2 mt-1">
+              <span class="text-xs font-mono text-sealant-400 uppercase font-bold">Tier 01 • Complete</span>
+              <span class="text-xs font-mono text-slate-400">~40 mins</span>
+            </div>
+            <h3 class="text-xl font-extrabold text-white mt-2">Full Tubeless Conversion (All-In)</h3>
+            <div class="mt-4 flex items-baseline gap-2">
+              <span class="text-3xl font-black text-white">£55</span>
+              <span class="text-xs text-slate-400 font-medium">/ pair</span>
+              <span class="text-xs font-mono text-slate-300 bg-charcoal-900 px-2 py-0.5 rounded border border-slate-700 ml-auto">£30 single</span>
+            </div>
+            <p class="text-xs text-slate-300 mt-3 leading-relaxed">
+              Everything supplied and fitted. Ideal for new TLR bikes shipped with inner tubes or first-time conversions.
+            </p>
+            <ul class="mt-4 space-y-2 text-xs text-slate-300 border-t border-slate-700/80 pt-4">
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Isopropyl rim degrease &amp; prep</li>
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Precision Tesa 4289 rim tape</li>
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> CNC alloy Presta valves (44/60mm)</li>
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Compressor bead seat &amp; fresh sealant</li>
+            </ul>
+          </div>
+          <button type="button" onclick="selectServicePackage('all-in', 'pair')" class="mt-6 w-full py-3 px-4 rounded-xl bg-sealant-500 hover:bg-sealant-400 text-charcoal-950 font-extrabold text-sm transition-colors shadow-md">
+            Select Package
+          </button>
+        </div>
+
+        <!-- Tier 2: Labour Only -->
+        <div class="bg-charcoal-800/80 border border-slate-700/80 hover:border-slate-600 rounded-2xl p-6 flex flex-col justify-between transition-colors">
+          <div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-mono text-slate-400 uppercase font-bold">Tier 02 • BYO Parts</span>
+              <span class="text-xs font-mono text-slate-400">~35 mins</span>
+            </div>
+            <h3 class="text-xl font-extrabold text-white mt-2">Conversion (Labour Only)</h3>
+            <div class="mt-4 flex items-baseline gap-2">
+              <span class="text-3xl font-black text-white">£30</span>
+              <span class="text-xs text-slate-400 font-medium">/ pair</span>
+              <span class="text-xs font-mono text-slate-300 bg-charcoal-900 px-2 py-0.5 rounded border border-slate-700 ml-auto">£18 single</span>
+            </div>
+            <p class="text-xs text-slate-300 mt-3 leading-relaxed">
+              Already bought your own tape, valves, and sealant? Drop them off with your wheels and we'll handle the messy work.
+            </p>
+            <ul class="mt-4 space-y-2 text-xs text-slate-300 border-t border-slate-700/80 pt-4">
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Full rim strip &amp; alcohol clean</li>
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Fitting of your tape &amp; valves</li>
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> High-pressure compressor seating</li>
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Sealant fill &amp; leak inspection</li>
+            </ul>
+          </div>
+          <button type="button" onclick="selectServicePackage('labour-only', 'pair')" class="mt-6 w-full py-3 px-4 rounded-xl bg-charcoal-900 hover:bg-slate-700 border border-slate-600 text-white font-bold text-sm transition-colors">
+            Select Package
+          </button>
+        </div>
+
+        <!-- Tier 3: Seasonal Sealant Refresh -->
+        <div class="bg-charcoal-800/80 border border-slate-700/80 hover:border-slate-600 rounded-2xl p-6 flex flex-col justify-between transition-colors">
+          <div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-mono text-trail-400 uppercase font-bold">Tier 03 • Maintenance</span>
+              <span class="text-xs font-mono text-slate-400">~20 mins</span>
+            </div>
+            <h3 class="text-xl font-extrabold text-white mt-2">Seasonal Sealant Refresh</h3>
+            <div class="mt-4 flex items-baseline gap-2">
+              <span class="text-3xl font-black text-white">£20</span>
+              <span class="text-xs text-slate-400 font-medium">/ pair</span>
+              <span class="text-xs font-mono text-slate-300 bg-charcoal-900 px-2 py-0.5 rounded border border-slate-700 ml-auto">£12 single</span>
+            </div>
+            <p class="text-xs text-slate-300 mt-3 leading-relaxed">
+              Recommended every 4–6 months before latex dries out. Keeps puncture sealing fast and valves clog-free.
+            </p>
+            <ul class="mt-4 space-y-2 text-xs text-slate-300 border-t border-slate-700/80 pt-4">
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Single-bead pop &amp; dried latex clear</li>
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Valve core clog check &amp; clean</li>
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Fresh liquid sealant top-up</li>
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Tyre tread &amp; sidewall cut check</li>
+            </ul>
+          </div>
+          <button type="button" onclick="selectServicePackage('refresh', 'pair')" class="mt-6 w-full py-3 px-4 rounded-xl bg-charcoal-900 hover:bg-slate-700 border border-slate-600 text-white font-bold text-sm transition-colors">
+            Select Package
+          </button>
+        </div>
+
+        <!-- Tier 4: Stubborn Bead Blast / Plug Rescue -->
+        <div class="bg-charcoal-800/80 border border-slate-700/80 hover:border-slate-600 rounded-2xl p-6 flex flex-col justify-between transition-colors">
+          <div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-mono text-sky-400 uppercase font-bold">Tier 04 • Rapid Fix</span>
+              <span class="text-xs font-mono text-slate-400">~15 mins</span>
+            </div>
+            <h3 class="text-xl font-extrabold text-white mt-2">Bead Blast / Plug Rescue</h3>
+            <div class="mt-4 flex items-baseline gap-2">
+              <span class="text-3xl font-black text-white">£12</span>
+              <span class="text-xs text-slate-400 font-medium">/ wheel</span>
+              <span class="text-xs font-mono text-slate-300 bg-charcoal-900 px-2 py-0.5 rounded border border-slate-700 ml-auto">£20 pair</span>
+            </div>
+            <p class="text-xs text-slate-300 mt-3 leading-relaxed">
+              Got 90% of the way at home but can't get the bead to snap onto the shelf? Or need a permanent Dynaplug repair?
+            </p>
+            <ul class="mt-4 space-y-2 text-xs text-slate-300 border-t border-slate-700/80 pt-4">
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> High-volume compressor bead snap</li>
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Bead-soap lubrication if needed</li>
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Dynaplug / anchovy puncture plug</li>
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Pressure hold verification</li>
+            </ul>
+          </div>
+          <button type="button" onclick="selectServicePackage('rescue', 'single')" class="mt-6 w-full py-3 px-4 rounded-xl bg-charcoal-900 hover:bg-slate-700 border border-slate-600 text-white font-bold text-sm transition-colors">
+            Select Package
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. INTERACTIVE COMPATIBILITY & QUOTE CALCULATOR + BOOKING SYSTEM -->
+  <section id="booking" class="py-16 sm:py-20 bg-charcoal-950/60 border-b border-slate-800/80">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="max-w-2xl mb-10">
+        <span class="text-xs font-mono uppercase tracking-widest text-trail-400 font-bold">Interactive Workshop Configurator</span>
+        <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight mt-1">Compatibility Check &amp; Instant Quote</h2>
+        <p class="text-slate-400 text-sm sm:text-base mt-2">
+          Verify your rim and tyre setup in 30 seconds, customize add-ons, and lock in a drop-off or local pickup slot in South Queensferry.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Left 7 Columns: Steps 1 & 2 + Customer Form -->
+        <div class="lg:col-span-7 space-y-6">
+          
+          <!-- STEP 1: Compatibility Pre-Check -->
+          <div class="bg-charcoal-800 border border-slate-700/80 rounded-2xl p-6 space-y-5">
+            <div class="flex items-center gap-3 border-b border-slate-700/80 pb-3.5">
+              <span class="w-7 h-7 rounded-lg bg-sealant-500 text-charcoal-950 font-mono font-extrabold text-sm flex items-center justify-center">1</span>
+              <div>
+                <h3 class="font-bold text-white text-lg">Compatibility Pre-Check</h3>
+                <p class="text-xs text-slate-400">Safety first: we only convert Tubeless Ready (TLR) rims and tyres.</p>
+              </div>
+            </div>
+
+            <!-- Rim & Tyre TLR Toggles -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Rim TLR Check -->
+              <div class="bg-charcoal-900/90 border border-slate-700 rounded-xl p-3.5">
+                <label class="block text-xs font-semibold text-slate-200 mb-2">Rim marked TLR / TR / Tubeless Ready / UST?</label>
+                <div class="grid grid-cols-2 gap-2" role="group">
+                  <button type="button" data-check="rimTLR" data-val="yes" class="compat-btn py-2 px-3 rounded-lg text-xs font-bold border transition-all bg-trail-500/20 border-trail-500 text-trail-300">
+                    Yes, TLR
+                  </button>
+                  <button type="button" data-check="rimTLR" data-val="unsure" class="compat-btn py-2 px-3 rounded-lg text-xs font-bold border transition-all bg-charcoal-800 border-slate-700 text-slate-400 hover:text-slate-200">
+                    Not Sure
+                  </button>
+                </div>
+              </div>
+
+              <!-- Tyre TLR Check -->
+              <div class="bg-charcoal-900/90 border border-slate-700 rounded-xl p-3.5">
+                <label class="block text-xs font-semibold text-slate-200 mb-2">Tyre sidewall marked TLR / TR / TLE / 2Bliss?</label>
+                <div class="grid grid-cols-2 gap-2" role="group">
+                  <button type="button" data-check="tyreTLR" data-val="yes" class="compat-btn py-2 px-3 rounded-lg text-xs font-bold border transition-all bg-trail-500/20 border-trail-500 text-trail-300">
+                    Yes, TLR
+                  </button>
+                  <button type="button" data-check="tyreTLR" data-val="unsure" class="compat-btn py-2 px-3 rounded-lg text-xs font-bold border transition-all bg-charcoal-800 border-slate-700 text-slate-400 hover:text-slate-200">
+                    Not Sure
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- "Not Sure" Helpful Photo/Model Hint -->
+            <div id="unsureNotice" class="hidden rounded-xl bg-amber-500/10 border border-amber-500/40 p-3.5 text-xs text-amber-200 flex items-start gap-2.5">
+              <svg class="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span><strong>No problem!</strong> Include your wheel and tyre brand/model in the notes below. We'll verify TLR compatibility before starting work so you never pay for an incompatible setup.</span>
+            </div>
+
+            <!-- Rim Profile & Discipline -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Rim Profile -->
+              <div class="bg-charcoal-900/90 border border-slate-700 rounded-xl p-3.5">
+                <label class="block text-xs font-semibold text-slate-200 mb-2">Rim Bead Profile</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" data-profile="hooked" class="profile-btn py-2 px-3 rounded-lg text-xs font-bold border transition-all bg-sealant-500/20 border-sealant-500 text-sealant-300">
+                    Hooked Rim
+                  </button>
+                  <button type="button" data-profile="hookless" class="profile-btn py-2 px-3 rounded-lg text-xs font-bold border transition-all bg-charcoal-800 border-slate-700 text-slate-400 hover:text-slate-200">
+                    Hookless Rim
+                  </button>
+                </div>
+              </div>
+
+              <!-- Discipline / Wheel Size -->
+              <div class="bg-charcoal-900/90 border border-slate-700 rounded-xl p-3.5">
+                <label for="disciplineSelect" class="block text-xs font-semibold text-slate-200 mb-2">Discipline &amp; Wheel Size</label>
+                <select id="disciplineSelect" class="w-full bg-charcoal-800 border border-slate-600 rounded-lg px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:border-sealant-500">
+                  <option value="Gravel / CX (700c / 650b)">Gravel / CX (700c / 650b)</option>
+                  <option value="Road / Endurance (700c)">Road / Endurance (700c)</option>
+                  <option value="MTB Trail / Enduro (29&quot; / 27.5&quot;)">MTB Trail / Enduro (29&quot; / 27.5&quot;)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Hookless Smart Workshop Notice -->
+            <div id="hooklessNotice" class="hidden rounded-xl bg-sky-500/10 border border-sky-500/40 p-3.5 text-xs text-sky-200 flex items-start gap-2.5">
+              <svg class="w-5 h-5 text-sky-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              <div>
+                <p class="font-bold text-sky-300">Hookless Rim Pressure Protocol Active</p>
+                <p class="mt-0.5 leading-relaxed">Hookless rims (e.g., Zipp, Giant SLR, Enve) have a strict <strong>72.5 PSI (5.0 bar) max pressure limit</strong> and require ETRTO hookless-approved tyres. We verify tyre compatibility and calibrate your inflation digitally.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 2: Configure Service & Add-Ons -->
+          <div class="bg-charcoal-800 border border-slate-700/80 rounded-2xl p-6 space-y-5">
+            <div class="flex items-center gap-3 border-b border-slate-700/80 pb-3.5">
+              <span class="w-7 h-7 rounded-lg bg-sealant-500 text-charcoal-950 font-mono font-extrabold text-sm flex items-center justify-center">2</span>
+              <div>
+                <h3 class="font-bold text-white text-lg">Configure Service &amp; Add-Ons</h3>
+                <p class="text-xs text-slate-400">Prices update live in your quote summary.</p>
+              </div>
+            </div>
+
+            <!-- Service Selector & Wheel Count -->
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+              <div class="sm:col-span-7">
+                <label for="serviceSelect" class="block text-xs font-semibold text-slate-200 mb-2">Select Service Package</label>
+                <select id="serviceSelect" class="w-full bg-charcoal-900 border border-slate-600 rounded-xl px-3.5 py-3 text-sm font-semibold text-white focus:outline-none focus:border-sealant-500">
+                  <option value="all-in">Full Tubeless Conversion (All-In) — £55 pair / £30 single</option>
+                  <option value="labour-only">Conversion (Labour Only) — £30 pair / £18 single</option>
+                  <option value="refresh">Seasonal Sealant Refresh — £20 pair / £12 single</option>
+                  <option value="rescue">Stubborn Bead Blast / Plug Rescue — £20 pair / £12 single</option>
+                </select>
+              </div>
+
+              <div class="sm:col-span-5">
+                <label class="block text-xs font-semibold text-slate-200 mb-2">Wheel Count</label>
+                <div class="grid grid-cols-2 gap-2 bg-charcoal-900 p-1 rounded-xl border border-slate-700">
+                  <button type="button" data-wheels="pair" class="wheel-btn py-2.5 px-2 rounded-lg text-xs font-extrabold transition-all bg-sealant-500 text-charcoal-950 shadow">
+                    Pair (2)
+                  </button>
+                  <button type="button" data-wheels="single" class="wheel-btn py-2.5 px-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white">
+                    Single (1)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Optional Workshop Add-Ons -->
+            <div>
+              <span class="block text-xs font-semibold text-slate-200 mb-2.5">Optional Workshop Add-Ons (While Wheels Are Off)</span>
+              <div class="space-y-2.5">
+                <label class="flex items-center justify-between p-3.5 rounded-xl bg-charcoal-900/90 border border-slate-700 hover:border-slate-500 cursor-pointer transition-colors">
+                  <div class="flex items-center gap-3">
+                    <input type="checkbox" value="14" data-addon-name="Tubeless Puncture Plug Kit (Supplied & Fitted)" class="addon-checkbox w-4 h-4 rounded accent-sealant-500 cursor-pointer" />
+                    <div>
+                      <span class="text-sm font-semibold text-white block">Tubeless Puncture Plug Kit (Supplied &amp; Fitted)</span>
+                      <span class="text-xs text-slate-400">Compact alloy fork/bar plugger + 5 bacon strips for trailside peace of mind.</span>
+                    </div>
+                  </div>
+                  <span class="font-mono text-sm font-bold text-sealant-400 ml-3">+£14</span>
+                </label>
+
+                <label class="flex items-center justify-between p-3.5 rounded-xl bg-charcoal-900/90 border border-slate-700 hover:border-slate-500 cursor-pointer transition-colors">
+                  <div class="flex items-center gap-3">
+                    <input type="checkbox" value="4" data-addon-name="Spare CNC Alloy Valve Cores (Pair)" class="addon-checkbox w-4 h-4 rounded accent-sealant-500 cursor-pointer" />
+                    <div>
+                      <span class="text-sm font-semibold text-white block">Spare CNC Alloy Valve Cores (Pair)</span>
+                      <span class="text-xs text-slate-400">Keep a fresh pair in your saddle bag in case sealant gums up mid-season.</span>
+                    </div>
+                  </div>
+                  <span class="font-mono text-sm font-bold text-sealant-400 ml-3">+£4</span>
+                </label>
+
+                <label class="flex items-center justify-between p-3.5 rounded-xl bg-charcoal-900/90 border border-slate-700 hover:border-slate-500 cursor-pointer transition-colors">
+                  <div class="flex items-center gap-3">
+                    <input type="checkbox" value="15" data-addon-name="Express Drivetrain Degrease & Lube" class="addon-checkbox w-4 h-4 rounded accent-sealant-500 cursor-pointer" />
+                    <div>
+                      <span class="text-sm font-semibold text-white block">Express Drivetrain Degrease &amp; Lube</span>
+                      <span class="text-xs text-slate-400">Full chain, cassette &amp; jockey wheel degrease finished with dry or wet lube.</span>
+                    </div>
+                  </div>
+                  <span class="font-mono text-sm font-bold text-sealant-400 ml-3">+£15</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Handover Preference -->
+            <div>
+              <span class="block text-xs font-semibold text-slate-200 mb-2.5">Handover &amp; Logistics</span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label class="flex items-start gap-3 p-3.5 rounded-xl bg-charcoal-900 border border-sealant-500 cursor-pointer handover-card" data-handover="dropoff">
+                  <input type="radio" name="handover" value="dropoff" checked class="mt-1 accent-sealant-500" />
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm font-bold text-white">EH30 Drop-Off</span>
+                      <span class="text-xs font-mono font-bold text-trail-400">FREE</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">Drop bike or bare wheels at our South Queensferry workshop (near Dalmeny Station).</p>
+                  </div>
+                </label>
+
+                <label class="flex items-start gap-3 p-3.5 rounded-xl bg-charcoal-900 border border-slate-700 hover:border-slate-500 cursor-pointer handover-card" data-handover="pickup">
+                  <input type="radio" name="handover" value="pickup" class="mt-1 accent-sealant-500" />
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm font-bold text-white">Local Pickup &amp; Return</span>
+                      <span class="text-xs font-mono font-bold text-sealant-400">+£5</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">Within 5 miles: Dalmeny, Kirkliston, Cramond, North Queensferry &amp; Inverkeithing.</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 3: Customer Details & Slot Booking Form -->
+          <form id="bookingForm" class="bg-charcoal-800 border border-slate-700/80 rounded-2xl p-6 space-y-5" novalidate>
+            <div class="flex items-center gap-3 border-b border-slate-700/80 pb-3.5">
+              <span class="w-7 h-7 rounded-lg bg-sealant-500 text-charcoal-950 font-mono font-extrabold text-sm flex items-center justify-center">3</span>
+              <div>
+                <h3 class="font-bold text-white text-lg">Your Details &amp; Preferred Slot</h3>
+                <p class="text-xs text-slate-400">No upfront payment required—pay on collection once pressure-tested.</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="slotDay" class="block text-xs font-semibold text-slate-200 mb-1.5">Preferred Day *</label>
+                <select id="slotDay" required class="w-full bg-charcoal-900 border border-slate-600 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-sealant-500">
+                  <option value="Next Available (Within 24 hrs)">Next Available (Within 24 hrs)</option>
+                  <option value="Tomorrow">Tomorrow</option>
+                  <option value="Wednesday">Wednesday</option>
+                  <option value="Thursday">Thursday</option>
+                  <option value="Friday">Friday</option>
+                  <option value="Saturday">Saturday</option>
+                  <option value="Sunday">Sunday</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="slotTime" class="block text-xs font-semibold text-slate-200 mb-1.5">Preferred Window *</label>
+                <select id="slotTime" required class="w-full bg-charcoal-900 border border-slate-600 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-sealant-500">
+                  <option value="Weekday Evening (17:30 – 20:00)">Weekday Evening (17:30 – 20:00)</option>
+                  <option value="Morning Drop-off (08:00 – 10:00)">Morning Drop-off (08:00 – 10:00)</option>
+                  <option value="Saturday Morning (09:00 – 12:30)">Saturday Morning (09:00 – 12:30)</option>
+                  <option value="Sunday Afternoon (13:00 – 17:00)">Sunday Afternoon (13:00 – 17:00)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="custName" class="block text-xs font-semibold text-slate-200 mb-1.5">Full Name *</label>
+                <input type="text" id="custName" required placeholder="e.g. Callum MacLeod" class="w-full bg-charcoal-900 border border-slate-600 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sealant-500" />
+              </div>
+
+              <div>
+                <label for="custPhone" class="block text-xs font-semibold text-slate-200 mb-1.5">Phone / WhatsApp *</label>
+                <input type="tel" id="custPhone" required placeholder="e.g. 07700 900412" class="w-full bg-charcoal-900 border border-slate-600 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sealant-500" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="custEmail" class="block text-xs font-semibold text-slate-200 mb-1.5">Email Address *</label>
+                <input type="email" id="custEmail" required placeholder="rider@example.co.uk" class="w-full bg-charcoal-900 border border-slate-600 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sealant-500" />
+              </div>
+
+              <div>
+                <label for="bikeNotes" class="block text-xs font-semibold text-slate-200 mb-1.5">Bike / Rim / Tyre Details</label>
+                <input type="text" id="bikeNotes" placeholder="e.g. Canyon Grail, DT Swiss G1800, 40mm Schwalbe" class="w-full bg-charcoal-900 border border-slate-600 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sealant-500" />
+              </div>
+            </div>
+
+            <div id="formErrorBox" class="hidden rounded-xl bg-rose-500/15 border border-rose-500/40 p-3 text-xs text-rose-200 font-medium"></div>
+
+            <button type="submit" class="w-full py-4 px-6 rounded-xl bg-sealant-500 hover:bg-sealant-400 text-charcoal-950 font-extrabold text-base shadow-xl shadow-sealant-500/20 transition-all flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span>Confirm Workshop Booking (<span id="submitBtnTotal">£55</span>)</span>
+            </button>
+          </form>
+
+          <!-- CONFIRMATION PANEL (Hidden until booking submitted) -->
+          <div id="confirmationCard" class="hidden bg-charcoal-800 border-2 border-trail-500 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-700 pb-5">
+              <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-trail-500/20 border border-trail-500/40 text-trail-400 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <div>
+                  <span class="text-xs font-mono uppercase tracking-wider text-trail-400 font-bold">Booking Request Logged</span>
+                  <h3 class="text-2xl font-black text-white">You're Booked In!</h3>
+                </div>
+              </div>
+              <div class="bg-charcoal-900 border border-slate-700 px-4 py-2 rounded-xl text-left sm:text-right">
+                <span class="text-[10px] font-mono uppercase text-slate-400 block">Booking Ref</span>
+                <span id="confirmRefId" class="font-mono text-lg font-extrabold text-sealant-400">#FT-8492</span>
+              </div>
+            </div>
+
+            <div id="confirmDetailsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm bg-charcoal-900/80 border border-slate-700/80 rounded-xl p-4">
+              <!-- Populated dynamically via JS -->
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3">
+              <button type="button" id="copyWhatsappBtn" class="flex-1 py-3 px-4 rounded-xl bg-trail-500 hover:bg-trail-400 text-charcoal-950 font-extrabold text-sm transition-colors flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                <span>Copy Summary for WhatsApp / SMS</span>
+              </button>
+
+              <button type="button" id="downloadIcsBtn" class="flex-1 py-3 px-4 rounded-xl bg-charcoal-900 hover:bg-slate-700 border border-slate-600 text-white font-bold text-sm transition-colors flex items-center justify-center gap-2">
+                <svg class="w-4 h-4 text-sealant-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span>Download Calendar (.ics)</span>
+              </button>
+            </div>
+
+            <div class="pt-2 flex items-center justify-between text-xs text-slate-400">
+              <span>Saved automatically to your local browser bookings.</span>
+              <button type="button" id="bookAnotherBtn" class="text-sealant-400 hover:text-sealant-300 font-bold underline">Book another wheelset</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right 5 Columns: Sticky Live Quote Summary Card -->
+        <div class="lg:col-span-5 lg:sticky lg:top-24">
+          <div class="bg-charcoal-800 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-4">
+              <div>
+                <span class="text-[11px] font-mono uppercase tracking-wider text-sealant-400 font-bold">Live Estimate</span>
+                <h3 class="text-xl font-black text-white">Workshop Quote Summary</h3>
+              </div>
+              <span class="px-2.5 py-1 rounded-lg bg-trail-500/15 border border-trail-500/30 text-trail-400 font-mono text-xs font-bold">
+                PAY ON PICKUP
+              </span>
+            </div>
+
+            <!-- Setup Badges -->
+            <div class="flex flex-wrap gap-2 text-xs font-mono">
+              <span id="summaryDisciplineBadge" class="px-2.5 py-1 rounded-md bg-charcoal-900 border border-slate-700 text-slate-300">Gravel / CX (700c / 650b)</span>
+              <span id="summaryProfileBadge" class="px-2.5 py-1 rounded-md bg-charcoal-900 border border-slate-700 text-sealant-400">Hooked Rim</span>
+              <span id="summaryTLRBadge" class="px-2.5 py-1 rounded-md bg-trail-500/15 border border-trail-500/30 text-trail-300">TLR Verified</span>
+            </div>
+
+            <!-- Line Items Breakdown -->
+            <div class="space-y-3 text-sm border-t border-b border-slate-700/80 py-4">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <p id="summaryServiceTitle" class="font-bold text-white">Full Tubeless Conversion (All-In)</p>
+                  <p id="summaryWheelSub" class="text-xs text-slate-400">Front &amp; Rear Pair (2 Wheels)</p>
+                </div>
+                <span id="summaryServicePrice" class="font-mono font-bold text-white">£55.00</span>
+              </div>
+
+              <!-- Dynamic Add-ons container -->
+              <div id="summaryAddonsList" class="space-y-2"></div>
+
+              <!-- Handover Line Item -->
+              <div class="flex items-center justify-between text-xs pt-1">
+                <span id="summaryHandoverLabel" class="text-slate-300">South Queensferry (EH30) Drop-off</span>
+                <span id="summaryHandoverPrice" class="font-mono font-bold text-trail-400">FREE</span>
+              </div>
+            </div>
+
+            <!-- Turnaround Estimate -->
+            <div class="bg-charcoal-900/90 border border-slate-700/80 rounded-xl p-3.5 flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-sealant-500/15 text-sealant-400 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <div>
+                <span class="text-[11px] font-mono uppercase text-slate-400 block">Estimated Turnaround</span>
+                <p id="summaryTurnaround" class="text-xs font-bold text-white">35–45 mins workshop time • Ready within 24 hrs</p>
+              </div>
+            </div>
+
+            <!-- Total Box -->
+            <div class="flex items-baseline justify-between pt-1">
+              <div>
+                <span class="text-sm font-bold text-slate-300 block">Estimated Total</span>
+                <span class="text-[11px] text-slate-400">Includes all consumables &amp; leak test</span>
+              </div>
+              <div class="text-right">
+                <span id="summaryGrandTotal" class="text-4xl font-black text-sealant-400 font-mono">£55</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. WHY GO TUBELESS & WORKSHOP FAQ -->
+  <section id="benefits" class="py-16 sm:py-20 border-b border-slate-800/80">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="max-w-2xl mb-10">
+        <span class="text-xs font-mono uppercase tracking-widest text-sealant-400 font-bold">Real-World Performance</span>
+        <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight mt-1">Why Ride Tubeless Around the Forth?</h2>
+        <p class="text-slate-400 text-sm sm:text-base mt-2">
+          From hawthorn hedges along the Dalmeny Estate trails to rough chip-seal lanes across Fife and the Pentlands, inner tubes are the weak link.
+        </p>
+      </div>
+
+      <!-- Benefits Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div class="bg-charcoal-800/70 border border-slate-700/80 rounded-2xl p-6">
+          <div class="w-11 h-11 rounded-xl bg-trail-500/15 text-trail-400 flex items-center justify-center mb-4">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          </div>
+          <h3 class="text-lg font-extrabold text-white">Instant Thorn &amp; Glass Sealing</h3>
+          <p class="text-sm text-slate-300 mt-2 leading-relaxed">
+            Liquid latex sealant coagulates on contact with air, plugging punctures up to 5mm while your wheel keeps spinning—no roadside tube swaps in Scottish rain.
+          </p>
+        </div>
+
+        <div class="bg-charcoal-800/70 border border-slate-700/80 rounded-2xl p-6">
+          <div class="w-11 h-11 rounded-xl bg-sealant-500/15 text-sealant-400 flex items-center justify-center mb-4">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <h3 class="text-lg font-extrabold text-white">Lower Rolling Resistance</h3>
+          <p class="text-sm text-slate-300 mt-2 leading-relaxed">
+            Eliminating internal friction between butyl inner tubes and the tyre carcass saves watts and allows the casing to deform smoothly over broken tarmac.
+          </p>
+        </div>
+
+        <div class="bg-charcoal-800/70 border border-slate-700/80 rounded-2xl p-6">
+          <div class="w-11 h-11 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center mb-4">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+          </div>
+          <h3 class="text-lg font-extrabold text-white">Lower PSI Grip &amp; Zero Snakebites</h3>
+          <p class="text-sm text-slate-300 mt-2 leading-relaxed">
+            Run 22–38 PSI on gravel/MTB or 55–70 PSI on road without fearing pinch flats on square-edged potholes, tree roots, or cobbles.
+          </p>
+        </div>
+      </div>
+
+      <!-- Workshop FAQ Accordion -->
+      <div id="faq" class="max-w-3xl mx-auto">
+        <div class="text-center mb-8">
+          <span class="text-xs font-mono uppercase tracking-widest text-trail-400 font-bold">Workshop Knowledge Base</span>
+          <h3 class="text-2xl sm:text-3xl font-black text-white mt-1">Frequently Asked Questions</h3>
+        </div>
+
+        <div class="space-y-3" id="faqAccordion">
+          <!-- FAQ 1 -->
+          <div class="bg-charcoal-800 border border-slate-700/80 rounded-2xl overflow-hidden">
+            <button type="button" class="faq-toggle w-full px-5 py-4 text-left flex items-center justify-between gap-4 font-bold text-white text-sm sm:text-base hover:bg-charcoal-700/40 transition-colors">
+              <span>How do I know if my wheels and tyres are Tubeless Ready?</span>
+              <svg class="faq-chevron w-5 h-5 text-sealant-400 transform transition-transform duration-200 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="faq-content hidden px-5 pb-4 text-sm text-slate-300 leading-relaxed border-t border-slate-700/60 pt-3">
+              Look at the rim decal near the valve hole and the hot-patch logo on your tyre sidewall. You should see markings such as <strong>TLR, TR, Tubeless Ready, TLE, 2Bliss, or UST</strong>. Most mid-range and high-end gravel, MTB, and disc road bikes sold since 2019 ship with TLR rims and tyres—even if the factory installed inner tubes inside them. Not sure? Snap a quick photo of your rim and tyre sidewall when booking and we'll confirm before touching a tool.
+            </div>
+          </div>
+
+          <!-- FAQ 2 -->
+          <div class="bg-charcoal-800 border border-slate-700/80 rounded-2xl overflow-hidden">
+            <button type="button" class="faq-toggle w-full px-5 py-4 text-left flex items-center justify-between gap-4 font-bold text-white text-sm sm:text-base hover:bg-charcoal-700/40 transition-colors">
+              <span>How often does tubeless sealant need refreshing?</span>
+              <svg class="faq-chevron w-5 h-5 text-sealant-400 transform transition-transform duration-200 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="faq-content hidden px-5 pb-4 text-sm text-slate-300 leading-relaxed border-t border-slate-700/60 pt-3">
+              Liquid latex sealant gradually evaporates and coats the inside of the tyre over <strong>4 to 6 months</strong> (faster in warm summer months or if stored near a radiator). Once dried into a latex skin, it can no longer seal new punctures. Our <strong>£20 Seasonal Sealant Refresh</strong> clears out dried latex clumps, cleans your valve cores, and injects fresh sealant so you're ready for spring or winter riding.
+            </div>
+          </div>
+
+          <!-- FAQ 3 -->
+          <div class="bg-charcoal-800 border border-slate-700/80 rounded-2xl overflow-hidden">
+            <button type="button" class="faq-toggle w-full px-5 py-4 text-left flex items-center justify-between gap-4 font-bold text-white text-sm sm:text-base hover:bg-charcoal-700/40 transition-colors">
+              <span>What happens if my tyres weep a few PSI overnight after conversion?</span>
+              <svg class="faq-chevron w-5 h-5 text-sealant-400 transform transition-transform duration-200 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="faq-content hidden px-5 pb-4 text-sm text-slate-300 leading-relaxed border-t border-slate-700/60 pt-3">
+              That's completely normal during the first 24 hours—especially with lightweight supple gravel tyres or tan-wall casings, which have microscopic pores in the rubber sidewalls. We spin and horizontal-shake every wheel in the lab to coat the bead and casing, and we advise giving the tyres a quick top-up to your target PSI before your first ride so the sealant finishes curing into every micro-pore.
+            </div>
+          </div>
+
+          <!-- FAQ 4 -->
+          <div class="bg-charcoal-800 border border-slate-700/80 rounded-2xl overflow-hidden">
+            <button type="button" class="faq-toggle w-full px-5 py-4 text-left flex items-center justify-between gap-4 font-bold text-white text-sm sm:text-base hover:bg-charcoal-700/40 transition-colors">
+              <span>Do you convert hookless rims (e.g., Zipp, Giant, Enve)?</span>
+              <svg class="faq-chevron w-5 h-5 text-sealant-400 transform transition-transform duration-200 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="faq-content hidden px-5 pb-4 text-sm text-slate-300 leading-relaxed border-t border-slate-700/60 pt-3">
+              Yes—we convert hookless wheelsets following strict ETRTO safety guidelines. Hookless rims must only be paired with <strong>hookless-compatible tubeless tyres</strong> and must never exceed <strong>72.5 PSI (5.0 bar)</strong>. We cross-check your tyre manufacturer's hookless approval chart and set your pressure digitally before handover.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 5. FOOTER -->
+  <footer class="bg-charcoal-950 py-12 text-slate-400 text-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-slate-800/80">
+        <div>
+          <span class="font-extrabold tracking-tight text-white text-lg">FORTH <span class="text-sealant-500">TUBELESS</span></span>
+          <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+            Dedicated bicycle tubeless conversion, precision rim taping, and seasonal sealant refresh lab based in South Queensferry, Scotland.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-white text-xs uppercase tracking-wider font-mono mb-2.5">Workshop &amp; Coverage Area</h4>
+          <p class="text-xs leading-relaxed">
+            <strong>Base:</strong> South Queensferry (EH30), near Dalmeny Station &amp; Forth Road Bridge cycle path.<br />
+            <strong>Local Collection/Drop-off Radius:</strong> Dalmeny, Kirkliston, Cramond, Barnton, North Queensferry, Inverkeithing &amp; Dunfermline.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-white text-xs uppercase tracking-wider font-mono mb-2.5">Workshop Policy</h4>
+          <p class="text-xs leading-relaxed">
+            For rider safety, we strictly convert verified Tubeless Ready (TLR/TR/UST) rims and tyres only. Non-TLR rims or wire-bead tyres cannot be converted.
+          </p>
+        </div>
+      </div>
+
+      <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+        <p>&copy; <span id="currentYear"></span> Forth Tubeless (Queensferry Tubeless Lab). All rights reserved.</p>
+        <p class="font-mono">EH30 • 55.9906° N, 3.3980° W</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- MY BOOKINGS DRAWER / MODAL -->
+  <div id="bookingsModal" class="fixed inset-0 z-50 hidden">
+    <div id="closeBookingsBackdrop" class="fixed inset-0 bg-black/75 backdrop-blur-sm"></div>
+    <div class="fixed inset-y-0 right-0 max-w-md w-full bg-charcoal-900 border-l border-slate-700 shadow-2xl flex flex-col z-10">
+      <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+        <div>
+          <span class="text-[10px] font-mono uppercase tracking-wider text-trail-400 font-bold">Local Workshop Log</span>
+          <h3 class="text-lg font-black text-white">My Saved Bookings</h3>
+        </div>
+        <button id="closeBookingsBtn" type="button" class="p-2 rounded-xl bg-charcoal-800 hover:bg-slate-700 text-slate-300">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div id="savedBookingsList" class="flex-1 overflow-y-auto p-5 space-y-4">
+        <!-- Populated dynamically from localStorage -->
+      </div>
+
+      <div class="p-4 border-t border-slate-800 bg-charcoal-950/60 flex items-center justify-between text-xs text-slate-400">
+        <span>Stored locally on this device</span>
+        <button id="clearAllBookingsBtn" type="button" class="text-rose-400 hover:text-rose-300 font-semibold hidden">Clear History</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. STATE & PRICING CONFIGURATION
+    // =========================================================================
+    const SERVICE_CATALOG = {
+      'all-in': {
+        title: 'Full Tubeless Conversion (All-In)',
+        pairPrice: 55,
+        singlePrice: 30,
+        turnaround: '35–45 mins workshop time • Ready within 24 hrs'
+      },
+      'labour-only': {
+        title: 'Conversion (Labour Only)',
+        pairPrice: 30,
+        singlePrice: 18,
+        turnaround: '30–40 mins workshop time • Ready within 24 hrs'
+      },
+      'refresh': {
+        title: 'Seasonal Sealant Refresh',
+        pairPrice: 20,
+        singlePrice: 12,
+        turnaround: '15–20 mins workshop time • Same-day turnaround'
+      },
+      'rescue': {
+        title: 'Stubborn Bead Blast / Plug Rescue',
+        pairPrice: 20,
+        singlePrice: 12,
+        turnaround: '10–15 mins workshop time • While-you-wait / Same-day'
+      }
+    };
+
+    const state = {
+      rimTLR: 'yes',
+      tyreTLR: 'yes',
+      rimProfile: 'hooked',
+      discipline: 'Gravel / CX (700c / 650b)',
+      serviceId: 'all-in',
+      wheels: 'pair',
+      addons: [], // Array of { name, price }
+      handover: 'dropoff', // 'dropoff' (0) or 'pickup' (5)
+      lastConfirmedBooking: null
+    };
+
+    const STORAGE_KEY = 'forth_tubeless_bookings_v1';
+
+    // =========================================================================
+    // 2. DOM ELEMENT REFERENCES
+    // =========================================================================
+    const disciplineSelect = document.getElementById('disciplineSelect');
+    const serviceSelect = document.getElementById('serviceSelect');
+    const unsureNotice = document.getElementById('unsureNotice');
+    const hooklessNotice = document.getElementById('hooklessNotice');
+
+    // Live Summary Elements
+    const summaryDisciplineBadge = document.getElementById('summaryDisciplineBadge');
+    const summaryProfileBadge = document.getElementById('summaryProfileBadge');
+    const summaryTLRBadge = document.getElementById('summaryTLRBadge');
+    const summaryServiceTitle = document.getElementById('summaryServiceTitle');
+    const summaryWheelSub = document.getElementById('summaryWheelSub');
+    const summaryServicePrice = document.getElementById('summaryServicePrice');
+    const summaryAddonsList = document.getElementById('summaryAddonsList');
+    const summaryHandoverLabel = document.getElementById('summaryHandoverLabel');
+    const summaryHandoverPrice = document.getElementById('summaryHandoverPrice');
+    const summaryTurnaround = document.getElementById('summaryTurnaround');
+    const summaryGrandTotal = document.getElementById('summaryGrandTotal');
+    const submitBtnTotal = document.getElementById('submitBtnTotal');
+
+    // Form & Confirmation Elements
+    const bookingForm = document.getElementById('bookingForm');
+    const formErrorBox = document.getElementById('formErrorBox');
+    const confirmationCard = document.getElementById('confirmationCard');
+    const confirmRefId = document.getElementById('confirmRefId');
+    const confirmDetailsGrid = document.getElementById('confirmDetailsGrid');
+
+    // =========================================================================
+    // 3. NON-BLOCKING TOAST NOTIFICATION HELPER
+    // =========================================================================
+    let toastTimeout;
+    function showToast(message, isWarning = false) {
+      const banner = document.getElementById('toastBanner');
+      const text = document.getElementById('toastText');
+      const icon = document.getElementById('toastIcon');
+
+      text.textContent = message;
+      if (isWarning) {
+        icon.className = 'flex-shrink-0 w-6 h-6 rounded-full bg-sealant-500/20 text-sealant-400 flex items-center justify-center';
+      } else {
+        icon.className = 'flex-shrink-0 w-6 h-6 rounded-full bg-trail-500/20 text-trail-400 flex items-center justify-center';
+      }
+
+      banner.classList.remove('translate-y-24', 'opacity-0');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        banner.classList.add('translate-y-24', 'opacity-0');
+      }, 3200);
+    }
+
+    // =========================================================================
+    // 4. QUOTE CALCULATION & UI SYNC
+    // =========================================================================
+    function calculateQuote() {
+      const service = SERVICE_CATALOG[state.serviceId];
+      const basePrice = state.wheels === 'pair' ? service.pairPrice : service.singlePrice;
+      const addonsTotal = state.addons.reduce((sum, item) => sum + item.price, 0);
+      const handoverFee = state.handover === 'pickup' ? 5 : 0;
+      const grandTotal = basePrice + addonsTotal + handoverFee;
+
+      return {
+        service,
+        basePrice,
+        addonsTotal,
+        handoverFee,
+        grandTotal
+      };
+    }
+
+    function renderQuoteSummary() {
+      const { service, basePrice, handoverFee, grandTotal } = calculateQuote();
+
+      // Update badges
+      summaryDisciplineBadge.textContent = state.discipline;
+      summaryProfileBadge.textContent = state.rimProfile === 'hookless' ? 'Hookless (72.5 PSI Max)' : 'Hooked Rim';
+
+      if (state.rimTLR === 'yes' && state.tyreTLR === 'yes') {
+        summaryTLRBadge.textContent = 'TLR Verified';
+        summaryTLRBadge.className = 'px-2.5 py-1 rounded-md bg-trail-500/15 border border-trail-500/30 text-trail-300';
+      } else {
+        summaryTLRBadge.textContent = 'Workshop TLR Check';
+        summaryTLRBadge.className = 'px-2.5 py-1 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-300';
+      }
+
+      // Update Service Line
+      summaryServiceTitle.textContent = service.title;
+      summaryWheelSub.textContent = state.wheels === 'pair' ? 'Front & Rear Pair (2 Wheels)' : 'Single Wheel (1 Wheel)';
+      summaryServicePrice.textContent = `£${basePrice.toFixed(2)}`;
+
+      // Update Add-Ons
+      summaryAddonsList.innerHTML = '';
+      state.addons.forEach(addon => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between text-xs text-slate-300';
+        row.innerHTML = `
+          <span>+ ${addon.name}</span>
+          <span class="font-mono font-bold text-sealant-400">£${addon.price.toFixed(2)}</span>
+        `;
+        summaryAddonsList.appendChild(row);
+      });
+
+      // Update Handover
+      if (state.handover === 'pickup') {
+        summaryHandoverLabel.textContent = 'Local Collection & Return (Within 5 mi)';
+        summaryHandoverPrice.textContent = '£5.00';
+        summaryHandoverPrice.className = 'font-mono font-bold text-sealant-400';
+      } else {
+        summaryHandoverLabel.textContent = 'South Queensferry (EH30) Drop-off';
+        summaryHandoverPrice.textContent = 'FREE';
+        summaryHandoverPrice.className = 'font-mono font-bold text-trail-400';
+      }
+
+      // Update Turnaround & Totals
+      summaryTurnaround.textContent = service.turnaround;
+      summaryGrandTotal.textContent = `£${grandTotal}`;
+      submitBtnTotal.textContent = `£${grandTotal}`;
+    }
+
+    // Sync Pricing Card Clicks -> Calculator
+    window.selectServicePackage = function(serviceId, defaultWheels) {
+      state.serviceId = serviceId;
+      state.wheels = defaultWheels;
+
+      serviceSelect.value = serviceId;
+      updateWheelToggleUI();
+      renderQuoteSummary();
+
+      // If confirmation was open, reveal form again for new edit
+      confirmationCard.classList.add('hidden');
+      bookingForm.classList.remove('hidden');
+
+      const bookingSection = document.getElementById('booking');
+      bookingSection.scrollIntoView({ behavior: 'smooth' });
+      showToast(`Selected: ${SERVICE_CATALOG[serviceId].title}`);
+    };
+
+    function updateWheelToggleUI() {
+      document.querySelectorAll('.wheel-btn').forEach(btn => {
+        const isSelected = btn.dataset.wheels === state.wheels;
+        if (isSelected) {
+          btn.className = 'wheel-btn py-2.5 px-2 rounded-lg text-xs font-extrabold transition-all bg-sealant-500 text-charcoal-950 shadow';
+        } else {
+          btn.className = 'wheel-btn py-2.5 px-2 rounded-lg text-xs font-bold transition-all text-slate-300 hover:text-white';
+        }
+      });
+    }
+
+    // =========================================================================
+    // 5. EVENT LISTENERS FOR CONFIGURATOR CONTROLS
+    // =========================================================================
+    // Compatibility TLR toggles
+    document.querySelectorAll('.compat-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const checkKey = btn.dataset.check;
+        const val = btn.dataset.val;
+        state[checkKey] = val;
+
+        // Update button styles for this group
+        document.querySelectorAll(`.compat-btn[data-check="${checkKey}"]`).forEach(sibling => {
+          if (sibling.dataset.val === val) {
+            sibling.className = val === 'yes'
+              ? 'compat-btn py-2 px-3 rounded-lg text-xs font-bold border transition-all bg-trail-500/20 border-trail-500 text-trail-300'
+              : 'compat-btn py-2 px-3 rounded-lg text-xs font-bold border transition-all bg-amber-500/20 border-amber-500 text-amber-300';
+          } else {
+            sibling.className = 'compat-btn py-2 px-3 rounded-lg text-xs font-bold border transition-all bg-charcoal-800 border-slate-700 text-slate-400 hover:text-slate-200';
+          }
+        });
+
+        // Toggle "Not Sure" helper banner
+        if (state.rimTLR === 'unsure' || state.tyreTLR === 'unsure') {
+          unsureNotice.classList.remove('hidden');
+        } else {
+          unsureNotice.classList.add('hidden');
+        }
+
+        renderQuoteSummary();
+      });
+    });
+
+    // Rim Profile toggles (Hooked vs Hookless)
+    document.querySelectorAll('.profile-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.rimProfile = btn.dataset.profile;
+        document.querySelectorAll('.profile-btn').forEach(sibling => {
+          if (sibling.dataset.profile === state.rimProfile) {
+            sibling.className = 'profile-btn py-2 px-3 rounded-lg text-xs font-bold border transition-all bg-sealant-500/20 border-sealant-500 text-sealant-300';
+          } else {
+            sibling.className = 'profile-btn py-2 px-3 rounded-lg text-xs font-bold border transition-all bg-charcoal-800 border-slate-700 text-slate-400 hover:text-slate-200';
+          }
+        });
+
+        if (state.rimProfile === 'hookless') {
+          hooklessNotice.classList.remove('hidden');
+        } else {
+          hooklessNotice.classList.add('hidden');
+        }
+
+        renderQuoteSummary();
+      });
+    });
+
+    // Discipline select
+    disciplineSelect.addEventListener('change', (e) => {
+      state.discipline = e.target.value;
+      renderQuoteSummary();
+    });
+
+    // Service dropdown
+    serviceSelect.addEventListener('change', (e) => {
+      state.serviceId = e.target.value;
+      renderQuoteSummary();
+    });
+
+    // Wheel count buttons
+    document.querySelectorAll('.wheel-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.wheels = btn.dataset.wheels;
+        updateWheelToggleUI();
+        renderQuoteSummary();
+      });
+    });
+
+    // Add-on checkboxes
+    document.querySelectorAll('.addon-checkbox').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const selectedAddons = [];
+        document.querySelectorAll('.addon-checkbox:checked').forEach(checkedBox => {
+          selectedAddons.push({
+            name: checkedBox.dataset.addonName,
+            price: Number(checkedBox.value)
+          });
+        });
+        state.addons = selectedAddons;
+        renderQuoteSummary();
+      });
+    });
+
+    // Handover radio cards
+    document.querySelectorAll('input[name="handover"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        state.handover = e.target.value;
+        document.querySelectorAll('.handover-card').forEach(card => {
+          if (card.dataset.handover === state.handover) {
+            card.classList.remove('border-slate-700');
+            card.classList.add('border-sealant-500');
+          } else {
+            card.classList.remove('border-sealant-500');
+            card.classList.add('border-slate-700');
+          }
+        });
+        renderQuoteSummary();
+      });
+    });
+
+    // =========================================================================
+    // 6. BOOKING SUBMISSION, LOCALSTORAGE, WHATSAPP COPY & .ICS DOWNLOAD
+    // =========================================================================
+    function getSavedBookings() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch (err) {
+        return [];
+      }
+    }
+
+    function saveBookingToStorage(bookingObj) {
+      try {
+        const existing = getSavedBookings();
+        existing.unshift(bookingObj);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+        updateBookingsBadge();
+      } catch (err) {
+        console.error('Could not save booking locally:', err);
+      }
+    }
+
+    function updateBookingsBadge() {
+      const bookings = getSavedBookings();
+      document.getElementById('bookingCountBadge').textContent = bookings.length;
+    }
+
+    bookingForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      formErrorBox.classList.add('hidden');
+
+      const name = document.getElementById('custName').value.trim();
+      const phone = document.getElementById('custPhone').value.trim();
+      const email = document.getElementById('custEmail').value.trim();
+      const slotDay = document.getElementById('slotDay').value;
+      const slotTime = document.getElementById('slotTime').value;
+      const bikeNotes = document.getElementById('bikeNotes').value.trim();
+
+      if (!name || !phone || !email || !email.includes('@')) {
+        formErrorBox.textContent = 'Please enter your name, a valid email address, and a phone/WhatsApp number so we can confirm your slot.';
+        formErrorBox.classList.remove('hidden');
+        return;
+      }
+
+      const quote = calculateQuote();
+      const refNum = `#FT-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      const bookingRecord = {
+        ref: refNum,
+        createdAt: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+        name,
+        phone,
+        email,
+        bikeNotes: bikeNotes || 'Not specified',
+        discipline: state.discipline,
+        rimProfile: state.rimProfile === 'hookless' ? 'Hookless (Max 72.5 PSI)' : 'Hooked',
+        tlrStatus: (state.rimTLR === 'yes' && state.tyreTLR === 'yes') ? 'TLR Verified' : 'Needs Workshop Check',
+        serviceTitle: quote.service.title,
+        wheels: state.wheels === 'pair' ? 'Pair (Front & Rear)' : 'Single Wheel',
+        addons: state.addons.map(a => a.name),
+        handover: state.handover === 'pickup' ? 'Local Pickup/Return (+£5)' : 'EH30 Workshop Drop-off (Free)',
+        slotDay,
+        slotTime,
+        total: quote.grandTotal
+      };
+
+      state.lastConfirmedBooking = bookingRecord;
+      saveBookingToStorage(bookingRecord);
+
+      // Populate Confirmation View
+      confirmRefId.textContent = bookingRecord.ref;
+      confirmDetailsGrid.innerHTML = `
+        <div>
+          <span class="text-[11px] font-mono uppercase text-slate-400 block">Rider</span>
+          <span class="font-bold text-white">${bookingRecord.name}</span>
+          <span class="text-xs text-slate-400 block">${bookingRecord.phone}</span>
+        </div>
+        <div>
+          <span class="text-[11px] font-mono uppercase text-slate-400 block">Preferred Slot</span>
+          <span class="font-bold text-trail-400">${bookingRecord.slotDay}</span>
+          <span class="text-xs text-slate-300 block">${bookingRecord.slotTime}</span>
+        </div>
+        <div>
+          <span class="text-[11px] font-mono uppercase text-slate-400 block">Service &amp; Setup</span>
+          <span class="font-bold text-white">${bookingRecord.serviceTitle}</span>
+          <span class="text-xs text-slate-400 block">${bookingRecord.wheels} • ${bookingRecord.discipline}</span>
+        </div>
+        <div>
+          <span class="text-[11px] font-mono uppercase text-slate-400 block">Handover &amp; Total</span>
+          <span class="font-bold text-sealant-400 font-mono text-base">£${bookingRecord.total}</span>
+          <span class="text-xs text-slate-400 block">${bookingRecord.handover}</span>
+        </div>
+      `;
+
+      bookingForm.classList.add('hidden');
+      confirmationCard.classList.remove('hidden');
+      confirmationCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      showToast(`Booking ${refNum} confirmed & saved!`);
+    });
+
+    // Book another button
+    document.getElementById('bookAnotherBtn').addEventListener('click', () => {
+      confirmationCard.classList.add('hidden');
+      bookingForm.classList.remove('hidden');
+    });
+
+    // Copy Summary for WhatsApp / SMS using fallback-safe execCommand
+    document.getElementById('copyWhatsappBtn').addEventListener('click', () => {
+      const b = state.lastConfirmedBooking;
+      if (!b) return;
+
+      const addonsText = b.addons.length ? `\nAdd-ons: ${b.addons.join(', ')}` : '';
+      const summaryText =
+`FORTH TUBELESS BOOKING ${b.ref}
+Name: ${b.name}
+Service: ${b.serviceTitle} (${b.wheels})
+Setup: ${b.discipline} | ${b.rimProfile} (${b.tlrStatus})
+Bike/Tyres: ${b.bikeNotes}${addonsText}
+Logistics: ${b.handover}
+Slot: ${b.slotDay} — ${b.slotTime}
+Est. Total: £${b.total}`;
+
+      const tempArea = document.createElement('textarea');
+      tempArea.value = summaryText;
+      tempArea.style.position = 'fixed';
+      tempArea.style.opacity = '0';
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      try {
+        document.execCommand('copy');
+        showToast('Booking summary copied! Ready to paste into WhatsApp/SMS.');
+      } catch (err) {
+        showToast('Unable to copy automatically — please select text manually.', true);
+      }
+      document.body.removeChild(tempArea);
+    });
+
+    // Download .ICS Calendar File
+    document.getElementById('downloadIcsBtn').addEventListener('click', () => {
+      const b = state.lastConfirmedBooking;
+      if (!b) return;
+
+      // Schedule tomorrow at 18:00 local time as default reminder
+      const start = new Date();
+      start.setDate(start.getDate() + 1);
+      start.setHours(18, 0, 0, 0);
+      const end = new Date(start.getTime() + 45 * 60000);
+
+      const formatICSDate = (d) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+      const icsContent = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Forth Tubeless//South Queensferry EH30//EN',
+        'BEGIN:VEVENT',
+        `UID:${b.ref.replace('#', '')}@forthtubeless.co.uk`,
+        `DTSTAMP:${formatICSDate(new Date())}`,
+        `DTSTART:${formatICSDate(start)}`,
+        `DTEND:${formatICSDate(end)}`,
+        `SUMMARY:Forth Tubeless Workshop (${b.ref}) - ${b.serviceTitle}`,
+        `LOCATION:South Queensferry, EH30`,
+        `DESCRIPTION:Service: ${b.serviceTitle} (${b.wheels})\\nSlot: ${b.slotDay} ${b.slotTime}\\nEstimated Total: £${b.total}\\nNotes: ${b.bikeNotes}`,
+        'END:VEVENT',
+        'END:VCALENDAR'
+      ].join('\r\n');
+
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Forth-Tubeless-${b.ref.replace('#', '')}.ics`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Calendar reminder (.ics) downloaded.');
+    });
+
+    // =========================================================================
+    // 7. MY BOOKINGS DRAWER MODAL & FAQ ACCORDION
+    // =========================================================================
+    const bookingsModal = document.getElementById('bookingsModal');
+    const savedBookingsList = document.getElementById('savedBookingsList');
+    const clearAllBookingsBtn = document.getElementById('clearAllBookingsBtn');
+
+    function renderBookingsDrawer() {
+      const bookings = getSavedBookings();
+      savedBookingsList.innerHTML = '';
+
+      if (bookings.length === 0) {
+        clearAllBookingsBtn.classList.add('hidden');
+        savedBookingsList.innerHTML = `
+          <div class="text-center py-12 px-4 border border-dashed border-slate-700 rounded-2xl">
+            <p class="text-sm font-bold text-slate-300">No bookings saved yet</p>
+            <p class="text-xs text-slate-400 mt-1">Once you submit a tubeless booking request, your reference ID and quote summary will appear here.</p>
+          </div>
+        `;
+        return;
+      }
+
+      clearAllBookingsBtn.classList.remove('hidden');
+      bookings.forEach((b, idx) => {
+        const card = document.createElement('div');
+        card.className = 'bg-charcoal-800 border border-slate-700 rounded-xl p-4 space-y-2.5';
+        card.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-700/80 pb-2">
+            <span class="font-mono text-xs font-extrabold text-sealant-400">${b.ref}</span>
+            <span class="text-[11px] text-slate-400">${b.createdAt}</span>
+          </div>
+          <div>
+            <p class="text-sm font-bold text-white">${b.serviceTitle}</p>
+            <p class="text-xs text-slate-400">${b.wheels} • ${b.discipline}</p>
+          </div>
+          <div class="text-xs text-slate-300 bg-charcoal-900/90 rounded-lg p-2.5 space-y-1">
+            <p><strong class="text-slate-400">Slot:</strong> ${b.slotDay} (${b.slotTime})</p>
+            <p><strong class="text-slate-400">Logistics:</strong> ${b.handover}</p>
+          </div>
+          <div class="flex items-center justify-between pt-1">
+            <span class="font-mono font-extrabold text-trail-400 text-sm">Est. £${b.total}</span>
+            <button type="button" onclick="deleteSingleBooking(${idx})" class="text-xs text-slate-400 hover:text-rose-400 transition-colors">Remove</button>
+          </div>
+        `;
+        savedBookingsList.appendChild(card);
+      });
+    }
+
+    window.deleteSingleBooking = function(index) {
+      const bookings = getSavedBookings();
+      bookings.splice(index, 1);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
+      updateBookingsBadge();
+      renderBookingsDrawer();
+      showToast('Booking removed from history.');
+    };
+
+    document.getElementById('openBookingsBtn').addEventListener('click', () => {
+      renderBookingsDrawer();
+      bookingsModal.classList.remove('hidden');
+    });
+
+    document.getElementById('closeBookingsBtn').addEventListener('click', () => {
+      bookingsModal.classList.add('hidden');
+    });
+
+    document.getElementById('closeBookingsBackdrop').addEventListener('click', () => {
+      bookingsModal.classList.add('hidden');
+    });
+
+    clearAllBookingsBtn.addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_KEY);
+      updateBookingsBadge();
+      renderBookingsDrawer();
+      showToast('Booking history cleared.');
+    });
+
+    // FAQ Accordion toggle
+    document.querySelectorAll('.faq-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const content = btn.nextElementSibling;
+        const chevron = btn.querySelector('.faq-chevron');
+        const isOpen = !content.classList.contains('hidden');
+
+        // Close all others for clean single-open accordion
+        document.querySelectorAll('.faq-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.faq-chevron').forEach(icon => icon.classList.remove('rotate-180'));
+
+        if (!isOpen) {
+          content.classList.remove('hidden');
+          chevron.classList.add('rotate-180');
+        }
+      });
+    });
+
+    // Initialize Page
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+    updateBookingsBadge();
+    renderQuoteSummary();
+  </script>
+</body>
+</html>
