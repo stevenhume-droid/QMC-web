@@ -82,6 +82,14 @@
       transform-origin: 50px 55px;
       animation: needleSweep 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
+
+    /* Disable automatic word hyphenation across all text */
+    *, *::before, *::after {
+      -webkit-hyphens: none;
+      -moz-hyphens: none;
+      -ms-hyphens: none;
+      hyphens: none;
+    }
   </style>
 </head>
 <body class="bg-charcoal-900 text-slate-100 font-sans antialiased selection:bg-sealant-500 selection:text-charcoal-950 overflow-x-hidden">
@@ -155,7 +163,7 @@
           </h1>
 
           <p class="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl">
-            Skip the messy kitchen floor and stubborn track-pump struggles. We deliver workshop-grade compressor bead seating, precision <span class="text-white font-semibold">Tesa 4289</span> rim taping, CNC alloy valves, and fresh sealant—with <span class="text-trail-400 font-semibold">24-hour turnaround</span> right beside the Forth Bridges.
+            Skip the messy kitchen floor and stubborn track pump struggles. We deliver workshop grade compressor bead seating, precision <span class="text-white font-semibold">Tesa 4289</span> rim taping, CNC alloy valves, and fresh sealant, with <span class="text-trail-400 font-semibold">24 hour turnaround</span> right beside the Forth Bridges.
           </p>
 
           <!-- CTA Group -->
@@ -182,14 +190,14 @@
               <div class="w-8 h-8 rounded-lg bg-sealant-500/15 text-sealant-400 flex items-center justify-center flex-shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               </div>
-              <span class="text-xs font-semibold text-slate-200 leading-tight">Same / Next-Day Turnaround</span>
+              <span class="text-xs font-semibold text-slate-200 leading-tight">Same / Next Day Turnaround</span>
             </div>
 
             <div class="flex items-center gap-2.5 bg-charcoal-800/50 border border-slate-800 rounded-xl p-3">
               <div class="w-8 h-8 rounded-lg bg-sky-500/15 text-sky-400 flex items-center justify-center flex-shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
               </div>
-              <span class="text-xs font-semibold text-slate-200 leading-tight">EH30 Drop-off &amp; Local Pickup</span>
+              <span class="text-xs font-semibold text-slate-200 leading-tight">EH30 Drop Off &amp; Local Pickup</span>
             </div>
           </div>
         </div>
@@ -219,28 +227,28 @@
                 <span class="px-2 py-0.5 rounded bg-charcoal-900 border border-slate-700 font-mono text-xs text-sealant-400 font-bold mt-0.5">01</span>
                 <div>
                   <p class="font-semibold text-white">99.9% Isopropyl Rim Bed Prep</p>
-                  <p class="text-xs text-slate-400">Strips factory mould-release agents and old adhesive for zero-lift tape adhesion.</p>
+                  <p class="text-xs text-slate-400">Strips factory mould release agents and old adhesive for zero lift tape adhesion.</p>
                 </div>
               </li>
               <li class="flex items-start gap-3">
                 <span class="px-2 py-0.5 rounded bg-charcoal-900 border border-slate-700 font-mono text-xs text-sealant-400 font-bold mt-0.5">02</span>
                 <div>
-                  <p class="font-semibold text-white">Width-Matched Tesa 4289 Strapping Tape</p>
-                  <p class="text-xs text-slate-400">21mm, 25mm, or 32mm high-tensile tape overlapped cleanly at the valve hole.</p>
+                  <p class="font-semibold text-white">Width Matched Tesa 4289 Strapping Tape</p>
+                  <p class="text-xs text-slate-400">21mm, 25mm, or 32mm high tensile tape overlapped cleanly at the valve hole.</p>
                 </div>
               </li>
               <li class="flex items-start gap-3">
                 <span class="px-2 py-0.5 rounded bg-charcoal-900 border border-slate-700 font-mono text-xs text-sealant-400 font-bold mt-0.5">03</span>
                 <div>
-                  <p class="font-semibold text-white">CNC Alloy Valves + High-Flow Compressor Seat</p>
-                  <p class="text-xs text-slate-400">44mm or 60mm removable-core Presta valves seated cleanly at calibrated PSI.</p>
+                  <p class="font-semibold text-white">CNC Alloy Valves + High Flow Compressor Seat</p>
+                  <p class="text-xs text-slate-400">44mm or 60mm removable core Presta valves seated cleanly at calibrated PSI.</p>
                 </div>
               </li>
               <li class="flex items-start gap-3">
                 <span class="px-2 py-0.5 rounded bg-charcoal-900 border border-slate-700 font-mono text-xs text-trail-400 font-bold mt-0.5">04</span>
                 <div>
                   <p class="font-semibold text-white">Measured Latex Sealant &amp; Bubble Leak Check</p>
-                  <p class="text-xs text-slate-400">60ml–120ml per tyre injected via syringe, spun, and verified airtight.</p>
+                  <p class="text-xs text-slate-400">60ml to 120ml per tyre injected via syringe, spun, and verified airtight.</p>
                 </div>
               </li>
             </ul>
@@ -261,15 +269,15 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6">
       <div class="max-w-2xl mb-10 sm:mb-12">
         <span class="text-xs font-mono uppercase tracking-widest text-sealant-400 font-bold">Transparent Workshop Menu</span>
-        <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight mt-1">Fixed-Price Tubeless Services</h2>
+        <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight mt-1">Fixed Price Tubeless Services</h2>
         <p class="text-slate-400 text-sm sm:text-base mt-2">
-          Select a package below to load it directly into the quote builder. No hidden shop fees—just clean, reliable tubeless setups.
+          Select a package below to load it directly into the quote builder. No hidden shop fees, just clean, reliable tubeless setups.
         </p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         
-        <!-- Tier 1: All-In Conversion (Most Popular) -->
+        <!-- Tier 1: All In Conversion (Most Popular) -->
         <div class="bg-charcoal-800 border-2 border-sealant-500 rounded-2xl p-6 flex flex-col justify-between relative shadow-xl shadow-sealant-500/10">
           <div class="absolute -top-3.5 left-5 px-3 py-1 rounded-full bg-sealant-500 text-charcoal-950 font-extrabold text-[11px] uppercase tracking-wider shadow">
             Most Popular
@@ -279,14 +287,14 @@
               <span class="text-xs font-mono text-sealant-400 uppercase font-bold">Tier 01 • Complete</span>
               <span class="text-xs font-mono text-slate-400">~40 mins</span>
             </div>
-            <h3 class="text-xl font-extrabold text-white mt-2">Full Tubeless Conversion (All-In)</h3>
+            <h3 class="text-xl font-extrabold text-white mt-2">Full Tubeless Conversion (All In)</h3>
             <div class="mt-4 flex items-baseline gap-2">
               <span class="text-3xl font-black text-white">£55</span>
               <span class="text-xs text-slate-400 font-medium">/ pair</span>
               <span class="text-xs font-mono text-slate-300 bg-charcoal-900 px-2 py-0.5 rounded border border-slate-700 ml-auto">£30 single</span>
             </div>
             <p class="text-xs text-slate-300 mt-3 leading-relaxed">
-              Everything supplied and fitted. Ideal for new TLR bikes shipped with inner tubes or first-time conversions.
+              Everything supplied and fitted. Ideal for new TLR bikes shipped with inner tubes or first time conversions.
             </p>
             <ul class="mt-4 space-y-2 text-xs text-slate-300 border-t border-slate-700/80 pt-4">
               <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Isopropyl rim degrease &amp; prep</li>
@@ -319,7 +327,7 @@
             <ul class="mt-4 space-y-2 text-xs text-slate-300 border-t border-slate-700/80 pt-4">
               <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Full rim strip &amp; alcohol clean</li>
               <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Fitting of your tape &amp; valves</li>
-              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> High-pressure compressor seating</li>
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> High pressure compressor seating</li>
               <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Sealant fill &amp; leak inspection</li>
             </ul>
           </div>
@@ -342,12 +350,12 @@
               <span class="text-xs font-mono text-slate-300 bg-charcoal-900 px-2 py-0.5 rounded border border-slate-700 ml-auto">£12 single</span>
             </div>
             <p class="text-xs text-slate-300 mt-3 leading-relaxed">
-              Recommended every 4–6 months before latex dries out. Keeps puncture sealing fast and valves clog-free.
+              Recommended every 4 to 6 months before latex dries out. Keeps puncture sealing fast and valves clog free.
             </p>
             <ul class="mt-4 space-y-2 text-xs text-slate-300 border-t border-slate-700/80 pt-4">
-              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Single-bead pop &amp; dried latex clear</li>
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Single bead pop &amp; dried latex clear</li>
               <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Valve core clog check &amp; clean</li>
-              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Fresh liquid sealant top-up</li>
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Fresh liquid sealant top up</li>
               <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Tyre tread &amp; sidewall cut check</li>
             </ul>
           </div>
@@ -373,8 +381,8 @@
               Got 90% of the way at home but can't get the bead to snap onto the shelf? Or need a permanent Dynaplug repair?
             </p>
             <ul class="mt-4 space-y-2 text-xs text-slate-300 border-t border-slate-700/80 pt-4">
-              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> High-volume compressor bead snap</li>
-              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Bead-soap lubrication if needed</li>
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> High volume compressor bead snap</li>
+              <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Bead soap lubrication if needed</li>
               <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Dynaplug / anchovy puncture plug</li>
               <li class="flex items-center gap-2"><span class="text-trail-400 font-bold">✓</span> Pressure hold verification</li>
             </ul>
@@ -395,7 +403,7 @@
         <span class="text-xs font-mono uppercase tracking-widest text-trail-400 font-bold">Interactive Workshop Configurator</span>
         <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight mt-1">Compatibility Check &amp; Instant Quote</h2>
         <p class="text-slate-400 text-sm sm:text-base mt-2">
-          Verify your rim and tyre setup in 30 seconds, customize add-ons, and lock in a drop-off or local pickup slot in South Queensferry.
+          Verify your rim and tyre setup in 30 seconds, customize add ons, and lock in a drop off or local pickup slot in South Queensferry.
         </p>
       </div>
 
@@ -404,12 +412,12 @@
         <!-- Left 7 Columns: Steps 1 & 2 + Customer Form -->
         <div class="lg:col-span-7 space-y-6">
           
-          <!-- STEP 1: Compatibility Pre-Check -->
+          <!-- STEP 1: Compatibility Pre Check -->
           <div class="bg-charcoal-800 border border-slate-700/80 rounded-2xl p-6 space-y-5">
             <div class="flex items-center gap-3 border-b border-slate-700/80 pb-3.5">
               <span class="w-7 h-7 rounded-lg bg-sealant-500 text-charcoal-950 font-mono font-extrabold text-sm flex items-center justify-center">1</span>
               <div>
-                <h3 class="font-bold text-white text-lg">Compatibility Pre-Check</h3>
+                <h3 class="font-bold text-white text-lg">Compatibility Pre Check</h3>
                 <p class="text-xs text-slate-400">Safety first: we only convert Tubeless Ready (TLR) rims and tyres.</p>
               </div>
             </div>
@@ -480,17 +488,17 @@
               <svg class="w-5 h-5 text-sky-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
               <div>
                 <p class="font-bold text-sky-300">Hookless Rim Pressure Protocol Active</p>
-                <p class="mt-0.5 leading-relaxed">Hookless rims (e.g., Zipp, Giant SLR, Enve) have a strict <strong>72.5 PSI (5.0 bar) max pressure limit</strong> and require ETRTO hookless-approved tyres. We verify tyre compatibility and calibrate your inflation digitally.</p>
+                <p class="mt-0.5 leading-relaxed">Hookless rims (e.g., Zipp, Giant SLR, Enve) have a strict <strong>72.5 PSI (5.0 bar) max pressure limit</strong> and require ETRTO hookless approved tyres. We verify tyre compatibility and calibrate your inflation digitally.</p>
               </div>
             </div>
           </div>
 
-          <!-- STEP 2: Configure Service & Add-Ons -->
+          <!-- STEP 2: Configure Service & Add Ons -->
           <div class="bg-charcoal-800 border border-slate-700/80 rounded-2xl p-6 space-y-5">
             <div class="flex items-center gap-3 border-b border-slate-700/80 pb-3.5">
               <span class="w-7 h-7 rounded-lg bg-sealant-500 text-charcoal-950 font-mono font-extrabold text-sm flex items-center justify-center">2</span>
               <div>
-                <h3 class="font-bold text-white text-lg">Configure Service &amp; Add-Ons</h3>
+                <h3 class="font-bold text-white text-lg">Configure Service &amp; Add Ons</h3>
                 <p class="text-xs text-slate-400">Prices update live in your quote summary.</p>
               </div>
             </div>
@@ -500,7 +508,7 @@
               <div class="sm:col-span-7">
                 <label for="serviceSelect" class="block text-xs font-semibold text-slate-200 mb-2">Select Service Package</label>
                 <select id="serviceSelect" class="w-full bg-charcoal-900 border border-slate-600 rounded-xl px-3.5 py-3 text-sm font-semibold text-white focus:outline-none focus:border-sealant-500">
-                  <option value="all-in">Full Tubeless Conversion (All-In) — £55 pair / £30 single</option>
+                  <option value="all-in">Full Tubeless Conversion (All In) — £55 pair / £30 single</option>
                   <option value="labour-only">Conversion (Labour Only) — £30 pair / £18 single</option>
                   <option value="refresh">Seasonal Sealant Refresh — £20 pair / £12 single</option>
                   <option value="rescue">Stubborn Bead Blast / Plug Rescue — £20 pair / £12 single</option>
@@ -520,9 +528,9 @@
               </div>
             </div>
 
-            <!-- Optional Workshop Add-Ons -->
+            <!-- Optional Workshop Add Ons -->
             <div>
-              <span class="block text-xs font-semibold text-slate-200 mb-2.5">Optional Workshop Add-Ons (While Wheels Are Off)</span>
+              <span class="block text-xs font-semibold text-slate-200 mb-2.5">Optional Workshop Add Ons (While Wheels Are Off)</span>
               <div class="space-y-2.5">
                 <label class="flex items-center justify-between p-3.5 rounded-xl bg-charcoal-900/90 border border-slate-700 hover:border-slate-500 cursor-pointer transition-colors">
                   <div class="flex items-center gap-3">
@@ -540,7 +548,7 @@
                     <input type="checkbox" value="4" data-addon-name="Spare CNC Alloy Valve Cores (Pair)" class="addon-checkbox w-4 h-4 rounded accent-sealant-500 cursor-pointer" />
                     <div>
                       <span class="text-sm font-semibold text-white block">Spare CNC Alloy Valve Cores (Pair)</span>
-                      <span class="text-xs text-slate-400">Keep a fresh pair in your saddle bag in case sealant gums up mid-season.</span>
+                      <span class="text-xs text-slate-400">Keep a fresh pair in your saddle bag in case sealant gums up mid season.</span>
                     </div>
                   </div>
                   <span class="font-mono text-sm font-bold text-sealant-400 ml-3">+£4</span>
@@ -567,7 +575,7 @@
                   <input type="radio" name="handover" value="dropoff" checked class="mt-1 accent-sealant-500" />
                   <div class="flex-1">
                     <div class="flex items-center justify-between">
-                      <span class="text-sm font-bold text-white">EH30 Drop-Off</span>
+                      <span class="text-sm font-bold text-white">EH30 Drop Off</span>
                       <span class="text-xs font-mono font-bold text-trail-400">FREE</span>
                     </div>
                     <p class="text-xs text-slate-400 mt-1">Drop bike or bare wheels at our South Queensferry workshop (near Dalmeny Station).</p>
@@ -594,7 +602,7 @@
               <span class="w-7 h-7 rounded-lg bg-sealant-500 text-charcoal-950 font-mono font-extrabold text-sm flex items-center justify-center">3</span>
               <div>
                 <h3 class="font-bold text-white text-lg">Your Details &amp; Preferred Slot</h3>
-                <p class="text-xs text-slate-400">No upfront payment required—pay on collection once pressure-tested.</p>
+                <p class="text-xs text-slate-400">No upfront payment required, pay on collection once pressure tested.</p>
               </div>
             </div>
 
@@ -616,7 +624,7 @@
                 <label for="slotTime" class="block text-xs font-semibold text-slate-200 mb-1.5">Preferred Window *</label>
                 <select id="slotTime" required class="w-full bg-charcoal-900 border border-slate-600 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-sealant-500">
                   <option value="Weekday Evening (17:30 – 20:00)">Weekday Evening (17:30 – 20:00)</option>
-                  <option value="Morning Drop-off (08:00 – 10:00)">Morning Drop-off (08:00 – 10:00)</option>
+                  <option value="Morning Drop Off (08:00 – 10:00)">Morning Drop Off (08:00 – 10:00)</option>
                   <option value="Saturday Morning (09:00 – 12:30)">Saturday Morning (09:00 – 12:30)</option>
                   <option value="Sunday Afternoon (13:00 – 17:00)">Sunday Afternoon (13:00 – 17:00)</option>
                 </select>
@@ -721,18 +729,18 @@
             <div class="space-y-3 text-sm border-t border-b border-slate-700/80 py-4">
               <div class="flex items-start justify-between gap-3">
                 <div>
-                  <p id="summaryServiceTitle" class="font-bold text-white">Full Tubeless Conversion (All-In)</p>
+                  <p id="summaryServiceTitle" class="font-bold text-white">Full Tubeless Conversion (All In)</p>
                   <p id="summaryWheelSub" class="text-xs text-slate-400">Front &amp; Rear Pair (2 Wheels)</p>
                 </div>
                 <span id="summaryServicePrice" class="font-mono font-bold text-white">£55.00</span>
               </div>
 
-              <!-- Dynamic Add-ons container -->
+              <!-- Dynamic Add ons container -->
               <div id="summaryAddonsList" class="space-y-2"></div>
 
               <!-- Handover Line Item -->
               <div class="flex items-center justify-between text-xs pt-1">
-                <span id="summaryHandoverLabel" class="text-slate-300">South Queensferry (EH30) Drop-off</span>
+                <span id="summaryHandoverLabel" class="text-slate-300">South Queensferry (EH30) Drop Off</span>
                 <span id="summaryHandoverPrice" class="font-mono font-bold text-trail-400">FREE</span>
               </div>
             </div>
@@ -770,10 +778,10 @@
   <section id="benefits" class="py-16 sm:py-20 border-b border-slate-800/80">
     <div class="max-w-6xl mx-auto px-4 sm:px-6">
       <div class="max-w-2xl mb-10">
-        <span class="text-xs font-mono uppercase tracking-widest text-sealant-400 font-bold">Real-World Performance</span>
+        <span class="text-xs font-mono uppercase tracking-widest text-sealant-400 font-bold">Real World Performance</span>
         <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight mt-1">Why Ride Tubeless Around the Forth?</h2>
         <p class="text-slate-400 text-sm sm:text-base mt-2">
-          From hawthorn hedges along the Dalmeny Estate trails to rough chip-seal lanes across Fife and the Pentlands, inner tubes are the weak link.
+          From hawthorn hedges along the Dalmeny Estate trails to rough chip seal lanes across Fife and the Pentlands, inner tubes are the weak link.
         </p>
       </div>
 
@@ -785,7 +793,7 @@
           </div>
           <h3 class="text-lg font-extrabold text-white">Instant Thorn &amp; Glass Sealing</h3>
           <p class="text-sm text-slate-300 mt-2 leading-relaxed">
-            Liquid latex sealant coagulates on contact with air, plugging punctures up to 5mm while your wheel keeps spinning—no roadside tube swaps in Scottish rain.
+            Liquid latex sealant coagulates on contact with air, plugging punctures up to 5mm while your wheel keeps spinning, with no roadside tube swaps in Scottish rain.
           </p>
         </div>
 
@@ -805,7 +813,7 @@
           </div>
           <h3 class="text-lg font-extrabold text-white">Lower PSI Grip &amp; Zero Snakebites</h3>
           <p class="text-sm text-slate-300 mt-2 leading-relaxed">
-            Run 22–38 PSI on gravel/MTB or 55–70 PSI on road without fearing pinch flats on square-edged potholes, tree roots, or cobbles.
+            Run 22 to 38 PSI on gravel/MTB or 55 to 70 PSI on road without fearing pinch flats on square edged potholes, tree roots, or cobbles.
           </p>
         </div>
       </div>
@@ -825,7 +833,7 @@
               <svg class="faq-chevron w-5 h-5 text-sealant-400 transform transition-transform duration-200 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
             </button>
             <div class="faq-content hidden px-5 pb-4 text-sm text-slate-300 leading-relaxed border-t border-slate-700/60 pt-3">
-              Look at the rim decal near the valve hole and the hot-patch logo on your tyre sidewall. You should see markings such as <strong>TLR, TR, Tubeless Ready, TLE, 2Bliss, or UST</strong>. Most mid-range and high-end gravel, MTB, and disc road bikes sold since 2019 ship with TLR rims and tyres—even if the factory installed inner tubes inside them. Not sure? Snap a quick photo of your rim and tyre sidewall when booking and we'll confirm before touching a tool.
+              Look at the rim decal near the valve hole and the hot patch logo on your tyre sidewall. You should see markings such as <strong>TLR, TR, Tubeless Ready, TLE, 2Bliss, or UST</strong>. Most mid range and high end gravel, MTB, and disc road bikes sold since 2019 ship with TLR rims and tyres, even if the factory installed inner tubes inside them. Not sure? Snap a quick photo of your rim and tyre sidewall when booking and we'll confirm before touching a tool.
             </div>
           </div>
 
@@ -847,7 +855,7 @@
               <svg class="faq-chevron w-5 h-5 text-sealant-400 transform transition-transform duration-200 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
             </button>
             <div class="faq-content hidden px-5 pb-4 text-sm text-slate-300 leading-relaxed border-t border-slate-700/60 pt-3">
-              That's completely normal during the first 24 hours—especially with lightweight supple gravel tyres or tan-wall casings, which have microscopic pores in the rubber sidewalls. We spin and horizontal-shake every wheel in the lab to coat the bead and casing, and we advise giving the tyres a quick top-up to your target PSI before your first ride so the sealant finishes curing into every micro-pore.
+              That's completely normal during the first 24 hours, especially with lightweight supple gravel tyres or tan wall casings, which have microscopic pores in the rubber sidewalls. We spin and horizontal shake every wheel in the lab to coat the bead and casing, and we advise giving the tyres a quick top up to your target PSI before your first ride so the sealant finishes curing into every micro pore.
             </div>
           </div>
 
@@ -858,7 +866,7 @@
               <svg class="faq-chevron w-5 h-5 text-sealant-400 transform transition-transform duration-200 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
             </button>
             <div class="faq-content hidden px-5 pb-4 text-sm text-slate-300 leading-relaxed border-t border-slate-700/60 pt-3">
-              Yes—we convert hookless wheelsets following strict ETRTO safety guidelines. Hookless rims must only be paired with <strong>hookless-compatible tubeless tyres</strong> and must never exceed <strong>72.5 PSI (5.0 bar)</strong>. We cross-check your tyre manufacturer's hookless approval chart and set your pressure digitally before handover.
+              Yes, we convert hookless wheelsets following strict ETRTO safety guidelines. Hookless rims must only be paired with <strong>hookless compatible tubeless tyres</strong> and must never exceed <strong>72.5 PSI (5.0 bar)</strong>. We cross check your tyre manufacturer's hookless approval chart and set your pressure digitally before handover.
             </div>
           </div>
         </div>
@@ -882,14 +890,14 @@
           <h4 class="font-bold text-white text-xs uppercase tracking-wider font-mono mb-2.5">Workshop &amp; Coverage Area</h4>
           <p class="text-xs leading-relaxed">
             <strong>Base:</strong> South Queensferry (EH30), near Dalmeny Station &amp; Forth Road Bridge cycle path.<br />
-            <strong>Local Collection/Drop-off Radius:</strong> Dalmeny, Kirkliston, Cramond, Barnton, North Queensferry, Inverkeithing &amp; Dunfermline.
+            <strong>Local Collection/Drop Off Radius:</strong> Dalmeny, Kirkliston, Cramond, Barnton, North Queensferry, Inverkeithing &amp; Dunfermline.
           </p>
         </div>
 
         <div>
           <h4 class="font-bold text-white text-xs uppercase tracking-wider font-mono mb-2.5">Workshop Policy</h4>
           <p class="text-xs leading-relaxed">
-            For rider safety, we strictly convert verified Tubeless Ready (TLR/TR/UST) rims and tyres only. Non-TLR rims or wire-bead tyres cannot be converted.
+            For rider safety, we strictly convert verified Tubeless Ready (TLR/TR/UST) rims and tyres only. Non TLR rims or wire bead tyres cannot be converted.
           </p>
         </div>
       </div>
@@ -932,7 +940,7 @@
     // =========================================================================
     const SERVICE_CATALOG = {
       'all-in': {
-        title: 'Full Tubeless Conversion (All-In)',
+        title: 'Full Tubeless Conversion (All In)',
         pairPrice: 55,
         singlePrice: 30,
         turnaround: '35–45 mins workshop time • Ready within 24 hrs'
@@ -947,13 +955,13 @@
         title: 'Seasonal Sealant Refresh',
         pairPrice: 20,
         singlePrice: 12,
-        turnaround: '15–20 mins workshop time • Same-day turnaround'
+        turnaround: '15–20 mins workshop time • Same day turnaround'
       },
       'rescue': {
         title: 'Stubborn Bead Blast / Plug Rescue',
         pairPrice: 20,
         singlePrice: 12,
-        turnaround: '10–15 mins workshop time • While-you-wait / Same-day'
+        turnaround: '10–15 mins workshop time • While you wait / Same day'
       }
     };
 
@@ -1080,7 +1088,7 @@
         summaryHandoverPrice.textContent = '£5.00';
         summaryHandoverPrice.className = 'font-mono font-bold text-sealant-400';
       } else {
-        summaryHandoverLabel.textContent = 'South Queensferry (EH30) Drop-off';
+        summaryHandoverLabel.textContent = 'South Queensferry (EH30) Drop Off';
         summaryHandoverPrice.textContent = 'FREE';
         summaryHandoverPrice.className = 'font-mono font-bold text-trail-400';
       }
@@ -1287,7 +1295,7 @@
         serviceTitle: quote.service.title,
         wheels: state.wheels === 'pair' ? 'Pair (Front & Rear)' : 'Single Wheel',
         addons: state.addons.map(a => a.name),
-        handover: state.handover === 'pickup' ? 'Local Pickup/Return (+£5)' : 'EH30 Workshop Drop-off (Free)',
+        handover: state.handover === 'pickup' ? 'Local Pickup/Return (+£5)' : 'EH30 Workshop Drop Off (Free)',
         slotDay,
         slotTime,
         total: quote.grandTotal
@@ -1338,7 +1346,7 @@
       const b = state.lastConfirmedBooking;
       if (!b) return;
 
-      const addonsText = b.addons.length ? `\nAdd-ons: ${b.addons.join(', ')}` : '';
+      const addonsText = b.addons.length ? `\nAdd ons: ${b.addons.join(', ')}` : '';
       const summaryText =
 `FORTH TUBELESS BOOKING ${b.ref}
 Name: ${b.name}
