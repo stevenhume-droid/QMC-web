@@ -11645,6 +11645,7 @@
             const trTitle = escapeHtml(tr.title || `Track ${tIdx + 1}`);
             const trArtist = (tr.artist && String(tr.artist).toLowerCase() !== String(rec?.artist || '').toLowerCase()) ? escapeHtml(tr.artist) : '';
             const trDur = escapeHtml(tr.duration || '');
+            const trTelem = (typeof deriveTrackTelemetry === 'function') ? deriveTrackTelemetry(rec, tr, tIdx) : null;
             const inSet = activeSetState.tracks.some(st => String(st.record_id) === recId && String(st.title).toLowerCase() === String(tr.title || '').toLowerCase());
 
             return `
@@ -11654,10 +11655,13 @@
                           <span class="truncate font-medium text-slate-200" title="${trArtist ? `${trArtist} — ${trTitle}` : trTitle}">${trArtist ? `<span class="text-amber-300 font-semibold">${trArtist}</span> <span class="text-slate-500">—</span> ` : ''}${trTitle}</span>
                           ${trDur ? `<span class="text-[10px] font-mono text-slate-500 shrink-0">(${trDur})</span>` : ''}
                         </div>
-                        <button type="button" onclick="addTrackToActiveSet('${safeId}', ${tIdx})"
-                          class="px-2 py-0.5 rounded text-[10px] font-semibold transition shrink-0 cursor-pointer ${inSet ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border border-amber-500/30'}">
-                          ${inSet ? '✓ In Set' : '+ Set'}
-                        </button>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                          ${trTelem ? `<span class="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-mono text-[9.5px] font-bold" title="${escapeHtml(trTelem.musicalKey)} (${escapeHtml(trTelem.camelot)})">${trTelem.bpm} · ${escapeHtml(trTelem.camelot)}</span>` : ''}
+                          <button type="button" onclick="addTrackToActiveSet('${safeId}', ${tIdx})"
+                            class="px-2 py-0.5 rounded text-[10px] font-semibold transition shrink-0 cursor-pointer ${inSet ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-vinyl-800 hover:bg-vinyl-700 text-amber-300 border border-amber-500/30'}">
+                            ${inSet ? '✓ In Set' : '+ Set'}
+                          </button>
+                        </div>
                       </div>
                     `;
           }).join('') : `
@@ -12330,14 +12334,26 @@
         let bpmVal = track.bpm || '';
         let keyVal = track.key || track.musical_key || '';
         let camelotVal = track.camelot || '';
-        if ((!bpmVal || !keyVal) && track.record_id) {
+        if (track.record_id) {
           const allRecords = (typeof records !== 'undefined' && Array.isArray(records) ? records : []);
           const rec = allRecords.find(r => String(r.id) === String(track.record_id));
           if (rec) {
-            const telemetry = (typeof deriveRecordTelemetry === 'function') ? deriveRecordTelemetry(rec) : null;
-            if (!bpmVal) bpmVal = rec.bpm || telemetry?.bpm || '';
-            if (!keyVal) keyVal = rec.musical_key || rec.musicalKey || rec.key || telemetry?.musicalKey || '';
-            if (!camelotVal) camelotVal = rec.camelot || telemetry?.camelot || ((typeof CAMELOT_KEY_MAP !== 'undefined' && CAMELOT_KEY_MAP[keyVal]) ? CAMELOT_KEY_MAP[keyVal] : '');
+            const albumTelem = (typeof deriveRecordTelemetry === 'function') ? deriveRecordTelemetry(rec) : null;
+            const isLegacyAlbumCopy = albumTelem && String(bpmVal) === String(albumTelem.bpm) && (String(keyVal) === String(albumTelem.musicalKey) || String(camelotVal) === String(albumTelem.camelot));
+            if (!bpmVal || !keyVal || isLegacyAlbumCopy) {
+              const trTelem = (typeof deriveTrackTelemetry === 'function')
+                ? deriveTrackTelemetry(rec, { ...track, bpm: isLegacyAlbumCopy ? '' : track.bpm, musical_key: isLegacyAlbumCopy ? '' : (track.musical_key || track.key), key: isLegacyAlbumCopy ? '' : track.key }, index)
+                : albumTelem;
+              if (!bpmVal || isLegacyAlbumCopy) bpmVal = trTelem?.bpm || rec.bpm || '';
+              if (!keyVal || isLegacyAlbumCopy) keyVal = trTelem?.musicalKey || rec.musical_key || rec.musicalKey || rec.key || '';
+              if (!camelotVal || isLegacyAlbumCopy) camelotVal = trTelem?.camelot || rec.camelot || ((typeof CAMELOT_KEY_MAP !== 'undefined' && CAMELOT_KEY_MAP[keyVal]) ? CAMELOT_KEY_MAP[keyVal] : '');
+              if (isLegacyAlbumCopy && trTelem) {
+                track.bpm = bpmVal;
+                track.key = keyVal;
+                track.musical_key = keyVal;
+                track.camelot = camelotVal;
+              }
+            }
           }
         }
         const safeBpm = bpmVal ? escapeHtml(String(bpmVal)) : '';
@@ -12484,13 +12500,15 @@
         const formatStr = Array.isArray(rec?.format) ? rec.format.join(', ') : String(rec?.format || 'Vinyl');
         const recSpeed = rec?.speed || (formatStr.includes('45') ? '45 RPM' : '33 1/3 RPM');
 
-        const telemetry = (typeof deriveRecordTelemetry === 'function' && rec) ? deriveRecordTelemetry(rec) : null;
-        const trackBpm = tr.bpm || rec?.bpm || telemetry?.bpm || '';
-        const trackKey = tr.musical_key || tr.musicalKey || tr.key || rec?.musical_key || rec?.musicalKey || rec?.key || telemetry?.musicalKey || '';
-        const trackCamelot = tr.camelot || rec?.camelot || (telemetry ? telemetry.camelot : '') || ((typeof CAMELOT_KEY_MAP !== 'undefined' && CAMELOT_KEY_MAP[trackKey]) ? CAMELOT_KEY_MAP[trackKey] : '');
         const splitTr = (typeof splitTrackArtistAndTitle === 'function')
           ? splitTrackArtistAndTitle(tr.title || `Track ${idx + 1}`, rec?.artist || '', tr.artist || '')
           : { artist: tr.artist || '', title: tr.title || `Track ${idx + 1}` };
+        const telemetry = (typeof deriveTrackTelemetry === 'function' && rec)
+          ? deriveTrackTelemetry(rec, { ...tr, title: splitTr.title || tr.title, artist: splitTr.artist || tr.artist, position: trPos }, idx)
+          : ((typeof deriveRecordTelemetry === 'function' && rec) ? deriveRecordTelemetry(rec) : null);
+        const trackBpm = tr.bpm || telemetry?.bpm || rec?.bpm || '';
+        const trackKey = tr.musical_key || tr.musicalKey || tr.key || telemetry?.musicalKey || rec?.musical_key || rec?.musicalKey || rec?.key || '';
+        const trackCamelot = tr.camelot || (telemetry ? telemetry.camelot : '') || rec?.camelot || ((typeof CAMELOT_KEY_MAP !== 'undefined' && CAMELOT_KEY_MAP[trackKey]) ? CAMELOT_KEY_MAP[trackKey] : '');
 
         trackObj = {
           position: trPos,
@@ -12522,11 +12540,13 @@
       const pos = activeSetState.tracks.length + 1;
       const recFormat = Array.isArray(rec?.format) ? rec.format.join(', ') : String(rec?.format || 'Vinyl');
       const recSpeed = rec?.speed || (recFormat.includes('45') ? '45 RPM' : '33 1/3 RPM');
-      const telemetry = (typeof deriveRecordTelemetry === 'function' && rec) ? deriveRecordTelemetry(rec) : null;
+      const telemetry = (typeof deriveTrackTelemetry === 'function' && rec)
+        ? deriveTrackTelemetry(rec, trackObj, pos - 1)
+        : ((typeof deriveRecordTelemetry === 'function' && rec) ? deriveRecordTelemetry(rec) : null);
 
-      const finalBpm = trackObj.bpm || rec?.bpm || telemetry?.bpm || '';
-      const finalKey = trackObj.key || trackObj.musical_key || trackObj.musicalKey || rec?.musical_key || rec?.musicalKey || rec?.key || telemetry?.musicalKey || '';
-      const finalCamelot = trackObj.camelot || rec?.camelot || (telemetry ? telemetry.camelot : '') || ((typeof CAMELOT_KEY_MAP !== 'undefined' && CAMELOT_KEY_MAP[finalKey]) ? CAMELOT_KEY_MAP[finalKey] : '');
+      const finalBpm = trackObj.bpm || telemetry?.bpm || rec?.bpm || '';
+      const finalKey = trackObj.key || trackObj.musical_key || trackObj.musicalKey || telemetry?.musicalKey || rec?.musical_key || rec?.musicalKey || rec?.key || '';
+      const finalCamelot = trackObj.camelot || (telemetry ? telemetry.camelot : '') || rec?.camelot || ((typeof CAMELOT_KEY_MAP !== 'undefined' && CAMELOT_KEY_MAP[finalKey]) ? CAMELOT_KEY_MAP[finalKey] : '');
       const gs = (typeof parseGenreAndStyles === 'function' && rec)
         ? parseGenreAndStyles(rec.genres || '', rec.genre || '', rec.styles || [])
         : { genre: rec?.genre || '', styles: Array.isArray(rec?.styles) ? rec.styles : [], genres: rec?.genres || '' };
@@ -13313,14 +13333,26 @@
       let rawKey = tr.musical_key || tr.musicalKey || tr.key || '';
       let camelot = tr.camelot || '';
 
-      if ((!bpm || !camelot) && tr.record_id) {
+      if (tr.record_id) {
         const allRecords = (typeof records !== 'undefined' && Array.isArray(records) ? records : []);
         const rec = allRecords.find(r => String(r.id) === String(tr.record_id));
         if (rec) {
-          const telem = (typeof deriveRecordTelemetry === 'function') ? deriveRecordTelemetry(rec) : null;
-          if (!bpm) bpm = parseFloat(rec.bpm || telem?.bpm) || 0;
-          if (!rawKey) rawKey = rec.musical_key || rec.musicalKey || rec.key || telem?.musicalKey || '';
-          if (!camelot) camelot = rec.camelot || telem?.camelot || '';
+          const albumTelem = (typeof deriveRecordTelemetry === 'function') ? deriveRecordTelemetry(rec) : null;
+          const isLegacyAlbumCopy = albumTelem && bpm === parseFloat(albumTelem.bpm) && (String(rawKey) === String(albumTelem.musicalKey) || String(camelot) === String(albumTelem.camelot));
+          if (!bpm || !camelot || isLegacyAlbumCopy) {
+            const telem = (typeof deriveTrackTelemetry === 'function')
+              ? deriveTrackTelemetry(rec, { ...tr, bpm: isLegacyAlbumCopy ? '' : tr.bpm, musical_key: isLegacyAlbumCopy ? '' : rawKey, key: isLegacyAlbumCopy ? '' : rawKey }, (parseInt(tr.position, 10) || 1) - 1)
+              : albumTelem;
+            if (!bpm || isLegacyAlbumCopy) bpm = parseFloat(telem?.bpm || rec.bpm) || 0;
+            if (!rawKey || isLegacyAlbumCopy) rawKey = telem?.musicalKey || rec.musical_key || rec.musicalKey || rec.key || '';
+            if (!camelot || isLegacyAlbumCopy) camelot = telem?.camelot || rec.camelot || '';
+            if (isLegacyAlbumCopy && telem) {
+              tr.bpm = bpm;
+              tr.key = rawKey;
+              tr.musical_key = rawKey;
+              tr.camelot = camelot;
+            }
+          }
         }
       }
 
@@ -13601,12 +13633,23 @@
 
         const rawTitle = String(tr.title || '').trim();
         const rawArtist = String(tr.artist || '').trim();
-        const cleanTitle = (typeof cleanSpotifySearchTerm === 'function') ? cleanSpotifySearchTerm(rawTitle) : rawTitle;
-        const cleanArtist = (typeof cleanSpotifySearchTerm === 'function') ? cleanSpotifySearchTerm(rawArtist) : rawArtist;
+        const allRecs = (typeof records !== 'undefined' && Array.isArray(records)) ? records : [];
+        const parentRec = tr.record_id ? allRecs.find(r => String(r.id) === String(tr.record_id)) : null;
+        const splitPair = (typeof splitTrackArtistAndTitle === 'function')
+          ? splitTrackArtistAndTitle(rawTitle, parentRec?.artist || '', rawArtist)
+          : { artist: rawArtist, title: rawTitle };
+        const cleanTitle = (typeof cleanSpotifySearchTerm === 'function') ? cleanSpotifySearchTerm(splitPair.title || rawTitle) : (splitPair.title || rawTitle);
+        const cleanArtist = (typeof cleanSpotifySearchTerm === 'function') ? cleanSpotifySearchTerm(splitPair.artist || rawArtist) : (splitPair.artist || rawArtist);
+        const isCompRelease = Boolean((parentRec && typeof isVariousArtistsName === 'function' && isVariousArtistsName(parentRec.artist)) || /\b(comp|compilation)\b/i.test(String(parentRec?.format || '') + ' ' + String(parentRec?.genres || '')));
+        const cleanAlbumTitle = (typeof cleanSpotifySearchTerm === 'function' && (parentRec?.title || tr.album_title))
+          ? cleanSpotifySearchTerm(parentRec?.title || tr.album_title || '')
+          : '';
 
         let matchedTrack = null;
-        const isGenericArtist = !cleanArtist || cleanArtist.toLowerCase() === 'various' || cleanArtist.toLowerCase() === 'unknown artist';
-        const primaryQuery = isGenericArtist ? cleanTitle : `${cleanArtist} ${cleanTitle}`;
+        const isGenericArtist = !cleanArtist || (typeof isVariousArtistsName === 'function' && isVariousArtistsName(cleanArtist)) || cleanArtist.toLowerCase() === 'unknown artist';
+        const primaryQuery = isGenericArtist
+          ? ((isCompRelease && cleanAlbumTitle && cleanAlbumTitle.toLowerCase() !== cleanTitle.toLowerCase()) ? `${cleanTitle} ${cleanAlbumTitle}` : cleanTitle)
+          : `${cleanArtist} ${cleanTitle}`;
 
         if (primaryQuery) {
           try {
@@ -13620,7 +13663,20 @@
           } catch (_) { }
         }
 
-        if (!matchedTrack && cleanTitle && !isGenericArtist) {
+        if (!matchedTrack && isCompRelease && cleanAlbumTitle && !isGenericArtist) {
+          try {
+            const compQuery = `${cleanArtist} ${cleanTitle} ${cleanAlbumTitle}`.trim();
+            const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(compQuery)}&type=track&limit=1`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+              const data = await res.json();
+              matchedTrack = data.tracks?.items?.[0] || null;
+            }
+          } catch (_) { }
+        }
+
+        if (!matchedTrack && cleanTitle) {
           try {
             const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(cleanTitle)}&type=track&limit=1`, {
               headers: { 'Authorization': `Bearer ${token}` }
@@ -14558,14 +14614,23 @@
 
           const rawTitle = String(tr.title || '').trim();
           const rawArtist = String(tr.artist || '').trim();
-          const cleanTitle = cleanSpotifySearchTerm(rawTitle);
-          const cleanArtist = cleanSpotifySearchTerm(rawArtist);
+          const allRecs = (typeof records !== 'undefined' && Array.isArray(records)) ? records : [];
+          const parentRec = tr.record_id ? allRecs.find(r => String(r.id) === String(tr.record_id)) : null;
+          const splitPair = (typeof splitTrackArtistAndTitle === 'function')
+            ? splitTrackArtistAndTitle(rawTitle, parentRec?.artist || '', rawArtist)
+            : { artist: rawArtist, title: rawTitle };
+          const cleanTitle = cleanSpotifySearchTerm(splitPair.title || rawTitle);
+          const cleanArtist = cleanSpotifySearchTerm(splitPair.artist || rawArtist);
+          const isCompRelease = Boolean((parentRec && typeof isVariousArtistsName === 'function' && isVariousArtistsName(parentRec.artist)) || /\b(comp|compilation)\b/i.test(String(parentRec?.format || '') + ' ' + String(parentRec?.genres || '')));
+          const cleanAlbumTitle = (parentRec?.title || tr.album_title) ? cleanSpotifySearchTerm(parentRec?.title || tr.album_title || '') : '';
 
           let matchedTrack = null;
 
-          // Attempt 1: Combined Artist + Title search (most reliable in Spotify API)
-          const isGenericArtist = !cleanArtist || cleanArtist.toLowerCase() === 'various' || cleanArtist.toLowerCase() === 'unknown artist';
-          const primaryQuery = isGenericArtist ? cleanTitle : `${cleanArtist} ${cleanTitle}`;
+          // Attempt 1: Combined Artist + Title search (or Track Title + Compilation Album Title when artist is Various)
+          const isGenericArtist = !cleanArtist || (typeof isVariousArtistsName === 'function' && isVariousArtistsName(cleanArtist)) || cleanArtist.toLowerCase() === 'unknown artist';
+          const primaryQuery = isGenericArtist
+            ? ((isCompRelease && cleanAlbumTitle && cleanAlbumTitle.toLowerCase() !== cleanTitle.toLowerCase()) ? `${cleanTitle} ${cleanAlbumTitle}` : cleanTitle)
+            : `${cleanArtist} ${cleanTitle}`;
 
           if (primaryQuery) {
             try {
@@ -14579,8 +14644,22 @@
             } catch (_) { }
           }
 
-          // Attempt 2: If no match and not generic artist, search by title alone
-          if (!matchedTrack && cleanTitle && !isGenericArtist) {
+          // Attempt 1b: For compilation tracks with a track artist, also try Artist + Track Title + Compilation Album Title
+          if (!matchedTrack && isCompRelease && cleanAlbumTitle && !isGenericArtist) {
+            try {
+              const compQuery = `${cleanArtist} ${cleanTitle} ${cleanAlbumTitle}`.trim();
+              const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(compQuery)}&type=track&limit=1`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              if (res.ok) {
+                const data = await res.json();
+                matchedTrack = data.tracks?.items?.[0] || null;
+              }
+            } catch (_) { }
+          }
+
+          // Attempt 2: If no match, search by clean track title alone
+          if (!matchedTrack && cleanTitle) {
             try {
               const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(cleanTitle)}&type=track&limit=1`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -15402,10 +15481,12 @@
 
             const recFormat = Array.isArray(rec.format) ? rec.format.join(', ') : String(rec.format || 'Vinyl');
             const recSpeed = rec.speed || (recFormat.includes('45') ? '45 RPM' : '33 1/3 RPM');
-            const telemetry = (typeof deriveRecordTelemetry === 'function') ? deriveRecordTelemetry(rec) : null;
-            const finalBpm = tr.bpm || rec.bpm || telemetry?.bpm || '';
-            const finalKey = tr.key || tr.musical_key || rec.musical_key || rec.key || telemetry?.musicalKey || '';
-            const finalCamelot = tr.camelot || rec.camelot || telemetry?.camelot || ((typeof CAMELOT_KEY_MAP !== 'undefined' && CAMELOT_KEY_MAP[finalKey]) ? CAMELOT_KEY_MAP[finalKey] : '');
+            const telemetry = (typeof deriveTrackTelemetry === 'function')
+              ? deriveTrackTelemetry(rec, { ...tr, title: tr.title || spTr.title, artist: tr.artist || spTr.artist }, archiveHit.trackIndex || seqIdx)
+              : ((typeof deriveRecordTelemetry === 'function') ? deriveRecordTelemetry(rec) : null);
+            const finalBpm = tr.bpm || telemetry?.bpm || rec.bpm || '';
+            const finalKey = tr.key || tr.musical_key || telemetry?.musicalKey || rec.musical_key || rec.key || '';
+            const finalCamelot = tr.camelot || telemetry?.camelot || rec.camelot || ((typeof CAMELOT_KEY_MAP !== 'undefined' && CAMELOT_KEY_MAP[finalKey]) ? CAMELOT_KEY_MAP[finalKey] : '');
             const gs = (typeof parseGenreAndStyles === 'function')
               ? parseGenreAndStyles(rec.genres || '', rec.genre || '', rec.styles || [])
               : { genre: rec.genre || '', styles: Array.isArray(rec.styles) ? rec.styles : [], genres: rec.genres || '' };
@@ -16866,22 +16947,24 @@
 
     // Music streaming & listening queries sanitizer (Spotify / Apple Music / YouTube / Bandcamp)
     function getStreamingSearchQuery(item, trackTitle = '') {
-      const cleanArtist = (item.artist || '')
+      if (!item) return String(trackTitle || '').trim();
+      const rawReleaseArtist = String(item.originalArtist || item.releaseArtist || item.artist || '').trim();
+      const isComp = Boolean(
+        (typeof isVariousArtistsName === 'function' && (isVariousArtistsName(rawReleaseArtist) || isVariousArtistsName(item.artist))) ||
+        /\b(comp|compilation)\b/i.test(String(item.format || '') + ' ' + String(item.genres || '') + ' ' + String(item.styles || ''))
+      );
+
+      let cleanArtist = String(item.artist || '')
         .replace(/\s*\(\d+\)$/, '')
         .replace(/,\s*The$/i, '')
         .replace(/,\s*An$/i, '')
         .trim();
 
-      if (trackTitle) {
-        const cleanT = String(trackTitle)
-          .replace(/^\d+[\.\-\s]+/, '')
-          .replace(/\s*\([^)]*(?:remaster|mono|stereo|version|mix)[^)]*\)/gi, '')
-          .replace(/\s*\[[^\]]*\]/g, '')
-          .trim();
-        return cleanArtist ? `${cleanArtist} ${cleanT}`.trim() : cleanT;
+      if ((typeof isVariousArtistsName === 'function' && isVariousArtistsName(cleanArtist)) || cleanArtist.toLowerCase() === 'unknown artist') {
+        cleanArtist = '';
       }
 
-      let cleanReleaseTitle = (item.title || '')
+      let cleanReleaseTitle = String(item.albumTitle || item.title || '')
         .replace(/\s*\([^)]*(?:album|45 rpm|deluxe|remaster|mono|stereo|pressing|gatefold|box set|vinyl)[^)]*\)/gi, '')
         .replace(/\s*\[[^\]]*\]/g, '')
         .trim();
@@ -16891,6 +16974,41 @@
         const parts = cleanReleaseTitle.split(' / ');
         if (parts[0]) cleanReleaseTitle = parts[0].trim();
       }
+
+      if (trackTitle) {
+        const splitPair = (typeof splitTrackArtistAndTitle === 'function')
+          ? splitTrackArtistAndTitle(trackTitle, rawReleaseArtist, item.trackArtist || cleanArtist)
+          : { artist: item.trackArtist || cleanArtist, title: trackTitle };
+
+        let effectiveTrackArtist = String(splitPair.artist || item.trackArtist || cleanArtist || '')
+          .replace(/\s*\(\d+\)$/, '')
+          .replace(/,\s*The$/i, '')
+          .replace(/,\s*An$/i, '')
+          .trim();
+
+        if ((typeof isVariousArtistsName === 'function' && isVariousArtistsName(effectiveTrackArtist)) || effectiveTrackArtist.toLowerCase() === 'unknown artist') {
+          effectiveTrackArtist = '';
+        }
+
+        const cleanT = String(splitPair.title || trackTitle)
+          .replace(/^(?:[A-Z]\d+|\d{1,2}[A-Z]?)(?:\s*[\.\-–—:]\s*|\s+)/i, '')
+          .replace(/\s*\([^)]*(?:remaster|mono|stereo|version|mix)[^)]*\)/gi, '')
+          .replace(/\s*\[[^\]]*\]/g, '')
+          .trim();
+
+        if (isComp) {
+          const includeAlbum = cleanReleaseTitle && cleanReleaseTitle.toLowerCase() !== cleanT.toLowerCase();
+          if (effectiveTrackArtist && includeAlbum) {
+            return `${effectiveTrackArtist} ${cleanT} ${cleanReleaseTitle}`.trim();
+          }
+          if (!effectiveTrackArtist && includeAlbum) {
+            return `${cleanT} ${cleanReleaseTitle}`.trim();
+          }
+        }
+
+        return effectiveTrackArtist ? `${effectiveTrackArtist} ${cleanT}`.trim() : cleanT;
+      }
+
       return cleanArtist ? `${cleanArtist} ${cleanReleaseTitle}`.trim() : cleanReleaseTitle;
     }
 
@@ -17614,14 +17732,18 @@
           if (rec.tracks && Array.isArray(rec.tracks) && rec.tracks.length > 0) {
             rec.tracks.forEach((t, idx) => {
               const tTitle = (typeof t === 'string') ? t : (t.title || t.name || `Track ${idx + 1}`);
+              const tArtist = (typeof t === 'object' && t && t.artist) ? t.artist : (!isVariousArtistsName(artist) ? artist : '');
               const dMs = (t && t.duration_ms) ? t.duration_ms : 230000;
+              const trTelem = (typeof deriveTrackTelemetry === 'function')
+                ? deriveTrackTelemetry(rec, typeof t === 'object' ? t : { title: tTitle }, idx)
+                : telemetry;
               tracksList.push({
-                artist,
+                artist: tArtist || artist,
                 album,
                 title: tTitle,
                 durationMs: dMs,
-                bpm: telemetry.bpm,
-                camelot: telemetry.camelot,
+                bpm: trTelem.bpm,
+                camelot: trTelem.camelot,
                 spotifyUri: (t && t.spotify_uri) ? t.spotify_uri : null
               });
             });
@@ -19657,6 +19779,124 @@
       };
     }
 
+    function deriveTrackTelemetry(rec, trackObj = null, trackIdx = 0) {
+      const albumTelem = deriveRecordTelemetry(rec);
+      if (!trackObj && !rec) return albumTelem;
+
+      const tr = (typeof trackObj === 'object' && trackObj !== null)
+        ? trackObj
+        : { title: String(trackObj || '') };
+
+      // If track has its own explicit BPM and Musical Key (not merely a duplicate of the album default), honor them
+      const explicitBpm = parseInt(tr.bpm, 10);
+      const explicitKey = tr.musical_key || tr.musicalKey || tr.key || '';
+      if (explicitBpm && explicitKey && (explicitBpm !== albumTelem.bpm || explicitKey !== albumTelem.musicalKey)) {
+        const camelot = tr.camelot || CAMELOT_KEY_MAP[explicitKey] || albumTelem.camelot || '';
+        return {
+          bpm: explicitBpm,
+          musicalKey: explicitKey,
+          camelot,
+          energy: tr.energy !== undefined ? parseInt(tr.energy, 10) : albumTelem.energy,
+          danceability: tr.danceability !== undefined ? parseInt(tr.danceability, 10) : albumTelem.danceability,
+          valence: tr.valence !== undefined ? parseInt(tr.valence, 10) : albumTelem.valence
+        };
+      }
+
+      const rawTitle = String(tr.title || tr.name || `Track ${trackIdx + 1}`)
+        .replace(/^(?:[A-Z]\d+|\d{1,2}[A-Z]?)(?:\s*[\.\-–—:]\s*|\s+)/i, '')
+        .trim();
+      const rawArtist = String(tr.artist || (rec && !isVariousArtistsName(rec.artist) ? rec.artist : '') || '').trim();
+      const rawPos = String(tr.position || tr.pos || tr.side_index || tr.index || (trackIdx + 1)).trim();
+      const rawDur = String(tr.duration || '').trim();
+
+      // Two independent 32-bit hashes from track title, artist, duration, and position so every track on an album gets distinct BPM & Key
+      const seed1 = `${rawTitle.toLowerCase()}|${rawArtist.toLowerCase()}|${rawDur}|#${trackIdx}`;
+      const seed2 = `${rawPos}|${rawTitle.toLowerCase()}|${rec?.id || ''}|slot:${trackIdx * 7 + 3}`;
+      let h1 = 2166136261;
+      for (let i = 0; i < seed1.length; i++) {
+        h1 ^= seed1.charCodeAt(i);
+        h1 = Math.imul(h1, 16777619);
+      }
+      let h2 = 5381;
+      for (let i = 0; i < seed2.length; i++) {
+        h2 = ((h2 << 5) + h2) ^ seed2.charCodeAt(i);
+      }
+      const p1 = Math.abs(h1 | 0);
+      const p2 = Math.abs(h2 | 0);
+
+      const genreText = (
+        (tr.genre || '') + ' ' +
+        (tr.genres || '') + ' ' +
+        (Array.isArray(tr.styles) ? tr.styles.join(' ') : (tr.styles || '')) + ' ' +
+        (rec?.genre || '') + ' ' +
+        (rec?.genres || '') + ' ' +
+        (Array.isArray(rec?.styles) ? rec.styles.join(' ') : (rec?.styles || '')) + ' ' +
+        (rec?.artist || '')
+      ).toLowerCase();
+
+      let minBpm = 86;
+      let maxBpm = 124;
+
+      if (genreText.includes('drum') || genreText.includes('jungle') || genreText.includes('d&b')) {
+        minBpm = 162; maxBpm = 178;
+      } else if (genreText.includes('house') || genreText.includes('techno') || genreText.includes('trance')) {
+        minBpm = 118; maxBpm = 134;
+      } else if (genreText.includes('trip-hop') || genreText.includes('trip hop') || genreText.includes('portishead') || genreText.includes('massive attack') || genreText.includes('tricky')) {
+        minBpm = 68; maxBpm = 96;
+      } else if (genreText.includes('hip') || genreText.includes('rap') || genreText.includes('boom bap')) {
+        minBpm = 80; maxBpm = 102;
+      } else if (genreText.includes('ambient') || genreText.includes('downtempo') || genreText.includes('chill') || genreText.includes('leftfield')) {
+        minBpm = 68; maxBpm = 106;
+      } else if (genreText.includes('funk') || genreText.includes('disco') || genreText.includes('soul') || genreText.includes('northern soul')) {
+        minBpm = 96; maxBpm = 126;
+      } else if (genreText.includes('rock') || genreText.includes('punk') || genreText.includes('indie') || genreText.includes('britpop') || genreText.includes('new wave')) {
+        minBpm = 102; maxBpm = 144;
+      } else if (genreText.includes('reggae') || genreText.includes('dub') || genreText.includes('ska')) {
+        minBpm = 68; maxBpm = 94;
+      }
+
+      // Parse duration (mm:ss) so longer downtempo/epic cuts and shorter uptempo cuts subtly influence tempo & energy
+      let durOffset = 0;
+      if (rawDur.includes(':')) {
+        const dp = rawDur.split(':');
+        const totalSec = (parseInt(dp[0], 10) || 0) * 60 + (parseInt(dp[1], 10) || 0);
+        if (totalSec > 330) durOffset = -3;
+        else if (totalSec > 0 && totalSec < 185) durOffset = 3;
+      }
+
+      const spread = Math.max(8, maxBpm - minBpm);
+      let trackBpm = explicitBpm || (minBpm + ((p1 + trackIdx * 11) % spread) + durOffset);
+      trackBpm = Math.max(60, Math.min(185, trackBpm));
+
+      const isComp = Boolean(rec && typeof isVariousArtistsName === 'function' && isVariousArtistsName(rec.artist));
+      let trackKey = explicitKey;
+      if (!trackKey) {
+        if (isComp) {
+          trackKey = TELEMETRY_KEY_NAMES[(p2 + trackIdx * 5) % TELEMETRY_KEY_NAMES.length];
+        } else {
+          // Anchor around album root key on the Circle of Fifths while giving each track on the album its own key & mode
+          const rootKeyIdx = Math.max(0, TELEMETRY_KEY_NAMES.indexOf(albumTelem.musicalKey));
+          const harmonicOffsets = [0, 1, 2, 3, 4, 5, 22, 23, 20, 21, 6, 7];
+          const offset = harmonicOffsets[(p2 + trackIdx * 3) % harmonicOffsets.length];
+          trackKey = TELEMETRY_KEY_NAMES[(rootKeyIdx + offset) % TELEMETRY_KEY_NAMES.length];
+        }
+      }
+      const trackCamelot = CAMELOT_KEY_MAP[trackKey] || '';
+
+      const energy = Math.max(25, Math.min(98, 38 + ((p1 >> 3) % 54) + durOffset));
+      const danceability = Math.max(25, Math.min(96, 40 + ((p2 >> 3) % 50)));
+      const valence = Math.max(20, Math.min(95, 28 + (((p1 ^ p2) >> 4) % 62)));
+
+      return {
+        bpm: trackBpm,
+        musicalKey: trackKey,
+        camelot: trackCamelot,
+        energy,
+        danceability,
+        valence
+      };
+    }
+
     let dossierPlaybackState = {
       isPlaying: false,
       timer: null,
@@ -19715,13 +19955,16 @@
       }
 
       // Try fetching live 30s audio preview via public Apple Music / iTunes API (zero auth required, 100% open CORS)
-      if (artist && trackTitle && typeof window !== 'undefined' && window.Audio) {
+      if (trackTitle && typeof window !== 'undefined' && window.Audio) {
         try {
           if (dossierPlaybackState.audio) {
             try { dossierPlaybackState.audio.pause(); } catch (_) { }
             dossierPlaybackState.audio = null;
           }
-          const q = encodeURIComponent(`${artist} ${trackTitle}`);
+          const searchStr = (typeof getStreamingSearchQuery === 'function' && rec)
+            ? getStreamingSearchQuery({ ...rec, artist: artist || rec.artist, trackArtist: artist, originalArtist: rec.artist, albumTitle: rec.title }, trackTitle)
+            : (artist ? `${artist} ${trackTitle}` : `${trackTitle} ${rec?.title || ''}`.trim());
+          const q = encodeURIComponent(searchStr);
           const res = await fetch(`https://itunes.apple.com/search?term=${q}&entity=song&limit=1`);
           if (res.ok) {
             const data = await res.json();
@@ -19818,6 +20061,31 @@
         const tArtistPrefix = tr.artist ? `${tr.artist} — ` : '';
         activeTrackEl.textContent = `${pos}. ${tArtistPrefix}${tr.title || 'Untitled Track'}`;
       }
+
+      // Update Dossier Harmonic Telemetry badge & audio feature bars to reflect the selected track's BPM & Key
+      const rec = (typeof records !== 'undefined' && Array.isArray(records))
+        ? records.find(r => String(r.id) === String(dossierPlaybackState.recordId))
+        : null;
+      if (rec && typeof deriveTrackTelemetry === 'function') {
+        const trTelem = deriveTrackTelemetry(rec, tr, index);
+        const badgeEl = document.getElementById('dossierTelemetryBpmKey');
+        if (badgeEl) {
+          badgeEl.textContent = `${trTelem.bpm} BPM • ${trTelem.musicalKey}${trTelem.camelot ? ` (${trTelem.camelot})` : ''}`;
+        }
+        const eVal = document.getElementById('dossierTelemetryEnergyVal');
+        const eBar = document.getElementById('dossierTelemetryEnergyBar');
+        if (eVal) eVal.textContent = `${trTelem.energy}%`;
+        if (eBar) eBar.style.width = `${trTelem.energy}%`;
+        const dVal = document.getElementById('dossierTelemetryDanceVal');
+        const dBar = document.getElementById('dossierTelemetryDanceBar');
+        if (dVal) dVal.textContent = `${trTelem.danceability}%`;
+        if (dBar) dBar.style.width = `${trTelem.danceability}%`;
+        const mVal = document.getElementById('dossierTelemetryMoodVal');
+        const mBar = document.getElementById('dossierTelemetryMoodBar');
+        if (mVal) mVal.textContent = `${trTelem.valence}%`;
+        if (mBar) mBar.style.width = `${trTelem.valence}%`;
+      }
+
       dossierPlaybackState.progress = 0;
       if (tr.duration && tr.duration.includes(':')) {
         const parts = tr.duration.split(':');
@@ -19843,9 +20111,14 @@
         const rec = (typeof records !== 'undefined' ? records : []).find(r => String(r.id) === String(recordId));
         if (!rec) return;
 
-        const query = encodeURIComponent(`${rec.artist} ${rec.title}`);
+        const isComp = typeof isVariousArtistsName === 'function' && isVariousArtistsName(rec.artist);
+        const cleanQueryStr = (typeof getStreamingSearchQuery === 'function')
+          ? getStreamingSearchQuery(rec)
+          : (isComp ? String(rec.title || '') : `${rec.artist || ''} ${rec.title || ''}`).trim();
+        const query = encodeURIComponent(cleanQueryStr);
         const safeArtist = (typeof escapeHtml === 'function') ? escapeHtml(rec.artist || '') : (rec.artist || '');
         const safeTitle = (typeof escapeHtml === 'function') ? escapeHtml(rec.title || '') : (rec.title || '');
+        const displayHeading = isComp ? safeTitle : `${safeArtist} — ${safeTitle}`;
 
         let spotifyUri = rec.spotify_uri || rec.spotify_id || rec.spotifyId || null;
 
@@ -19907,7 +20180,7 @@
                 <i class="fa-brands fa-spotify text-lg"></i>
               </div>
               <div class="min-w-0">
-                <div class="font-bold text-white truncate">${safeArtist} — ${safeTitle}</div>
+                <div class="font-bold text-white truncate">${displayHeading}</div>
                 <div class="text-[11px] text-slate-400">Direct web embed requires a resolved Spotify URI. Stream full release:</div>
               </div>
             </div>
@@ -21762,6 +22035,9 @@
       const firstTrackTitle = firstTrackObj
         ? `${firstTrackObj.artist ? firstTrackObj.artist + ' — ' : ''}${firstTrackObj.title || item.title}`
         : item.title;
+      const initialDossierTelem = (typeof deriveTrackTelemetry === 'function' && firstTrackObj)
+        ? deriveTrackTelemetry(item, firstTrackObj, 0)
+        : telemetry;
 
       // Build Media-Appropriate Tracklist grouped by section (Side A / Disc 1 / Side 1)
       let tracksHTML = '';
@@ -21784,10 +22060,19 @@
                 ${secTracks.map((t, tIdx) => {
             const currentTrackIndex = overallTrackIdx++;
             const effectiveTrackArtist = t.artist || (!isVariousArtistsName(item.artist) ? item.artist : '');
-            const tStream = getStreamingLinks({ ...item, artist: effectiveTrackArtist || item.artist }, t.title);
+            const tStream = getStreamingLinks({
+              ...item,
+              originalArtist: item.artist,
+              artist: effectiveTrackArtist,
+              trackArtist: effectiveTrackArtist,
+              albumTitle: item.title
+            }, t.title);
             const idxBadge = t.index || t.pos || (tIdx + 1);
-            const tBpm = (telemetry.bpm - 2 + ((currentTrackIndex * 2) % 5));
+            const tTelem = (typeof deriveTrackTelemetry === 'function')
+              ? deriveTrackTelemetry(item, t, currentTrackIndex)
+              : { bpm: (telemetry.bpm - 2 + ((currentTrackIndex * 2) % 5)), musicalKey: telemetry.musicalKey, camelot: telemetry.camelot };
             const showTrackArtist = t.artist && String(t.artist).toLowerCase() !== String(item.artist || '').toLowerCase();
+            const whoSampledQuery = effectiveTrackArtist ? `${effectiveTrackArtist} ${t.title}` : `${t.title} ${item.title}`;
             const inSet = (typeof activeSetState !== 'undefined' && Array.isArray(activeSetState.tracks)) &&
               activeSetState.tracks.some(st => String(st.record_id) === String(item.id) && (
                 (st.side_index && String(st.side_index) === String(idxBadge)) ||
@@ -21800,7 +22085,7 @@
                         <span class="font-medium text-white truncate group-hover/track:text-emerald-300 transition">${showTrackArtist ? `<span class="text-amber-300 font-semibold">${escapeHtml(t.artist)}</span> <span class="text-slate-500">—</span> ` : ''}${escapeHtml(t.title)}</span>
                       </div>
                       <div class="flex items-center gap-2 flex-shrink-0">
-                        <span class="text-emerald-400/80 font-mono text-[10px] hidden sm:inline">${tBpm} BPM</span>
+                        <span class="text-emerald-400/90 font-mono text-[10px] hidden sm:inline" title="Track Tempo &amp; Musical Key (${escapeHtml(tTelem.musicalKey)})">${tTelem.bpm} BPM${tTelem.camelot ? ` · <span class="text-sky-300">${escapeHtml(tTelem.camelot)}</span>` : ''}</span>
                         <span class="font-mono text-slate-400 text-xs">${escapeHtml(t.duration || '--:--')}</span>
                         <button type="button" onclick="event.stopPropagation(); addTrackToActiveSetFromDossier('${safeId}', ${currentTrackIndex})"
                           id="dossierSetBtn-${safeId}-${currentTrackIndex}"
@@ -21816,7 +22101,7 @@
                           <a href="${tStream.youtube}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-red-400 transition" title="Search on YouTube">
                             <i class="fa-brands fa-youtube text-xs"></i>
                           </a>
-                          <a href="https://www.whosampled.com/search/?q=${encodeURIComponent((effectiveTrackArtist || item.artist) + ' ' + t.title)}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-indigo-400 transition" title="Explore samples, covers &amp; remixes on WhoSampled">
+                          <a href="https://www.whosampled.com/search/?q=${encodeURIComponent(whoSampledQuery)}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-indigo-400 transition" title="Explore samples, covers &amp; remixes on WhoSampled">
                             <i class="fa-solid fa-dna text-xs"></i>
                           </a>
                         </div>
@@ -21829,11 +22114,17 @@
           `;
         });
       } else {
-        const aStream = getStreamingLinks(item, item.sideATitle || item.title);
-        const bStream = getStreamingLinks(item, item.sideBTitle || 'Side B Track');
+        const aStream = getStreamingLinks({ ...item, originalArtist: item.artist, albumTitle: item.title }, item.sideATitle || item.title);
+        const bStream = getStreamingLinks({ ...item, originalArtist: item.artist, albumTitle: item.title }, item.sideBTitle || 'Side B Track');
         const kind = getMediaKind(item.format);
         const aLabel = kind === 'cd' ? '01' : (kind === 'tape' ? '1A' : 'A');
         const bLabel = kind === 'cd' ? '02' : (kind === 'tape' ? '2B' : 'B');
+        const tTelemA = (typeof deriveTrackTelemetry === 'function')
+          ? deriveTrackTelemetry(item, { pos: aLabel, title: item.sideATitle || item.title, duration: item.sideADuration }, 0)
+          : telemetry;
+        const tTelemB = (typeof deriveTrackTelemetry === 'function')
+          ? deriveTrackTelemetry(item, { pos: bLabel, title: item.sideBTitle || 'Side B Track', duration: item.sideBDuration }, 1)
+          : { bpm: telemetry.bpm + 2, musicalKey: telemetry.musicalKey, camelot: telemetry.camelot };
         const inSet0 = (typeof activeSetState !== 'undefined' && Array.isArray(activeSetState.tracks)) &&
           activeSetState.tracks.some(st => String(st.record_id) === String(item.id) && (
             (st.side_index && String(st.side_index) === String(aLabel)) ||
@@ -21851,7 +22142,7 @@
               <span class="font-medium text-white truncate group-hover/track:text-emerald-300 transition">${escapeHtml(item.sideATitle || item.title)}</span>
             </div>
             <div class="flex items-center gap-2 flex-shrink-0">
-              <span class="text-emerald-400/80 font-mono text-[10px] hidden sm:inline">${telemetry.bpm} BPM</span>
+              <span class="text-emerald-400/90 font-mono text-[10px] hidden sm:inline" title="Track Tempo &amp; Musical Key (${escapeHtml(tTelemA.musicalKey)})">${tTelemA.bpm} BPM${tTelemA.camelot ? ` · <span class="text-sky-300">${escapeHtml(tTelemA.camelot)}</span>` : ''}</span>
               <span class="font-mono text-slate-400 text-xs">${escapeHtml(item.sideADuration || '--:--')}</span>
               <button type="button" onclick="event.stopPropagation(); addTrackToActiveSetFromDossier('${safeId}', 0)"
                 id="dossierSetBtn-${safeId}-0"
@@ -21867,7 +22158,7 @@
                 <a href="${aStream.youtube}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-red-400 transition" title="Search on YouTube">
                   <i class="fa-brands fa-youtube text-xs"></i>
                 </a>
-                <a href="https://www.whosampled.com/search/?q=${encodeURIComponent(item.artist + ' ' + (item.sideATitle || item.title))}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-indigo-400 transition" title="Explore samples, covers &amp; remixes on WhoSampled">
+                <a href="https://www.whosampled.com/search/?q=${encodeURIComponent((!isVariousArtistsName(item.artist) ? item.artist + ' ' : '') + (item.sideATitle || item.title))}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-indigo-400 transition" title="Explore samples, covers &amp; remixes on WhoSampled">
                   <i class="fa-solid fa-dna text-xs"></i>
                 </a>
               </div>
@@ -21879,7 +22170,7 @@
               <span class="font-medium text-white truncate group-hover/track:text-emerald-300 transition">${escapeHtml(item.sideBTitle || 'Side B Track')}</span>
             </div>
             <div class="flex items-center gap-2 flex-shrink-0">
-              <span class="text-emerald-400/80 font-mono text-[10px] hidden sm:inline">${telemetry.bpm + 2} BPM</span>
+              <span class="text-emerald-400/90 font-mono text-[10px] hidden sm:inline" title="Track Tempo &amp; Musical Key (${escapeHtml(tTelemB.musicalKey)})">${tTelemB.bpm} BPM${tTelemB.camelot ? ` · <span class="text-sky-300">${escapeHtml(tTelemB.camelot)}</span>` : ''}</span>
               <span class="font-mono text-slate-400 text-xs">${escapeHtml(item.sideBDuration || '--:--')}</span>
               <button type="button" onclick="event.stopPropagation(); addTrackToActiveSetFromDossier('${safeId}', 1)"
                 id="dossierSetBtn-${safeId}-1"
@@ -22329,9 +22620,9 @@
                   </div>
                 </div>
                 <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-sm flex items-center gap-1.5">
+                  <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-sm flex items-center gap-1.5" title="Active Track BPM, Musical Key &amp; Camelot Code (click any track below to inspect)">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>${telemetry.bpm} BPM • ${escapeHtml(telemetry.musicalKey)}${telemetry.camelot ? ` (${escapeHtml(telemetry.camelot)})` : ''}</span>
+                    <span id="dossierTelemetryBpmKey">${initialDossierTelem.bpm} BPM • ${escapeHtml(initialDossierTelem.musicalKey)}${initialDossierTelem.camelot ? ` (${escapeHtml(initialDossierTelem.camelot)})` : ''}</span>
                   </span>
                 </div>
               </div>
@@ -22341,28 +22632,28 @@
                 <div class="space-y-1">
                   <div class="flex justify-between items-center text-[10px]">
                     <span class="text-slate-400 font-medium">Energy</span>
-                    <span class="font-mono text-emerald-300 font-bold">${telemetry.energy}%</span>
+                    <span id="dossierTelemetryEnergyVal" class="font-mono text-emerald-300 font-bold">${initialDossierTelem.energy}%</span>
                   </div>
                   <div class="w-full h-1.5 bg-vinyl-800 rounded-full overflow-hidden">
-                    <div class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: ${telemetry.energy}%"></div>
+                    <div id="dossierTelemetryEnergyBar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: ${initialDossierTelem.energy}%"></div>
                   </div>
                 </div>
                 <div class="space-y-1">
                   <div class="flex justify-between items-center text-[10px]">
                     <span class="text-slate-400 font-medium">Danceability</span>
-                    <span class="font-mono text-amber-300 font-bold">${telemetry.danceability}%</span>
+                    <span id="dossierTelemetryDanceVal" class="font-mono text-amber-300 font-bold">${initialDossierTelem.danceability}%</span>
                   </div>
                   <div class="w-full h-1.5 bg-vinyl-800 rounded-full overflow-hidden">
-                    <div class="h-full bg-amber-400 rounded-full transition-all duration-500" style="width: ${telemetry.danceability}%"></div>
+                    <div id="dossierTelemetryDanceBar" class="h-full bg-amber-400 rounded-full transition-all duration-500" style="width: ${initialDossierTelem.danceability}%"></div>
                   </div>
                 </div>
                 <div class="space-y-1">
                   <div class="flex justify-between items-center text-[10px]">
                     <span class="text-slate-400 font-medium truncate pr-1" title="Valence (Musical Positivity / Mood)">Mood / Vibe</span>
-                    <span class="font-mono text-sky-300 font-bold">${telemetry.valence}%</span>
+                    <span id="dossierTelemetryMoodVal" class="font-mono text-sky-300 font-bold">${initialDossierTelem.valence}%</span>
                   </div>
                   <div class="w-full h-1.5 bg-vinyl-800 rounded-full overflow-hidden">
-                    <div class="h-full bg-sky-400 rounded-full transition-all duration-500" style="width: ${telemetry.valence}%"></div>
+                    <div id="dossierTelemetryMoodBar" class="h-full bg-sky-400 rounded-full transition-all duration-500" style="width: ${initialDossierTelem.valence}%"></div>
                   </div>
                 </div>
               </div>
