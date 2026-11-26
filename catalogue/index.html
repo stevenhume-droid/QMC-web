@@ -1437,7 +1437,6 @@
               <option value="CD Single">CD Single</option>
               <option value="MiniDisc">MiniDisc</option>
               <option value="Cassette Tape">Cassette Tape</option>
-              <option value="CD LP">CD LP</option>
             </optgroup>
           </select>
 
@@ -2491,30 +2490,44 @@
 
         <!-- Expanded Content View -->
         <div id="quickLookupExpandedContent" class="px-3 sm:px-6 py-2.5 space-y-2 border-b border-vinyl-800">
-          <!-- Row 1: Search inputs & Action buttons -->
+          <!-- Row 1: Search inputs (Artist, Title, Cat #, Year, Discogs ID) & Action buttons -->
           <div class="grid grid-cols-12 gap-1.5 sm:gap-2 items-center">
-            <div class="col-span-12 sm:col-span-4 relative">
+            <div class="col-span-6 sm:col-span-3 relative">
               <input type="text" id="searchArtistInput"
                 onkeydown="if(event.key === 'Enter'){ event.preventDefault(); lookupMusicBrainzManual(); }"
                 placeholder="Artist (e.g. The Bar-Kays)"
                 class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brass-500">
             </div>
-            <div class="col-span-12 sm:col-span-3 relative">
+            <div class="col-span-6 sm:col-span-3 relative">
               <input type="text" id="searchTitleInput"
                 onkeydown="if(event.key === 'Enter'){ event.preventDefault(); lookupMusicBrainzManual(); }"
                 placeholder="Title / Track (e.g. Soul Finger)"
                 class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brass-500">
             </div>
-            <div class="col-span-12 sm:col-span-2 relative">
+            <div class="col-span-4 sm:col-span-2 relative">
               <input type="text" id="searchCatNoInput"
                 onkeydown="if(event.key === 'Enter'){ event.preventDefault(); lookupMusicBrainzManual(); }"
                 placeholder="Cat # (e.g. 601014)"
                 class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brass-500 font-mono"
-                title="Catalog number, matrix stamp, or Discogs Release ID">
+                title="Catalog number or matrix stamp">
             </div>
-            <div class="col-span-12 sm:col-span-3 flex items-center gap-1.5">
+            <div class="col-span-4 sm:col-span-1 relative">
+              <input type="text" id="searchYearInput" inputmode="numeric" maxlength="4"
+                onkeydown="if(event.key === 'Enter'){ event.preventDefault(); lookupMusicBrainzManual(); }"
+                placeholder="Year"
+                class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-2 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brass-500 font-mono"
+                title="Release year (e.g. 1994)">
+            </div>
+            <div class="col-span-4 sm:col-span-1 relative">
+              <input type="text" id="searchDiscogsIdInput"
+                onkeydown="if(event.key === 'Enter'){ event.preventDefault(); lookupMusicBrainzManual(); }"
+                placeholder="Discogs ID"
+                class="w-full bg-vinyl-850 border border-vinyl-700 rounded-lg px-2 py-1.5 text-xs text-amber-300 placeholder-slate-500 focus:outline-none focus:border-brass-500 font-mono"
+                title="Exact Discogs Release ID (e.g. 249504 or r249504) or URL">
+            </div>
+            <div class="col-span-12 sm:col-span-2 flex items-center gap-1.5">
               <button type="button" onclick="lookupMusicBrainzManual()" id="musicBrainzFetchBtn"
-                class="flex-1 py-1.5 px-3 text-xs font-bold rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 transition flex items-center justify-center gap-1.5 shadow whitespace-nowrap">
+                class="flex-1 py-1.5 px-2.5 text-xs font-bold rounded-lg bg-brass-500 hover:bg-brass-400 text-vinyl-950 transition flex items-center justify-center gap-1.5 shadow whitespace-nowrap">
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <span>Search</span>
               </button>
@@ -2533,14 +2546,15 @@
                 <i class="fa-solid fa-filter text-[9px]"></i> Format:
               </span>
               <select id="autofillFormatFilter"
-                class="bg-vinyl-850 border border-vinyl-700 rounded-md px-2 py-0.5 text-xs text-brass-400 font-semibold focus:outline-none focus:border-brass-500 truncate max-w-[150px] sm:max-w-none">
+                class="bg-vinyl-850 border border-vinyl-700 rounded-md px-2 py-0.5 text-xs text-brass-400 font-semibold focus:outline-none focus:border-brass-500 truncate max-w-[170px] sm:max-w-none">
                 <option value="ALL">All Formats</option>
+                <option value="12">12" LP (Album)</option>
+                <option value="2XLP">2xLP Gatefold (Album)</option>
+                <option value="BOX">Box Set (Vinyl / Multi-Disc)</option>
+                <option value="12S">12" Maxi / Single</option>
                 <option value="7">7" Single (45 RPM)</option>
-                <option value="12">12" Vinyl / LP</option>
-                <option value="12S">12" Single / Maxi</option>
-                <option value="BOX">Vinyl Box Set</option>
                 <option value="10">10" Vinyl</option>
-                <option value="CD_LP">CD LP / Album</option>
+                <option value="CD_LP">CD Album (LP)</option>
                 <option value="CD_SINGLE">CD Single</option>
                 <option value="CD">CD (Any)</option>
                 <option value="MINIDISC">MiniDisc</option>
@@ -2628,7 +2642,6 @@
                 <option value="CD Single">CD Single</option>
                 <option value="MiniDisc">MiniDisc</option>
                 <option value="Cassette Tape">Cassette Tape</option>
-                <option value="CD LP">CD LP</option>
               </select>
             </div>
             <div class="text-[11px] text-slate-400" id="formatHintText">
@@ -9269,7 +9282,11 @@
     function sanitizeLoadedRecords(arr) {
       if (!Array.isArray(arr)) return [];
       arr.forEach(r => {
-        if (!r.format) r.format = '7" Single (45 RPM)';
+        if (!r.format) {
+          r.format = '12" LP (Album)';
+        } else if (typeof parseDiscogsFormat === 'function') {
+          r.format = parseDiscogsFormat(r.format);
+        }
         if (!isSpeedApplicable(r.format)) {
           r.speed = '';
         }
@@ -24049,6 +24066,10 @@
         if (tInput) tInput.value = '';
         const cInput = document.getElementById('searchCatNoInput');
         if (cInput) cInput.value = '';
+        const yInput = document.getElementById('searchYearInput');
+        if (yInput) yInput.value = '';
+        const dInput = document.getElementById('searchDiscogsIdInput');
+        if (dInput) dInput.value = '';
 
         closeAutofillResults();
         document.getElementById('acquisitionToolbar')?.classList.remove('hidden');
@@ -24113,6 +24134,8 @@
       if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = '';
       if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = '';
       if (document.getElementById('searchCatNoInput')) document.getElementById('searchCatNoInput').value = '';
+      if (document.getElementById('searchYearInput')) document.getElementById('searchYearInput').value = '';
+      if (document.getElementById('searchDiscogsIdInput')) document.getElementById('searchDiscogsIdInput').value = '';
       document.getElementById('duplicateWarningBanner')?.classList.add('hidden');
       const modal = document.getElementById('recordModal');
       if (modal) modal.classList.add('hidden');
@@ -24309,6 +24332,8 @@
       if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = item.artist || '';
       if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = item.title || '';
       if (document.getElementById('searchCatNoInput')) document.getElementById('searchCatNoInput').value = item.catNo || '';
+      if (document.getElementById('searchYearInput')) document.getElementById('searchYearInput').value = item.year || '';
+      if (document.getElementById('searchDiscogsIdInput')) document.getElementById('searchDiscogsIdInput').value = item.discogsId || '';
       closeAutofillResults();
       document.getElementById('acquisitionToolbar')?.classList.add('hidden');
       document.getElementById('quickLookupBar')?.classList.add('hidden');
@@ -26191,6 +26216,25 @@
           updatedParts.push(`ID #${item.discogsId}`);
         }
 
+        // 0. Pull & Standardize Format directly from Discogs entry
+        if (Array.isArray(dData.formats) && dData.formats.length > 0 && typeof parseDiscogsFormat === 'function') {
+          const dcStandardFormat = parseDiscogsFormat(dData.formats);
+          if (dcStandardFormat && dcStandardFormat !== item.format) {
+            item.format = dcStandardFormat;
+            if (typeof isSpeedApplicable === 'function' && isSpeedApplicable(dcStandardFormat)) {
+              const dcFmtJoined = dData.formats.map(f => [f.name || '', ...(f.descriptions || []), f.text || ''].join(' ')).join(' ').toLowerCase();
+              if (dcFmtJoined.includes('45 rpm') || dcStandardFormat.includes('7"') || dcStandardFormat.includes('12" Maxi')) {
+                item.speed = '45 RPM';
+              } else if (dcFmtJoined.includes('33') || dcStandardFormat.includes('LP')) {
+                item.speed = '33 1/3 RPM';
+              }
+            } else {
+              item.speed = '';
+            }
+            updatedParts.push(`format (${dcStandardFormat})`);
+          }
+        }
+
         // 1. Tracklist (always prioritize fresh Discogs tracklist when available)
         const parsedTracks = parseDiscogsTracklistForRecord(dData.tracklist || [], item.format, item.artist);
         if (parsedTracks.length > 0) {
@@ -26797,9 +26841,13 @@
       const a = document.getElementById('searchArtistInput');
       const t = document.getElementById('searchTitleInput');
       const c = document.getElementById('searchCatNoInput');
+      const y = document.getElementById('searchYearInput');
+      const d = document.getElementById('searchDiscogsIdInput');
       if (a) a.value = '';
       if (t) t.value = '';
       if (c) c.value = '';
+      if (y) y.value = '';
+      if (d) d.value = '';
       closeAutofillResults();
       if (a) a.focus();
     }
@@ -26845,6 +26893,8 @@
       if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = '';
       if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = '';
       if (document.getElementById('searchCatNoInput')) document.getElementById('searchCatNoInput').value = '';
+      if (document.getElementById('searchYearInput')) document.getElementById('searchYearInput').value = '';
+      if (document.getElementById('searchDiscogsIdInput')) document.getElementById('searchDiscogsIdInput').value = '';
       closeAutofillResults();
       clearImagePreviews();
       goToFormPage(1);
@@ -26854,35 +26904,52 @@
     function quickLookupFromForm() {
       const artist = document.getElementById('formArtist')?.value.trim() || '';
       const title = document.getElementById('formTitle')?.value.trim() || '';
+      const catno = document.getElementById('formCatNo')?.value.trim() || '';
+      const year = document.getElementById('formYear')?.value.trim() || '';
+      const discogsId = document.getElementById('formDiscogsId')?.value.trim() || '';
 
-      if (!artist && !title) {
-        showToast("Enter an artist or title first to lookup", "error");
+      if (!artist && !title && !catno && !discogsId) {
+        showToast("Enter an artist, title, Cat #, or Discogs ID first to lookup", "error");
         document.getElementById('formArtist')?.focus();
         return;
       }
 
       if (document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = artist;
       if (document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = title;
+      if (document.getElementById('searchCatNoInput') && catno) document.getElementById('searchCatNoInput').value = catno;
+      if (document.getElementById('searchYearInput') && year) document.getElementById('searchYearInput').value = year;
+      if (document.getElementById('searchDiscogsIdInput') && discogsId) document.getElementById('searchDiscogsIdInput').value = discogsId;
 
-      executeMusicBrainzSearch({ artist, title });
+      executeMusicBrainzSearch({ artist, title, catno, year, discogsId });
     }
 
     async function lookupMusicBrainzManual() {
       let artist = document.getElementById('searchArtistInput')?.value.trim() || '';
       let title = document.getElementById('searchTitleInput')?.value.trim() || '';
       let catno = document.getElementById('searchCatNoInput')?.value.trim() || '';
+      let year = document.getElementById('searchYearInput')?.value.trim() || '';
+      let rawDiscogsIdInput = document.getElementById('searchDiscogsIdInput')?.value.trim() || '';
 
-      // Direct Discogs Release ID or URL detection: e.g. "13184010", "r13184010", or full Discogs URL
+      // Direct Discogs Release ID or URL detection: e.g. "13184010", "r13184010", "[r13184010]", or full Discogs URL
       let directDiscogsId = null;
+      if (rawDiscogsIdInput) {
+        const dcFieldMatch = rawDiscogsIdInput.match(/(?:discogs\.com\/(?:[a-z]+\/)?release\/|\[?r)?(\d{3,12})[\]]?/i);
+        if (dcFieldMatch) {
+          directDiscogsId = dcFieldMatch[1];
+        }
+      }
+
       const combinedInput = `${title} ${catno} ${artist}`.trim();
       const discogsUrlMatch = combinedInput.match(/(?:discogs\.com\/(?:[a-z]+\/)?release\/|r)?(\d{6,10})/i);
 
-      if (/^\d{6,10}$/.test(catno)) {
-        directDiscogsId = catno;
-      } else if (/^\d{6,10}$/.test(title) && !artist) {
-        directDiscogsId = title;
-      } else if (discogsUrlMatch && (/discogs\.com/i.test(combinedInput) || /^r\d+$/i.test(catno) || /^r\d+$/i.test(title))) {
-        directDiscogsId = discogsUrlMatch[1];
+      if (!directDiscogsId) {
+        if (/^\d{6,10}$/.test(catno)) {
+          directDiscogsId = catno;
+        } else if (/^\d{6,10}$/.test(title) && !artist) {
+          directDiscogsId = title;
+        } else if (discogsUrlMatch && (/discogs\.com/i.test(combinedInput) || /^r\d+$/i.test(catno) || /^r\d+$/i.test(title))) {
+          directDiscogsId = discogsUrlMatch[1];
+        }
       }
 
       // Smart parsing: If user pasted "Artist - Title" in either box
@@ -26905,22 +26972,30 @@
       }
 
       // If search bar is blank, fallback to form fields
-      if (!artist && !title && !catno) {
+      if (!artist && !title && !catno && !year && !directDiscogsId) {
         artist = document.getElementById('formArtist')?.value.trim() || '';
         title = document.getElementById('formTitle')?.value.trim() || '';
         catno = document.getElementById('formCatNo')?.value.trim() || '';
+        year = document.getElementById('formYear')?.value.trim() || '';
+        const formDcId = document.getElementById('formDiscogsId')?.value.trim() || '';
+        if (formDcId) {
+          const m = formDcId.match(/(?:discogs\.com\/(?:[a-z]+\/)?release\/|\[?r)?(\d{3,12})[\]]?/i);
+          if (m) directDiscogsId = m[1];
+        }
         if (artist && document.getElementById('searchArtistInput')) document.getElementById('searchArtistInput').value = artist;
         if (title && document.getElementById('searchTitleInput')) document.getElementById('searchTitleInput').value = title;
         if (catno && document.getElementById('searchCatNoInput')) document.getElementById('searchCatNoInput').value = catno;
+        if (year && document.getElementById('searchYearInput')) document.getElementById('searchYearInput').value = year;
+        if (directDiscogsId && document.getElementById('searchDiscogsIdInput')) document.getElementById('searchDiscogsIdInput').value = directDiscogsId;
       }
 
-      if (!artist && !title && !catno && !directDiscogsId) {
-        showToast("Enter Artist, Title, or Cat # to search", "error");
+      if (!artist && !title && !catno && !year && !directDiscogsId) {
+        showToast("Enter Artist, Title, Cat #, Year, or Discogs ID to search", "error");
         document.getElementById('searchArtistInput')?.focus();
         return;
       }
 
-      await executeMusicBrainzSearch({ artist, title, catno, discogsId: directDiscogsId });
+      await executeMusicBrainzSearch({ artist, title, catno, year, discogsId: directDiscogsId });
     }
 
     async function lookupMusicBrainzByBarcodeField() {
@@ -26943,15 +27018,17 @@
       const artist = typeof searchParams === 'string' ? '' : (searchParams.artist || '');
       const title = typeof searchParams === 'string' ? searchParams : (searchParams.title || '');
       const catno = typeof searchParams === 'string' ? '' : (searchParams.catno || '');
+      const year = typeof searchParams === 'string' ? '' : String(searchParams.year || '').trim();
       const barcode = typeof searchParams === 'string' ? '' : (searchParams.barcode || '');
       const directDiscogsId = typeof searchParams === 'string' ? '' : (searchParams.discogsId || '');
 
       const cleanA = cleanLucene(artist);
       const cleanT = cleanLucene(title);
       const cleanCat = cleanLucene(catno);
+      const cleanYear = /^(19|20)\d{2}$/.test(year) ? year : '';
       const strippedA = cleanA.replace(/^(the|a|an)\s+/i, '');
 
-      let queryDisplay = [artist, title, catno].filter(Boolean).join(' · ') || barcode || (directDiscogsId ? `Discogs #${directDiscogsId}` : 'Release');
+      let queryDisplay = [artist, title, catno, cleanYear, directDiscogsId ? `Discogs #${directDiscogsId}` : ''].filter(Boolean).join(' · ') || barcode || 'Release';
       showToast(`Searching open discography for "${queryDisplay}"...`);
 
       const fmtChoice = document.getElementById('autofillFormatFilter')?.value || 'ALL';
@@ -26974,8 +27051,9 @@
               const itemTitle = relData.title || (titleParts.length > 1 ? titleParts.slice(1).join(' - ').trim() : 'Untitled');
               const catNo = (relData.labels && relData.labels[0]?.catno) || catno || '';
               const label = (relData.labels && relData.labels[0]?.name) || '';
-              const year = relData.year ? String(relData.year) : '';
+              const relYear = relData.year ? String(relData.year) : '';
               const country = relData.country || '';
+              const rawFmtSummary = (relData.formats || []).map(f => [f.name || '', ...(f.descriptions || []), f.text || ''].filter(Boolean).join(', ')).filter(Boolean).join(' + ');
               const formatStr = parseDiscogsFormat(relData.formats || []);
               const pImg = (relData.images && (relData.images.find(img => img.type === 'primary') || relData.images[0])) || null;
               const coverImg = pImg?.uri || pImg?.resource_url || '';
@@ -26988,10 +27066,11 @@
                 source: 'discogs',
                 title: itemTitle,
                 'artist-credit': [{ name: itemArtist }],
-                date: year,
+                date: relYear,
                 country: country,
                 'label-info': [{ label: { name: label }, 'catalog-number': catNo }],
-                media: [{ format: formatStr, 'track-count': (relData.tracklist || []).length }],
+                media: [{ format: formatStr, rawFormat: rawFmtSummary, 'track-count': (relData.tracklist || []).length }],
+                rawDiscogsFormat: relData.formats || [],
                 coverImage: coverImg
               });
             }
@@ -27037,7 +27116,8 @@
                   const label = (item.label && item.label[0]) || '';
                   const year = item.year ? String(item.year) : '';
                   const country = item.country || '';
-                  const formatStr = Array.isArray(item.format) ? item.format.join(', ') : (item.format || 'Vinyl');
+                  const rawFmtStr = Array.isArray(item.format) ? item.format.join(', ') : (item.format || 'Vinyl');
+                  const stdFormatStr = (typeof parseDiscogsFormat === 'function') ? parseDiscogsFormat(item.formats || item.format || rawFmtStr) : rawFmtStr;
 
                   releases.push({
                     id: id,
@@ -27049,7 +27129,8 @@
                     country: country,
                     barcode: bc,
                     'label-info': [{ label: { name: label }, 'catalog-number': catNo }],
-                    media: [{ format: formatStr, 'track-count': 0 }],
+                    media: [{ format: stdFormatStr, rawFormat: rawFmtStr, 'track-count': 0 }],
+                    rawDiscogsFormat: item.formats || item.format || [],
                     coverImage: item.cover_image || item.thumb || ''
                   });
                 }
@@ -27088,30 +27169,33 @@
           }
 
           // Build MusicBrainz Lucene queries
+          const yearClause = cleanYear ? ` AND date:${cleanYear}*` : '';
           let targetedLucene = '';
           let broadLucene = '';
 
           if (cleanA && cleanT && cleanCat) {
-            targetedLucene = `artist:"${cleanA}" AND (release:"${cleanT}" OR releaseaccent:"${cleanT}") AND catno:"${cleanCat}"${fmtClause}`;
+            targetedLucene = `artist:"${cleanA}" AND (release:"${cleanT}" OR releaseaccent:"${cleanT}") AND catno:"${cleanCat}"${yearClause}${fmtClause}`;
             broadLucene = `artist:(${cleanA}) AND (release:(${cleanT}) OR catno:(${cleanCat}))`;
           } else if (cleanA && cleanT) {
-            targetedLucene = `artist:"${cleanA}" AND (release:"${cleanT}" OR releaseaccent:"${cleanT}")${fmtClause}`;
+            targetedLucene = `artist:"${cleanA}" AND (release:"${cleanT}" OR releaseaccent:"${cleanT}")${yearClause}${fmtClause}`;
             broadLucene = `artist:(${cleanA}) AND release:(${cleanT})`;
           } else if (cleanA && cleanCat) {
-            targetedLucene = `artist:"${cleanA}" AND catno:"${cleanCat}"${fmtClause}`;
+            targetedLucene = `artist:"${cleanA}" AND catno:"${cleanCat}"${yearClause}${fmtClause}`;
             broadLucene = `artist:(${cleanA}) AND catno:(${cleanCat})`;
           } else if (cleanT && cleanCat) {
-            targetedLucene = `release:"${cleanT}" AND catno:"${cleanCat}"${fmtClause}`;
+            targetedLucene = `release:"${cleanT}" AND catno:"${cleanCat}"${yearClause}${fmtClause}`;
             broadLucene = `release:(${cleanT}) AND catno:(${cleanCat})`;
           } else if (cleanCat) {
-            targetedLucene = `catno:"${cleanCat}"${fmtClause}`;
+            targetedLucene = `catno:"${cleanCat}"${yearClause}${fmtClause}`;
             broadLucene = `catno:(${cleanCat})`;
           } else if (cleanA) {
-            targetedLucene = `artist:"${cleanA}"${fmtClause}`;
+            targetedLucene = `artist:"${cleanA}"${yearClause}${fmtClause}`;
             broadLucene = `artist:(${cleanA})`;
-          } else {
-            targetedLucene = `release:"${cleanT}"${fmtClause}`;
+          } else if (cleanT) {
+            targetedLucene = `release:"${cleanT}"${yearClause}${fmtClause}`;
             broadLucene = `release:(${cleanT})`;
+          } else if (cleanYear) {
+            targetedLucene = `date:${cleanYear}*${fmtClause}`;
           }
 
           const queryPromises = [];
@@ -27132,12 +27216,16 @@
 
           // Parallel Discogs database search queries (always active; adds user token if configured)
           const tokenParam = discogsToken ? `&token=${encodeURIComponent(discogsToken)}` : '';
+          const yearParam = cleanYear ? `&year=${encodeURIComponent(cleanYear)}` : '';
           let fmtParam = '';
           if (fmtChoice === '7') fmtParam = '&format=7%22';
-          else if (fmtChoice === '12' || fmtChoice === '12S') fmtParam = '&format=12%22';
+          else if (fmtChoice === '12' || fmtChoice === '2XLP') fmtParam = '&format=LP';
+          else if (fmtChoice === '12S') fmtParam = '&format=12%22';
           else if (fmtChoice === '10') fmtParam = '&format=10%22';
+          else if (fmtChoice === 'BOX') fmtParam = '&format=Box+Set';
           else if (fmtChoice === 'CASSETTE') fmtParam = '&format=Cassette';
           else if (fmtChoice === 'MINIDISC') fmtParam = '&format=MiniDisc';
+          else if (fmtChoice === 'CD' || fmtChoice === 'CD_LP' || fmtChoice === 'CD_SINGLE') fmtParam = '&format=CD';
           else if (fmtChoice === 'ALL') fmtParam = '&format=Vinyl';
 
           // Query 1: Exact Catalog Number lookup on Discogs (most accurate for vinyl pressings!)
@@ -27147,7 +27235,7 @@
           if (!cleanCat && cleanT && /\d/.test(cleanT)) catCandidates.add(cleanT);
 
           catCandidates.forEach(cand => {
-            let dcCatUrl = `https://api.discogs.com/database/search?catno=${encodeURIComponent(cand)}&type=release&per_page=50${tokenParam}${fmtParam}`;
+            let dcCatUrl = `https://api.discogs.com/database/search?catno=${encodeURIComponent(cand)}&type=release&per_page=50${tokenParam}${yearParam}${fmtParam}`;
             if (strippedA && cand !== cleanA) dcCatUrl += `&artist=${encodeURIComponent(strippedA)}`;
             queryPromises.push(
               fetch(dcCatUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
@@ -27158,7 +27246,7 @@
 
           // Query 2: Normalized Artist + Title on Discogs
           if (cleanA && cleanT) {
-            const dcSearchUrl = `https://api.discogs.com/database/search?artist=${encodeURIComponent(strippedA || cleanA)}&release_title=${encodeURIComponent(cleanT)}&type=release&per_page=50${tokenParam}${fmtParam}`;
+            const dcSearchUrl = `https://api.discogs.com/database/search?artist=${encodeURIComponent(strippedA || cleanA)}&release_title=${encodeURIComponent(cleanT)}&type=release&per_page=50${tokenParam}${yearParam}${fmtParam}`;
             queryPromises.push(
               fetch(dcSearchUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
                 .then(r => r.ok ? r.json() : null)
@@ -27167,9 +27255,9 @@
           }
 
           // Query 3: Free-text broad search on Discogs (finds releases when query is single string like "beg 199" or "s cbs 6333")
-          const qTokens = [cleanA, cleanT, cleanCat].filter(Boolean).join(' ');
+          const qTokens = [cleanA, cleanT, cleanCat, cleanYear].filter(Boolean).join(' ');
           if (qTokens) {
-            const dcQUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(qTokens)}&type=release&per_page=50${tokenParam}${fmtParam}`;
+            const dcQUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(qTokens)}&type=release&per_page=50${tokenParam}${yearParam}${fmtParam}`;
             queryPromises.push(
               fetch(dcQUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
                 .then(r => r.ok ? r.json() : null)
@@ -27179,7 +27267,7 @@
 
           // Query 4: Track-level search on Discogs (locates singles where title is track A like "Soul Finger / Knucklehead")
           if (cleanA && cleanT) {
-            const dcTrackUrl = `https://api.discogs.com/database/search?artist=${encodeURIComponent(strippedA || cleanA)}&track=${encodeURIComponent(cleanT)}&type=release&per_page=50${tokenParam}${fmtParam}`;
+            const dcTrackUrl = `https://api.discogs.com/database/search?artist=${encodeURIComponent(strippedA || cleanA)}&track=${encodeURIComponent(cleanT)}&type=release&per_page=50${tokenParam}${yearParam}${fmtParam}`;
             queryPromises.push(
               fetch(dcTrackUrl, { headers: { 'User-Agent': 'QMCVinylArchive/2.0' } })
                 .then(r => r.ok ? r.json() : null)
@@ -27212,7 +27300,8 @@
                     const label = (item.label && item.label[0]) || '';
                     const year = item.year ? String(item.year) : '';
                     const country = item.country || '';
-                    const formatStr = Array.isArray(item.format) ? item.format.join(', ') : (item.format || 'Vinyl');
+                    const rawFmtStr = Array.isArray(item.format) ? item.format.join(', ') : (item.format || 'Vinyl');
+                    const stdFormatStr = (typeof parseDiscogsFormat === 'function') ? parseDiscogsFormat(item.formats || item.format || rawFmtStr) : rawFmtStr;
 
                     releases.push({
                       id: id,
@@ -27223,7 +27312,8 @@
                       date: year,
                       country: country,
                       'label-info': [{ label: { name: label }, 'catalog-number': catNo }],
-                      media: [{ format: formatStr, 'track-count': 0 }],
+                      media: [{ format: stdFormatStr, rawFormat: rawFmtStr, 'track-count': 0 }],
+                      rawDiscogsFormat: item.formats || item.format || [],
                       coverImage: item.cover_image || item.thumb || ''
                     });
                   }
@@ -27277,9 +27367,15 @@
           }
         }
 
-        // Smart Vinyl-First & Exact Cat # Sorting
+        // Smart Direct Discogs ID, Year, Exact Cat #, and Vinyl-First Sorting
         const targetCat = (cleanCat || catno || '').toLowerCase().replace(/[^a-z0-9]/g, '');
         releases.sort((a, b) => {
+          if (directDiscogsId) {
+            const aDc = String(a?.discogsId || '') === String(directDiscogsId);
+            const bDc = String(b?.discogsId || '') === String(directDiscogsId);
+            if (aDc && !bDc) return -1;
+            if (!aDc && bDc) return 1;
+          }
           if (targetCat) {
             const aCat = ((a && a['label-info'] && a['label-info'][0] && a['label-info'][0]['catalog-number']) || a.catno || '').toLowerCase().replace(/[^a-z0-9]/g, '');
             const bCat = ((b && b['label-info'] && b['label-info'][0] && b['label-info'][0]['catalog-number']) || b.catno || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -27287,6 +27383,12 @@
             const bMatch = bCat && bCat.includes(targetCat);
             if (aMatch && !bMatch) return -1;
             if (!aMatch && bMatch) return 1;
+          }
+          if (cleanYear) {
+            const aYr = String(a?.date || '').slice(0, 4) === cleanYear;
+            const bYr = String(b?.date || '').slice(0, 4) === cleanYear;
+            if (aYr && !bYr) return -1;
+            if (!aYr && bYr) return 1;
           }
           const aFmt = ((a && a.media && a.media[0] && a.media[0].format) || '').toLowerCase();
           const bFmt = ((b && b.media && b.media[0] && b.media[0].format) || '').toLowerCase();
@@ -27368,11 +27470,18 @@
 
       const filtered = stagedOnlineReleases.filter(r => {
         if (currentAutofillFilter === 'ALL') return true;
-        const fmt = (r.media?.[0]?.format || (Array.isArray(r.format) ? r.format[0] : (r.format || 'Vinyl'))).toLowerCase();
+        const rawFmt = r.media?.[0]?.rawFormat || r.media?.[0]?.format || (Array.isArray(r.format) ? r.format.join(', ') : (r.format || 'Vinyl'));
+        const stdFmt = (typeof parseDiscogsFormat === 'function') ? parseDiscogsFormat(r.rawDiscogsFormat?.length ? r.rawDiscogsFormat : rawFmt) : String(rawFmt);
+        const fmt = stdFmt.toLowerCase();
         if (currentAutofillFilter === '7') return fmt.includes('7"');
-        if (currentAutofillFilter === '12') return fmt.includes('12"') || fmt.includes('lp') || fmt.includes('album');
+        if (currentAutofillFilter === '12') return fmt.includes('12" lp') || fmt.includes('2xlp');
+        if (currentAutofillFilter === '2XLP') return fmt.includes('2xlp');
+        if (currentAutofillFilter === '12S') return fmt.includes('12" maxi') || (fmt.includes('12"') && fmt.includes('single'));
+        if (currentAutofillFilter === 'BOX') return fmt.includes('box');
+        if (currentAutofillFilter === '10') return fmt.includes('10"');
         if (currentAutofillFilter === 'CD') return fmt.includes('cd');
         if (currentAutofillFilter === 'CASSETTE') return fmt.includes('cassette') || fmt.includes('tape');
+        if (currentAutofillFilter === 'MINIDISC') return fmt.includes('minidisc');
         return true;
       });
 
@@ -27405,17 +27514,26 @@
 
           <!-- Format Quick Filter Pills -->
           <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
-            <button type="button" onclick="filterAutofillResults('ALL')" class="px-3 py-1 rounded-full text-xs font-semibold transition border ${currentAutofillFilter === 'ALL' ? 'bg-brass-500 text-vinyl-950 border-brass-500 shadow' : 'bg-vinyl-850 text-slate-300 border-vinyl-700 hover:border-slate-500'}">
+            <button type="button" onclick="filterAutofillResults('ALL')" class="px-3 py-1 rounded-full text-xs font-semibold transition border whitespace-nowrap ${currentAutofillFilter === 'ALL' ? 'bg-brass-500 text-vinyl-950 border-brass-500 shadow' : 'bg-vinyl-850 text-slate-300 border-vinyl-700 hover:border-slate-500'}">
               All (${totalMatches})
             </button>
-            <button type="button" onclick="filterAutofillResults('7')" class="px-3 py-1 rounded-full text-xs font-semibold transition border ${currentAutofillFilter === '7' ? 'bg-cyan-500 text-vinyl-950 border-cyan-500 shadow' : 'bg-vinyl-850 text-cyan-300 border-vinyl-700 hover:border-cyan-500/50'}">
-              7" Singles
+            <button type="button" onclick="filterAutofillResults('12')" class="px-3 py-1 rounded-full text-xs font-semibold transition border whitespace-nowrap ${currentAutofillFilter === '12' ? 'bg-amber-500 text-vinyl-950 border-amber-500 shadow' : 'bg-vinyl-850 text-amber-300 border-vinyl-700 hover:border-amber-500/50'}">
+              12" LP / 2xLP
             </button>
-            <button type="button" onclick="filterAutofillResults('12')" class="px-3 py-1 rounded-full text-xs font-semibold transition border ${currentAutofillFilter === '12' ? 'bg-amber-500 text-vinyl-950 border-amber-500 shadow' : 'bg-vinyl-850 text-amber-300 border-vinyl-700 hover:border-amber-500/50'}">
-              12" LPs / Singles
+            <button type="button" onclick="filterAutofillResults('12S')" class="px-3 py-1 rounded-full text-xs font-semibold transition border whitespace-nowrap ${currentAutofillFilter === '12S' ? 'bg-sky-500 text-vinyl-950 border-sky-500 shadow' : 'bg-vinyl-850 text-sky-300 border-vinyl-700 hover:border-sky-500/50'}">
+              12" Maxi / Single
             </button>
-            <button type="button" onclick="filterAutofillResults('CD')" class="px-3 py-1 rounded-full text-xs font-semibold transition border ${currentAutofillFilter === 'CD' ? 'bg-blue-500 text-vinyl-950 border-blue-500 shadow' : 'bg-vinyl-850 text-blue-300 border-vinyl-700 hover:border-blue-500/50'}">
+            <button type="button" onclick="filterAutofillResults('7')" class="px-3 py-1 rounded-full text-xs font-semibold transition border whitespace-nowrap ${currentAutofillFilter === '7' ? 'bg-cyan-500 text-vinyl-950 border-cyan-500 shadow' : 'bg-vinyl-850 text-cyan-300 border-vinyl-700 hover:border-cyan-500/50'}">
+              7" Single
+            </button>
+            <button type="button" onclick="filterAutofillResults('BOX')" class="px-3 py-1 rounded-full text-xs font-semibold transition border whitespace-nowrap ${currentAutofillFilter === 'BOX' ? 'bg-indigo-500 text-vinyl-950 border-indigo-500 shadow' : 'bg-vinyl-850 text-indigo-300 border-vinyl-700 hover:border-indigo-500/50'}">
+              Box Set
+            </button>
+            <button type="button" onclick="filterAutofillResults('CD')" class="px-3 py-1 rounded-full text-xs font-semibold transition border whitespace-nowrap ${currentAutofillFilter === 'CD' ? 'bg-blue-500 text-vinyl-950 border-blue-500 shadow' : 'bg-vinyl-850 text-blue-300 border-vinyl-700 hover:border-blue-500/50'}">
               CD
+            </button>
+            <button type="button" onclick="filterAutofillResults('CASSETTE')" class="px-3 py-1 rounded-full text-xs font-semibold transition border whitespace-nowrap ${currentAutofillFilter === 'CASSETTE' ? 'bg-teal-500 text-vinyl-950 border-teal-500 shadow' : 'bg-vinyl-850 text-teal-300 border-vinyl-700 hover:border-teal-500/50'}">
+              Cassette
             </button>
           </div>
 
@@ -27443,7 +27561,9 @@
           const label = labelInfo?.label?.name || 'Label Unlisted';
           const catNo = labelInfo?.['catalog-number'] || '';
           const media = rel.media?.[0];
-          const mediaFmt = media?.format || (Array.isArray(rel.format) ? rel.format[0] : (rel.format || (media?.['track-count'] ? `${media['track-count']} Tracks` : 'Vinyl')));
+          const rawMediaFmt = media?.format || (Array.isArray(rel.format) ? rel.format.join(', ') : (rel.format || (media?.['track-count'] ? `${media['track-count']} Tracks` : 'Vinyl')));
+          const mediaFmt = (typeof parseDiscogsFormat === 'function') ? parseDiscogsFormat(rel.rawDiscogsFormat?.length ? rel.rawDiscogsFormat : (media?.rawFormat || rawMediaFmt)) : rawMediaFmt;
+          const rawDiscogsSub = (media?.rawFormat && media.rawFormat.toLowerCase() !== mediaFmt.toLowerCase()) ? media.rawFormat : '';
           const trackCount = media?.['track-count'] || (media?.tracks?.length || 0);
 
           let badgeClass = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
@@ -27452,6 +27572,15 @@
           if (fmtLower.includes('7"')) {
             badgeClass = 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
             badgeIcon = 'fa-record-vinyl';
+          } else if (fmtLower.includes('12" maxi') || fmtLower.includes('single')) {
+            badgeClass = 'bg-sky-500/20 text-sky-300 border-sky-500/30';
+            badgeIcon = 'fa-circle-dot';
+          } else if (fmtLower.includes('2xlp')) {
+            badgeClass = 'bg-purple-500/20 text-purple-300 border-purple-500/30';
+            badgeIcon = 'fa-book-open';
+          } else if (fmtLower.includes('box')) {
+            badgeClass = 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
+            badgeIcon = 'fa-box-archive';
           } else if (fmtLower.includes('cd')) {
             badgeClass = 'bg-blue-500/20 text-blue-300 border-blue-500/30';
             badgeIcon = 'fa-circle-dot';
@@ -27461,12 +27590,14 @@
             <div onclick="applySelectedRelease(${idx})" class="p-3 bg-vinyl-850 hover:bg-vinyl-800 active:bg-vinyl-750 border border-vinyl-750 hover:border-brass-500/60 rounded-xl transition cursor-pointer shadow-sm flex items-center justify-between gap-3 group">
               <div class="min-w-0 flex-1 space-y-1">
                 <div class="flex items-center gap-2 flex-wrap">
-                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${badgeClass} flex items-center gap-1">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${badgeClass} flex items-center gap-1" title="${escapeHtml(rawDiscogsSub || mediaFmt)}">
                     <i class="fa-solid ${badgeIcon} text-[9px]"></i>
                     <span>${escapeHtml(mediaFmt)}</span>
                   </span>
-                  <span class="text-xs font-mono font-bold text-brass-400">${escapeHtml(date)}</span>
+                  ${rawDiscogsSub ? `<span class="text-[10px] font-mono text-slate-400 truncate max-w-[180px]" title="Discogs Format: ${escapeHtml(rawDiscogsSub)}">(${escapeHtml(rawDiscogsSub)})</span>` : ''}
+                  <span class="px-1.5 py-0.5 rounded bg-brass-500/15 text-brass-300 border border-brass-500/30 text-[11px] font-mono font-bold">${escapeHtml(date)}</span>
                   <span class="text-xs font-mono text-slate-300 font-medium">${escapeHtml(country)}</span>
+                  ${rel.discogsId ? `<span class="px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30 text-[10px] font-mono font-bold" title="Discogs Release ID">[r${escapeHtml(String(rel.discogsId))}]</span>` : `<span class="px-1.5 py-0.5 rounded bg-vinyl-800 text-slate-400 border border-vinyl-700 text-[10px] font-mono">MB</span>`}
                   ${trackCount ? `<span class="text-[10px] font-mono text-slate-500">• ${trackCount} tracks</span>` : ''}
                 </div>
                 <div class="text-sm font-bold text-white group-hover:text-brass-300 transition truncate">
@@ -27790,37 +27921,28 @@
         if (!artistName) artistName = (match['artist-credit']?.[0]?.name || document.getElementById('searchArtistInput')?.value || '').trim();
         if (!titleName) titleName = (match.title || document.getElementById('searchTitleInput')?.value || '').trim();
 
-        // Override format if user selected an explicit format in quick lookup filter
-        if (searchFormatChoice === '12S') assignedFormat = '12" Maxi / Single';
-        else if (searchFormatChoice === '7') assignedFormat = '7" Single (45 RPM)';
-        else if (searchFormatChoice === '10') assignedFormat = '10" Vinyl';
-        else if (searchFormatChoice === 'CASSETTE') assignedFormat = 'Cassette Tape';
-        else if (searchFormatChoice === 'MINIDISC') assignedFormat = 'MiniDisc';
-        else if (searchFormatChoice === 'CD_SINGLE') assignedFormat = 'CD Single';
-        else if (searchFormatChoice === 'CD_LP') assignedFormat = 'CD Album (LP)';
+        // Override format if user selected an explicit format in quick lookup filter (unless Discogs provided an explicit format structure)
+        const hasExplicitDiscogsFormat = match.source === 'discogs' && (Array.isArray(fullRelease.formats) && fullRelease.formats.length > 0 || Array.isArray(match.rawDiscogsFormat) && match.rawDiscogsFormat.length > 0 || match.media?.[0]?.rawFormat);
+        if (!hasExplicitDiscogsFormat) {
+          if (searchFormatChoice === '12S') assignedFormat = '12" Maxi / Single';
+          else if (searchFormatChoice === '2XLP') assignedFormat = '2xLP Gatefold (Album)';
+          else if (searchFormatChoice === 'BOX') assignedFormat = 'Box Set (Vinyl / Multi-Disc)';
+          else if (searchFormatChoice === '7') assignedFormat = '7" Single (45 RPM)';
+          else if (searchFormatChoice === '10') assignedFormat = '10" Vinyl';
+          else if (searchFormatChoice === 'CASSETTE') assignedFormat = 'Cassette Tape';
+          else if (searchFormatChoice === 'MINIDISC') assignedFormat = 'MiniDisc';
+          else if (searchFormatChoice === 'CD_SINGLE') assignedFormat = 'CD Single';
+          else if (searchFormatChoice === 'CD_LP') assignedFormat = 'CD Album (LP)';
+        }
 
-        // The pressing the user actually picked wins over the quick-lookup format filter
-        {
-          const parts = [];
-          (match.media || []).forEach(m => m.format && parts.push(m.format));
-          (Array.isArray(fullRelease.formats) ? fullRelease.formats : []).forEach(f => {
-            parts.push(f.name || '');
-            (f.descriptions || []).forEach(d => parts.push(d));
-          });
-          (Array.isArray(fullRelease.media) ? fullRelease.media : []).forEach(m => m.format && parts.push(m.format));
-          const cf = parts.join(' ').toLowerCase();
-          const isVinylCard = /vinyl|\blp\b|12"|10"|7"/.test(cf);
-          if (/\bcd\b|compact disc/.test(cf) && !isVinylCard) {
-            assignedFormat = (isSingleOrEP || /single|maxi|\bep\b|\bcds\b/.test(cf)) ? 'CD Single' : 'CD Album (LP)';
-          }
-          else if (/\bbox\b/.test(cf)) assignedFormat = 'Box Set (Vinyl / Multi-Disc)';
-          else if (/7"|7 inch/.test(cf)) assignedFormat = '7" Single (45 RPM)';
-          else if (/10"/.test(cf)) assignedFormat = '10" Vinyl';
-          else if (/cassette/.test(cf)) assignedFormat = 'Cassette Tape';
-          else if (/minidisc/.test(cf)) assignedFormat = 'MiniDisc';
-          else if (/12"|\blp\b|vinyl/.test(cf)) {
-            if (/single|maxi|\bep\b/.test(cf)) assignedFormat = '12" Maxi / Single';
-            else if (!/12" (maxi|lp)|2xlp|box|10"|7"/i.test(assignedFormat)) assignedFormat = '12" LP (Album)';
+        // Standardize the selected release's format directly via parseDiscogsFormat so Discogs & QMC formats always match
+        if (typeof parseDiscogsFormat === 'function') {
+          if (Array.isArray(fullRelease.formats) && fullRelease.formats.length > 0) {
+            assignedFormat = parseDiscogsFormat(fullRelease.formats);
+          } else if (Array.isArray(match.rawDiscogsFormat) && match.rawDiscogsFormat.length > 0) {
+            assignedFormat = parseDiscogsFormat(match.rawDiscogsFormat);
+          } else if (match.media?.[0]?.rawFormat || match.media?.[0]?.format) {
+            assignedFormat = parseDiscogsFormat(match.media[0].rawFormat || match.media[0].format);
           }
         }
 
@@ -28126,6 +28248,12 @@
 
         if (document.getElementById('searchCatNoInput')) {
           document.getElementById('searchCatNoInput').value = releaseCatNo || '';
+        }
+        if (document.getElementById('searchYearInput')) {
+          document.getElementById('searchYearInput').value = releaseYear || '';
+        }
+        if (document.getElementById('searchDiscogsIdInput')) {
+          document.getElementById('searchDiscogsIdInput').value = discogsReleaseId || '';
         }
 
         closeAutofillResults();
@@ -28728,14 +28856,9 @@
                 catNoVal = mbRel['label-info']?.[0]?.['catalog-number'] || '';
                 releaseYear = mbRel.date ? mbRel.date.substring(0, 4) : '';
                 releaseCountry = mbRel.country || '';
-                const mbFmt = mbRel.media?.[0]?.format || '';
-                if (mbFmt) {
-                  if (mbFmt.includes('7"')) assignedFormat = '7" Single (45 RPM)';
-                  else if (mbFmt.includes('10"')) assignedFormat = '10" Vinyl';
-                  else if (mbFmt.includes('12"') && (mbFmt.includes('Single') || mbFmt.includes('Maxi'))) assignedFormat = '12" Maxi-Single / EP';
-                  else if (mbFmt.includes('CD')) assignedFormat = 'CD';
-                  else if (mbFmt.includes('Cassette')) assignedFormat = 'Cassette';
-                  else assignedFormat = '12" LP (Album)';
+                const mbFmt = [mbRel.media?.[0]?.format || '', mbRel['release-group']?.['primary-type'] || ''].filter(Boolean).join(' ');
+                if (mbFmt && typeof parseDiscogsFormat === 'function') {
+                  assignedFormat = parseDiscogsFormat(mbFmt);
                 }
               }
             }
@@ -29020,15 +29143,19 @@
       return parseRFC4180CSV(text);
     }
 
-    // Parse Discogs-specific format strings (e.g. 'LP, Album, RE', '2xLP, Comp, TP', '3xLP, Comp, Dlx', '7", Single', '10", EP', '12", Single', 'CD, Album')
+    // Parse Discogs-specific format objects & strings (e.g. [{name:'Vinyl', qty:'2', descriptions:['LP','Album']}], 'LP, Album, RE', '2xLP, Comp', '7", Single', '10", EP', '12", Single, 45 RPM', 'CD, Album')
     function parseDiscogsFormat(rawFmt) {
       if (!rawFmt) return '12" LP (Album)';
       let str = '';
+      let maxQty = 1;
       if (Array.isArray(rawFmt)) {
         str = rawFmt.map(item => {
           if (typeof item === 'string') return item;
           if (item && typeof item === 'object') {
-            const parts = [item.name || ''];
+            const q = parseInt(item.qty || item.quantity || '1', 10);
+            if (!isNaN(q) && q > maxQty) maxQty = q;
+            const qtyPrefix = (!isNaN(q) && q > 1) ? `${q}x` : '';
+            const parts = [qtyPrefix + (item.name || '')];
             if (Array.isArray(item.descriptions)) parts.push(...item.descriptions);
             if (item.text) parts.push(item.text);
             return parts.join(' ');
@@ -29036,7 +29163,10 @@
           return String(item || '');
         }).join(' ');
       } else if (typeof rawFmt === 'object') {
-        const parts = [rawFmt.name || ''];
+        const q = parseInt(rawFmt.qty || rawFmt.quantity || '1', 10);
+        if (!isNaN(q) && q > maxQty) maxQty = q;
+        const qtyPrefix = (!isNaN(q) && q > 1) ? `${q}x` : '';
+        const parts = [qtyPrefix + (rawFmt.name || '')];
         if (Array.isArray(rawFmt.descriptions)) parts.push(...rawFmt.descriptions);
         if (rawFmt.text) parts.push(rawFmt.text);
         str = parts.join(' ');
@@ -29044,17 +29174,31 @@
         str = String(rawFmt);
       }
       const f = str.toLowerCase();
+      const qtyMatch = f.match(/\b(\d+)\s*x\s*(?:lp|vinyl|12"|disc)/i);
+      if (qtyMatch) {
+        const parsedQ = parseInt(qtyMatch[1], 10);
+        if (!isNaN(parsedQ) && parsedQ > maxQty) maxQty = parsedQ;
+      }
 
-      // Box set indicators
-      if (f.includes('3xlp') || f.includes('4xlp') || f.includes('5xlp') || f.includes('6xlp') || f.includes('box set') || f.includes('box') || (f.match(/\blp\b/g) || []).length >= 3) {
+      // Box set indicators (including 3xLP+ multi-disc sets or explicit Box Set)
+      if (maxQty >= 3 || f.includes('3xlp') || f.includes('4xlp') || f.includes('5xlp') || f.includes('6xlp') || f.includes('box set') || f.includes('box') || (f.match(/\blp\b/g) || []).length >= 3) {
         return 'Box Set (Vinyl / Multi-Disc)';
       }
       // 10" vinyl (checked before 2xLP/gatefold and 7"/single so 10" EPs/singles/gatefolds stay 10" Vinyl)
       if (f.includes('10"') || f.includes("10'") || f.includes('10 inch')) {
         return '10" Vinyl';
       }
-      // 2xLP / Gatefold indicators
-      if (f.includes('2xlp') || f.includes('gatefold') || f.includes('gat') || (f.match(/\blp\b/g) || []).length === 2 || f.includes('+ lp')) {
+      // 2xLP / Double LP / Gatefold indicators (includes Discogs qty: "2" + LP/Vinyl)
+      if (
+        f.includes('2xlp') ||
+        f.includes('2xvinyl') ||
+        f.includes('double lp') ||
+        f.includes('gatefold') ||
+        /\bgat\b/.test(f) ||
+        (maxQty === 2 && (f.includes('lp') || f.includes('album') || f.includes('vinyl') || f.includes('12"')) && !f.includes('7"') && !f.includes('cd')) ||
+        (f.match(/\blp\b/g) || []).length === 2 ||
+        f.includes('+ lp')
+      ) {
         return '2xLP Gatefold (Album)';
       }
       // Cassette
@@ -29073,11 +29217,14 @@
         return 'CD Album (LP)';
       }
       // 7" single (check 7" BEFORE 12" maxi to avoid false matching)
-      if (f.includes('7"') || f.includes("7'") || f.includes('7 inch') || (f.includes('single') && !f.includes('12"'))) {
+      if (f.includes('7"') || f.includes("7'") || f.includes('7 inch') || (f.includes('single') && !f.includes('12"') && !f.includes('lp'))) {
         return '7" Single (45 RPM)';
       }
-      // 12" maxi / single
-      if (f.includes('12"') && (f.includes('single') || f.includes('maxi') || f.includes('ep') || f.includes('45 rpm') || f.includes('promo') || (!f.includes('lp') && !f.includes('album')))) {
+      // 12" maxi / single / EP
+      if (
+        (f.includes('12"') && (f.includes('single') || f.includes('maxi') || /\bep\b/.test(f) || f.includes('45 rpm') || f.includes('promo') || (!f.includes('lp') && !f.includes('album')))) ||
+        ((f.includes('maxi-single') || f.includes('maxi single') || /\bep\b/.test(f)) && !f.includes('7"') && !f.includes('10"') && !f.includes('cd'))
+      ) {
         return '12" Maxi / Single';
       }
       // Other digital / CD fallback (e.g. mixed file / dvd / sacd)
