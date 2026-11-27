@@ -552,31 +552,82 @@ document.getElementById("csvUpload").addEventListener("change", async (e) => {
   let uploadedMatches = [];
   let uploadedPlayers = [];
 
+  function normalizeKey(str) {
+    return String(str || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  }
+
+  function findHeader(fields, aliases) {
+    for (const alias of aliases) {
+      const target = normalizeKey(alias);
+      const match = fields.find(f => normalizeKey(f) === target);
+      if (match) return match;
+    }
+    return null;
+  }
+
+  function parseNumeric(val, fallback = 0) {
+    if (val === null || val === undefined || val === "") return fallback;
+    const cleaned = String(val).replace(/,/g, "").trim();
+    const num = parseFloat(cleaned);
+    return Number.isNaN(num) ? fallback : num;
+  }
+
   for (const file of files) {
-    const text = await file.text();
+    let text = await file.text();
+    // Strip UTF-8 BOM if present
+    text = text.replace(/^\uFEFF/, "");
+
+    // Handle FBref/FootyStats multi-row group headers (skip top banner row if row 2 contains 'Player')
+    const lines = text.split(/\r?\n/);
+    if (lines.length > 2 && !/player/i.test(lines[0]) && /player/i.test(lines[1])) {
+      text = lines.slice(1).join("\n");
+    }
+
     const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
     const cols = parsed.meta.fields || [];
 
-    if (cols.includes("HomeTeam") && cols.includes("FTHG")) {
+    const homeCol = findHeader(cols, ["HomeTeam", "Home"]);
+    const fthgCol = findHeader(cols, ["FTHG", "HG", "HomeGoals"]);
+    const playerCol = findHeader(cols, ["Player", "PlayerName", "Name"]);
+    const goalsCol = findHeader(cols, ["Goals", "Gls", "G"]);
+    const shotsCol = findHeader(cols, ["Shots", "Sh", "TotalShots", "ShotsTotal"]);
+    const xgCol = findHeader(cols, ["xG", "npxG", "ExpectedGoals"]);
+
+    if (homeCol && fthgCol) {
       const seasonGuess = file.name.match(/20\d{2}/) ? file.name : "Uploaded";
       const rows = cleanParsedMatches(parsed.data, seasonGuess);
       uploadedMatches = uploadedMatches.concat(rows);
       logMsg(`Imported match CSV "${file.name}": ${rows.length} rows.`);
-    } else if (cols.includes("Player") && cols.includes("xG")) {
-      const pRows = parsed.data.map(r => ({
-        Player: r.Player,
-        Club: r.Club || r.Squad || "Unknown",
-        Pos: r.Pos || "FW",
-        Minutes: parseFloat(r.Minutes || r.Min) || 900,
-        Goals: parseFloat(r.Goals || r.Gls) || 0,
-        xG: parseFloat(r.xG) || 0,
-        Shots: parseFloat(r.Shots || r.Sh) || 0,
-        SoT: parseFloat(r.SoT) || 0
-      })).filter(p => p.Player);
+    } else if (playerCol && (shotsCol || goalsCol || xgCol)) {
+      const clubCol = findHeader(cols, ["Club", "Squad", "Team"]);
+      const posCol = findHeader(cols, ["Pos", "Position"]);
+      const minCol = findHeader(cols, ["Minutes", "Min", "Mins", "MinutesPlayed"]);
+      const sotCol = findHeader(cols, ["SoT", "ShotsonTarget", "OnTarget", "SOT"]);
+
+      const pRows = parsed.data
+        .filter(r => {
+          const pName = String(r[playerCol] || "").trim();
+          // Skip blank rows or repeated FBref mid-table header rows
+          return pName && normalizeKey(pName) !== "player" && normalizeKey(pName) !== "squadtotal";
+        })
+        .map(r => {
+          const mins = parseNumeric(minCol ? r[minCol] : null, 900);
+          return {
+            Player: String(r[playerCol]).trim(),
+            Club: clubCol && r[clubCol] ? String(r[clubCol]).trim() : "Unknown",
+            Pos: posCol && r[posCol] ? String(r[posCol]).trim() : "FW",
+            Minutes: mins > 0 ? mins : 900,
+            Goals: parseNumeric(goalsCol ? r[goalsCol] : null, 0),
+            xG: parseNumeric(xgCol ? r[xgCol] : null, 0),
+            Shots: parseNumeric(shotsCol ? r[shotsCol] : null, 0),
+            SoT: parseNumeric(sotCol ? r[sotCol] : null, 0)
+          };
+        });
+
       uploadedPlayers = uploadedPlayers.concat(pRows);
-      logMsg(`Imported player CSV "${file.name}": ${pRows.length} players.`);
+      logMsg(`Imported player CSV "${file.name}": ${pRows.length} players (mapped columns: Player="${playerCol}", Shots="${shotsCol || 'none'}", Goals="${goalsCol || 'none'}", xG="${xgCol || 'none'}").`);
     } else {
-      logMsg(`Unrecognized schema in "${file.name}". Expected football-data SC0 columns or Player/xG columns.`);
+      logMsg(`Unrecognized schema in "${file.name}". Detected headers: [${cols.join(", ")}]`);
     }
   }
 
@@ -588,8 +639,16 @@ document.getElementById("csvUpload").addEventListener("change", async (e) => {
   }
   if (uploadedPlayers.length > 0) {
     allPlayers = uploadedPlayers;
+    document.getElementById("sourceBadge").className = "badge live";
+    document.getElementById("sourceText").textContent = `Player CSV Loaded (${allPlayers.length.toLocaleString()} Players)`;
+    // Automatically switch to Player Shooting & xG tab so update is immediately visible
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+    document.querySelector('.tab-btn[data-tab="tabPlayers"]').classList.add("active");
+    document.getElementById("tabPlayers").classList.add("active");
   }
   renderAll();
+  e.target.value = "";
 });
 
 document.getElementById("exportCsvBtn").addEventListener("click", () => {
