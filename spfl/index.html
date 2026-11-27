@@ -193,6 +193,17 @@
     }
     th:first-child, td:first-child,
     th.left, td.left { text-align: left; }
+    #clubTable th:first-child, #clubTable td:first-child,
+    #playerTable th:first-child, #playerTable td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+    }
+    #clubTable th:first-child, #playerTable th:first-child { background: var(--navy); z-index: 3; }
+    #clubTable tbody tr:nth-child(odd) td:first-child,
+    #playerTable tbody tr:nth-child(odd) td:first-child { background: #ffffff; }
+    #clubTable tbody tr:nth-child(even) td:first-child,
+    #playerTable tbody tr:nth-child(even) td:first-child { background: #f8fafc; }
     tbody tr:nth-child(even) { background: #f8fafc; }
     tbody tr:hover { background: #ebf3fa; }
     .pos-delta { color: var(--teal); font-weight: 700; }
@@ -394,6 +405,29 @@
   </div>
 
   <div class="log-box" id="fetchLog">[Init] Ready. Embedded baseline dataset (2020/21 – 2025/26, 1,368 matches) loaded. Click "Refresh Live Sources" to pull live SC0 CSVs (including 2026/27) from football-data.co.uk.</div>
+
+  <!-- Interactive CSV Column Mapper Modal -->
+  <div id="mapperModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.72); z-index:9999; align-items:center; justify-content:center; padding:1rem;">
+    <div style="background:#fff; border-radius:12px; max-width:520px; width:100%; padding:1.4rem; box-shadow:0 20px 40px rgba(0,0,0,0.25);">
+      <h2 style="color:var(--navy); font-size:1.1rem; margin-bottom:0.3rem;">Map Your Player CSV Columns</h2>
+      <p id="mapperFileLabel" style="font-size:0.82rem; color:var(--muted); margin-bottom:1rem;"></p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; font-size:0.84rem;">
+        <div><label style="font-weight:700; display:block; margin-bottom:0.2rem;">Player Name *</label><select id="mapPlayer" style="width:100%; color:#1a202c; background:#f8fafc; border:1px solid #cbd5e1;"></select></div>
+        <div><label style="font-weight:700; display:block; margin-bottom:0.2rem;">Club / Squad</label><select id="mapClub" style="width:100%; color:#1a202c; background:#f8fafc; border:1px solid #cbd5e1;"></select></div>
+        <div><label style="font-weight:700; display:block; margin-bottom:0.2rem;">Minutes Played</label><select id="mapMins" style="width:100%; color:#1a202c; background:#f8fafc; border:1px solid #cbd5e1;"></select></div>
+        <div><label style="font-weight:700; display:block; margin-bottom:0.2rem;">Goals</label><select id="mapGoals" style="width:100%; color:#1a202c; background:#f8fafc; border:1px solid #cbd5e1;"></select></div>
+        <div><label style="font-weight:700; display:block; margin-bottom:0.2rem;">Expected Goals (xG)</label><select id="mapXg" style="width:100%; color:#1a202c; background:#f8fafc; border:1px solid #cbd5e1;"></select></div>
+        <div><label style="font-weight:700; display:block; margin-bottom:0.2rem;">Total Shots</label><select id="mapShots" style="width:100%; color:#1a202c; background:#f8fafc; border:1px solid #cbd5e1;"></select></div>
+        <div><label style="font-weight:700; display:block; margin-bottom:0.2rem;">Shots on Target (SoT)</label><select id="mapSot" style="width:100%; color:#1a202c; background:#f8fafc; border:1px solid #cbd5e1;"></select></div>
+        <div><label style="font-weight:700; display:block; margin-bottom:0.2rem;">Position</label><select id="mapPos" style="width:100%; color:#1a202c; background:#f8fafc; border:1px solid #cbd5e1;"></select></div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:0.6rem; margin-top:1.2rem;">
+        <button type="button" onclick="document.getElementById('mapperModal').style.display='none'" style="background:#e2e8f0; color:#1a202c; border:none;">Cancel</button>
+        <button type="button" id="applyMapperBtn" class="btn-primary">Apply &amp; Load Players</button>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <script>
@@ -562,59 +596,80 @@ document.getElementById("csvUpload").addEventListener("change", async (e) => {
       const match = fields.find(f => normalizeKey(f) === target);
       if (match) return match;
     }
+    // Partial contains fallback for headers like "Total Shots (Sh)" or "Player Name"
+    for (const alias of aliases) {
+      const target = normalizeKey(alias);
+      if (target.length < 3) continue;
+      const match = fields.find(f => normalizeKey(f).includes(target));
+      if (match) return match;
+    }
     return null;
   }
 
   function parseNumeric(val, fallback = 0) {
     if (val === null || val === undefined || val === "") return fallback;
-    const cleaned = String(val).replace(/,/g, "").trim();
+    const cleaned = String(val).replace(/,/g, "").replace(/%/g, "").trim();
     const num = parseFloat(cleaned);
     return Number.isNaN(num) ? fallback : num;
   }
 
   for (const file of files) {
     let text = await file.text();
-    // Strip UTF-8 BOM if present
     text = text.replace(/^\uFEFF/, "");
 
-    // Handle FBref/FootyStats multi-row group headers (skip top banner row if row 2 contains 'Player')
+    // Scan top 12 lines to find the actual header row (skips title rows, blank lines, or FBref group banners)
     const lines = text.split(/\r?\n/);
-    if (lines.length > 2 && !/player/i.test(lines[0]) && /player/i.test(lines[1])) {
-      text = lines.slice(1).join("\n");
+    let headerIdx = 0;
+    for (let i = 0; i < Math.min(12, lines.length); i++) {
+      const lineLower = lines[i].toLowerCase();
+      if (
+        (lineLower.includes("player") || lineLower.includes("name") || lineLower.includes("hometeam") || lineLower.includes("home")) &&
+        (lineLower.includes(",") || lineLower.includes(";") || lineLower.includes("\t"))
+      ) {
+        headerIdx = i;
+        break;
+      }
+    }
+    if (headerIdx > 0) {
+      text = lines.slice(headerIdx).join("\n");
     }
 
-    const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+    const parsed = Papa.parse(text, {
+      header: true,
+      skipEmptyLines: true,
+      delimitersToGuess: [",", ";", "\t", "|"]
+    });
     const cols = parsed.meta.fields || [];
 
-    const homeCol = findHeader(cols, ["HomeTeam", "Home"]);
-    const fthgCol = findHeader(cols, ["FTHG", "HG", "HomeGoals"]);
-    const playerCol = findHeader(cols, ["Player", "PlayerName", "Name"]);
-    const goalsCol = findHeader(cols, ["Goals", "Gls", "G"]);
-    const shotsCol = findHeader(cols, ["Shots", "Sh", "TotalShots", "ShotsTotal"]);
-    const xgCol = findHeader(cols, ["xG", "npxG", "ExpectedGoals"]);
+    const homeCol = findHeader(cols, ["HomeTeam", "Home", "HomeClub"]);
+    const fthgCol = findHeader(cols, ["FTHG", "HG", "HomeGoals", "HomeScore"]);
+    const playerCol = findHeader(cols, ["Player", "PlayerName", "Name", "Surname", "Athlete"]);
+    const goalsCol = findHeader(cols, ["Goals", "Gls", "Goal", "Scored"]);
+    const shotsCol = findHeader(cols, ["Shots", "Sh", "TotalShots", "ShotsTotal", "Attempts"]);
+    const xgCol = findHeader(cols, ["xG", "npxG", "ExpectedGoals", "xGoals"]);
+    const sotCol = findHeader(cols, ["SoT", "ShotsonTarget", "OnTarget", "SOT", "ShotsTarget"]);
 
     if (homeCol && fthgCol) {
       const seasonGuess = file.name.match(/20\d{2}/) ? file.name : "Uploaded";
       const rows = cleanParsedMatches(parsed.data, seasonGuess);
       uploadedMatches = uploadedMatches.concat(rows);
       logMsg(`Imported match CSV "${file.name}": ${rows.length} rows.`);
-    } else if (playerCol && (shotsCol || goalsCol || xgCol)) {
-      const clubCol = findHeader(cols, ["Club", "Squad", "Team"]);
-      const posCol = findHeader(cols, ["Pos", "Position"]);
-      const minCol = findHeader(cols, ["Minutes", "Min", "Mins", "MinutesPlayed"]);
-      const sotCol = findHeader(cols, ["SoT", "ShotsonTarget", "OnTarget", "SOT"]);
+    } else if (playerCol && (shotsCol || goalsCol || xgCol || sotCol)) {
+      const clubCol = findHeader(cols, ["Club", "Squad", "Team", "Side"]);
+      const posCol = findHeader(cols, ["Pos", "Position", "Role"]);
+      const minCol = findHeader(cols, ["Minutes", "Min", "Mins", "MinutesPlayed", "Time"]);
 
       const pRows = parsed.data
         .filter(r => {
           const pName = String(r[playerCol] || "").trim();
-          // Skip blank rows or repeated FBref mid-table header rows
-          return pName && normalizeKey(pName) !== "player" && normalizeKey(pName) !== "squadtotal";
+          const norm = normalizeKey(pName);
+          return pName && norm !== "player" && norm !== "squadtotal" && norm !== "opponenttotal" && norm !== "total";
         })
         .map(r => {
           const mins = parseNumeric(minCol ? r[minCol] : null, 900);
           return {
             Player: String(r[playerCol]).trim(),
-            Club: clubCol && r[clubCol] ? String(r[clubCol]).trim() : "Unknown",
+            Club: clubCol && r[clubCol] ? String(r[clubCol]).trim() : "SPFL",
             Pos: posCol && r[posCol] ? String(r[posCol]).trim() : "FW",
             Minutes: mins > 0 ? mins : 900,
             Goals: parseNumeric(goalsCol ? r[goalsCol] : null, 0),
@@ -625,9 +680,11 @@ document.getElementById("csvUpload").addEventListener("change", async (e) => {
         });
 
       uploadedPlayers = uploadedPlayers.concat(pRows);
-      logMsg(`Imported player CSV "${file.name}": ${pRows.length} players (mapped columns: Player="${playerCol}", Shots="${shotsCol || 'none'}", Goals="${goalsCol || 'none'}", xG="${xgCol || 'none'}").`);
+      logMsg(`Imported player CSV "${file.name}": ${pRows.length} players [Player="${playerCol}", Club="${clubCol || 'none'}", Mins="${minCol || 'default 900'}", Goals="${goalsCol || 'none'}", xG="${xgCol || 'none'}", Shots="${shotsCol || 'none'}"].`);
     } else {
-      logMsg(`Unrecognized schema in "${file.name}". Detected headers: [${cols.join(", ")}]`);
+      // Open interactive Column Mapper modal so the user can map any arbitrary CSV structure
+      openMapperModal(file.name, cols, parsed.data);
+      logMsg(`Opened manual column mapper for "${file.name}". Detected headers: [${cols.join(", ")}]`);
     }
   }
 
@@ -641,7 +698,6 @@ document.getElementById("csvUpload").addEventListener("change", async (e) => {
     allPlayers = uploadedPlayers;
     document.getElementById("sourceBadge").className = "badge live";
     document.getElementById("sourceText").textContent = `Player CSV Loaded (${allPlayers.length.toLocaleString()} Players)`;
-    // Automatically switch to Player Shooting & xG tab so update is immediately visible
     document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
     document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
     document.querySelector('.tab-btn[data-tab="tabPlayers"]').classList.add("active");
@@ -850,12 +906,14 @@ function renderAll() {
   });
 
   // Chart 4: Club Fortress Horizontal Bar
+  const shortClubF = { "Heart of Midlothian": "Hearts", "Dundee United": "Dundee Utd" };
+  const isMobileF = window.innerWidth < 600;
   const sortedForChart = [...clubList].sort((a, b) => b.homeWinPct - a.homeWinPct);
   destroyChart("fortress");
   charts.fortress = new Chart(document.getElementById("chartClubFortress"), {
     type: "bar",
     data: {
-      labels: sortedForChart.map(c => c.club),
+      labels: sortedForChart.map(c => (isMobileF && shortClubF[c.club]) ? shortClubF[c.club] : c.club),
       datasets: [
         { label: "Home Win %", data: sortedForChart.map(c => +c.homeWinPct.toFixed(1)), backgroundColor: "#1b365d" },
         { label: "Away Win %", data: sortedForChart.map(c => +c.awayWinPct.toFixed(1)), backgroundColor: "#d95f02" }
@@ -866,7 +924,8 @@ function renderAll() {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        x: { max: 100, ticks: { callback: v => v + "%" } }
+        x: { max: 100, ticks: { callback: v => v + "%" } },
+        y: { ticks: { autoSkip: false, font: { size: isMobileF ? 10 : 12 } } }
       }
     }
   });
@@ -913,12 +972,26 @@ function renderPlayers() {
     };
   });
 
+  const shortClub = {
+    "Heart of Midlothian": "Hearts",
+    "Dundee United": "Dundee Utd",
+    "St Johnstone": "St J'stone"
+  };
+  const isMobile = window.innerWidth < 600;
   const top12 = [...enriched].sort((a, b) => b.goals90 - a.goals90).slice(0, 12);
   destroyChart("players");
   charts.players = new Chart(document.getElementById("chartPlayers"), {
     type: "bar",
     data: {
-      labels: top12.map(p => `${p.Player} (${p.Club})`),
+      labels: top12.map(p => {
+        const clubLabel = shortClub[p.Club] || p.Club;
+        if (isMobile) {
+          const parts = p.Player.split(" ");
+          const compactName = parts.length > 1 ? `${parts[0][0]}. ${parts.slice(1).join(" ")}` : p.Player;
+          return `${compactName} (${clubLabel})`;
+        }
+        return `${p.Player} (${clubLabel})`;
+      }),
       datasets: [
         { label: "Actual Goals / 90", data: top12.map(p => +p.goals90.toFixed(2)), backgroundColor: "#1b365d" },
         { label: "Expected Goals (xG) / 90", data: top12.map(p => +p.xg90.toFixed(2)), backgroundColor: "#d95f02" }
@@ -927,7 +1000,15 @@ function renderPlayers() {
     options: {
       indexAxis: "y",
       responsive: true,
-      maintainAspectRatio: false
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          ticks: {
+            autoSkip: false,
+            font: { size: isMobile ? 10 : 12 }
+          }
+        }
+      }
     }
   });
 
@@ -1006,6 +1087,66 @@ document.querySelectorAll("#playerTable th[data-pcol]").forEach(th => {
 
 document.getElementById("seasonFilter").addEventListener("change", renderAll);
 document.getElementById("refreshBtn").addEventListener("click", refreshLiveSources);
+
+
+let pendingMapperData = [];
+function openMapperModal(fileName, cols, rows) {
+  pendingMapperData = rows;
+  document.getElementById("mapperFileLabel").textContent = `File: ${fileName} (${rows.length} rows detected)`;
+  const selectIds = ["mapPlayer", "mapClub", "mapMins", "mapGoals", "mapXg", "mapShots", "mapSot", "mapPos"];
+  selectIds.forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = `<option value="">-- None / Default --</option>` + cols.map(c => `<option value="${c}">${c}</option>`).join("");
+  });
+  document.getElementById("mapperModal").style.display = "flex";
+}
+
+document.getElementById("applyMapperBtn").addEventListener("click", () => {
+  const pCol = document.getElementById("mapPlayer").value;
+  if (!pCol) { alert("Please select the Player Name column."); return; }
+  const cCol = document.getElementById("mapClub").value;
+  const mCol = document.getElementById("mapMins").value;
+  const gCol = document.getElementById("mapGoals").value;
+  const xCol = document.getElementById("mapXg").value;
+  const sCol = document.getElementById("mapShots").value;
+  const sotCol = document.getElementById("mapSot").value;
+  const posCol = document.getElementById("mapPos").value;
+
+  const num = (v, fb = 0) => {
+    if (v === null || v === undefined || v === "") return fb;
+    const n = parseFloat(String(v).replace(/,/g, "").replace(/%/g, "").trim());
+    return Number.isNaN(n) ? fb : n;
+  };
+
+  const mapped = pendingMapperData
+    .filter(r => r[pCol] && String(r[pCol]).trim() !== "")
+    .map(r => {
+      const mins = num(mCol ? r[mCol] : null, 900);
+      return {
+        Player: String(r[pCol]).trim(),
+        Club: cCol && r[cCol] ? String(r[cCol]).trim() : "SPFL",
+        Pos: posCol && r[posCol] ? String(r[posCol]).trim() : "FW",
+        Minutes: mins > 0 ? mins : 900,
+        Goals: num(gCol ? r[gCol] : null, 0),
+        xG: num(xCol ? r[xCol] : null, 0),
+        Shots: num(sCol ? r[sCol] : null, 0),
+        SoT: num(sotCol ? r[sotCol] : null, 0)
+      };
+    });
+
+  if (mapped.length > 0) {
+    allPlayers = mapped;
+    document.getElementById("sourceBadge").className = "badge live";
+    document.getElementById("sourceText").textContent = `Player CSV Mapped (${allPlayers.length.toLocaleString()} Players)`;
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+    document.querySelector('.tab-btn[data-tab="tabPlayers"]').classList.add("active");
+    document.getElementById("tabPlayers").classList.add("active");
+    renderAll();
+    logMsg(`Manually mapped and loaded ${mapped.length} players.`);
+  }
+  document.getElementById("mapperModal").style.display = "none";
+});
 
 // Initialize on load
 populateSeasonFilter();
