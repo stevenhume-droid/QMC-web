@@ -437,14 +437,22 @@ function logMsg(msg) {
 // 2. LIVE REFRESH ENGINE (Fetches football-data.co.uk via CORS-friendly proxies)
 // ============================================================================
 async function fetchCsvWithFallback(targetUrl) {
-  const candidates = [
+  const candidates = [];
+  if (window.location.protocol.startsWith("http")) {
+    candidates.push(`/proxy?url=${encodeURIComponent(targetUrl)}`);
+  }
+  candidates.push(
     targetUrl,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
-    `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
-  ];
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
+    `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`
+  );
   for (const url of candidates) {
     try {
-      const resp = await fetch(url, { cache: "no-store" });
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
+      const resp = await fetch(url, { cache: "no-store", signal: controller.signal });
+      clearTimeout(timer);
       if (!resp.ok) continue;
       const text = await resp.text();
       if (text && text.includes("HomeTeam") && text.includes("FTHG")) {
@@ -527,7 +535,7 @@ async function refreshLiveSources() {
   } else {
     badge.className = "badge warn";
     statusText.textContent = `Offline / CORS Blocked — Using Embedded Baseline (${allMatches.length.toLocaleString()} Matches)`;
-    logMsg("Live endpoints unreachable from current browser origin (e.g., file:// sandbox). Use 'Load Local CSV' or serve via local HTTP.");
+    logMsg("Live endpoints blocked by browser file:// CORS policy or proxy timeout. Run 'python serve_spfl.py' on localhost:8000 for seamless live refreshes, or click 'Load Local CSV' to import downloaded SC0.csv files.");
   }
 
   btn.disabled = false;
